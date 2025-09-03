@@ -2,10 +2,10 @@ const jwt = require("jsonwebtoken");
 const bcrypt = require("bcrypt");
 const nodemailer = require("nodemailer");
 const readline = require("readline");
+const fs = require("fs");
+const crypto = require('crypto');
 
-const SECRET_KEY = "nagyonTitkosKulcs123!";
-
-// DEMO adatbázis (jelszavak hash-elve + email címek)
+// DEMO database (passw hashed)
 const users = [
   {
     id: 1,
@@ -134,8 +134,23 @@ const getEmailTemplate = (user, otp) => `
 </html>
 `;
 
-// OTP tároló
+// OTP store
 const otpStore = {};
+
+//read AuthPass.env and deobfuscate
+const text = fs.readFileSync("AuthPass.env", "utf-8").split('\n');
+const push = Number(text[2]);
+let text_user = text[0]
+      .split('')
+      .map(char => String.fromCharCode(char.charCodeAt(0) - push))
+      .join("")
+      .slice(0,-1);
+let text_pass = text[1]      
+      .split('')
+      .map(char => String.fromCharCode(char.charCodeAt(0) - push))
+      .join("")
+      .slice(0,-1);
+console.log(`${push};${text_user}; ${text_pass}`)
 
 // SMTP beállítások (példa Gmail-lel)
 // Gmail-nél kell: https://myaccount.google.com/apppasswords
@@ -144,8 +159,8 @@ const transporter = nodemailer.createTransport({
   port: 587,
   secure: false, // STARTTLS
   auth: {
-    user: "<email>@gmail.com",
-    pass: "<Credentials>"
+    user: text_user,
+    pass: text_pass
   }
 });
 
@@ -163,7 +178,7 @@ function requestLogin(username, password) {
 
 transporter.sendMail(
     {
-        from: '"Biztonsági rendszer" <noreply@example.com>',
+        from: '"Biztonsági rendszer" <noreply@carcomps.hu>',
         to: user.email,
         subject: "CarComps - Belépési kód",
         html: getEmailTemplate(user, otp)
@@ -188,7 +203,7 @@ function verifyOTP(username, otp) {
 
     const token = jwt.sign(
       { id: user.id, username: user.username, roles: user.roles },
-      SECRET_KEY,
+      crypto.randomBytes(128),
       { expiresIn: "1h" }
     );
     return { message: "Sikeres bejelentkezés!", token };
@@ -212,7 +227,7 @@ rl.question("Felhasználónév: ", (username) => {
       rl.close();
       return;
     }
-
+    console.log(otpStore)
     // Második lépés: OTP bekérése
     rl.question("Add meg az e-mailben kapott OTP-t ", (otp) => {
       const verifyResult = verifyOTP(username, otp);

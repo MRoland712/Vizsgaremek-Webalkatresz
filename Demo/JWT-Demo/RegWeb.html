@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="hu">
+<head>
+  <meta charset="UTF-8">
+  <title>Regisztráció</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #f4f4f4;
+      padding: 20px;
+    }
+    .container {
+      max-width: 400px;
+      margin: auto;
+      background: white;
+      padding: 20px;
+      border-radius: 8px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+    }
+    input[type="text"],
+    input[type="email"],
+    input[type="password"],
+    select {
+      width: 100%;
+      padding: 10px;
+      margin: 8px 0;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+    }
+    input[type="submit"] {
+      background-color: #4CAF50;
+      color: white;
+      border: none;
+      padding: 10px;
+      width: 100%;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+    input[type="submit"]:hover {
+      background-color: #45a049;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h2>Regisztrációs űrlap</h2>
+    <form action="/register" method="POST">
+      <label for="full_name">Teljes név:</label>
+      <input type="text" id="full_name" name="full_name" placeholder="Lakatos Brendon" required>
+
+      <label for="username">Felhasználónév:</label>
+      <input type="text" id="username" name="username" placeholder="felhnev" required>
+
+      <label for="email">Email cím:</label>
+      <input type="email" id="email" name="email" placeholder="ex@ex.com" required>
+
+      <label for="password">Jelszó:</label>
+      <input type="password" id="password" name="password" placeholder="Jelszó123" required>
+        <br><br>
+      <input type="submit" value="Regisztráció">
+    </form>
+  </div>
+</body>
+</html>

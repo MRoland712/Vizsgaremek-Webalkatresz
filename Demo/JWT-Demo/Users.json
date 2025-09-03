@@ -1,0 +1,36 @@
+[
+  {
+    "username": "root",
+    "email": "root@example.com",
+    "passwordHash": "$2b$10$exampleHashRoot",
+    "roles": "admin"
+  },
+  {
+    "full_name": "MR",
+    "username": "Roland123",
+    "email": "ex@ex.com",
+    "passwordHash": "$2b$10$exampleHash1234",
+    "roles": "user"
+  },
+  {
+    "full_name": "NG",
+    "username": "Geri123",
+    "email": "ex@ex.com",
+    "passwordHash": "$2b$10$exampleHash1234",
+    "roles": "user"
+  },
+  {
+    "full_name": "KE",
+    "username": "Yolo12",
+    "email": "ex@ex.com",
+    "passwordHash": "$2b$10$exampleHash1234",
+    "roles": "user"
+  },
+  {
+    "full_name": "VIK",
+    "username": "Milla05",
+    "email": "ex@ex.com",
+    "passwordHash": "$2b$10$exampleHash1234",
+    "roles": "user"
+  }
+]
