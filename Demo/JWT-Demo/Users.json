@@ -1,36 +1,41 @@
 [
   {
-    "username": "root",
-    "email": "root@example.com",
-    "passwordHash": "$2b$10$exampleHashRoot",
-    "roles": "admin"
-  },
-  {
-    "full_name": "MR",
-    "username": "Roland123",
-    "email": "ex@ex.com",
-    "passwordHash": "$2b$10$exampleHash1234",
-    "roles": "user"
-  },
-  {
-    "full_name": "NG",
-    "username": "Geri123",
-    "email": "ex@ex.com",
-    "passwordHash": "$2b$10$exampleHash1234",
-    "roles": "user"
-  },
-  {
-    "full_name": "KE",
-    "username": "Yolo12",
-    "email": "ex@ex.com",
-    "passwordHash": "$2b$10$exampleHash1234",
-    "roles": "user"
-  },
-  {
-    "full_name": "VIK",
-    "username": "Milla05",
-    "email": "ex@ex.com",
-    "passwordHash": "$2b$10$exampleHash1234",
-    "roles": "user"
-  }
+      "id": 1,
+      "username": "root",
+      "email": "root@example.com",
+      "passwordHash": "$2b$10$rC17WLcQNT52JRcyhhOqu.kpY6yOT3ob.CI0AgiMnJ.oyDql8SVX6",
+      "roles": "admin"
+    },
+    {
+      "id": 2,
+      "full_name": "MR",
+      "username": "Roland123",
+      "email": "ex@ex.com",
+      "passwordHash": "$2b$10$rC17WLcQNT52JRcyhhOqu.kpY6yOT3ob.CI0AgiMnJ.oyDql8SVX6",
+      "roles": "user"
+    },
+    {
+      "id": 3,
+      "username": "Geri123",
+      "full_name": "NG",
+      "email": "ex@ex.com", 
+      "passwordHash": "$2b$10$rC17WLcQNT52JRcyhhOqu.kpY6yOT3ob.CI0AgiMnJ.oyDql8SVX6",
+      "roles": "user"
+    },
+    {
+      "id": 4,
+      "username": "Yolo12",
+      "full_name": "KE",
+      "email": "ex@ex.com",
+      "passwordHash": "$2b$10$rC17WLcQNT52JRcyhhOqu.kpY6yOT3ob.CI0AgiMnJ.oyDql8SVX6",
+      "roles": "user"
+    },
+    {
+      "id": 4,
+      "username": "Milla05",
+      "full_name": "VIK",
+      "email": "ex@ex.com",
+      "passwordHash": "$2b$10$rC17WLcQNT52JRcyhhOqu.kpY6yOT3ob.CI0AgiMnJ.oyDql8SVX6",
+      "roles": "user"
+    }
 ]

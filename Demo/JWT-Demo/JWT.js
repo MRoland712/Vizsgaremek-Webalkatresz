@@ -4,49 +4,16 @@ const nodemailer = require("nodemailer");
 const readline = require("readline");
 const fs = require("fs");
 const crypto = require('crypto');
+const express = require('express')
+
+//express szerver használatának engedélyezése
+const app = express();
+app.use(express.json());
 
 // DEMO database (passw hashed)
-const users = [
-  {
-    id: 1,
-    username: "root",
-    email: "root@example.com",
-    passwordHash: bcrypt.hashSync("RooT", 10),
-    roles: "admin"
-  },
-  {
-    id: 2,
-    full_name: "MR",
-    username: "Roland123",
-    email: "ex@ex.com", // ide küldi majd az OTP-t
-    passwordHash: bcrypt.hashSync("1234", 10),
-    roles: "user"
-  },
-  {
-    id: 3,
-    username: "Geri123",
-    full_name: "NG",
-    email: "ex@ex.com", // ide küldi majd az OTP-t
-    passwordHash: bcrypt.hashSync("1234", 10),
-    roles: "user"
-  },
-  {
-    id: 4,
-    username: "Yolo12",
-    full_name: "KE",
-    email: "ex@ex.com", // ide küldi majd az OTP-t
-    passwordHash: bcrypt.hashSync("1234", 10),
-    roles: "user"
-  },
-  {
-    id: 4,
-    username: "Milla05",
-    full_name: "VIK",
-    email: "ex@ex.com", // ide küldi majd az OTP-t
-    passwordHash: bcrypt.hashSync("1234", 10),
-    roles: "user"
-  },
-];
+const rawData = fs.readFileSync("Users.json", "utf-8");
+const users = JSON.parse(rawData);
+
 // HTML email sablon
 const getEmailTemplate = (user, otp) => `
 <!DOCTYPE html>
@@ -150,7 +117,7 @@ let text_pass = text[1]
       .map(char => String.fromCharCode(char.charCodeAt(0) - push))
       .join("")
       .slice(0,-1);
-console.log(`${push};${text_user}; ${text_pass}`)
+//console.log(`${push};${text_user}; ${text_pass}`)
 
 // SMTP beállítások (példa Gmail-lel)
 // Gmail-nél kell: https://myaccount.google.com/apppasswords
@@ -211,8 +178,9 @@ function verifyOTP(username, otp) {
   return { error: "Hibás vagy lejárt OTP kód!" };
 }
 
-// --- Teszt ---
+// Console test
 // readline interface létrehozása
+/*
 const rl = readline.createInterface({
   input: process.stdin,
   output: process.stdout
@@ -236,3 +204,31 @@ rl.question("Felhasználónév: ", (username) => {
     });
   });
 });
+*/
+let OTP_Username = ""
+app.post("/login", (req, res) =>{
+  const { username, password } = req.body;
+  requestLogin(username, password);
+  const loginResult = requestLogin(username, password);
+    console.log(loginResult.message || loginResult.error);
+  if (loginResult.error) {
+    return res.status(401).json({ error: loginResult.error });
+  }
+    OTP_Username = username
+    console.log("OTP store:", otpStore);
+    // OTP bekérése
+    return res.status(200).json({ message: "Sikeres bejelentkezés, kérlek add meg az OTP-t!" });
+});
+app.post("/OTP", (req, res) => {
+  const OTP  = req.body;
+  const verifyResult = verifyOTP(OTP_Username, OTP);
+
+  if (verifyResult.error) {
+    return res.status(401).json({ error: verifyResult.error });
+  }
+
+  return res.status(200).json({ message: "Sikeres OTP ellenőrzés!" });
+});
+
+const PORT = 3000;
+app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
