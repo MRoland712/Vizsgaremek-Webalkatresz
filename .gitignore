@@ -1,3 +1,4 @@
-# API kulcs file-át ebbe a gitignoreba rakjad  
+# API kulcs file-át ebbe a gitignoreba rakjad 
+.gitignore
 .env
 Users.json
