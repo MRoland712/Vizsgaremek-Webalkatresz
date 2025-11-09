@@ -42,7 +42,7 @@ public class Encrypt extends KvFetcher {
     }
 
     public static void main(String[] args) throws Exception {
-        String original = "Ez egy titkos üzenet!";
+        String original = "hashedpass2blahahahehrje";
         String encrypted = encrypt(original);
         String decrypted = decrypt(encrypted);
 
