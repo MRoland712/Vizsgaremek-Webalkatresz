@@ -23,7 +23,6 @@ import javax.persistence.NamedQueries;
 import javax.persistence.NamedQuery;
 import javax.persistence.OneToMany;
 import javax.persistence.ParameterMode;
-import javax.persistence.ParameterRegistration;
 import javax.persistence.Persistence;
 import javax.persistence.StoredProcedureQuery;
 import javax.persistence.Table;
@@ -765,7 +764,7 @@ public class Users implements Serializable {
             em.close();
         }
     }
-    /*public static Boolean updateUser(Users updatedUser) {
+    public static Boolean updateUser(Users updatedUser) {
         EntityManager em = emf.createEntityManager();
 
         try {
@@ -811,5 +810,5 @@ public class Users implements Serializable {
         } finally {
             em.close();
         }
-    }*/
+    }
 } //CLASS CLOSER, DONT DELETE

@@ -129,21 +129,30 @@ public class UsersController {
                 .build();
     }
 
-    /*@PUT
+    @PUT
     @Path("updateUser")
     @Consumes(MediaType.APPLICATION_JSON)
-    public Response UpdateUser(String body) {
+    public Response UpdateUser(
+            @QueryParam("id") Integer userId,
+            @QueryParam("email") String email,
+            String body) {
+        
         JSONObject bodyObject = new JSONObject(body);
 
         Users updatedUser = new Users();
-
-        if (bodyObject.has("id")) {
-            updatedUser.setId(bodyObject.getInt("id"));
+        
+        if (userId != null) {
+            updatedUser.setId(userId);
         }
-        if (bodyObject.has("email")) {
+        
+        if (email != null) {
+            updatedUser.setEmail(email);
+        }
+        
+        if (bodyObject.has("email") && email == null) {
             updatedUser.setEmail(bodyObject.getString("email"));
-        }
-
+        } 
+        
         if (bodyObject.has("username")) {
             updatedUser.setUsername(bodyObject.getString("username"));
         }
@@ -186,5 +195,5 @@ public class UsersController {
                 .entity(toReturn.toString())
                 .type(MediaType.APPLICATION_JSON)
                 .build();
-    }*/
+    }
 } //CLASS CLOSER DONT DELETE

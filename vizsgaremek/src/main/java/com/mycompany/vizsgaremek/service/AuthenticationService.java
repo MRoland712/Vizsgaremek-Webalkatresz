@@ -27,19 +27,24 @@ public class AuthenticationService {
         public boolean isDataMissing(String data) {
             return (data == null || data.trim().isEmpty());
         }
-        
+
         public boolean isDataMissing(Integer data) {
             return (data == null);
         }
-        
+
         public boolean isDataMissing(ArrayList<Users> data) {
             return (data == null || data.isEmpty());
         }
-
+        
+        public boolean isDataMissing(Boolean data) {
+            return (data == null);
+        }
+        
+        //ToDO: add a try catch for each isValid method 💀💀 vagy megnezni azt hogy object instanceog <x>
         public boolean isValidId(Integer id) {
             return id > 0;
         }
-        
+
         public boolean isValidEmail(String email) {
             return EMAIL_PATTERN.matcher(email).matches();
         }
@@ -47,9 +52,10 @@ public class AuthenticationService {
         public boolean isValidPassword(String password) {
             return PASSWORD_PATTERN.matcher(password).matches();
         }
+
         //ToDo: is username in db? 
         public boolean isValidUsername(String username) {
-            return username.length() <= 30;
+            return username.length() <= 30 && username.length() >= 3;
         }
 
         public boolean isValidFirstName(String firstName) {
@@ -64,6 +70,38 @@ public class AuthenticationService {
             return phone.length() <= 50;
         }
 
+        public boolean isValidRole(String role) {
+            return role.length() <= 20;
+        }
+
+        public boolean isValidIsActive(Boolean isActive) {
+            try {
+                return isActive instanceof Boolean;
+            } catch (Exception ex) {
+                ex.printStackTrace();
+                return false;
+            }
+        }
+        
+        public boolean isValidAuthSecret(String authSecret) {
+            try {
+                return authSecret.length() <= 255;
+            } catch (Exception ex) {
+                ex.printStackTrace();
+                return false;
+            }
+        }
+        
+        public boolean isValidRegistrationToken(String regToken) {
+            try {
+                return regToken.length() <= 255;
+            } catch (Exception ex) {
+                ex.printStackTrace();
+                return false;
+            }
+        }
+        
+
         /**
          * Checks if the plain password is the same as the Encrypted password in
          * the DB
@@ -75,21 +113,21 @@ public class AuthenticationService {
          * @throws Exception If somehow one of the methods in the return went
          * wrong
          */
-//        public boolean isPasswordSame(String password, Integer userId) {
-//            Users userdata = Users.ReadUserById(userId);
-//            if (userdata == null) {
-//                System.err.println("isPasswordSame: Could not find user via id");
-//            }
-//            try {
-//                //debug:
-//                /*System.out.println("isPasswordSame:");
-//            System.out.println(userdata.getPassword() + " == " + Encrypt.encrypt(password) + " (" + password + ")");*/
-//                return userdata.getPassword().equals(Encrypt.encrypt(password));
-//            } catch (Exception e) {
-//                e.printStackTrace();
-//                return false;
-//            }
-//        }
+        public boolean isPasswordSame(String password, Integer userId) {
+            Users userdata = Users.ReadUserById(userId);
+            if (userdata == null) {
+                System.err.println("isPasswordSame: Could not find user via id");
+            }
+            try {
+                //debug:
+                /*System.out.println("isPasswordSame:");
+            System.out.println(userdata.getPassword() + " == " + Encrypt.encrypt(password) + " (" + password + ")");*/
+                return userdata.getPassword().equals(Encrypt.encrypt(password));
+            } catch (Exception e) {
+                e.printStackTrace();
+                return false;
+            }
+        }
 
         /**
          * Checks if the plain password is the same as the Encrypted password in
@@ -101,20 +139,40 @@ public class AuthenticationService {
          * the db
          * @throws Exception and returns false
          */
-//        public boolean isPasswordSame(String password, String email) {
-//            Users userdata = Users.ReadUserByEmail(email);
-//            if (userdata == null) {
-//                System.err.println("isPasswordSame: Could not find user via email");
-//            }
-//            try {
-//                //debug:
-//                /*System.out.println("isPasswordSame:");
-//            System.out.println(userdata.getPassword() + " == " + Encrypt.encrypt(password) + " (" + password + ")");*/
-//                return userdata.getPassword().equals(Encrypt.encrypt(password));
-//            } catch (Exception e) {
-//                e.printStackTrace();
-//                return false;
-//            }
-//        }
+        public boolean isPasswordSame(String password, String email) {
+            Users userdata = Users.ReadUserByEmail(email);
+            if (userdata == null) {
+                System.err.println("isPasswordSame: Could not find user via email");
+            }
+            try {
+                //debug:
+                /*System.out.println("isPasswordSame:");
+            System.out.println(userdata.getPassword() + " == " + Encrypt.encrypt(password) + " (" + password + ")");*/
+                return userdata.getPassword().equals(Encrypt.encrypt(password));
+            } catch (Exception e) {
+                e.printStackTrace();
+                return false;
+            }
+        }
+        
+        /**
+         * Checks if the searchCriteria is Integer (id) or String (email) and runs the coresponding method
+         *
+         * @param password The password that needs to be checked
+         * @param searchCriteria The Object that needs to be checked
+         * 
+         * @return true / false based if the password is the same as the one in the db
+         * @throws IlleagalArgumentExeption with message of "Not acceptable search criteria: {Object's type that is not supported} " 
+         */
+        public boolean isPasswordSame(String password, Object searchCriteria) {
+            if (searchCriteria instanceof Integer) {
+                return isPasswordSame(password, (Integer) searchCriteria);
+            } else if (searchCriteria instanceof String) {
+                return isPasswordSame(password, (String) searchCriteria);
+            } else {
+                throw new IllegalArgumentException("Not acceptable search criteria: " + (searchCriteria != null ? searchCriteria.getClass().getName() : "null"));
+            }
+        }
+        
     }
 }

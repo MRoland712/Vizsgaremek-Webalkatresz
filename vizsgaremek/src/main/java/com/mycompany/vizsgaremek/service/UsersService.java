@@ -32,6 +32,7 @@ public class UsersService {
      * DB) 500 - Internal Server Error (Missing required data in DB ex:
      * isDeleted == null)
      */
+    //ToDo: checkolni hogy kell-e break a kód közben (úgy mint a updateUser-ben error check)
     public JSONObject createUser(Users createdUser) {
         JSONObject toReturn = new JSONObject();
         JSONArray errors = new JSONArray();
@@ -179,6 +180,7 @@ public class UsersService {
             return toReturn;
         }
     }
+//ToDo: checkolni hogy kell-e break a kód közben (úgy mint a updateUser-ben error check)
 
     public JSONObject ReadUsers() {
         JSONObject toReturn = new JSONObject();
@@ -229,8 +231,9 @@ public class UsersService {
             return toReturn;
         }
     }
-
+//ToDo: checkolni hogy kell-e break a kód közben (úgy mint a updateUser-ben error check)
     //ToDo: add validation if User is deleted or is Inactive?? 
+
     public JSONObject ReadUserById(Integer id) {
         JSONObject toReturn = new JSONObject();
         JSONArray errors = new JSONArray();
@@ -292,8 +295,9 @@ public class UsersService {
             return toReturn;
         }
     }
-
+//ToDo: checkolni hogy kell-e break a kód közben (úgy mint a updateUser-ben error check)
     //ToDo: add validation if User is deleted or is Inactive?? 
+
     public JSONObject ReadUserByEmail(String email) {
         JSONObject toReturn = new JSONObject();
         JSONArray errors = new JSONArray();
@@ -354,6 +358,7 @@ public class UsersService {
             return toReturn;
         }
     }
+//ToDo: checkolni hogy kell-e break a kód közben (úgy mint a updateUser-ben error check)
 
     public JSONObject softDeleteUser(Integer id) {
         JSONObject toReturn = new JSONObject();
@@ -407,7 +412,7 @@ public class UsersService {
         }
     }
 
-    /*public JSONObject updateUser(Users updatedUser) {
+    public JSONObject updateUser(Users updatedUser) {
         JSONObject toReturn = new JSONObject();
         JSONArray errors = new JSONArray();
 
@@ -430,111 +435,183 @@ public class UsersService {
             errors.put(e);
         }
 
+        //Error check hogy ne lépjen tovább mert csak teledobná sok fölösleges error-al
+        if (errors.length() > 0) {
+            toReturn.put("errors", errors);
+            return toReturn;
+        }
+
         //feltöltjük az alapból létező adatokkal
         Users existingUser = null;
-
-        if (updatedUser.getId() != null) {
+        Object searchData = null;
+        if (!userAuth.isDataMissing(updatedUser.getId())) {
             existingUser = Users.ReadUserById(updatedUser.getId());
+            searchData = updatedUser.getId();
         } else {
             existingUser = Users.ReadUserByEmail(updatedUser.getEmail());
+            searchData = updatedUser.getEmail();
         }
 
+        //ha nem talál usert
         if (existingUser == null) {
-            toReturn.put("status", status);
-            toReturn.put("statusCode", statusCode);
+            JSONObject e = new JSONObject();
+            e.put("status", "UserNotFound");
+            e.put("statusCode", 400);
+            errors.put(e);
+        }
+
+        //ha nem hiányzik az email ÉS valid az email
+        if (!userAuth.isDataMissing(updatedUser.getEmail()) && userAuth.isValidEmail(updatedUser.getEmail())) {
+
+            existingUser.setEmail(updatedUser.getEmail());
+
+        }
+        //nem kell több validáció mivel már elöbb lechekkoltuk
+
+        //ha nem hiányzik a Username ÉS valid a Username
+        if (!userAuth.isDataMissing(updatedUser.getUsername()) && userAuth.isValidUsername(updatedUser.getUsername())) {
+
+            existingUser.setUsername(updatedUser.getUsername());
+
+        } else if (!userAuth.isDataMissing(updatedUser.getUsername()) && !userAuth.isValidUsername(updatedUser.getUsername())) { //ha nem hiányzik ÉS NEM valid a username
+
+            JSONObject e = new JSONObject();
+            e.put("status", "InvalidUsername");
+            e.put("statusCode", 400);
+            errors.put(e);
+        }
+
+        if (!userAuth.isDataMissing(updatedUser.getFirstName()) && userAuth.isValidFirstName(updatedUser.getFirstName())) {
+
+            existingUser.setFirstName(updatedUser.getFirstName());
+
+        } else if (!userAuth.isDataMissing(updatedUser.getFirstName()) && !userAuth.isValidFirstName(updatedUser.getFirstName())) {
+
+            JSONObject e = new JSONObject();
+            e.put("status", "InvalidFirstName");
+            e.put("statusCode", 400);
+            errors.put(e);
+        }
+
+        if (!userAuth.isDataMissing(updatedUser.getLastName()) && userAuth.isValidFirstName(updatedUser.getLastName())) {
+
+            existingUser.setLastName(updatedUser.getLastName());
+
+        } else if (!userAuth.isDataMissing(updatedUser.getLastName()) && !userAuth.isValidLastName(updatedUser.getLastName())) {
+
+            JSONObject e = new JSONObject();
+            e.put("status", "InvalidLastName");
+            e.put("statusCode", 400);
+            errors.put(e);
+        }
+
+        if (!userAuth.isDataMissing(updatedUser.getPhone()) && userAuth.isValidPhone(updatedUser.getPhone())) {
+
+            existingUser.setPhone(updatedUser.getPhone());
+
+        } else if (!userAuth.isDataMissing(updatedUser.getPhone()) && !userAuth.isValidPhone(updatedUser.getPhone())) {
+
+            JSONObject e = new JSONObject();
+            e.put("status", "InvalidPhone");
+            e.put("statusCode", 400);
+            errors.put(e);
+        }
+
+        if (!userAuth.isDataMissing(updatedUser.getRole()) && userAuth.isValidRole(updatedUser.getRole())) {
+
+            existingUser.setRole(updatedUser.getRole());
+
+        } else if (!userAuth.isDataMissing(updatedUser.getRole()) && !userAuth.isValidRole(updatedUser.getRole())) {
+
+            JSONObject e = new JSONObject();
+            e.put("status", "InvalidRole");
+            e.put("statusCode", 400);
+            errors.put(e);
+        }
+
+        if (!userAuth.isDataMissing(updatedUser.getIsActive()) && userAuth.isValidIsActive(updatedUser.getIsActive())) {
+
+            existingUser.setIsActive(updatedUser.getIsActive());
+
+        } else if (!userAuth.isDataMissing(updatedUser.getIsActive()) && !userAuth.isValidIsActive(updatedUser.getIsActive())) {
+
+            JSONObject e = new JSONObject();
+            e.put("status", "InvalidIsActive");
+            e.put("statusCode", 400);
+            errors.put(e);
+        }
+
+        if (!userAuth.isDataMissing(updatedUser.getAuthSecret()) && userAuth.isValidAuthSecret(updatedUser.getAuthSecret())) {
+
+            existingUser.setAuthSecret(updatedUser.getAuthSecret());
+
+        } else if (!userAuth.isDataMissing(updatedUser.getAuthSecret()) && !userAuth.isValidAuthSecret(updatedUser.getAuthSecret())) {
+
+            JSONObject e = new JSONObject();
+            e.put("status", "InvalidAuthSecret");
+            e.put("statusCode", 400);
+            errors.put(e);
+        }
+
+        if (!userAuth.isDataMissing(updatedUser.getRegistrationToken()) && userAuth.isValidRegistrationToken(updatedUser.getRegistrationToken())) {
+
+            existingUser.setRegistrationToken(updatedUser.getRegistrationToken());
+
+        } else if (!userAuth.isDataMissing(updatedUser.getRegistrationToken()) && !userAuth.isValidRegistrationToken(updatedUser.getRegistrationToken())) {
+
+            JSONObject e = new JSONObject();
+            e.put("status", "InvalidRegistrationToken");
+            e.put("statusCode", 400);
+            errors.put(e);
+        }
+
+        if (!userAuth.isDataMissing(updatedUser.getPassword()) && !userAuth.isValidPassword(updatedUser.getPassword())) {
+
+            JSONObject e = new JSONObject();
+            e.put("status", "InvalidPassword");
+            e.put("statusCode", 400);
+            errors.put(e);
+
+        } else if (!userAuth.isDataMissing(updatedUser.getPassword()) && userAuth.isPasswordSame(updatedUser.getPassword(), searchData)) {
+            //Ha a password nem hiányzik és benne van a db-ben már
+
+            JSONObject e = new JSONObject();
+            e.put("status", "PasswordInDB");
+            e.put("statusCode", 407);
+            errors.put(e);
+        } else { 
+           try {
+                String encryptedPassword = Encrypt.encrypt(updatedUser.getPassword());
+                existingUser.setPassword(encryptedPassword);
+            } catch (Exception ex) {
+                JSONObject e = new JSONObject();
+                e.put("status", "EncryptionError");
+                e.put("statusCode", 500);
+                errors.put(e);
+                ex.printStackTrace();
+            }
+        }
+
+        Boolean result = Users.updateUser(existingUser);
+
+        if (!result) {
+            JSONObject e = new JSONObject();
+            e.put("status", "ServerError");
+            e.put("statusCode", 500);
+            errors.put(e);
+        }
+        if (errors.length() > 0) {
+
+            toReturn.put("errors", errors);
             return toReturn;
         } else {
-            if (updatedUser.getEmail() != null || !updatedUser.getEmail().isEmpty()) {
-                if (!authService.isValidEmail(updatedUser.getEmail())) {
-                    toReturn.put("status", status);
-                    toReturn.put("statusCode", statusCode);
-                    return toReturn;
-                }
-                existingUser.setEmail(updatedUser.getEmail());
-            }
-
-            if (updatedUser.getUsername() != null) {
-                if (!authService.isValidUsername(updatedUser.getUsername())) {
-                    toReturn.put("status", status);
-                    toReturn.put("statusCode", statusCode);
-                    return toReturn;
-                }
-                existingUser.setUsername(updatedUser.getUsername());
-            }
-
-            if (updatedUser.getFirstName() != null) {
-                existingUser.setFirstName(updatedUser.getFirstName());
-            }
-
-            if (updatedUser.getLastName() != null) {
-                existingUser.setLastName(updatedUser.getLastName());
-            }
-
-            if (updatedUser.getPhone() != null) {
-                existingUser.setPhone(updatedUser.getPhone());
-            }
-
-            if (updatedUser.getRole() != null) {
-                existingUser.setRole(updatedUser.getRole());
-            }
-
-            if (updatedUser.getIsActive() != null) {
-                existingUser.setIsActive(updatedUser.getIsActive());
-            }
-
-            if (updatedUser.getAuthSecret() != null) {
-                existingUser.setAuthSecret(updatedUser.getAuthSecret());
-            }
-
-            if (updatedUser.getRegistrationToken() != null) {
-                existingUser.setRegistrationToken(updatedUser.getRegistrationToken());
-            }
-
-            if (updatedUser.getPassword() != null) {
-
-                if (!userAuth.isValidPassword(updatedUser.getPassword())) {
-                    toReturn.put("status", "InvalidPassword");
-                    toReturn.put("statusCode", 400);
-                    return toReturn;
-                }
-
-                if (userAuth.isPasswordSame(updatedUser.getPassword(), updatedUser.getId())) {
-                    toReturn.put("status", "PasswordIsSameAsDb");
-                    toReturn.put("statusCode", 409);
-                    return toReturn;
-                }
-                try {
-                    //encrypt password
-                    String encryptedPassword = Encrypt.encrypt(updatedUser.getPassword());
-                    existingUser.setPassword(encryptedPassword);
-                } catch (Exception e) {
-                    //status = "EncryptionError";
-                    //statusCode = 500;
-                    e.printStackTrace();
-                }
-            }
-
-            if (updatedUser.getAuthSecret() != null) {
-                existingUser.setAuthSecret(updatedUser.getAuthSecret());
-            }
-
-            if (updatedUser.getRegistrationToken() != null) {
-                existingUser.setRegistrationToken(updatedUser.getRegistrationToken());
-            }
-
-            Boolean result = Users.updateUser(existingUser);
-
-            if (!result) {
-                //status = "ServerError";
-                //statusCode = 500;
-            }
 
             toReturn.put("result", result);
+            toReturn.put("status", "success");
+            toReturn.put("statusCode", 200);
 
+            return toReturn;
         }
-        toReturn.put("status", "success");
-        toReturn.put("statusCode", 200);
-        return toReturn;
-    }*/
+    }
 } // DONT DELETE, THIS IS THE CLASS CLOSER
 

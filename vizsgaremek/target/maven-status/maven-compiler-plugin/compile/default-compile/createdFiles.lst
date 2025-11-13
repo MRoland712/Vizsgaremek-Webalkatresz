@@ -8,7 +8,6 @@ com\mycompany\vizsgaremek\model\UserTwofa.class
 com\mycompany\vizsgaremek\model\Warehouses.class
 com\mycompany\vizsgaremek\model\Reviews.class
 com\mycompany\vizsgaremek\model\ShippingMethods.class
-javax\persistence\ParameterRegistration.class
 com\mycompany\vizsgaremek\service\AuthenticationService$userAuth.class
 com\mycompany\vizsgaremek\model\LoginLogs.class
 com\mycompany\vizsgaremek\model\PartVariants.class
