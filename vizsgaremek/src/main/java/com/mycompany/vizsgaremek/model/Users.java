@@ -10,7 +10,6 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
 import java.util.List;
-import java.util.UUID;
 import javax.persistence.Basic;
 import javax.persistence.CascadeType;
 import javax.persistence.Column;
@@ -24,6 +23,7 @@ import javax.persistence.NamedQueries;
 import javax.persistence.NamedQuery;
 import javax.persistence.OneToMany;
 import javax.persistence.ParameterMode;
+import javax.persistence.ParameterRegistration;
 import javax.persistence.Persistence;
 import javax.persistence.StoredProcedureQuery;
 import javax.persistence.Table;
@@ -34,7 +34,8 @@ import javax.validation.constraints.Size;
 
 /**
  *
- * @author neblg
+ * @author ddori
+ * @co-author neblg
  */
 @Entity
 @Table(name = "users")
@@ -173,19 +174,6 @@ public class Users implements Serializable {
     public Users() {
     }
 
-    public Users(Integer id) {
-        this.id = id;
-    }
-
-    public Users(Integer id, String email, String username, String password, String authSecret, String guid) {
-        this.id = id;
-        this.email = email;
-        this.username = username;
-        this.password = password;
-        this.authSecret = authSecret;
-        this.guid = guid;
-    }
-
     //soft Delete
     public Users(Boolean isDeleted) {
         this.isDeleted = isDeleted;
@@ -217,20 +205,6 @@ public class Users implements Serializable {
         this.role = role;
     }
 
-    public Users(Integer id, String email, String username, String firstName, String lastName, String phone, String role, Date createdAt, Date updatedAt, Date lastLogin, String guid) {
-        this.id = id;
-        this.email = email;
-        this.username = username;
-        this.firstName = firstName;
-        this.lastName = lastName;
-        this.phone = phone;
-        this.role = role;
-        this.createdAt = createdAt;
-        this.updatedAt = updatedAt;
-        this.lastLogin = lastLogin;
-        this.guid = guid;
-    }
-
     //ReadUser
     public Users(
             Integer id,
@@ -244,36 +218,8 @@ public class Users implements Serializable {
             Boolean isActive,
             Date lastLogin,
             Date createdAt,
-            Date updatedAt) {
-        this.id = id;
-        this.email = email;
-        this.username = username;
-        this.firstName = firstName;
-        this.lastName = lastName;
-        this.phone = phone;
-        this.isActive = isActive;
-        this.role = role;
-        this.createdAt = createdAt;
-        this.updatedAt = updatedAt;
-        this.lastLogin = lastLogin;
-        this.guid = guid;
-    }
-
-    //ReadUserById
-    /*public Users(
-            Integer id,
-            String email,
-            String username,
-            String firstName,
-            String lastName,
-            String phone,
-            String guid,
-            String role,
-            Boolean isActive,
-            Date lastLogin,
-            Date createdAt,
             Date updatedAt,
-            String password) {
+            Boolean isDeleted) {
         this.id = id;
         this.email = email;
         this.username = username;
@@ -286,39 +232,9 @@ public class Users implements Serializable {
         this.updatedAt = updatedAt;
         this.lastLogin = lastLogin;
         this.guid = guid;
-        this.password = password;
-    }
-
-    //ReadUserByEmail
-    public Users(
-            Integer id,
-            String email,
-            String username,
-            String firstName,
-            String lastName,
-            String phone,
-            String guid,
-            String role,
-            Boolean isActive,
-            Date lastLogin,
-            Date createdAt,
-            Date updatedAt,
-            String password, Boolean isDeleted) {
-        this.id = id;
-        this.email = email;
-        this.username = username;
-        this.firstName = firstName;
-        this.lastName = lastName;
-        this.phone = phone;
-        this.isActive = isActive;
-        this.role = role;
-        this.createdAt = createdAt;
-        this.updatedAt = updatedAt;
-        this.lastLogin = lastLogin;
-        this.guid = guid;
-        this.password = password;
         this.isDeleted = isDeleted;
-    }*/
+    }
+
     //ReadUserById && ReadUserByEmail
     public Users(
             Integer id,
@@ -353,25 +269,6 @@ public class Users implements Serializable {
         this.authSecret = authSecret;
         this.guid = guid;
         this.registrationToken = registrationToken;
-    }
-
-    public Users(String email, String password) {
-        this.email = email;
-        this.password = password;
-    }
-
-    public Users(Integer id, String email, String username, String firstName, String lastName, String phone, String guid, String role, Date lastLogin, Date createdAt, Date updatedAt) {
-        this.id = id;
-        this.email = email;
-        this.username = username;
-        this.firstName = firstName;
-        this.lastName = lastName;
-        this.phone = phone;
-        this.role = role;
-        this.createdAt = createdAt;
-        this.updatedAt = updatedAt;
-        this.lastLogin = lastLogin;
-        this.guid = guid;
     }
 
     public Integer getId() {
@@ -673,7 +570,6 @@ public class Users implements Serializable {
 
     public static Boolean createUser(Users createdUser) {
         EntityManager em = emf.createEntityManager();
-
         try {
             StoredProcedureQuery spq = em.createStoredProcedureQuery("createUser");
 
@@ -693,7 +589,7 @@ public class Users implements Serializable {
             spq.setParameter("p_first_name", createdUser.getFirstName());
             spq.setParameter("p_last_name", createdUser.getLastName());
             spq.setParameter("p_phone", createdUser.getPhone());
-            spq.setParameter("p_role", createdUser.getRole());
+            spq.setParameter("p_role", createdUser.getRole() == null ? "" : createdUser.getRole());
             spq.setParameter("p_auth_secret", createdUser.getAuthSecret());
             spq.setParameter("p_registration_token", createdUser.getRegistrationToken());
 
@@ -713,19 +609,16 @@ public class Users implements Serializable {
         EntityManager em = emf.createEntityManager();
 
         try {
-            StoredProcedureQuery spq = em.createStoredProcedureQuery("ReadUsers"); // megadott tárolt eljárás nevét kell megadni
-            spq.execute(); // vége zárásként
+            //eljárást meghívjuk
+            StoredProcedureQuery spq = em.createStoredProcedureQuery("ReadUsers");
+            spq.execute();
 
+            //Amit visszakap információt berakni egy Object[] list-be
             List<Object[]> resultList = spq.getResultList();
+
             ArrayList<Users> toReturn = new ArrayList();
+
             for (Object[] record : resultList) {
-                //debug
-                /*
-                System.out.println("ReadUsers - Column count: " + record.length);
-                for (int i = 0; i < record.length; i++) {
-                    System.out.println("Column " + i + ": " + (record[i] != null ? record[i].toString() : "NULL"));
-                }
-                 */
                 Users u = new Users(
                         Integer.valueOf(record[0].toString()), //Id
                         record[1].toString(), // email
@@ -735,10 +628,11 @@ public class Users implements Serializable {
                         record[5].toString(), // phone
                         record[6].toString(), // guid
                         record[7].toString(), // role
-                        Boolean.parseBoolean(record[8].toString()), // is_active
+                        Boolean.valueOf(record[8].toString()), // is_active
                         record[9] == null ? null : formatter.parse(record[9].toString()), // last_login
                         record[10] == null ? null : formatter.parse(record[10].toString()), // created_at
-                        record[11] == null ? null : formatter.parse(record[11].toString()) // updated_at
+                        record[11] == null ? null : formatter.parse(record[11].toString()), // updated_at
+                        Boolean.valueOf(record[12].toString()) // is deleted
                 );
                 toReturn.add(u);
 
@@ -753,14 +647,13 @@ public class Users implements Serializable {
         } finally {
             em.close();
         }
-
     }
 
     public static Users ReadUserById(Integer id) {
         EntityManager em = emf.createEntityManager();
 
         try {
-            StoredProcedureQuery spq = em.createStoredProcedureQuery("ReadUserById"); // megadott tárolt eljárás nevét kell megadni
+            StoredProcedureQuery spq = em.createStoredProcedureQuery("ReadUserById");
             spq.registerStoredProcedureParameter("p_user_id", Integer.class, ParameterMode.IN);
             spq.setParameter("p_user_id", id);
 
@@ -768,15 +661,9 @@ public class Users implements Serializable {
 
             List<Object[]> resultList = spq.getResultList();
             Users toReturn = new Users();
+
             for (Object[] record : resultList) {
-                //debug
-                /*
-                System.out.println("ReadUserById - Column count: " + record.length);
-                for (int i = 0; i < record.length; i++) {
-                    System.out.println("Column " + i + ": " + (record[i] != null ? record[i].toString() : "NULL"));
-                }
-                 */
- /**/
+
                 Users u = new Users(
                         Integer.valueOf(record[0].toString()),// id
                         record[1].toString(),// email
@@ -786,12 +673,12 @@ public class Users implements Serializable {
                         record[5].toString(),// phone
                         record[6].toString(),// guid
                         record[7].toString(),// role
-                        Boolean.parseBoolean(record[8].toString()),// isActive
+                        Boolean.valueOf(record[8].toString()),// isActive
                         record[9] == null ? null : formatter.parse(record[9].toString()),// lastLogin
                         record[10] == null ? null : formatter.parse(record[10].toString()),// createdAt
                         record[11] == null ? null : formatter.parse(record[11].toString()),// updatedAt
                         record[12].toString(),// password
-                        Boolean.parseBoolean(record[13].toString()),// isDeleted
+                        Boolean.valueOf(record[13].toString()),// isDeleted
                         record[14].toString(),// authSecret
                         record[15].toString()// registrationToken
                 );
@@ -813,23 +700,16 @@ public class Users implements Serializable {
         EntityManager em = emf.createEntityManager();
 
         try {
-            StoredProcedureQuery spq = em.createStoredProcedureQuery("ReadUserByEmail"); // megadott tárolt eljárás nevét kell megadni
+            StoredProcedureQuery spq = em.createStoredProcedureQuery("ReadUserByEmail");
             spq.registerStoredProcedureParameter("p_email", String.class, ParameterMode.IN);
             spq.setParameter("p_email", email);
 
-            spq.execute(); // vége zárásként
+            spq.execute();
 
             List<Object[]> resultList = spq.getResultList();
             Users toReturn = new Users();
+            
             for (Object[] record : resultList) {
-                //debug
-                /*
-                System.out.println("ReadUserByEmail - Column count: " + record.length);
-                for (int i = 0; i < record.length; i++) {
-                    System.out.println("Column " + i + ": " + (record[i] != null ? record[i].toString() : "NULL"));
-                }
-                 */
-
                 Users u = new Users(
                         Integer.valueOf(record[0].toString()),// id
                         record[1].toString(),// email
@@ -839,18 +719,18 @@ public class Users implements Serializable {
                         record[5].toString(),// phone
                         record[6].toString(),// guid
                         record[7].toString(),// role
-                        Boolean.parseBoolean(record[8].toString()),// isActive
+                        Boolean.valueOf(record[8].toString()),// isActive
                         record[9] == null ? null : formatter.parse(record[9].toString()),// lastLogin
                         record[10] == null ? null : formatter.parse(record[10].toString()),// createdAt
                         record[11] == null ? null : formatter.parse(record[11].toString()),// updatedAt
                         record[12].toString(),// password
-                        Boolean.parseBoolean(record[13].toString()),// isDeleted
+                        Boolean.valueOf(record[13].toString()),// isDeleted
                         record[14].toString(),// authSecret
                         record[15].toString()// registrationToken
                 );
-                return u;
+                toReturn = u;
             }
-            return null;
+            return toReturn;
         } catch (Exception ex) {
             if (em.getTransaction().isActive()) {
                 em.getTransaction().rollback(); // Ha hiba van, rollback
@@ -861,35 +741,31 @@ public class Users implements Serializable {
             em.close();
         }
     }
-
     public static Boolean softDeleteUser(Integer id) {
         EntityManager em = emf.createEntityManager();
-
+        
         try {
             em.getTransaction().begin();
-
-            StoredProcedureQuery spq = em.createStoredProcedureQuery("softDeleteUser");
+            
+            StoredProcedureQuery spq = em.createNamedStoredProcedureQuery("softDeleteUser");
             spq.registerStoredProcedureParameter("p_user_id", Integer.class, ParameterMode.IN);
             spq.setParameter("p_user_id", id);
-
+            
             spq.execute();
-
+            
             em.getTransaction().commit();
-
+            
             return true;
-
-        } catch (Exception ex) {
+        } catch (Exception e){
             if (em.getTransaction().isActive()) {
-                em.getTransaction().rollback(); // Ha hiba van, rollback
+                em.getTransaction().rollback(); // ha hiba van, rollback
             }
-            ex.printStackTrace();
             return false;
         } finally {
             em.close();
         }
     }
-    //ToDo: authsecret and reg token is switched up
-    public static Boolean updateUser(Users updatedUser) {
+    /*public static Boolean updateUser(Users updatedUser) {
         EntityManager em = emf.createEntityManager();
 
         try {
@@ -935,35 +811,5 @@ public class Users implements Serializable {
         } finally {
             em.close();
         }
-    }
-
-    //ToDO: müködjön az update Reg token
-    public static Boolean login(Users userData) {
-        EntityManager em = emf.createEntityManager();
-
-        try {
-            em.getTransaction().begin();
-
-            StoredProcedureQuery spq = em.createStoredProcedureQuery("user_login");
-
-            spq.registerStoredProcedureParameter("p_email", String.class, ParameterMode.IN);
-
-            spq.setParameter("p_email", userData.getEmail());
-
-            spq.execute();
-
-            em.getTransaction().commit();
-
-            return true;
-
-        } catch (Exception ex) {
-            if (em.getTransaction().isActive()) {
-                em.getTransaction().rollback(); // Ha hiba van, rollback
-            }
-            ex.printStackTrace();
-            return false;
-        } finally {
-            em.close();
-        }
-    }
-}
+    }*/
+} //CLASS CLOSER, DONT DELETE

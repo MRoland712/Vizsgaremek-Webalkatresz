@@ -29,7 +29,7 @@ public class KvFetcher {
             String accountId = base64Converters.base64Converter(B64AccountId);
             String namespaceId = base64Converters.base64Converter(B64NamespaceId);
             String apiToken = base64Converters.base64Converter(B64ApiToken);
-
+            
             HttpClient client = HttpClient.newHttpClient();
             HttpRequest request = HttpRequest.newBuilder()
                     .uri(URI.create("https://api.cloudflare.com/client/v4/accounts/"

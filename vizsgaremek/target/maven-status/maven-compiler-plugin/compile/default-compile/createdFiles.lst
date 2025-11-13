@@ -8,6 +8,8 @@ com\mycompany\vizsgaremek\model\UserTwofa.class
 com\mycompany\vizsgaremek\model\Warehouses.class
 com\mycompany\vizsgaremek\model\Reviews.class
 com\mycompany\vizsgaremek\model\ShippingMethods.class
+javax\persistence\ParameterRegistration.class
+com\mycompany\vizsgaremek\service\AuthenticationService$userAuth.class
 com\mycompany\vizsgaremek\model\LoginLogs.class
 com\mycompany\vizsgaremek\model\PartVariants.class
 com\mycompany\vizsgaremek\model\Sessions.class
@@ -24,6 +26,7 @@ com\mycompany\vizsgaremek\model\StockLogs.class
 com\mycompany\vizsgaremek\model\Invoices.class
 com\mycompany\vizsgaremek\controller\ApplicationConfig.class
 com\mycompany\vizsgaremek\model\ProductComparisons.class
+com\mycompany\vizsgaremek\config\TFA.class
 com\mycompany\vizsgaremek\model\EmailVerifications.class
 com\mycompany\vizsgaremek\model\OrderItems.class
 com\mycompany\vizsgaremek\model\PartCompatibility.class

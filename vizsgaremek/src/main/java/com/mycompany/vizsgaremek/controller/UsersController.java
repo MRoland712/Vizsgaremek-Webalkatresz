@@ -23,7 +23,8 @@ import org.json.JSONObject;
 /**
  * REST Web Service
  *
- * @author neblg
+ * @author ddori
+ * @co-author neblg
  */
 @Path("user")
 public class UsersController {
@@ -86,48 +87,20 @@ public class UsersController {
                 .build();
     }
 
-    /*@POST
-    @Path("createUser")
-    @Consumes(MediaType.APPLICATION_JSON)
-    public Response createUser(String body) {
-        JSONObject bodyObject = new JSONObject(body);
-        Users createdUser = new Users();
-        try {
-            Users createdUser = Users(
-                    bodyObject.getString("email"),
-                    bodyObject.getString("username"),
-                    bodyObject.getString("password"),
-                    bodyObject.getString("firstName"),
-                    bodyObject.getString("lastName"),
-                    bodyObject.getString("phone"),
-                    bodyObject.has("role") ? bodyObject.getString("role") : "-"
-            );
-        } catch (Exception e) {
-            Users createdUser = Users(
-                    bodyObject.getString("email"),
-                    bodyObject.getString("username"),
-                    bodyObject.getString("password"),
-                    bodyObject.getString("firstName"),
-                    bodyObject.getString("lastName"),
-                    bodyObject.getString("phone"),
-                    bodyObject.has("role") ? bodyObject.getString("role") : "-"
-            );
-        }
-        JSONObject toReturn = layer.createUser(createdUser);
-
-        return Response.status(Integer.parseInt(toReturn.get("statusCode").toString())).entity(toReturn.toString()).type(MediaType.APPLICATION_JSON).build();
-    }*/
     @GET
-    @Path("ReadUsers")
+    @Path("readUsers")
     @Consumes(MediaType.APPLICATION_JSON)
     public Response ReadUsers() {
 
         JSONObject toReturn = layer.ReadUsers();
-        return Response.status(Integer.parseInt(toReturn.get("statusCode").toString())).entity(toReturn.toString()).type(MediaType.APPLICATION_JSON).build();
+        return Response.status(Integer.parseInt(toReturn.get("statusCode").toString()))
+                .entity(toReturn.toString())
+                .type(MediaType.APPLICATION_JSON)
+                .build();
     }
 
     @GET
-    @Path("ReadUserById")
+    @Path("readUserById")
     @Consumes(MediaType.APPLICATION_JSON)
     public Response ReadUserById(@QueryParam("id") Integer id) {
 
@@ -136,7 +109,7 @@ public class UsersController {
     }
 
     @GET
-    @Path("ReadUserByEmail")
+    @Path("readUserByEmail")
     @Consumes(MediaType.APPLICATION_JSON)
     public Response ReadUserByEmail(@QueryParam("email") String email) {
 
@@ -155,15 +128,15 @@ public class UsersController {
                 .type(MediaType.APPLICATION_JSON)
                 .build();
     }
-    
-    @PUT
-    @Path("UpdateUser")
+
+    /*@PUT
+    @Path("updateUser")
     @Consumes(MediaType.APPLICATION_JSON)
     public Response UpdateUser(String body) {
         JSONObject bodyObject = new JSONObject(body);
 
         Users updatedUser = new Users();
-        
+
         if (bodyObject.has("id")) {
             updatedUser.setId(bodyObject.getInt("id"));
         }
@@ -213,26 +186,5 @@ public class UsersController {
                 .entity(toReturn.toString())
                 .type(MediaType.APPLICATION_JSON)
                 .build();
-    }
-
-    @POST
-    @Path("login")
-    @Consumes(MediaType.APPLICATION_JSON)
-    public Response login(String body) {
-
-        JSONObject bodyObject = new JSONObject(body);
-
-        Users user = new Users(
-                bodyObject.has("email") ? bodyObject.getString("email") : null,
-                bodyObject.has("password") ? bodyObject.getString("password") : null
-        );
-
-        JSONObject toReturn = layer.login(user);
-
-        return Response.status(Integer.parseInt(toReturn.get("statusCode").toString()))
-                .entity(toReturn.toString())
-                .type(MediaType.APPLICATION_JSON)
-                .build();
-    }
-
-}
+    }*/
+} //CLASS CLOSER DONT DELETE
