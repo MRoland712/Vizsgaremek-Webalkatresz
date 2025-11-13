@@ -1,0 +1,74 @@
+<div class="login-page">
+  <form [formGroup]="signupForm" (ngSubmit)="onSignUpSubmit()">
+    <div class="login-container">
+      <div class="form-header">
+        <img src="assets/CarComps_Logo_C_white.png" alt="CarComps Logo" class="logo" />
+        <h2>Regisztráció</h2>
+      </div>
+
+      <div class="username-control">
+        <input
+          type="text"
+          class="form__field"
+          placeholder="Felhasználónév"
+          id="username"
+          formControlName="username"
+        />
+        <label for="username" class="form__label">Felhasználónév</label>
+        @if (usernameIsInvalid) {
+        <p class="error-message">
+          Hibás felhasználónév! (3-20 karakter, csak betűk, számok, - és _ használható)
+        </p>
+        }
+      </div>
+
+      <div class="email-control">
+        <input
+          type="email"
+          class="form__field"
+          placeholder="Email"
+          id="email"
+          formControlName="email"
+        />
+        <label for="email" class="form__label">Email</label>
+        @if (emailIsInvalid) {
+        <p class="error-message">Hibás email cím</p>
+        }
+      </div>
+
+      <div class="login-control">
+        <input
+          type="password"
+          class="form__field"
+          placeholder="Jelszó"
+          id="password"
+          formControlName="password"
+        />
+        <label for="password" class="form__label">Jelszó</label>
+        @if (passwordIsInvalid) {
+        <p class="error-message">
+          Hibás jelszó! (A jelszónak tartalmaznia kell speciális karaktereket, nagybetűt, számokat
+          és nem lehet rövidebb mint 8 karakter!)
+        </p>
+        }
+      </div>
+
+      <div class="login-control">
+        <input
+          type="password"
+          class="form__field"
+          placeholder="Jelszó megerősítése"
+          id="rePassword"
+          formControlName="rePassword"
+        />
+        <label for="rePassword" class="form__label">Jelszó megerősítése</label>
+        @if (rePasswordIsInvalid) {
+        <p class="error-message">A jelszavak nem egyeznek!</p>
+        }
+      </div>
+    </div>
+
+    <button type="submit" class="button">Fiók létrehozása</button>
+    <p>Van már fiókod?<a href="/login" class="reg-link">Jelentkezz be!</a></p>
+  </form>
+</div>

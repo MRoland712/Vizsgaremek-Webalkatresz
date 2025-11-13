@@ -1,0 +1,258 @@
+.login-page {
+  display: flex;
+  align-items: center; /* vertical center */
+  justify-content: center; /* horizontal center */
+  /* make sure the element fills the entire viewport so the background has no white gap */
+  position: fixed;
+  inset: 0; /* top:0; right:0; bottom:0; left:0; */
+  padding: 20px; /* breathing room on small screens */
+  /* use the project's assets folder as a full-page background */
+  background-image: url('/assets/LoginRegisterBG.png');
+  background-repeat: no-repeat;
+  background-position: center;
+  background-size: cover;
+}
+
+form {
+  /* fixed width and centered layout */
+  width: 100%;
+  max-width: 500px;
+  padding: 40px 35px;
+  /* slightly transparent form so the page background shows through */
+  background-color: rgba(43, 43, 43, 0.95);
+  border: none;
+  box-sizing: border-box;
+  text-align: center;
+  border-radius: 30px;
+  color: #fffafa;
+  backdrop-filter: blur(1px);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.35);
+  z-index: 2; /* make sure it sits above the background */
+}
+.form-header {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 30px;
+  width: 100%;
+  gap: 12px;
+}
+
+.form-header h2 {
+  margin: 0;
+  text-align: center;
+  font-size: 32px;
+}
+
+.login-container {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  align-items: center;
+  width: 100%;
+}
+
+/* Floating label form groups */
+.email-control,
+.username-control,
+.login-control,
+.login-control .user-control {
+  position: relative; /* contain absolute label */
+  display: block;
+  width: 100%;
+  padding: 12px 0 0;
+  margin-top: 0;
+  box-sizing: border-box;
+}
+.form__field {
+  width: 100%;
+  border: 0;
+  border-bottom: 2px solid #fffafa;
+  outline: 0;
+  font-size: 1.3rem;
+  color: #fffafa;
+  padding: 7px 0;
+  background: transparent;
+  transition: border-color 0.2s;
+}
+
+.form__field::placeholder {
+  color: transparent;
+}
+
+.form__field:placeholder-shown ~ .form__label {
+  font-size: 1.3rem;
+  cursor: text;
+  top: 20px;
+}
+
+.form__label {
+  position: absolute;
+  top: 0;
+  display: block;
+  transition: 0.2s;
+  font-size: 1rem;
+  color: #fffafa;
+}
+
+.form__field:focus {
+  padding-bottom: 6px;
+  font-weight: bold;
+  border-width: 3px;
+  border-image: linear-gradient(to right, #ff6600, #d05604);
+  border-image-slice: 1;
+}
+
+.form__field:focus ~ .form__label {
+  position: absolute;
+  top: 0;
+  display: block;
+  transition: 0.2s;
+  font-size: 1rem;
+  color: #ff6600;
+  font-weight: 700;
+}
+
+.form__field:required,
+.form__field:invalid {
+  box-shadow: none;
+}
+
+/* link container under the password input */
+.login-control .forgot-password-container {
+  width: 100%;
+  margin-top: 6px;
+  text-align: right;
+}
+
+/* the actual link */
+.login-control a {
+  display: inline-block;
+  font-size: 0.9em;
+  color: #ff6600;
+  text-decoration: none;
+  transition: color 0.3s;
+  padding: 2px 4px; /* kis padding a link körül hogy kényelmesebb legyen kattintani */
+}
+
+/* registration link */
+.reg-link {
+  margin-left: 8px;
+  text-decoration: none;
+  font-weight: 600;
+  color: #ff6600;
+}
+
+/* button styling */
+.button {
+  display: block;
+  width: 100%;
+  padding: 12px;
+  margin-top: 16px;
+  border: none;
+  background-color: #ff6600;
+  color: #fffafa;
+  border-radius: 30px;
+  cursor: pointer;
+  font-size: 1.1rem;
+  font-weight: 600;
+}
+.button:hover {
+  background: linear-gradient(to right, #ff6600, #ac4602);
+}
+
+/* error messages */
+.error-message {
+  color: #ff4444;
+  font-size: 0.9rem;
+  margin-top: 4px;
+  text-align: left;
+}
+
+/* register/login link text */
+form > p {
+  margin-top: 16px;
+  margin-bottom: 0;
+  font-size: 0.95rem;
+}
+
+.logo {
+  width: 100px;
+  height: 110px;
+}
+
+/* CAPTCHA styling */
+.chapta {
+  width: 100%;
+  max-width: 300px;
+  padding: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 4px;
+  background-color: rgba(255, 255, 255, 0.1);
+}
+
+.chapta-container {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  cursor: pointer;
+  position: relative;
+  padding-left: 35px;
+  user-select: none;
+}
+
+.chapta-container input {
+  position: absolute;
+  opacity: 0;
+  cursor: pointer;
+  height: 0;
+  width: 0;
+}
+
+.checkmark {
+  position: absolute;
+  left: 0;
+  height: 24px;
+  width: 24px;
+  background-color: transparent;
+  border: 2px solid rgba(255, 255, 255, 0.8);
+  border-radius: 4px;
+  transition: all 0.2s;
+}
+
+.chapta-container:hover input ~ .checkmark {
+  border-color: #ff6600;
+}
+
+.chapta-container input:checked ~ .checkmark {
+  background-color: #ff6600;
+  border-color: #ff6600;
+}
+
+.checkmark:after {
+  content: '';
+  position: absolute;
+  display: none;
+  left: 8px;
+  top: 4px;
+  width: 5px;
+  height: 10px;
+  border: solid white;
+  border-width: 0 2px 2px 0;
+  transform: rotate(45deg);
+}
+
+.chapta-container input:checked ~ .checkmark:after {
+  display: block;
+}
+
+.chapta-text {
+  color: #fffafa;
+  font-size: 0.9rem;
+}
+
+.recaptcha-logo {
+  height: 24px;
+  margin-left: auto;
+}
+/* TODO: CSS LOGIN MINDEN MEGIGAZÍTÁSA HOGY IGÉNYES LEGYEN */
