@@ -12,19 +12,8 @@ import {
   mustContainSpecialCharacters,
   mustContainUpperCase,
   emailMustHaveDomainValidator,
+  passwordMatchValidator,
 } from './register.service';
-
-// Jelszó egyezés validátor
-function passwordMatchValidator(control: AbstractControl): ValidationErrors | null {
-  const password = control.get('password');
-  const rePassword = control.get('rePassword');
-
-  if (!password || !rePassword) {
-    return null;
-  }
-
-  return password.value === rePassword.value ? null : { passwordMismatch: true };
-}
 
 @Component({
   selector: 'app-reg',
@@ -33,34 +22,31 @@ function passwordMatchValidator(control: AbstractControl): ValidationErrors | nu
   styleUrls: ['./registration.component.css'],
 })
 export class RegistrationComponent {
-  signupForm = new FormGroup(
-    {
-      username: new FormControl('', {
-        validators: [
-          Validators.required,
-          Validators.minLength(3),
-          Validators.maxLength(20),
-          Validators.pattern(/^[a-zA-Z0-9_-]+$/), // csak betűk, számok, aláhúzás és kötőjel
-        ],
-      }),
-      email: new FormControl('', {
-        validators: [Validators.email, Validators.required, emailMustHaveDomainValidator],
-      }),
-      password: new FormControl('', {
-        validators: [
-          Validators.required,
-          Validators.minLength(8),
-          mustContainUpperCase,
-          mustContainNumbers,
-          mustContainSpecialCharacters,
-        ],
-      }),
-      rePassword: new FormControl('', {
-        validators: [Validators.required],
-      }),
-    },
-    { validators: passwordMatchValidator }
-  );
+  signupForm = new FormGroup({
+    username: new FormControl('', {
+      validators: [
+        Validators.required,
+        Validators.minLength(3),
+        Validators.maxLength(20),
+        Validators.pattern(/^[a-zA-Z0-9_-]+$/), // csak betűk, számok, aláhúzás és kötőjel
+      ],
+    }),
+    email: new FormControl('', {
+      validators: [Validators.email, Validators.required, emailMustHaveDomainValidator],
+    }),
+    password: new FormControl('', {
+      validators: [
+        Validators.required,
+        Validators.minLength(8),
+        mustContainUpperCase,
+        mustContainNumbers,
+        mustContainSpecialCharacters,
+      ],
+    }),
+    rePassword: new FormControl('', {
+      validators: [Validators.required, passwordMatchValidator],
+    }),
+  });
 
   get usernameIsInvalid() {
     return (

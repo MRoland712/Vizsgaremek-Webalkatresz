@@ -1,0 +1,80 @@
+<!-- Navbar -->
+<nav class="main-navbar">
+  <!-- Container wrapper -->
+  <div class="nav-container">
+    <!-- Logo bal oldalon -->
+    <div class="nav-logo">
+      <a href="/">
+        <img src="{{ imgSrc }}" alt="CarComps main brand logo" />
+      </a>
+    </div>
+
+    <!-- Search bar középen -->
+    <div class="nav-search">
+      <form class="search-form" (ngSubmit)="onSearchSubmit()">
+        <i class="fa-solid fa-magnifying-glass search-icon"></i>
+        <input
+          type="search"
+          class="search-input"
+          placeholder="Keresés autóalkatrészek között..."
+          [formControl]="searchControl"
+          (blur)="closeDropdown()"
+          autocomplete="off"
+        />
+
+        <!-- Loading spinner -->
+        @if (isSearching()) {
+        <i class="fa-solid fa-spinner fa-spin loading-icon"></i>
+        }
+
+        <!-- Search results dropdown -->
+        @if (showDropdown() && searchResults().length > 0) {
+        <div class="search-dropdown">
+          <ul class="search-results">
+            @for (result of searchResults(); track result.id) {
+            <li class="search-result-item" (mousedown)="selectResult(result)">
+              <div class="result-info">
+                <div class="result-name">{{ result.name }}</div>
+                <div class="result-category">{{ result.category }}</div>
+              </div>
+              <div class="result-price">{{ result.price | number : '1.0-0' }} Ft</div>
+            </li>
+            }
+          </ul>
+        </div>
+        }
+
+        <!-- Nincs találat üzenet -->
+        @if (showDropdown() && !isSearching() && searchResults().length === 0 && searchControl.value
+        && searchControl.value.trim().length > 0) {
+        <div class="search-dropdown">
+          <div class="no-results">
+            <i class="fa-solid fa-circle-exclamation"></i>
+            <p>Nincs találat</p>
+          </div>
+        </div>
+        }
+      </form>
+    </div>
+
+    <!-- Ikonok jobb oldalon -->
+    <ul class="nav-icons">
+      <li class="nav-item">
+        <a class="nav-link" href="#" title="Raktár">
+          <i class="fa-solid fa-warehouse"></i>
+        </a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link" href="#" title="Kosár">
+          <i class="fa-solid fa-cart-shopping"></i>
+        </a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link" href="#" title="Profil">
+          <i class="fa-solid fa-user"></i>
+        </a>
+      </li>
+    </ul>
+  </div>
+</nav>
+<!-- Navbar -->

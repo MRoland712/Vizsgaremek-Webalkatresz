@@ -1,0 +1,300 @@
+/* Main Navbar */
+.main-navbar {
+  width: 100%;
+  background-color: #2b2b2b;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+  position: sticky;
+  top: 0;
+  z-index: 1000;
+  padding: 12px 0;
+}
+
+.nav-container {
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 0 24px;
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: center;
+  gap: 32px;
+}
+
+/* Logo balra */
+.nav-logo a {
+  display: flex;
+  align-items: center;
+  text-decoration: none;
+}
+
+.nav-logo img {
+  height: 65px;
+  width: auto;
+  transition: transform 0.3s ease;
+}
+
+.nav-logo img:hover {
+  transform: scale(1.05);
+}
+
+/* Search bar középen */
+.nav-search {
+  flex: 1;
+  max-width: 600px;
+  margin: 0 auto;
+  position: relative;
+}
+
+.search-form {
+  position: relative;
+  width: 100%;
+}
+
+.search-icon {
+  position: absolute;
+  left: 16px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #999;
+  font-size: 16px;
+  pointer-events: none;
+  z-index: 2;
+}
+
+.loading-icon {
+  position: absolute;
+  right: 16px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #ff6600;
+  font-size: 16px;
+  z-index: 2;
+}
+
+.search-input {
+  width: 600px;
+  padding: 12px 48px 12px 48px;
+  border: 2px solid rgba(255, 255, 255, 0.1);
+  border-radius: 30px;
+  background-color: rgba(255, 255, 255, 0.05);
+  color: #fffafa;
+  font-size: 15px;
+  transition: all 0.3s ease;
+  outline: none;
+}
+
+.search-input::placeholder {
+  color: #999;
+}
+
+.search-input:focus {
+  background-color: rgba(255, 255, 255, 0.1);
+
+  border-radius: 30px 30px 0 0;
+}
+
+.search-input:focus ~ .search-icon,
+.search-input:focus + .search-icon {
+  color: #ff6600;
+}
+
+/* Search dropdown */
+.search-dropdown {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  background-color: #2b2b2b;
+  border: 2px solid rgba(255, 255, 255, 0.1);
+  border-top: none;
+  border-radius: 0 0 16px 16px;
+  max-height: 400px;
+  overflow-y: auto;
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.3);
+  z-index: 1000;
+  margin-top: -2px;
+}
+
+.search-results {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.search-result-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 20px;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.search-result-item:last-child {
+  border-bottom: none;
+}
+
+.search-result-item:hover {
+  background-color: rgba(255, 102, 0, 0.1);
+}
+
+.result-info {
+  flex: 1;
+}
+
+.result-name {
+  color: #fffafa;
+  font-size: 15px;
+  font-weight: 600;
+  margin-bottom: 4px;
+}
+
+.result-category {
+  color: #999;
+  font-size: 13px;
+}
+
+.result-price {
+  color: #ff6600;
+  font-size: 16px;
+  font-weight: 700;
+  margin-left: 16px;
+  white-space: nowrap;
+}
+
+/* Nincs találat */
+.no-results {
+  padding: 32px 20px;
+  text-align: center;
+  color: #999;
+}
+
+.no-results i {
+  font-size: 32px;
+  margin-bottom: 12px;
+  display: block;
+}
+
+.no-results p {
+  margin: 0;
+  font-size: 15px;
+}
+
+/* Custom scrollbar a dropdown-hoz */
+.search-dropdown::-webkit-scrollbar {
+  width: 8px;
+}
+
+.search-dropdown::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 0 0 16px 0;
+}
+
+.search-dropdown::-webkit-scrollbar-thumb {
+  background: #ff6600;
+  border-radius: 4px;
+}
+
+.search-dropdown::-webkit-scrollbar-thumb:hover {
+  background: #d05604;
+}
+
+/* Ikonok jobbra */
+.nav-icons {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.nav-item {
+  margin: 0;
+}
+
+.nav-link {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  color: #fffafa;
+  text-decoration: none;
+  transition: all 0.3s ease;
+  background-color: rgba(255, 255, 255, 0.05);
+}
+
+.nav-link:hover {
+  background-color: #ff6600;
+  transform: translateY(-2px);
+}
+
+.nav-link i {
+  font-size: 20px;
+}
+
+/* Responsive Design */
+@media (max-width: 992px) {
+  .nav-container {
+    gap: 16px;
+  }
+
+  .nav-search {
+    max-width: 400px;
+  }
+}
+
+@media (max-width: 768px) {
+  .nav-container {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+
+  .nav-logo {
+    grid-row: 1;
+    justify-self: center;
+  }
+
+  .nav-search {
+    grid-row: 2;
+    max-width: 100%;
+  }
+
+  .nav-icons {
+    grid-row: 1;
+    justify-self: end;
+    position: absolute;
+    right: 24px;
+  }
+}
+
+@media (max-width: 480px) {
+  .nav-container {
+    padding: 0 16px;
+  }
+
+  .nav-logo img {
+    height: 40px;
+  }
+
+  .search-input {
+    font-size: 14px;
+    padding: 10px 12px 10px 42px;
+  }
+
+  .nav-link {
+    width: 38px;
+    height: 38px;
+  }
+
+  .nav-link i {
+    font-size: 16px;
+  }
+
+  .nav-icons {
+    gap: 4px;
+    right: 16px;
+  }
+}
