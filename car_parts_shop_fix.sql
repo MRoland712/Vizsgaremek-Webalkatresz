@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Gép: localhost:3306
--- Létrehozás ideje: 2025. Nov 13. 18:57
+-- Létrehozás ideje: 2025. Nov 16. 21:17
 -- Kiszolgáló verziója: 5.7.24
 -- PHP verzió: 8.3.1
 
@@ -27,6 +27,82 @@ DELIMITER $$
 --
 -- Eljárások
 --
+DROP PROCEDURE IF EXISTS `createAddress`$$
+CREATE DEFINER=`root`@`localhost` PROCEDURE `createAddress` (IN `p_user_id` INT, IN `p_first_name` VARCHAR(50), IN `p_last_name` VARCHAR(50), IN `p_company` VARCHAR(50), IN `p_tax_number` VARCHAR(50), IN `p_country` VARCHAR(50), IN `p_city` VARCHAR(50), IN `p_zip_code` VARCHAR(20), IN `p_street` VARCHAR(100), IN `p_is_default` TINYINT)   BEGIN
+    START TRANSACTION;
+
+    -- Ha ez lesz az alapértelmezett cím akkor a többi címet ne legyen alapértelmezett azt hogy ezt menniyre így kell majd kideritjük
+    IF p_is_default = 1 THEN
+        UPDATE addresses 
+        SET is_default = 0 
+        WHERE user_id = p_user_id;
+    END IF;
+
+
+    INSERT INTO addresses (
+        user_id,
+        first_name,
+        last_name,
+        company,
+        tax_number,
+        country,
+        city,
+        zip_code,
+        street,
+        is_default,
+        created_at,
+        updated_at
+    ) VALUES (
+        p_user_id,
+        p_first_name,
+        p_last_name,
+        p_company,
+        p_tax_number,
+        p_country,
+        p_city,
+        p_zip_code,
+        p_street,
+        IF(p_is_default IS NULL, 0, p_is_default),
+        NOW(),
+        NOW()
+    );
+
+    SELECT LAST_INSERT_ID() AS new_address_id;
+
+    COMMIT;
+END$$
+
+DROP PROCEDURE IF EXISTS `createParts`$$
+CREATE DEFINER=`root`@`localhost` PROCEDURE `createParts` (IN `p_manufacturer_id` INT, IN `p_sku` VARCHAR(255), IN `p_name` VARCHAR(100), IN `p_category` VARCHAR(100), IN `p_price` DECIMAL(10.2), IN `p_stock` INT, IN `p_status` VARCHAR(50), IN `p_is_active` TINYINT)   BEGIN
+	START TRANSACTION;
+    INSERT INTO parts(
+        manufacturer_id,
+        sku,
+        name,
+        category,
+        price,
+        stock,
+        status,
+        is_active,
+        created_at,
+        updated_at
+        )VALUES(
+            p_manufacturer_id,
+            p_sku,
+            p_name,
+            p_category,
+            p_price,
+            p_stock,
+            p_status,
+            p_is_active,
+            NOW(),
+            NOW()
+           );
+           
+         SELECT LAST_INSERT_ID()AS new_parts_id;
+         COMMIT;
+END$$
+
 DROP PROCEDURE IF EXISTS `createUser`$$
 CREATE DEFINER=`root`@`localhost` PROCEDURE `createUser` (IN `p_email` VARCHAR(255), IN `p_username` VARCHAR(255), IN `p_password` VARCHAR(255), IN `p_first_name` VARCHAR(255), IN `p_last_name` VARCHAR(255), IN `p_phone` VARCHAR(50), IN `p_role` VARCHAR(50), IN `p_auth_secret` VARCHAR(255), IN `p_registration_token` VARCHAR(255))   BEGIN
     START TRANSACTION;
@@ -66,6 +142,110 @@ CREATE DEFINER=`root`@`localhost` PROCEDURE `createUser` (IN `p_email` VARCHAR(2
     COMMIT;
 END$$
 
+DROP PROCEDURE IF EXISTS `getAddressById`$$
+CREATE DEFINER=`root`@`localhost` PROCEDURE `getAddressById` (IN `p_address_id` INT)   BEGIN
+    SELECT 
+        id,
+        user_id,
+        first_name,
+        last_name,
+        company,
+        tax_number,
+        country,
+        city,
+        zip_code,
+        street,
+        is_default,
+        created_at,
+        updated_at,
+        is_deleted,
+        deleted_at
+    FROM addresses
+    WHERE id = p_address_id;
+END$$
+
+DROP PROCEDURE IF EXISTS `getAddressesByUserId`$$
+CREATE DEFINER=`root`@`localhost` PROCEDURE `getAddressesByUserId` (IN `p_user_id` INT)   BEGIN
+    SELECT 
+        id,
+        user_id,
+        first_name,
+        last_name,
+        company,
+        tax_number,
+        country,
+        city,
+        zip_code,
+        street,
+        is_default,
+        created_at,
+        updated_at,
+        is_deleted,
+        deleted_at
+    FROM addresses
+    WHERE user_id = p_user_id 
+        AND is_deleted = 0
+    ORDER BY is_default DESC, id DESC;
+END$$
+
+DROP PROCEDURE IF EXISTS `getParts`$$
+CREATE DEFINER=`root`@`localhost` PROCEDURE `getParts` ()   BEGIN
+	SELECT
+    	id,
+        manufacturer_id,
+        sku,
+        name,
+        category,
+        price,
+        stock,
+        status,
+        is_active,
+        created_at,
+        updated_at,
+        deleted_at
+	FROM parts
+    ORDER BY id;
+END$$
+
+DROP PROCEDURE IF EXISTS `getPartsById`$$
+CREATE DEFINER=`root`@`localhost` PROCEDURE `getPartsById` (IN `p_parts_id` INT)   BEGIN
+    SELECT 
+        id,
+        manufacturer_id,
+        sku,
+        name,
+        category,
+        price,
+        stock,
+        status,
+        is_active,
+        created_at,
+        updated_at,
+        deleted_at
+    FROM parts
+    WHERE id = p_parts_id;
+END$$
+
+DROP PROCEDURE IF EXISTS `getPartsByManufacturerId`$$
+CREATE DEFINER=`root`@`localhost` PROCEDURE `getPartsByManufacturerId` (IN `p_manufacturer_id` INT)   BEGIN
+    SELECT 
+        id,
+        manufacturer_id,
+        sku,
+        name,
+        category,
+        price,
+        stock,
+        status,
+        is_active,
+        created_at,
+        updated_at,
+        deleted_at
+    FROM parts
+    WHERE manufacturer_id = p_manufacturer_id
+    ORDER BY id DESC;
+END$$
+
 DROP PROCEDURE IF EXISTS `getUserByEmail`$$
 CREATE DEFINER=`root`@`localhost` PROCEDURE `getUserByEmail` (IN `p_email` VARCHAR(255))   BEGIN
   SELECT id, email, username, first_name, last_name, phone, guid, role, is_active, last_login, created_at, updated_at, password, is_deleted, auth_secret, registration_token
@@ -80,12 +260,30 @@ CREATE DEFINER=`root`@`localhost` PROCEDURE `getUserById` (IN `p_user_id` INT)  
   WHERE id = p_user_id;
 END$$
 
-DROP PROCEDURE IF EXISTS `readUsers`$$
-CREATE DEFINER=`root`@`localhost` PROCEDURE `readUsers` ()   BEGIN
+DROP PROCEDURE IF EXISTS `getUsers`$$
+CREATE DEFINER=`root`@`localhost` PROCEDURE `getUsers` ()   BEGIN
     SELECT id, email, username, first_name, last_name, 
            phone, guid, role,is_active, last_login, created_at, updated_at, is_deleted
     FROM users
     ORDER BY id;
+END$$
+
+DROP PROCEDURE IF EXISTS `softDeleteAddress`$$
+CREATE DEFINER=`root`@`localhost` PROCEDURE `softDeleteAddress` (IN `p_address_id` INT)   BEGIN
+    UPDATE addresses
+    SET 
+        is_deleted = TRUE,
+        deleted_at = NOW()
+    WHERE id = p_address_id;
+END$$
+
+DROP PROCEDURE IF EXISTS `softDeleteParts`$$
+CREATE DEFINER=`root`@`localhost` PROCEDURE `softDeleteParts` (IN `p_parts_id` INT)   BEGIN
+    UPDATE parts
+    SET 
+        is_deleted = TRUE,
+        deleted_at = NOW()
+    WHERE id = p_parts_id;
 END$$
 
 DROP PROCEDURE IF EXISTS `softDeleteUser`$$
@@ -109,6 +307,63 @@ CREATE DEFINER=`root`@`localhost` PROCEDURE `softDeleteUserAndAddresses` (IN `p_
     SET is_deleted = TRUE,
         deleted_at = NOW()
     WHERE user_id = p_user_id;
+END$$
+
+DROP PROCEDURE IF EXISTS `updateAddress`$$
+CREATE DEFINER=`root`@`localhost` PROCEDURE `updateAddress` (IN `p_address_id` INT, IN `p_first_name` VARCHAR(50), IN `p_last_name` VARCHAR(50), IN `p_company` VARCHAR(50), IN `p_tax_number` VARCHAR(50), IN `p_country` VARCHAR(50), IN `p_city` VARCHAR(50), IN `p_zip_code` VARCHAR(20), IN `p_street` VARCHAR(100), IN `p_is_default` TINYINT)   BEGIN
+    DECLARE v_user_id INT;
+    
+    START TRANSACTION;
+
+    -- User ID lekérdezése
+    SELECT user_id INTO v_user_id 
+    FROM addresses 
+    WHERE id = p_address_id;
+
+    -- Ha ez lesz az alapértelmezett cím akkor a többi címet ne legyen alapértelmezett
+    IF p_is_default = 1 THEN
+        UPDATE addresses 
+        SET is_default = 0 
+        WHERE user_id = v_user_id 
+            AND id != p_address_id;
+    END IF;
+
+    -- Cím frissítése
+    UPDATE addresses
+    SET 
+        first_name = p_first_name,
+        last_name = p_last_name,
+        company = p_company,
+        tax_number = p_tax_number,
+        country = p_country,
+        city = p_city,
+        zip_code = p_zip_code,
+        street = p_street,
+        is_default = p_is_default,
+        updated_at = NOW()
+    WHERE id = p_address_id;
+
+    COMMIT;
+END$$
+
+DROP PROCEDURE IF EXISTS `updateParts`$$
+CREATE DEFINER=`root`@`localhost` PROCEDURE `updateParts` (IN `p_part_id` INT, IN `p_manufacturer_id` INT, IN `p_sku` VARCHAR(100), IN `p_name` VARCHAR(255), IN `p_category` VARCHAR(100), IN `p_price` DECIMAL(10,2), IN `p_stock` INT, IN `p_status` VARCHAR(20), IN `p_is_active` TINYINT)   BEGIN
+    START TRANSACTION;
+    
+    UPDATE parts
+    SET 
+        manufacturer_id = p_manufacturer_id,
+        sku = p_sku,
+        name = p_name,
+        category = p_category,
+        price = p_price,
+        stock = p_stock,
+        status = p_status,
+        is_active = p_is_active,
+        updated_at = NOW()
+    WHERE id = p_part_id;
+    
+    COMMIT;
 END$$
 
 DROP PROCEDURE IF EXISTS `updateUser`$$
@@ -242,7 +497,9 @@ CREATE TABLE `manufacturers` (
   `id` int(11) NOT NULL,
   `name` varchar(100) NOT NULL,
   `country` varchar(50) DEFAULT NULL,
-  `created_at` datetime DEFAULT CURRENT_TIMESTAMP
+  `created_at` datetime DEFAULT CURRENT_TIMESTAMP,
+  `is_deleted` tinyint(1) DEFAULT '0',
+  `deleted_at` datetime DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 -- --------------------------------------------------------
@@ -284,7 +541,9 @@ CREATE TABLE `orders` (
   `id` int(11) NOT NULL,
   `user_id` int(11) NOT NULL,
   `status` varchar(20) DEFAULT 'pending',
-  `created_at` datetime DEFAULT CURRENT_TIMESTAMP
+  `created_at` datetime DEFAULT CURRENT_TIMESTAMP,
+  `is_deleted` tinyint(1) DEFAULT '0',
+  `deleted_at` datetime DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 -- --------------------------------------------------------
@@ -336,7 +595,8 @@ CREATE TABLE `parts` (
   `is_active` tinyint(1) DEFAULT '1',
   `created_at` datetime DEFAULT CURRENT_TIMESTAMP,
   `updated_at` datetime DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-  `deleted_at` datetime DEFAULT NULL
+  `deleted_at` datetime DEFAULT NULL,
+  `is_deleted` tinyint(1) DEFAULT '0'
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 -- --------------------------------------------------------
@@ -469,7 +729,9 @@ CREATE TABLE `reviews` (
   `part_id` int(11) NOT NULL,
   `rating` int(11) DEFAULT NULL,
   `comment` text,
-  `created_at` datetime DEFAULT CURRENT_TIMESTAMP
+  `created_at` datetime DEFAULT CURRENT_TIMESTAMP,
+  `is_deleted` tinyint(1) DEFAULT '0',
+  `deleted_at` datetime DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 -- --------------------------------------------------------
@@ -636,7 +898,9 @@ CREATE TABLE `warehouses` (
   `id` int(11) NOT NULL,
   `name` varchar(50) DEFAULT NULL,
   `location` varchar(255) DEFAULT NULL,
-  `created_at` datetime DEFAULT CURRENT_TIMESTAMP
+  `created_at` datetime DEFAULT CURRENT_TIMESTAMP,
+  `is_deleted` tinyint(1) DEFAULT '0',
+  `deleted_at` datetime DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 -- --------------------------------------------------------

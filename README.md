@@ -10,7 +10,7 @@ A **car_parts_shop_fix** egy komplex adatbázis-séma, amely egy autóalkatrész
 - **Karakterkészlet:** UTF-8
 - **Collation:** utf8_general_ci
 - **PHP verzió:** 8.3.1
-- **Exportálás dátuma:** 2025. november 13.
+- **Exportálás dátuma:** 2025. november 16.
 
 ## Adatbázis Struktúra
 
@@ -34,7 +34,8 @@ A rendszer felhasználóinak központi táblája.
 - `registration_token` - Regisztrációs token
 - `failed_login_attempts` - Sikertelen bejelentkezési kísérletek száma
 - `locked_until` - Fiókzárolás időpontja
-- `is_deleted`, `deleted_at` - Soft delete mezők
+- `is_deleted` - Soft delete jelző
+- `deleted_at` - Soft delete időbélyeg
 - `created_at`, `updated_at`, `last_login` - Időbélyegek
 
 #### addresses
@@ -47,7 +48,8 @@ Felhasználók címadatai (számlázási és szállítási címek).
 - `tax_number` - Adószám (opcionális)
 - `country`, `city`, `zip_code`, `street` - Cím komponensek
 - `is_default` - Alapértelmezett cím jelölése
-- `is_deleted`, `deleted_at` - Soft delete
+- `is_deleted` - Soft delete jelző
+- `deleted_at` - Soft delete időbélyeg
 
 #### email_verifications
 E-mail cím verifikációs tokenek kezelése.
@@ -110,6 +112,8 @@ Alkatrész-gyártók adatai.
 **Főbb mezők:**
 - `name` - Gyártó neve
 - `country` - Ország
+- `is_deleted` - Soft delete jelző
+- `deleted_at` - Soft delete időbélyeg
 
 #### parts
 Alkatrészek központi táblája.
@@ -123,7 +127,8 @@ Alkatrészek központi táblája.
 - `stock` - Készlet
 - `status` - Státusz (available/unavailable)
 - `is_active` - Aktív-e
-- `deleted_at` - Soft delete
+- `is_deleted` - Soft delete jelző
+- `deleted_at` - Soft delete időbélyeg
 
 #### part_images
 Alkatrészekhez tartozó képek.
@@ -159,6 +164,8 @@ Termékértékelések.
 - `part_id` - Külső kulcs
 - `rating` - Értékelés (1-5)
 - `comment` - Szöveges vélemény
+- `is_deleted` - Soft delete jelző
+- `deleted_at` - Soft delete időbélyeg
 
 ### Járműadatok
 
@@ -198,6 +205,8 @@ Rendelések.
 **Főbb mezők:**
 - `user_id` - Külső kulcs
 - `status` - Rendelés állapota (pending/processing/completed/cancelled)
+- `is_deleted` - Soft delete jelző
+- `deleted_at` - Soft delete időbélyeg
 - `created_at` - Létrehozás időpontja
 
 #### order_items
@@ -283,6 +292,8 @@ Raktárak.
 **Főbb mezők:**
 - `name` - Raktár neve
 - `location` - Helyszín
+- `is_deleted` - Soft delete jelző
+- `deleted_at` - Soft delete időbélyeg
 
 #### warehouse_stock
 Raktárkészletek.
@@ -376,6 +387,96 @@ Bejelentkezési folyamat kezelése (last_login frissítése).
 **Paraméterek:**
 - `p_email` - E-mail cím
 
+### Címkezelési Eljárások
+
+#### createAddress
+Új cím létrehozása a felhasználóhoz.
+
+**Paraméterek:**
+- `p_user_id` - Felhasználó ID
+- `p_first_name`, `p_last_name` - Címzett neve
+- `p_company` - Cégnév (opcionális)
+- `p_tax_number` - Adószám (opcionális)
+- `p_country`, `p_city`, `p_zip_code`, `p_street` - Cím komponensek
+- `p_is_default` - Alapértelmezett cím-e
+
+**Visszatérés:** Az új cím ID-ja
+
+**Megjegyzés:** Ha az új cím alapértelmezett, akkor a felhasználó többi címe automatikusan elveszti az alapértelmezett státuszát.
+
+#### readAddressesByUserId
+Felhasználó összes címének lekérdezése.
+
+**Paraméterek:**
+- `p_user_id` - Felhasználó ID
+
+**Visszatérés:** A felhasználó összes aktív címe, alapértelmezett cím előre rendezve
+
+#### getAddressById
+Egy konkrét cím lekérdezése ID alapján.
+
+**Paraméterek:**
+- `p_address_id` - Cím ID
+
+#### updateAddress
+Cím adatainak módosítása.
+
+**Paraméterek:**
+- `p_address_id` - Cím ID
+- `p_first_name`, `p_last_name` - Címzett neve
+- `p_company` - Cégnév
+- `p_tax_number` - Adószám
+- `p_country`, `p_city`, `p_zip_code`, `p_street` - Cím komponensek
+- `p_is_default` - Alapértelmezett cím-e
+
+**Megjegyzés:** Az alapértelmezett cím beállítás itt is automatikusan kezelt.
+
+#### softDeleteAddress
+Cím soft delete-tel való törlése.
+
+**Paraméterek:**
+- `p_address_id` - Cím ID
+
+#### getDefaultAddress
+Felhasználó alapértelmezett címének lekérdezése.
+
+**Paraméterek:**
+- `p_user_id` - Felhasználó ID
+
+#### setAddressAsDefault
+Egy létező cím beállítása alapértelmezettként.
+
+**Paraméterek:**
+- `p_address_id` - Cím ID
+
+**Megjegyzés:** A felhasználó többi címe automatikusan elveszti az alapértelmezett státuszát.
+
+### Alkatrész kezelési Eljárások
+
+#### updatePart
+Alkatrész adatainak módosítása.
+
+**Paraméterek:**
+- `p_part_id` - Alkatrész ID
+- `p_manufacturer_id` - Gyártó ID
+- `p_sku` - Cikkszám
+- `p_name` - Termék neve
+- `p_category` - Kategória
+- `p_price` - Ár
+- `p_stock` - Készlet
+- `p_status` - Státusz
+- `p_is_active` - Aktív-e
+
+**Megjegyzés:** Automatikusan frissíti az `updated_at` mezőt.
+
+#### softDeletePart
+Alkatrész soft delete-tel való törlése.
+
+**Paraméterek:**
+- `p_part_id` - Alkatrész ID
+
+**Megjegyzés:** A törölt alkatrészek megmaradnak az adatbázisban, csak a `deleted_at` mező kerül beállításra. Ez biztosítja, hogy a múltbeli rendelések és számlák továbbra is érvényesek maradjanak.
+
 ## Kapcsolatok (Foreign Keys)
 
 Az adatbázis kiterjedt kapcsolati hálózatot használ az adatintegritás biztosítására:
@@ -386,6 +487,33 @@ Az adatbázis kiterjedt kapcsolati hálózatot használ az adatintegritás bizto
 - **warehouse_stock** - összeköti a warehouses és parts táblákat
 
 Minden külső kulcs CASCADE DELETE-tel van konfigurálva, ahol releváns.
+
+## Soft Delete Stratégia
+
+Az adatbázis következetes soft delete mechanizmust alkalmaz a kritikus adatok megőrzésére:
+
+### Soft Delete-tel rendelkező táblák:
+- **users** - Felhasználók (GDPR, jogszabályi követelmények)
+- **addresses** - Címek (rendelési history)
+- **parts** - Alkatrészek (rendelési history, számlák)
+- **orders** - Rendelések (kötelező megőrzés)
+- **reviews** - Értékelések (moderálás, history)
+- **manufacturers** - Gyártók (termék referenciák)
+- **warehouses** - Raktárak (készlet history)
+
+### Implementáció:
+Minden soft delete-es tábla két mezővel rendelkezik:
+- `is_deleted` (TINYINT) - Logikai jelző
+- `deleted_at` (DATETIME) - Törlés időpontja
+
+### Használat:
+```sql
+-- Aktív rekordok lekérdezése
+WHERE is_deleted = 0 AND deleted_at IS NULL
+
+-- Törölt rekordok lekérdezése
+WHERE is_deleted = 1 OR deleted_at IS NOT NULL
+```
 
 ## Biztonság
 
@@ -402,18 +530,23 @@ Az adatbázis több biztonsági mechanizmust implementál:
 ## Telepítés
 
 1. Hozzon létre egy MySQL adatbázist
-2. Importálja a `car_parts_shop_fix_2_.sql` fájlt:
+2. Importálja a `car_parts_shop_fix.sql` fájlt:
    ```bash
-   mysql -u felhasználónév -p < car_parts_shop_fix_2_.sql
+   mysql -u felhasználónév -p < car_parts_shop_fix.sql
    ```
-3. Ellenőrizze a tárolt eljárások létrejöttét
-4. Állítsa be a megfelelő felhasználói jogosultságokat
+3. Futtassa le a soft delete mezők hozzáadását:
+   ```bash
+   mysql -u felhasználónév -p car_parts_shop_fix < add_soft_delete_columns.sql
+   ```
+4. Ellenőrizze a tárolt eljárások létrejöttét
+5. Állítsa be a megfelelő felhasználói jogosultságokat
 
 Vagy
 
-1. Mamp localhost létrehozása
+1. MAMP localhost létrehozása
 2. phpMyAdmin felületen adatbázis importálása
-3. Sikeres adatbázis feltöltése esetén eljárások táblák ellenőrzése
+3. Soft delete mezők hozzáadása SQL script futtatásával
+4. Sikeres adatbázis feltöltése esetén eljárások és táblák ellenőrzése
 
 ## Karbantartás
 
@@ -422,7 +555,7 @@ Vagy
 - **Készlet-szinkronizáció:** Ellenőrizze a parts.stock és warehouse_stock közötti konzisztenciát
 - **Session tisztítás:** Törölje a lejárt session rekordokat
 - **Log archiválás:** Archiválja a régi login_logs és user_logs bejegyzéseket
-- **Soft delete tisztítás:** Döntse el a véglegesen törlendő rekordok sorsát
+- **Soft delete tisztítás:** Döntse el a véglegesen törlendő rekordok sorsát (GDPR szerint általában 30-90 nap után)
 
 ### Indexek
 
@@ -431,13 +564,26 @@ Az adatbázis optimalizált indexekkel rendelkezik a következő mezőkön:
 - E-mail címek (UNIQUE)
 - Tokenek (UNIQUE)
 - Időbélyegek (logged_in_at)
+- Soft delete mezők (is_deleted)
 
 ## Tudnivaló
 
-Ez a séma egy autóalkatrész webáruház belső használatára készült.
+Ez a séma egy autóalkatrész webáruház belső használatára készült. A soft delete mechanizmus biztosítja, hogy az üzleti és jogszabályi követelményeknek megfelelően őrizzük meg a kritikus adatokat.
+
+## Változásnapló
+
+### 2.2 verzió (2025. november 16.)
+- Soft delete mezők (`is_deleted`, `deleted_at`) hozzáadása: parts, orders, reviews, manufacturers, warehouses táblákhoz
+- Címkezelési stored procedure-ök implementálása (createAddress, readAddressesByUserId, getAddressById, updateAddress, softDeleteAddress, getDefaultAddress, setAddressAsDefault)
+- Alkatrész kezelési stored procedure-ök: updateParts, softDeleteParts, createParts, getParts, getPartsByManufacturerId, getPartsById
+- README dokumentáció frissítése
+
+### 2.1 verzió (2025. november 13.)
+- Alapvető adatbázis struktúra
+- Felhasználókezelési stored procedure-ök
+- Biztonság funkcionalitás implementálása
 
 ## Verzió
 
-**Aktuális verzió:** 2.0
-**Utolsó módosítás:** 2025. november 13.
-
+**Aktuális verzió:** 2.2
+**Utolsó módosítás:** 2025. november 16.
