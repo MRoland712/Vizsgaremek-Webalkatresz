@@ -8,12 +8,46 @@ import com.mycompany.vizsgaremek.model.Users;
 import com.mycompany.vizsgaremek.config.Encrypt;
 import java.util.ArrayList;
 import java.util.regex.Pattern;
+import org.json.JSONArray;
+import org.json.JSONObject;
 
 /**
  *
  * @author ddori
  */
 public class AuthenticationService {
+
+    public static class errorAuth {
+
+        public static boolean hasErrors(JSONArray errors) {
+            return errors.length() > 0;
+        }
+
+        public static JSONObject createErrorResponse(JSONArray errors, int statusCode) {
+            JSONObject response = new JSONObject();
+            response.put("errors", errors);
+            response.put("status", "failed");
+            response.put("statusCode", statusCode);
+            return response;
+        }
+        
+        public static JSONObject createOKResponse(JSONObject result) {
+            JSONObject response = new JSONObject();
+            response.put("result", result);
+            response.put("status", "failed");
+            response.put("statusCode", 200);
+            return response;
+        }
+        
+        public static JSONObject createOKResponse() {
+            JSONObject response = new JSONObject();
+            response.put("status", "success");
+            response.put("statusCode", 200);
+            return response;
+        }
+        
+        
+    }//Class closer
 
     public static class userAuth {
 
@@ -35,15 +69,15 @@ public class AuthenticationService {
         public boolean isDataMissing(ArrayList<Users> data) {
             return (data == null || data.isEmpty());
         }
-        
+
         public boolean isDataMissing(Boolean data) {
             return (data == null);
         }
-        
+
         public boolean isDataMissing(Users data) {
             return (data == null);
         }
-        
+
         //ToDO: add a try catch for each isValid method 💀💀 vagy megnezni azt hogy object instanceog <x>
         public boolean isValidId(Integer id) {
             return id > 0;
@@ -86,7 +120,7 @@ public class AuthenticationService {
                 return false;
             }
         }
-        
+
         public boolean isValidAuthSecret(String authSecret) {
             try {
                 return authSecret.length() <= 255;
@@ -95,7 +129,7 @@ public class AuthenticationService {
                 return false;
             }
         }
-        
+
         public boolean isValidRegistrationToken(String regToken) {
             try {
                 return regToken.length() <= 255;
@@ -104,11 +138,10 @@ public class AuthenticationService {
                 return false;
             }
         }
-        
+
         public boolean isUserDeleted(Boolean isDeleted) {
             return (isDeleted == true);
-        } 
-        
+        }
 
         /**
          * Checks if the plain password is the same as the Encrypted password in
@@ -162,15 +195,18 @@ public class AuthenticationService {
                 return false;
             }
         }
-        
+
         /**
-         * Checks if the searchCriteria is Integer (id) or String (email) and runs the coresponding method
+         * Checks if the searchCriteria is Integer (id) or String (email) and
+         * runs the coresponding method
          *
          * @param password The password that needs to be checked
          * @param searchCriteria The Object that needs to be checked
-         * 
-         * @return true / false based if the password is the same as the one in the db
-         * @throws IlleagalArgumentExeption with message of "Not acceptable search criteria: {Object's type that is not supported} " 
+         *
+         * @return true / false based if the password is the same as the one in
+         * the db
+         * @throws IlleagalArgumentExeption with message of "Not acceptable
+         * search criteria: {Object's type that is not supported} "
          */
         public boolean isPasswordSame(String password, Object searchCriteria) {
             if (searchCriteria instanceof Integer) {
@@ -181,6 +217,6 @@ public class AuthenticationService {
                 throw new IllegalArgumentException("Not acceptable search criteria: " + (searchCriteria != null ? searchCriteria.getClass().getName() : "null"));
             }
         }
-        
-    }
-}
+
+    } //Class closer
+}//Class closer

@@ -18,6 +18,7 @@ com\mycompany\vizsgaremek\config\base64Converters.class
 com\mycompany\vizsgaremek\model\WarehouseStock.class
 com\mycompany\vizsgaremek\model\Refunds.class
 com\mycompany\vizsgaremek\model\UserLogs.class
+com\mycompany\vizsgaremek\service\AuthenticationService$errorAuth.class
 com\mycompany\vizsgaremek\model\Manufacturers.class
 com\mycompany\vizsgaremek\model\PartImages.class
 com\mycompany\vizsgaremek\model\PasswordResets.class

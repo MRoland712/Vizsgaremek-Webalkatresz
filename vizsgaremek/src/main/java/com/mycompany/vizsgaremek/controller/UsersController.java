@@ -70,12 +70,12 @@ public class UsersController {
         JSONObject bodyObject = new JSONObject(body);
 
         Users createdUser = new Users(
-                bodyObject.getString("email"),
-                bodyObject.getString("username"),
-                bodyObject.getString("password"),
-                bodyObject.getString("firstName"),
-                bodyObject.getString("lastName"),
-                bodyObject.getString("phone"),
+                bodyObject.has("email") ? bodyObject.getString("email") : null,
+                bodyObject.has("username") ? bodyObject.getString("username") : null,
+                bodyObject.has("password") ? bodyObject.getString("password") : null,
+                bodyObject.has("firstName") ? bodyObject.getString("firstName") : null,
+                bodyObject.has("lastName") ? bodyObject.getString("lastName") : null,
+                bodyObject.has("phone") ? bodyObject.getString("phone") : null,
                 bodyObject.has("role") ? bodyObject.getString("role") : null
         );
 
