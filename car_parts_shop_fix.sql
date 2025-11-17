@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Gép: localhost:3306
--- Létrehozás ideje: 2025. Nov 16. 21:17
+-- Létrehozás ideje: 2025. Nov 17. 20:14
 -- Kiszolgáló verziója: 5.7.24
 -- PHP verzió: 8.3.1
 
@@ -70,6 +70,39 @@ CREATE DEFINER=`root`@`localhost` PROCEDURE `createAddress` (IN `p_user_id` INT,
     SELECT LAST_INSERT_ID() AS new_address_id;
 
     COMMIT;
+END$$
+
+DROP PROCEDURE IF EXISTS `createManufacturers`$$
+CREATE DEFINER=`root`@`localhost` PROCEDURE `createManufacturers` (IN `p_name` VARCHAR(100), IN `p_country` VARCHAR(50))   BEGIN
+	INSERT INTO manufacturers(
+        name,
+        country,
+        created_at
+        )VALUES(
+            p_name,
+            p_country,
+            NOW()
+        );
+END$$
+
+DROP PROCEDURE IF EXISTS `createOrders`$$
+CREATE DEFINER=`root`@`localhost` PROCEDURE `createOrders` (IN `p_user_id` INT)   BEGIN
+	START TRANSACTION;
+    
+    INSERT INTO orders(
+        user_id,
+        created_at,
+        is_deleted,
+        deleted_at
+    ) VALUES (
+        p_user_id,
+        NOW(),
+        0,
+        NULL
+    );
+         SELECT LAST_INSERT_ID() AS new_orders_id;
+         
+   COMMIT;
 END$$
 
 DROP PROCEDURE IF EXISTS `createParts`$$
@@ -164,6 +197,29 @@ CREATE DEFINER=`root`@`localhost` PROCEDURE `getAddressById` (IN `p_address_id` 
     WHERE id = p_address_id;
 END$$
 
+DROP PROCEDURE IF EXISTS `getAddresses`$$
+CREATE DEFINER=`root`@`localhost` PROCEDURE `getAddresses` ()   BEGIN
+	SELECT
+        id,
+        user_id,
+        first_name,
+        last_name,
+        company,
+        tax_number,
+        country,
+        city,
+        zip_code,
+        street,
+        is_default,
+        created_at,
+        updated_at,
+        is_deleted,
+        deleted_at
+        FROM addresses
+        WHERE is_deleted = 0
+        ORDER BY id;
+END$$
+
 DROP PROCEDURE IF EXISTS `getAddressesByUserId`$$
 CREATE DEFINER=`root`@`localhost` PROCEDURE `getAddressesByUserId` (IN `p_user_id` INT)   BEGIN
     SELECT 
@@ -188,6 +244,73 @@ CREATE DEFINER=`root`@`localhost` PROCEDURE `getAddressesByUserId` (IN `p_user_i
     ORDER BY is_default DESC, id DESC;
 END$$
 
+DROP PROCEDURE IF EXISTS `getAllManufactureres`$$
+CREATE DEFINER=`root`@`localhost` PROCEDURE `getAllManufactureres` ()   BEGIN
+	SELECT
+    id,
+    name,
+    country,
+    created_at,
+    is_deleted,
+    deleted_at
+    FROM manufacturers
+    WHERE is_deleted = 0
+    ORDER BY id;
+END$$
+
+DROP PROCEDURE IF EXISTS `getAllOrders`$$
+CREATE DEFINER=`root`@`localhost` PROCEDURE `getAllOrders` ()   BEGIN
+	SELECT
+        id,
+        user_id,
+        status,
+        created_at,
+        is_deleted,
+        deleted_at
+     FROM orders
+     WHERE is_deleted = 0
+     ORDER BY id;
+END$$
+
+DROP PROCEDURE IF EXISTS `getManufacturersById`$$
+CREATE DEFINER=`root`@`localhost` PROCEDURE `getManufacturersById` (IN `p_manufacturers_id` INT)   BEGIN
+    SELECT 
+    	id,
+        name,
+        country,
+        created_at,
+        is_deleted,
+        deleted_at
+    FROM manufacturers
+    WHERE id = p_manufacturers_id;
+END$$
+
+DROP PROCEDURE IF EXISTS `getOrdersById`$$
+CREATE DEFINER=`root`@`localhost` PROCEDURE `getOrdersById` (IN `p_id` INT)   BEGIN
+	SELECT
+        id,
+        user_id,
+        status,
+        created_at,
+        is_deleted,
+        deleted_at
+     FROM orders
+     WHERE id = p_id;
+END$$
+
+DROP PROCEDURE IF EXISTS `getOrdersByUserId`$$
+CREATE DEFINER=`root`@`localhost` PROCEDURE `getOrdersByUserId` (IN `p_user_id` INT)   BEGIN
+	SELECT
+    	id,
+        user_id,
+        status,
+        created_at,
+        is_deleted,
+        deleted_at
+     FROM orders
+     WHERE user_id = p_user_id;
+END$$
+
 DROP PROCEDURE IF EXISTS `getParts`$$
 CREATE DEFINER=`root`@`localhost` PROCEDURE `getParts` ()   BEGIN
 	SELECT
@@ -202,8 +325,10 @@ CREATE DEFINER=`root`@`localhost` PROCEDURE `getParts` ()   BEGIN
         is_active,
         created_at,
         updated_at,
-        deleted_at
+        deleted_at,
+        is_deleted
 	FROM parts
+    WHERE is_deleted = 0
     ORDER BY id;
 END$$
 
@@ -265,6 +390,7 @@ CREATE DEFINER=`root`@`localhost` PROCEDURE `getUsers` ()   BEGIN
     SELECT id, email, username, first_name, last_name, 
            phone, guid, role,is_active, last_login, created_at, updated_at, is_deleted
     FROM users
+    WHERE is_deleted = 0
     ORDER BY id;
 END$$
 
@@ -275,6 +401,23 @@ CREATE DEFINER=`root`@`localhost` PROCEDURE `softDeleteAddress` (IN `p_address_i
         is_deleted = TRUE,
         deleted_at = NOW()
     WHERE id = p_address_id;
+END$$
+
+DROP PROCEDURE IF EXISTS `softDeleteManufacturers`$$
+CREATE DEFINER=`root`@`localhost` PROCEDURE `softDeleteManufacturers` (IN `p_manufacturers_id` INT)   BEGIN
+    UPDATE manufacturers
+    SET 
+        is_deleted = TRUE,
+        deleted_at = NOW()
+    WHERE id = p_manufacturers_id;
+END$$
+
+DROP PROCEDURE IF EXISTS `softDeleteOrders`$$
+CREATE DEFINER=`root`@`localhost` PROCEDURE `softDeleteOrders` (IN `p_orders_id` INT)   BEGIN
+    UPDATE orders
+    SET is_deleted = TRUE,
+        deleted_at = NOW()
+    WHERE id = p_orders_id;
 END$$
 
 DROP PROCEDURE IF EXISTS `softDeleteParts`$$
@@ -344,6 +487,16 @@ CREATE DEFINER=`root`@`localhost` PROCEDURE `updateAddress` (IN `p_address_id` I
     WHERE id = p_address_id;
 
     COMMIT;
+END$$
+
+DROP PROCEDURE IF EXISTS `updateManufacturers`$$
+CREATE DEFINER=`root`@`localhost` PROCEDURE `updateManufacturers` (IN `p_manufacturers_id` INT, IN `p_name` VARCHAR(255), IN `p_country` VARCHAR(100))   BEGIN
+  START TRANSACTION;
+    UPDATE manufacturers
+    SET name = p_name,
+        country = p_country
+    WHERE id = p_manufacturers_id;
+  COMMIT;
 END$$
 
 DROP PROCEDURE IF EXISTS `updateParts`$$
