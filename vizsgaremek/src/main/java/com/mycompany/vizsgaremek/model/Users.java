@@ -173,10 +173,18 @@ public class Users implements Serializable {
     public Users() {
     }
 
-    //soft Delete
+    //softDeleteUser
     public Users(Boolean isDeleted) {
         this.isDeleted = isDeleted;
     }
+    
+    //loginUser
+    public Users(String email, String password) {
+        this.email = email;
+        this.password = password;
+    }
+    
+    
 
     //UpdateUser
     public Users(Integer id, String email, String username, String firstName, String lastName, String phone, Boolean isActive, String role, String password, String authSecret, String registrationToken) {
@@ -204,7 +212,7 @@ public class Users implements Serializable {
         this.role = role;
     }
 
-    //ReadUser
+    //getUser
     public Users(
             Integer id,
             String email,
@@ -234,7 +242,7 @@ public class Users implements Serializable {
         this.isDeleted = isDeleted;
     }
 
-    //ReadUserById && ReadUserByEmail
+    //getUserById && getUserByEmail
     public Users(
             Integer id,
             String email,
@@ -604,12 +612,12 @@ public class Users implements Serializable {
         }
     }
 
-    public static ArrayList<Users> ReadUsers() {
+    public static ArrayList<Users> getUsers() {
         EntityManager em = emf.createEntityManager();
 
         try {
             //eljárást meghívjuk
-            StoredProcedureQuery spq = em.createStoredProcedureQuery("ReadUsers");
+            StoredProcedureQuery spq = em.createStoredProcedureQuery("getUsers");
             spq.execute();
 
             //Amit visszakap információt berakni egy Object[] list-be
@@ -648,11 +656,11 @@ public class Users implements Serializable {
         }
     }
 
-    public static Users ReadUserById(Integer id) {
+    public static Users getUserById(Integer id) {
         EntityManager em = emf.createEntityManager();
 
         try {
-            StoredProcedureQuery spq = em.createStoredProcedureQuery("ReadUserById");
+            StoredProcedureQuery spq = em.createStoredProcedureQuery("getUserById");
             spq.registerStoredProcedureParameter("p_user_id", Integer.class, ParameterMode.IN);
             spq.setParameter("p_user_id", id);
 
@@ -695,11 +703,11 @@ public class Users implements Serializable {
         }
     }
 
-    public static Users ReadUserByEmail(String email) {
+    public static Users getUserByEmail(String email) {
         EntityManager em = emf.createEntityManager();
 
         try {
-            StoredProcedureQuery spq = em.createStoredProcedureQuery("ReadUserByEmail");
+            StoredProcedureQuery spq = em.createStoredProcedureQuery("getUserByEmail");
             spq.registerStoredProcedureParameter("p_email", String.class, ParameterMode.IN);
             spq.setParameter("p_email", email);
 
@@ -769,7 +777,7 @@ public class Users implements Serializable {
 
         try {
             em.getTransaction().begin();
-            StoredProcedureQuery spq = em.createStoredProcedureQuery("UpdateUser");
+            StoredProcedureQuery spq = em.createStoredProcedureQuery("updateUser");
 
             spq.registerStoredProcedureParameter("p_user_id", Integer.class, ParameterMode.IN);
             spq.registerStoredProcedureParameter("p_email", String.class, ParameterMode.IN);
@@ -804,6 +812,34 @@ public class Users implements Serializable {
         } catch (Exception ex) {
             if (em.getTransaction().isActive()) {
                 em.getTransaction().rollback(); // Ha hiba van, rollback
+            }
+            ex.printStackTrace();
+            return false;
+        } finally {
+            em.close();
+        }
+    }
+    
+    public static Boolean loginUser(Users userData) {
+        EntityManager em = emf.createEntityManager();
+        
+        try {
+            em.getTransaction().begin();
+            
+            StoredProcedureQuery spq = em.createStoredProcedureQuery("user_login");
+            
+            spq.registerStoredProcedureParameter("p_email", String.class, ParameterMode.IN);
+            
+            spq.setParameter("P_email", userData.getEmail());
+            
+            spq.execute();
+            
+            em.getTransaction().commit();
+            
+            return true;
+        } catch (Exception ex) {
+            if (em.getTransaction().isActive()) {
+                em.getTransaction().rollback();
             }
             ex.printStackTrace();
             return false;

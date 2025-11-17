@@ -134,10 +134,12 @@ public class UsersService {
             e.put("statusCode", 400);
             errors.put(e);
         }
-
+//ToDo: add a statusCode and status to the toReturn
         //If errors has data -> return errors and stop code
         if (errors.length() > 0) {
             toReturn.put("errors", errors);
+            toReturn.put("status",  "failed");
+            toReturn.put("statusCode",  400);
             return toReturn;
         } else {
             try {
@@ -182,11 +184,11 @@ public class UsersService {
     }
 //ToDo: checkolni hogy kell-e break a kód közben (úgy mint a updateUser-ben error check)
 
-    public JSONObject ReadUsers() {
+    public JSONObject getUsers() {
         JSONObject toReturn = new JSONObject();
         JSONArray errors = new JSONArray();
 
-        ArrayList<Users> modelResult = Users.ReadUsers();
+        ArrayList<Users> modelResult = Users.getUsers();
 
         //If no data in DB
         if (userAuth.isDataMissing(modelResult)) {
@@ -195,7 +197,7 @@ public class UsersService {
             e.put("statusCode", 500);
             errors.put(e);
         }
-
+//ToDo: add a statusCode and status to the toReturn
         //If errors has data -> return errors and stop code
         if (errors.length() > 0) {
             toReturn.put("errors", errors);
@@ -234,7 +236,7 @@ public class UsersService {
 //ToDo: checkolni hogy kell-e break a kód közben (úgy mint a updateUser-ben error check)
     //ToDo: add validation if User is deleted or is Inactive?? 
 
-    public JSONObject ReadUserById(Integer id) {
+    public JSONObject getUserById(Integer id) {
         JSONObject toReturn = new JSONObject();
         JSONArray errors = new JSONArray();
 
@@ -255,7 +257,7 @@ public class UsersService {
         }
 
         //get data from spq
-        Users modelResult = Users.ReadUserById(id);
+        Users modelResult = Users.getUserById(id);
 
         //if spq gives null data
         if (modelResult == null) {
@@ -264,7 +266,7 @@ public class UsersService {
             e.put("statusCode", 404);
             errors.put(e);
         }
-
+//ToDo: add a statusCode and status to the toReturn
         //If errors has data -> return errors and stop code
         if (errors.length() > 0) {
             toReturn.put("errors", errors);
@@ -298,7 +300,7 @@ public class UsersService {
 //ToDo: checkolni hogy kell-e break a kód közben (úgy mint a updateUser-ben error check)
     //ToDo: add validation if User is deleted or is Inactive?? 
 
-    public JSONObject ReadUserByEmail(String email) {
+    public JSONObject getUserByEmail(String email) {
         JSONObject toReturn = new JSONObject();
         JSONArray errors = new JSONArray();
 
@@ -318,7 +320,7 @@ public class UsersService {
         }
 
         //get data from spq
-        Users modelResult = Users.ReadUserByEmail(email);
+        Users modelResult = Users.getUserByEmail(email);
 
         //if spq gives null data
         if (modelResult == null) {
@@ -327,7 +329,7 @@ public class UsersService {
             e.put("statusCode", 404);
             errors.put(e);
         }
-
+        //ToDo: add a statusCode and status to the toReturn
         //If errors has data -> return errors and stop code
         if (errors.length() > 0) {
             toReturn.put("errors", errors);
@@ -381,7 +383,7 @@ public class UsersService {
         }
 
         //get data from spq
-        Users modelResult = Users.ReadUserById(id);
+        Users modelResult = Users.getUserById(id);
 
         //if spq gives null data
         if (modelResult == null) {
@@ -400,6 +402,7 @@ public class UsersService {
             e.put("statusCode", 500);
             errors.put(e);
         }
+        //ToDo: add a statusCode and status to the toReturn
         //If errors has data -> return errors and stop code
         if (errors.length() > 0) {
             toReturn.put("errors", errors);
@@ -445,10 +448,10 @@ public class UsersService {
         Users existingUser = null;
         Object searchData = null;
         if (!userAuth.isDataMissing(updatedUser.getId())) {
-            existingUser = Users.ReadUserById(updatedUser.getId());
+            existingUser = Users.getUserById(updatedUser.getId());
             searchData = updatedUser.getId();
         } else {
-            existingUser = Users.ReadUserByEmail(updatedUser.getEmail());
+            existingUser = Users.getUserByEmail(updatedUser.getEmail());
             searchData = updatedUser.getEmail();
         }
 
@@ -579,8 +582,8 @@ public class UsersService {
             e.put("status", "PasswordInDB");
             e.put("statusCode", 407);
             errors.put(e);
-        } else { 
-           try {
+        } else {
+            try {
                 String encryptedPassword = Encrypt.encrypt(updatedUser.getPassword());
                 existingUser.setPassword(encryptedPassword);
             } catch (Exception ex) {
@@ -610,6 +613,126 @@ public class UsersService {
             toReturn.put("status", "success");
             toReturn.put("statusCode", 200);
 
+            return toReturn;
+        }
+    }
+
+    public JSONObject loginUser(Users logInUser) {
+        JSONObject toReturn = new JSONObject();
+        JSONArray errors = new JSONArray();
+
+        //IF DATA IS MISSING
+        if (userAuth.isDataMissing(logInUser.getEmail())) {
+            JSONObject e = new JSONObject();
+            e.put("status", "MissingEmail");
+            e.put("statusCode", 400);
+            errors.put(e);
+        }
+        if (userAuth.isDataMissing(logInUser.getPassword())) {
+            JSONObject e = new JSONObject();
+            e.put("status", "MissingPassword");
+            e.put("statusCode", 400);
+            errors.put(e);
+        }
+
+        //IF DATA IS INVALID
+        if (!userAuth.isValidEmail(logInUser.getEmail())) {
+            JSONObject e = new JSONObject();
+            e.put("status", "InvalidEmail");
+            e.put("statusCode", 400);
+            errors.put(e);
+        }
+        if (!userAuth.isValidPassword(logInUser.getPassword())) {
+            JSONObject e = new JSONObject();
+            e.put("status", "InvalidPassword");
+            e.put("statusCode", 400);
+            errors.put(e);
+        }
+
+        //error check
+        if (errors.length() > 0) {
+            toReturn.put("errors", errors);
+            toReturn.put("status", "failed");
+            toReturn.put("errors", 400);
+            return toReturn;
+        }
+
+        Users userData = Users.getUserByEmail(logInUser.getEmail());
+
+        if (userAuth.isDataMissing(userData)) {
+            JSONObject e = new JSONObject();
+            e.put("status", "UserNotFound");
+            e.put("statusCode", 404);
+            errors.put(e);
+        }
+
+        //error check for is userData missing
+        if (errors.length() > 0) {
+            toReturn.put("errors", errors);
+            toReturn.put("status", "failed");
+            toReturn.put("statusCode", 404);
+            return toReturn;
+        }
+
+        if (userAuth.isUserDeleted(userData.getIsDeleted())) {
+            JSONObject e = new JSONObject();
+            e.put("status", "UserIsSoftDeleted");
+            e.put("statusCode", 409);
+            errors.put(e);
+        }
+
+        //error check for is user Deleted
+        if (errors.length() > 0) {
+            toReturn.put("errors", errors);
+            toReturn.put("status", "failed");
+            toReturn.put("statusCode", 409);
+            return toReturn;
+        }
+
+        try {
+            if (!userAuth.isPasswordSame(userData.getPassword(), logInUser.getEmail())) {
+                JSONObject e = new JSONObject();
+                e.put("status", "InvalidPassword");
+                e.put("statusCode", 401);
+                errors.put(e);
+            }
+        } catch (Exception ex) {
+            ex.printStackTrace();
+            JSONObject e = new JSONObject();
+            e.put("status", "EncryptionError");
+            e.put("statusCode", 500);
+            errors.put(e);
+        }
+        
+        //error check for is password same
+        if (errors.length() > 0) {
+            toReturn.put("errors", errors);
+            toReturn.put("status", "failed");
+            toReturn.put("statusCode", 401); //unauthorised
+            return toReturn;
+        }
+        //get data from spq
+        Boolean modelResult = Users.loginUser(userData);
+
+        //if spq gives null data
+        if (userAuth.isDataMissing(modelResult)) {
+            JSONObject e = new JSONObject();
+            e.put("status", "ModelError");
+            e.put("statusCode", 500);
+            errors.put(e);
+        }
+
+        //If errors has data -> return errors and stop code
+        if (errors.length() > 0) {
+            toReturn.put("errors", errors);
+            toReturn.put("status", "failed");
+            toReturn.put("statusCode", 500);
+            return toReturn;
+        } else {
+            toReturn.put("status", "success");
+            toReturn.put("statusCode", 200);
+            toReturn.put("JWTToken", JwtUtil.generateToken(userData.getId(), userData.getEmail(), userData.getRole(), userData.getUsername()));
+            toReturn.put("Message", "Logged in User Successfully");
             return toReturn;
         }
     }

@@ -88,11 +88,11 @@ public class UsersController {
     }
 
     @GET
-    @Path("readUsers")
+    @Path("getUsers")
     @Consumes(MediaType.APPLICATION_JSON)
-    public Response ReadUsers() {
+    public Response getUsers() {
 
-        JSONObject toReturn = layer.ReadUsers();
+        JSONObject toReturn = layer.getUsers();
         return Response.status(Integer.parseInt(toReturn.get("statusCode").toString()))
                 .entity(toReturn.toString())
                 .type(MediaType.APPLICATION_JSON)
@@ -100,20 +100,20 @@ public class UsersController {
     }
 
     @GET
-    @Path("readUserById")
+    @Path("getUserById")
     @Consumes(MediaType.APPLICATION_JSON)
-    public Response ReadUserById(@QueryParam("id") Integer id) {
+    public Response getUserById(@QueryParam("id") Integer id) {
 
-        JSONObject toReturn = layer.ReadUserById(id);
+        JSONObject toReturn = layer.getUserById(id);
         return Response.status(Integer.parseInt(toReturn.get("statusCode").toString())).entity(toReturn.toString()).type(MediaType.APPLICATION_JSON).build();
     }
 
     @GET
-    @Path("readUserByEmail")
+    @Path("getUserByEmail")
     @Consumes(MediaType.APPLICATION_JSON)
-    public Response ReadUserByEmail(@QueryParam("email") String email) {
+    public Response getUserByEmail(@QueryParam("email") String email) {
 
-        JSONObject toReturn = layer.ReadUserByEmail(email);
+        JSONObject toReturn = layer.getUserByEmail(email);
         return Response.status(Integer.parseInt(toReturn.get("statusCode").toString())).entity(toReturn.toString()).type(MediaType.APPLICATION_JSON).build();
     }
 
@@ -136,23 +136,23 @@ public class UsersController {
             @QueryParam("id") Integer userId,
             @QueryParam("email") String email,
             String body) {
-        
+
         JSONObject bodyObject = new JSONObject(body);
 
         Users updatedUser = new Users();
-        
+
         if (userId != null) {
             updatedUser.setId(userId);
         }
-        
+
         if (email != null) {
             updatedUser.setEmail(email);
         }
-        
+
         if (bodyObject.has("email") && email == null) {
             updatedUser.setEmail(bodyObject.getString("email"));
-        } 
-        
+        }
+
         if (bodyObject.has("username")) {
             updatedUser.setUsername(bodyObject.getString("username"));
         }
@@ -191,6 +191,25 @@ public class UsersController {
 
         JSONObject toReturn = layer.updateUser(updatedUser);
 
+        return Response.status(Integer.parseInt(toReturn.get("statusCode").toString()))
+                .entity(toReturn.toString())
+                .type(MediaType.APPLICATION_JSON)
+                .build();
+    }
+
+    @PUT
+    @Path("loginUser")
+    @Consumes(MediaType.APPLICATION_JSON)
+    public Response loginUser(String body) {
+        JSONObject bodyObject = new JSONObject(body);
+
+        Users user = new Users(
+                bodyObject.has("email") ? bodyObject.getString("email") : null,
+                bodyObject.has("password") ? bodyObject.getString("password") : null
+        );
+        
+        JSONObject toReturn = layer.loginUser(user);
+        
         return Response.status(Integer.parseInt(toReturn.get("statusCode").toString()))
                 .entity(toReturn.toString())
                 .type(MediaType.APPLICATION_JSON)

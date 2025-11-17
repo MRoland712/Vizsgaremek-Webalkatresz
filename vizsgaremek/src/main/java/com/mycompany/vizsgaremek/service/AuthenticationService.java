@@ -40,6 +40,10 @@ public class AuthenticationService {
             return (data == null);
         }
         
+        public boolean isDataMissing(Users data) {
+            return (data == null);
+        }
+        
         //ToDO: add a try catch for each isValid method 💀💀 vagy megnezni azt hogy object instanceog <x>
         public boolean isValidId(Integer id) {
             return id > 0;
@@ -101,6 +105,10 @@ public class AuthenticationService {
             }
         }
         
+        public boolean isUserDeleted(Boolean isDeleted) {
+            return (isDeleted == true);
+        } 
+        
 
         /**
          * Checks if the plain password is the same as the Encrypted password in
@@ -114,7 +122,7 @@ public class AuthenticationService {
          * wrong
          */
         public boolean isPasswordSame(String password, Integer userId) {
-            Users userdata = Users.ReadUserById(userId);
+            Users userdata = Users.getUserById(userId);
             if (userdata == null) {
                 System.err.println("isPasswordSame: Could not find user via id");
             }
@@ -140,7 +148,7 @@ public class AuthenticationService {
          * @throws Exception and returns false
          */
         public boolean isPasswordSame(String password, String email) {
-            Users userdata = Users.ReadUserByEmail(email);
+            Users userdata = Users.getUserByEmail(email);
             if (userdata == null) {
                 System.err.println("isPasswordSame: Could not find user via email");
             }
