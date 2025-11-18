@@ -2,16 +2,7 @@ import { Component, DestroyRef, inject, signal } from '@angular/core';
 import { FormControl, ReactiveFormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
 import { debounceTime, distinctUntilChanged } from 'rxjs';
-
-// Interface a keresési eredményekhez (majd az API szerint módosítható)
-export interface SearchResult {
-  id: number;
-  name: string;
-  category: string;
-  price: number;
-  imageUrl?: string;
-}
-
+import { SearchResult } from '../main-header/search.service';
 @Component({
   selector: 'app-main-header',
   imports: [ReactiveFormsModule, CommonModule],

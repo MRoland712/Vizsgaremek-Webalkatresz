@@ -1,8 +1,15 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
-import { SearchResult } from './main-header.component';
 
+// Interface a keresési eredményekhez (majd az API szerint módosítható)
+export interface SearchResult {
+  id: number;
+  name: string;
+  category: string;
+  price: number;
+  imageUrl?: string;
+}
 @Injectable({
   providedIn: 'root',
 })

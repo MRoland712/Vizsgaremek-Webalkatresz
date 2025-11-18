@@ -1,6 +1,5 @@
 import { Component, DestroyRef, inject, OnInit } from '@angular/core';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
-
 import { debounceTime } from 'rxjs';
 
 let initialEmailValue = '';
@@ -20,6 +19,7 @@ if (savedForm) {
 })
 export class LoginComponent implements OnInit {
   private destroyRef = inject(DestroyRef);
+
   loginForm = new FormGroup({
     email: new FormControl(initialEmailValue, {
       validators: [Validators.email, Validators.required],

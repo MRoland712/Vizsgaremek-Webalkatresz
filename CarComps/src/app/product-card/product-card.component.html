@@ -1,0 +1,21 @@
+<div class="product-wrapper">
+  <div class="right">
+    <div class="product-desc">
+      <h2>{{ productName }}</h2>
+      <h3>Article Number: {{ articleNumber }}</h3>
+      @for (item of items; track $index) {
+      <!--termék infók-->
+      }
+    </div>
+    <h3>{{ price }}</h3>
+  </div>
+  <div class="left">
+    <img src="{{ productIMG }}" alt="a" />
+  </div>
+  <div class="bottom">
+    <button type="button" id="quantityBtn">0</button>
+    <button type="button" id="addToCart" (click)="addToCart()">
+      <i class="fa-solid fa-cart-shopping"></i>
+    </button>
+  </div>
+</div>
