@@ -1,0 +1,49 @@
+<!-- ==========================================
+     PRODUCT LIST KOMPONENS - PÉLDA
+     ========================================== -->
+
+<div class="product-grid-container">
+  <h1>X eredményt találtunk a Y keresésre</h1>
+
+  <!-- GRID LAYOUT - 2 kártya egy sorban -->
+  <div class="product-grid">
+    <!-- 1. kártya -->
+    <app-product-card></app-product-card>
+
+    <!-- 2. kártya -->
+    <app-product-card></app-product-card>
+
+    <!-- 3. kártya (új sor) -->
+    <app-product-card></app-product-card>
+
+    <!-- 4. kártya -->
+    <app-product-card></app-product-card>
+
+    <!-- 5. kártya (új sor) -->
+    <app-product-card></app-product-card>
+
+    <!-- 6. kártya -->
+    <app-product-card></app-product-card>
+  </div>
+</div>
+
+<!-- ==========================================
+     ALTERNATÍVA: TERMÉKEK TÖMBBŐL
+     ========================================== -->
+
+<!-- 
+<div class="product-grid-container">
+  <h1>Termékek</h1>
+  
+  <div class="product-grid">
+    @for (product of products; track product.id) {
+      <app-product-card 
+        [productName]="product.name"
+        [articleNumber]="product.articleNumber"
+        [price]="product.price"
+        [productIMG]="product.image">
+      </app-product-card>
+    }
+  </div>
+</div>
+-->

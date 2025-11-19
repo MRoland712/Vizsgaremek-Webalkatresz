@@ -1,21 +1,74 @@
 <div class="product-wrapper">
+  <div class="left">
+    <img src="{{ productIMG }}" alt="product image" />
+  </div>
+
   <div class="right">
     <div class="product-desc">
       <h2>{{ productName }}</h2>
       <h3>Article Number: {{ articleNumber }}</h3>
       @for (item of items; track $index) {
-      <!--termék infók-->
+      <!-- termék infók -->
       }
     </div>
-    <h3>{{ price }}</h3>
+
+    <!-- Ár -->
+    <div class="price-section">
+      <h3 class="price">{{ price }} HUF</h3>
+    </div>
+
+    <!-- Gombok az ár alatt -->
+    <div class="button-container">
+      <div class="quantity-controls">
+        <button type="button" class="quantity-btn decrease" (click)="decreaseQuantity()">
+          <i class="fa-solid fa-angle-down"></i>
+        </button>
+        <span class="quantity-display">{{ quantity() }}</span>
+        <button type="button" class="quantity-btn increase" (click)="increaseQuantity()">
+          <i class="fa-solid fa-angle-up"></i>
+        </button>
+      </div>
+
+      <button type="button" class="add-to-cart-btn" (click)="addToCart()">
+        <i class="fa-solid fa-cart-shopping"></i>
+      </button>
+    </div>
   </div>
+</div>
+<div class="product-wrapper">
   <div class="left">
-    <img src="{{ productIMG }}" alt="a" />
+    <img src="{{ productIMG }}" alt="product image" />
   </div>
-  <div class="bottom">
-    <button type="button" id="quantityBtn">0</button>
-    <button type="button" id="addToCart" (click)="addToCart()">
-      <i class="fa-solid fa-cart-shopping"></i>
-    </button>
+
+  <div class="right">
+    <div class="product-desc">
+      <h2>{{ productName }}</h2>
+      <h3>Article Number: {{ articleNumber }}</h3>
+      @for (item of items; track $index) {
+      <!-- termék infók -->
+      }
+    </div>
+
+    <!-- Ár -->
+    <div class="price-section">
+      <h3 class="price">{{ price }} HUF</h3>
+    </div>
+
+    <!-- Gombok az ár alatt -->
+    <div class="button-container">
+      <div class="quantity-controls">
+        <button type="button" class="quantity-btn decrease" (click)="decreaseQuantity()">
+          <i class="fa-solid fa-angle-down"></i>
+        </button>
+        <span class="quantity-display">{{ quantity() }}</span>
+        <button type="button" class="quantity-btn increase" (click)="increaseQuantity()">
+          <i class="fa-solid fa-angle-up"></i>
+        </button>
+      </div>
+
+      <button type="button" class="add-to-cart-btn" (click)="addToCart()">
+        <i class="fa-solid fa-cart-shopping"></i>
+      </button>
+    </div>
   </div>
 </div>
