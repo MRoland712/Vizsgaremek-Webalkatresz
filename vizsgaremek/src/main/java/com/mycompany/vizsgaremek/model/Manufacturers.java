@@ -20,10 +20,6 @@ import javax.persistence.OneToMany;
 import javax.persistence.Table;
 import javax.persistence.Temporal;
 import javax.persistence.TemporalType;
-import javax.validation.constraints.NotNull;
-import javax.validation.constraints.Size;
-import javax.xml.bind.annotation.XmlRootElement;
-import javax.xml.bind.annotation.XmlTransient;
 
 /**
  *
@@ -36,8 +32,9 @@ import javax.xml.bind.annotation.XmlTransient;
     @NamedQuery(name = "Manufacturers.findById", query = "SELECT m FROM Manufacturers m WHERE m.id = :id"),
     @NamedQuery(name = "Manufacturers.findByName", query = "SELECT m FROM Manufacturers m WHERE m.name = :name"),
     @NamedQuery(name = "Manufacturers.findByCountry", query = "SELECT m FROM Manufacturers m WHERE m.country = :country"),
-    @NamedQuery(name = "Manufacturers.findByCreatedAt", query = "SELECT m FROM Manufacturers m WHERE m.createdAt = :createdAt")})
-@XmlRootElement
+    @NamedQuery(name = "Manufacturers.findByCreatedAt", query = "SELECT m FROM Manufacturers m WHERE m.createdAt = :createdAt"),
+    @NamedQuery(name = "Manufacturers.findByIsDeleted", query = "SELECT m FROM Manufacturers m WHERE m.isDeleted = :isDeleted"),
+    @NamedQuery(name = "Manufacturers.findByDeletedAt", query = "SELECT m FROM Manufacturers m WHERE m.deletedAt = :deletedAt")})
 public class Manufacturers implements Serializable {
 
     private static final long serialVersionUID = 1L;
@@ -47,16 +44,18 @@ public class Manufacturers implements Serializable {
     @Column(name = "id")
     private Integer id;
     @Basic(optional = false)
-    @NotNull
-    @Size(min = 1, max = 100)
     @Column(name = "name")
     private String name;
-    @Size(max = 50)
     @Column(name = "country")
     private String country;
     @Column(name = "created_at")
     @Temporal(TemporalType.TIMESTAMP)
     private Date createdAt;
+    @Column(name = "is_deleted")
+    private Boolean isDeleted;
+    @Column(name = "deleted_at")
+    @Temporal(TemporalType.TIMESTAMP)
+    private Date deletedAt;
     @OneToMany(cascade = CascadeType.ALL, mappedBy = "manufacturerId")
     private Collection<Parts> partsCollection;
 
@@ -104,7 +103,22 @@ public class Manufacturers implements Serializable {
         this.createdAt = createdAt;
     }
 
-    @XmlTransient
+    public Boolean getIsDeleted() {
+        return isDeleted;
+    }
+
+    public void setIsDeleted(Boolean isDeleted) {
+        this.isDeleted = isDeleted;
+    }
+
+    public Date getDeletedAt() {
+        return deletedAt;
+    }
+
+    public void setDeletedAt(Date deletedAt) {
+        this.deletedAt = deletedAt;
+    }
+
     public Collection<Parts> getPartsCollection() {
         return partsCollection;
     }

@@ -16,7 +16,6 @@ import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.JoinColumn;
-import javax.persistence.ManyToMany;
 import javax.persistence.ManyToOne;
 import javax.persistence.NamedQueries;
 import javax.persistence.NamedQuery;
@@ -24,10 +23,6 @@ import javax.persistence.OneToMany;
 import javax.persistence.Table;
 import javax.persistence.Temporal;
 import javax.persistence.TemporalType;
-import javax.validation.constraints.NotNull;
-import javax.validation.constraints.Size;
-import javax.xml.bind.annotation.XmlRootElement;
-import javax.xml.bind.annotation.XmlTransient;
 
 /**
  *
@@ -47,8 +42,8 @@ import javax.xml.bind.annotation.XmlTransient;
     @NamedQuery(name = "Parts.findByIsActive", query = "SELECT p FROM Parts p WHERE p.isActive = :isActive"),
     @NamedQuery(name = "Parts.findByCreatedAt", query = "SELECT p FROM Parts p WHERE p.createdAt = :createdAt"),
     @NamedQuery(name = "Parts.findByUpdatedAt", query = "SELECT p FROM Parts p WHERE p.updatedAt = :updatedAt"),
-    @NamedQuery(name = "Parts.findByDeletedAt", query = "SELECT p FROM Parts p WHERE p.deletedAt = :deletedAt")})
-@XmlRootElement
+    @NamedQuery(name = "Parts.findByDeletedAt", query = "SELECT p FROM Parts p WHERE p.deletedAt = :deletedAt"),
+    @NamedQuery(name = "Parts.findByIsDeleted", query = "SELECT p FROM Parts p WHERE p.isDeleted = :isDeleted")})
 public class Parts implements Serializable {
 
     private static final long serialVersionUID = 1L;
@@ -58,26 +53,19 @@ public class Parts implements Serializable {
     @Column(name = "id")
     private Integer id;
     @Basic(optional = false)
-    @NotNull
-    @Size(min = 1, max = 100)
     @Column(name = "sku")
     private String sku;
     @Basic(optional = false)
-    @NotNull
-    @Size(min = 1, max = 255)
     @Column(name = "name")
     private String name;
-    @Size(max = 100)
     @Column(name = "category")
     private String category;
     // @Max(value=?)  @Min(value=?)//if you know range of your decimal fields consider using these annotations to enforce field validation
     @Basic(optional = false)
-    @NotNull
     @Column(name = "price")
     private BigDecimal price;
     @Column(name = "stock")
     private Integer stock;
-    @Size(max = 20)
     @Column(name = "status")
     private String status;
     @Column(name = "is_active")
@@ -91,27 +79,13 @@ public class Parts implements Serializable {
     @Column(name = "deleted_at")
     @Temporal(TemporalType.TIMESTAMP)
     private Date deletedAt;
-    @ManyToMany(mappedBy = "partsCollection")
-    private Collection<ProductComparisons> productComparisonsCollection;
-    @OneToMany(cascade = CascadeType.ALL, mappedBy = "partId")
-    private Collection<PartCompatibility> partCompatibilityCollection;
+    @Column(name = "is_deleted")
+    private Boolean isDeleted;
     @OneToMany(cascade = CascadeType.ALL, mappedBy = "partId")
     private Collection<Reviews> reviewsCollection;
-    @OneToMany(cascade = CascadeType.ALL, mappedBy = "partId")
-    private Collection<StockLogs> stockLogsCollection;
-    @OneToMany(cascade = CascadeType.ALL, mappedBy = "partId")
-    private Collection<OrderItems> orderItemsCollection;
-    @OneToMany(cascade = CascadeType.ALL, mappedBy = "partId")
-    private Collection<CartItems> cartItemsCollection;
-    @OneToMany(cascade = CascadeType.ALL, mappedBy = "partId")
-    private Collection<PartImages> partImagesCollection;
-    @OneToMany(cascade = CascadeType.ALL, mappedBy = "partId")
-    private Collection<PartVariants> partVariantsCollection;
     @JoinColumn(name = "manufacturer_id", referencedColumnName = "id")
     @ManyToOne(optional = false)
     private Manufacturers manufacturerId;
-    @OneToMany(cascade = CascadeType.ALL, mappedBy = "partId")
-    private Collection<WarehouseStock> warehouseStockCollection;
 
     public Parts() {
     }
@@ -215,25 +189,14 @@ public class Parts implements Serializable {
         this.deletedAt = deletedAt;
     }
 
-    @XmlTransient
-    public Collection<ProductComparisons> getProductComparisonsCollection() {
-        return productComparisonsCollection;
+    public Boolean getIsDeleted() {
+        return isDeleted;
     }
 
-    public void setProductComparisonsCollection(Collection<ProductComparisons> productComparisonsCollection) {
-        this.productComparisonsCollection = productComparisonsCollection;
+    public void setIsDeleted(Boolean isDeleted) {
+        this.isDeleted = isDeleted;
     }
 
-    @XmlTransient
-    public Collection<PartCompatibility> getPartCompatibilityCollection() {
-        return partCompatibilityCollection;
-    }
-
-    public void setPartCompatibilityCollection(Collection<PartCompatibility> partCompatibilityCollection) {
-        this.partCompatibilityCollection = partCompatibilityCollection;
-    }
-
-    @XmlTransient
     public Collection<Reviews> getReviewsCollection() {
         return reviewsCollection;
     }
@@ -242,66 +205,12 @@ public class Parts implements Serializable {
         this.reviewsCollection = reviewsCollection;
     }
 
-    @XmlTransient
-    public Collection<StockLogs> getStockLogsCollection() {
-        return stockLogsCollection;
-    }
-
-    public void setStockLogsCollection(Collection<StockLogs> stockLogsCollection) {
-        this.stockLogsCollection = stockLogsCollection;
-    }
-
-    @XmlTransient
-    public Collection<OrderItems> getOrderItemsCollection() {
-        return orderItemsCollection;
-    }
-
-    public void setOrderItemsCollection(Collection<OrderItems> orderItemsCollection) {
-        this.orderItemsCollection = orderItemsCollection;
-    }
-
-    @XmlTransient
-    public Collection<CartItems> getCartItemsCollection() {
-        return cartItemsCollection;
-    }
-
-    public void setCartItemsCollection(Collection<CartItems> cartItemsCollection) {
-        this.cartItemsCollection = cartItemsCollection;
-    }
-
-    @XmlTransient
-    public Collection<PartImages> getPartImagesCollection() {
-        return partImagesCollection;
-    }
-
-    public void setPartImagesCollection(Collection<PartImages> partImagesCollection) {
-        this.partImagesCollection = partImagesCollection;
-    }
-
-    @XmlTransient
-    public Collection<PartVariants> getPartVariantsCollection() {
-        return partVariantsCollection;
-    }
-
-    public void setPartVariantsCollection(Collection<PartVariants> partVariantsCollection) {
-        this.partVariantsCollection = partVariantsCollection;
-    }
-
     public Manufacturers getManufacturerId() {
         return manufacturerId;
     }
 
     public void setManufacturerId(Manufacturers manufacturerId) {
         this.manufacturerId = manufacturerId;
-    }
-
-    @XmlTransient
-    public Collection<WarehouseStock> getWarehouseStockCollection() {
-        return warehouseStockCollection;
-    }
-
-    public void setWarehouseStockCollection(Collection<WarehouseStock> warehouseStockCollection) {
-        this.warehouseStockCollection = warehouseStockCollection;
     }
 
     @Override

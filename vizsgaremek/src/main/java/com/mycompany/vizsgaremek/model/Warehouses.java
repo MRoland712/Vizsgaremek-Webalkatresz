@@ -5,10 +5,8 @@
 package com.mycompany.vizsgaremek.model;
 
 import java.io.Serializable;
-import java.util.Collection;
 import java.util.Date;
 import javax.persistence.Basic;
-import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
@@ -16,13 +14,9 @@ import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.NamedQueries;
 import javax.persistence.NamedQuery;
-import javax.persistence.OneToMany;
 import javax.persistence.Table;
 import javax.persistence.Temporal;
 import javax.persistence.TemporalType;
-import javax.validation.constraints.Size;
-import javax.xml.bind.annotation.XmlRootElement;
-import javax.xml.bind.annotation.XmlTransient;
 
 /**
  *
@@ -35,8 +29,9 @@ import javax.xml.bind.annotation.XmlTransient;
     @NamedQuery(name = "Warehouses.findById", query = "SELECT w FROM Warehouses w WHERE w.id = :id"),
     @NamedQuery(name = "Warehouses.findByName", query = "SELECT w FROM Warehouses w WHERE w.name = :name"),
     @NamedQuery(name = "Warehouses.findByLocation", query = "SELECT w FROM Warehouses w WHERE w.location = :location"),
-    @NamedQuery(name = "Warehouses.findByCreatedAt", query = "SELECT w FROM Warehouses w WHERE w.createdAt = :createdAt")})
-@XmlRootElement
+    @NamedQuery(name = "Warehouses.findByCreatedAt", query = "SELECT w FROM Warehouses w WHERE w.createdAt = :createdAt"),
+    @NamedQuery(name = "Warehouses.findByIsDeleted", query = "SELECT w FROM Warehouses w WHERE w.isDeleted = :isDeleted"),
+    @NamedQuery(name = "Warehouses.findByDeletedAt", query = "SELECT w FROM Warehouses w WHERE w.deletedAt = :deletedAt")})
 public class Warehouses implements Serializable {
 
     private static final long serialVersionUID = 1L;
@@ -45,17 +40,18 @@ public class Warehouses implements Serializable {
     @Basic(optional = false)
     @Column(name = "id")
     private Integer id;
-    @Size(max = 50)
     @Column(name = "name")
     private String name;
-    @Size(max = 255)
     @Column(name = "location")
     private String location;
     @Column(name = "created_at")
     @Temporal(TemporalType.TIMESTAMP)
     private Date createdAt;
-    @OneToMany(cascade = CascadeType.ALL, mappedBy = "warehouseId")
-    private Collection<WarehouseStock> warehouseStockCollection;
+    @Column(name = "is_deleted")
+    private Boolean isDeleted;
+    @Column(name = "deleted_at")
+    @Temporal(TemporalType.TIMESTAMP)
+    private Date deletedAt;
 
     public Warehouses() {
     }
@@ -96,13 +92,20 @@ public class Warehouses implements Serializable {
         this.createdAt = createdAt;
     }
 
-    @XmlTransient
-    public Collection<WarehouseStock> getWarehouseStockCollection() {
-        return warehouseStockCollection;
+    public Boolean getIsDeleted() {
+        return isDeleted;
     }
 
-    public void setWarehouseStockCollection(Collection<WarehouseStock> warehouseStockCollection) {
-        this.warehouseStockCollection = warehouseStockCollection;
+    public void setIsDeleted(Boolean isDeleted) {
+        this.isDeleted = isDeleted;
+    }
+
+    public Date getDeletedAt() {
+        return deletedAt;
+    }
+
+    public void setDeletedAt(Date deletedAt) {
+        this.deletedAt = deletedAt;
     }
 
     @Override
