@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Gép: localhost:3306
--- Létrehozás ideje: 2025. Nov 17. 20:14
+-- Létrehozás ideje: 2025. Nov 21. 20:53
 -- Kiszolgáló verziója: 5.7.24
 -- PHP verzió: 8.3.1
 
@@ -134,6 +134,29 @@ CREATE DEFINER=`root`@`localhost` PROCEDURE `createParts` (IN `p_manufacturer_id
            
          SELECT LAST_INSERT_ID()AS new_parts_id;
          COMMIT;
+END$$
+
+DROP PROCEDURE IF EXISTS `createReviews`$$
+CREATE DEFINER=`root`@`localhost` PROCEDURE `createReviews` (IN `p_user_id` INT, IN `p_part_id` INT, IN `p_rating` INT, IN `p_comment` TEXT)   BEGIN
+
+INSERT INTO reviews(
+    user_id,
+    part_id,
+    rating,
+    comment,
+    created_at,
+    is_deleted,
+    deleted_at
+    )VALUES(
+        p_user_id,
+        p_part_id,
+        p_rating,
+        p_comment,
+        NOW(),
+        0,
+        NULL
+        );
+     SELECT LAST_INSERT_ID() AS new_review_id;
 END$$
 
 DROP PROCEDURE IF EXISTS `createUser`$$
@@ -272,6 +295,22 @@ CREATE DEFINER=`root`@`localhost` PROCEDURE `getAllOrders` ()   BEGIN
      ORDER BY id;
 END$$
 
+DROP PROCEDURE IF EXISTS `getAllReviews`$$
+CREATE DEFINER=`root`@`localhost` PROCEDURE `getAllReviews` ()   BEGIN
+	SELECT
+    	id,
+        user_id,
+        part_id,
+        rating,
+        comment,
+        created_at,
+        is_deleted,
+        deleted_at
+     FROM reviews
+     WHERE is_deleted = 0
+     ORDER BY id;
+END$$
+
 DROP PROCEDURE IF EXISTS `getManufacturersById`$$
 CREATE DEFINER=`root`@`localhost` PROCEDURE `getManufacturersById` (IN `p_manufacturers_id` INT)   BEGIN
     SELECT 
@@ -371,6 +410,70 @@ CREATE DEFINER=`root`@`localhost` PROCEDURE `getPartsByManufacturerId` (IN `p_ma
     ORDER BY id DESC;
 END$$
 
+DROP PROCEDURE IF EXISTS `getReviewsById`$$
+CREATE DEFINER=`root`@`localhost` PROCEDURE `getReviewsById` (IN `p_review_id` INT)   BEGIN
+	SELECT
+    	id,
+        user_id,
+        part_id,
+        rating,
+        comment,
+        created_at,
+        is_deleted,
+        deleted_at
+     FROM reviews
+     WHERE id = p_review_id;
+END$$
+
+DROP PROCEDURE IF EXISTS `getReviewsByPartId`$$
+CREATE DEFINER=`root`@`localhost` PROCEDURE `getReviewsByPartId` (IN `p_part_id` INT)   BEGIN
+    SELECT 
+        id,
+        user_id,
+        part_id,
+        rating,
+        comment,
+        created_at,
+        is_deleted,
+        deleted_at
+    FROM reviews
+    WHERE part_id = p_part_id
+        AND is_deleted = 0
+    ORDER BY created_at DESC;
+END$$
+
+DROP PROCEDURE IF EXISTS `getReviewsByRating`$$
+CREATE DEFINER=`root`@`localhost` PROCEDURE `getReviewsByRating` (IN `p_rating` INT)   BEGIN
+    SELECT 
+        id,
+        user_id,
+        part_id,
+        rating,
+        comment,
+        created_at
+    FROM reviews
+    WHERE rating = p_rating
+        AND is_deleted = 0
+    ORDER BY created_at DESC;
+END$$
+
+DROP PROCEDURE IF EXISTS `getReviewsByUserId`$$
+CREATE DEFINER=`root`@`localhost` PROCEDURE `getReviewsByUserId` (IN `p_user_id` INT)   BEGIN
+    SELECT 
+        id,
+        user_id,
+        part_id,
+        rating,
+        comment,
+        created_at,
+        is_deleted,
+        deleted_at
+    FROM reviews
+    WHERE user_id = p_user_id
+        AND is_deleted = 0
+    ORDER BY created_at DESC;
+END$$
+
 DROP PROCEDURE IF EXISTS `getUserByEmail`$$
 CREATE DEFINER=`root`@`localhost` PROCEDURE `getUserByEmail` (IN `p_email` VARCHAR(255))   BEGIN
   SELECT id, email, username, first_name, last_name, phone, guid, role, is_active, last_login, created_at, updated_at, password, is_deleted, auth_secret, registration_token
@@ -427,6 +530,15 @@ CREATE DEFINER=`root`@`localhost` PROCEDURE `softDeleteParts` (IN `p_parts_id` I
         is_deleted = TRUE,
         deleted_at = NOW()
     WHERE id = p_parts_id;
+END$$
+
+DROP PROCEDURE IF EXISTS `softDeleteReviews`$$
+CREATE DEFINER=`root`@`localhost` PROCEDURE `softDeleteReviews` (IN `p_review_id` INT)   BEGIN
+    UPDATE reviews
+    SET 
+        is_deleted = 1,
+        deleted_at = NOW()
+    WHERE id = p_review_id;
 END$$
 
 DROP PROCEDURE IF EXISTS `softDeleteUser`$$
@@ -517,6 +629,15 @@ CREATE DEFINER=`root`@`localhost` PROCEDURE `updateParts` (IN `p_part_id` INT, I
     WHERE id = p_part_id;
     
     COMMIT;
+END$$
+
+DROP PROCEDURE IF EXISTS `updateReviews`$$
+CREATE DEFINER=`root`@`localhost` PROCEDURE `updateReviews` (IN `p_review_id` INT, IN `p_rating` INT, IN `p_comment` TEXT)   BEGIN
+    UPDATE reviews
+    SET 
+        rating = p_rating,
+        comment = p_comment
+    WHERE id = p_review_id;
 END$$
 
 DROP PROCEDURE IF EXISTS `updateUser`$$
@@ -1080,7 +1201,7 @@ CREATE TABLE `warehouse_stock` (
 --
 ALTER TABLE `addresses`
   ADD PRIMARY KEY (`id`),
-  ADD KEY `user_id` (`user_id`);
+  ADD KEY `addresses_ibfk_1` (`user_id`);
 
 --
 -- A tábla indexei `cart_items`
@@ -1124,7 +1245,8 @@ ALTER TABLE `manufacturers`
 -- A tábla indexei `motor_brands`
 --
 ALTER TABLE `motor_brands`
-  ADD PRIMARY KEY (`id`);
+  ADD PRIMARY KEY (`id`),
+  ADD UNIQUE KEY `name` (`name`);
 
 --
 -- A tábla indexei `motor_models`
