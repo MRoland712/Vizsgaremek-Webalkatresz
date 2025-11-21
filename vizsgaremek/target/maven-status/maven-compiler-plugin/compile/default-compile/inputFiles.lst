@@ -1,34 +1,41 @@
-C:\netbeanprojekt\vizsgaremek\src\main\java\com\mycompany\vizsgaremek\model\ProductComparisons.java
-C:\netbeanprojekt\vizsgaremek\src\main\java\com\mycompany\vizsgaremek\model\OrderItems.java
-C:\netbeanprojekt\vizsgaremek\src\main\java\com\mycompany\vizsgaremek\model\Orders.java
-C:\netbeanprojekt\vizsgaremek\src\main\java\com\mycompany\vizsgaremek\model\UserLogs.java
-C:\netbeanprojekt\vizsgaremek\src\main\java\com\mycompany\vizsgaremek\model\VehicleBrands.java
-C:\netbeanprojekt\vizsgaremek\src\main\java\com\mycompany\vizsgaremek\controller\UsersController.java
-C:\netbeanprojekt\vizsgaremek\src\main\java\com\mycompany\vizsgaremek\model\Parts.java
-C:\netbeanprojekt\vizsgaremek\src\main\java\com\mycompany\vizsgaremek\model\UserTwofa.java
-C:\netbeanprojekt\vizsgaremek\src\main\java\com\mycompany\vizsgaremek\model\Invoices.java
-C:\netbeanprojekt\vizsgaremek\src\main\java\com\mycompany\vizsgaremek\model\StockLogs.java
-C:\netbeanprojekt\vizsgaremek\src\main\java\com\mycompany\vizsgaremek\model\Addresses.java
-C:\netbeanprojekt\vizsgaremek\src\main\java\com\mycompany\vizsgaremek\model\CartItems.java
-C:\netbeanprojekt\vizsgaremek\src\main\java\com\mycompany\vizsgaremek\model\Refunds.java
-C:\netbeanprojekt\vizsgaremek\src\main\java\com\mycompany\vizsgaremek\model\Warehouses.java
-C:\netbeanprojekt\vizsgaremek\src\main\java\com\mycompany\vizsgaremek\model\LoginLogs.java
-C:\netbeanprojekt\vizsgaremek\src\main\java\com\mycompany\vizsgaremek\service\UsersService.java
-C:\netbeanprojekt\vizsgaremek\src\main\java\com\mycompany\vizsgaremek\model\ShippingStatus.java
-C:\netbeanprojekt\vizsgaremek\src\main\java\com\mycompany\vizsgaremek\model\EmailVerifications.java
-C:\netbeanprojekt\vizsgaremek\src\main\java\com\mycompany\vizsgaremek\model\OrderLogs.java
-C:\netbeanprojekt\vizsgaremek\src\main\java\com\mycompany\vizsgaremek\model\WarehouseStock.java
-C:\netbeanprojekt\vizsgaremek\src\main\java\com\mycompany\vizsgaremek\model\VehicleModels.java
-C:\netbeanprojekt\vizsgaremek\src\main\java\com\mycompany\vizsgaremek\model\PasswordResets.java
-C:\netbeanprojekt\vizsgaremek\src\main\java\com\mycompany\vizsgaremek\model\PartVariants.java
-C:\netbeanprojekt\vizsgaremek\src\main\java\com\mycompany\vizsgaremek\model\PartImages.java
-C:\netbeanprojekt\vizsgaremek\src\main\java\com\mycompany\vizsgaremek\model\Users.java
-C:\netbeanprojekt\vizsgaremek\src\main\java\com\mycompany\vizsgaremek\model\Payments.java
-C:\netbeanprojekt\vizsgaremek\src\main\java\com\mycompany\vizsgaremek\model\MotorBrands.java
-C:\netbeanprojekt\vizsgaremek\src\main\java\com\mycompany\vizsgaremek\model\Manufacturers.java
-C:\netbeanprojekt\vizsgaremek\src\main\java\com\mycompany\vizsgaremek\model\Sessions.java
-C:\netbeanprojekt\vizsgaremek\src\main\java\com\mycompany\vizsgaremek\model\MotorModels.java
-C:\netbeanprojekt\vizsgaremek\src\main\java\com\mycompany\vizsgaremek\model\Reviews.java
-C:\netbeanprojekt\vizsgaremek\src\main\java\com\mycompany\vizsgaremek\model\ShippingMethods.java
-C:\netbeanprojekt\vizsgaremek\src\main\java\com\mycompany\vizsgaremek\controller\ApplicationConfig.java
-C:\netbeanprojekt\vizsgaremek\src\main\java\com\mycompany\vizsgaremek\model\PartCompatibility.java
+M:\Projektek\vizsgaremekes cuccok\Vizsgaremek-projekt\vizsgaremek\src\main\java\com\mycompany\vizsgaremek\model\StockLogs.java
+M:\Projektek\vizsgaremekes cuccok\Vizsgaremek-projekt\vizsgaremek\src\main\java\com\mycompany\vizsgaremek\model\WarehouseStock.java
+M:\Projektek\vizsgaremekes cuccok\Vizsgaremek-projekt\vizsgaremek\src\main\java\com\mycompany\vizsgaremek\model\VehicleBrands.java
+M:\Projektek\vizsgaremekes cuccok\Vizsgaremek-projekt\vizsgaremek\src\main\java\com\mycompany\vizsgaremek\model\LoginLogs.java
+M:\Projektek\vizsgaremekes cuccok\Vizsgaremek-projekt\vizsgaremek\src\main\java\com\mycompany\vizsgaremek\model\MotorModels.java
+M:\Projektek\vizsgaremekes cuccok\Vizsgaremek-projekt\vizsgaremek\src\main\java\com\mycompany\vizsgaremek\model\Refunds.java
+M:\Projektek\vizsgaremekes cuccok\Vizsgaremek-projekt\vizsgaremek\src\main\java\com\mycompany\vizsgaremek\model\UserTwofa.java
+M:\Projektek\vizsgaremekes cuccok\Vizsgaremek-projekt\vizsgaremek\src\main\java\com\mycompany\vizsgaremek\model\Sessions.java
+M:\Projektek\vizsgaremekes cuccok\Vizsgaremek-projekt\vizsgaremek\src\main\java\com\mycompany\vizsgaremek\model\UserLogs.java
+M:\Projektek\vizsgaremekes cuccok\Vizsgaremek-projekt\vizsgaremek\src\main\java\com\mycompany\vizsgaremek\model\Invoices.java
+M:\Projektek\vizsgaremekes cuccok\Vizsgaremek-projekt\vizsgaremek\src\main\java\com\mycompany\vizsgaremek\controller\UsersController.java
+M:\Projektek\vizsgaremekes cuccok\Vizsgaremek-projekt\vizsgaremek\src\main\java\com\mycompany\vizsgaremek\model\Manufacturers.java
+M:\Projektek\vizsgaremekes cuccok\Vizsgaremek-projekt\vizsgaremek\src\main\java\com\mycompany\vizsgaremek\model\PasswordResets.java
+M:\Projektek\vizsgaremekes cuccok\Vizsgaremek-projekt\vizsgaremek\src\main\java\com\mycompany\vizsgaremek\model\ProductComparisons.java
+M:\Projektek\vizsgaremekes cuccok\Vizsgaremek-projekt\vizsgaremek\src\main\java\com\mycompany\vizsgaremek\service\AuthenticationService.java
+M:\Projektek\vizsgaremekes cuccok\Vizsgaremek-projekt\vizsgaremek\src\main\java\com\mycompany\vizsgaremek\model\Warehouses.java
+M:\Projektek\vizsgaremekes cuccok\Vizsgaremek-projekt\vizsgaremek\src\main\java\com\mycompany\vizsgaremek\model\Users.java
+M:\Projektek\vizsgaremekes cuccok\Vizsgaremek-projekt\vizsgaremek\src\main\java\com\mycompany\vizsgaremek\model\OrderLogs.java
+M:\Projektek\vizsgaremekes cuccok\Vizsgaremek-projekt\vizsgaremek\src\main\java\com\mycompany\vizsgaremek\service\UsersService.java
+M:\Projektek\vizsgaremekes cuccok\Vizsgaremek-projekt\vizsgaremek\src\main\java\com\mycompany\vizsgaremek\model\Payments.java
+M:\Projektek\vizsgaremekes cuccok\Vizsgaremek-projekt\vizsgaremek\src\main\java\com\mycompany\vizsgaremek\config\JwtUtil.java
+M:\Projektek\vizsgaremekes cuccok\Vizsgaremek-projekt\vizsgaremek\src\main\java\com\mycompany\vizsgaremek\model\ShippingStatus.java
+M:\Projektek\vizsgaremekes cuccok\Vizsgaremek-projekt\vizsgaremek\src\main\java\com\mycompany\vizsgaremek\config\base64Converters.java
+M:\Projektek\vizsgaremekes cuccok\Vizsgaremek-projekt\vizsgaremek\src\main\java\com\mycompany\vizsgaremek\model\OrderItems.java
+M:\Projektek\vizsgaremekes cuccok\Vizsgaremek-projekt\vizsgaremek\src\main\java\com\mycompany\vizsgaremek\model\PartVariants.java
+M:\Projektek\vizsgaremekes cuccok\Vizsgaremek-projekt\vizsgaremek\src\main\java\com\mycompany\vizsgaremek\model\VehicleModels.java
+M:\Projektek\vizsgaremekes cuccok\Vizsgaremek-projekt\vizsgaremek\src\main\java\com\mycompany\vizsgaremek\model\ShippingMethods.java
+M:\Projektek\vizsgaremekes cuccok\Vizsgaremek-projekt\vizsgaremek\src\main\java\com\mycompany\vizsgaremek\controller\ApplicationConfig.java
+M:\Projektek\vizsgaremekes cuccok\Vizsgaremek-projekt\vizsgaremek\src\main\java\com\mycompany\vizsgaremek\model\PartCompatibility.java
+M:\Projektek\vizsgaremekes cuccok\Vizsgaremek-projekt\vizsgaremek\src\main\java\com\mycompany\vizsgaremek\model\Reviews.java
+M:\Projektek\vizsgaremekes cuccok\Vizsgaremek-projekt\vizsgaremek\src\main\java\com\mycompany\vizsgaremek\model\CartItems.java
+M:\Projektek\vizsgaremekes cuccok\Vizsgaremek-projekt\vizsgaremek\src\main\java\com\mycompany\vizsgaremek\model\MotorBrands.java
+M:\Projektek\vizsgaremekes cuccok\Vizsgaremek-projekt\vizsgaremek\src\main\java\com\mycompany\vizsgaremek\model\Parts.java
+M:\Projektek\vizsgaremekes cuccok\Vizsgaremek-projekt\vizsgaremek\src\main\java\com\mycompany\vizsgaremek\config\SendEmailWithOTP.java
+M:\Projektek\vizsgaremekes cuccok\Vizsgaremek-projekt\vizsgaremek\src\main\java\com\mycompany\vizsgaremek\model\Addresses.java
+M:\Projektek\vizsgaremekes cuccok\Vizsgaremek-projekt\vizsgaremek\src\main\java\com\mycompany\vizsgaremek\model\EmailVerifications.java
+M:\Projektek\vizsgaremekes cuccok\Vizsgaremek-projekt\vizsgaremek\src\main\java\com\mycompany\vizsgaremek\config\TFA.java
+M:\Projektek\vizsgaremekes cuccok\Vizsgaremek-projekt\vizsgaremek\src\main\java\com\mycompany\vizsgaremek\model\PartImages.java
+M:\Projektek\vizsgaremekes cuccok\Vizsgaremek-projekt\vizsgaremek\src\main\java\com\mycompany\vizsgaremek\model\Orders.java
+M:\Projektek\vizsgaremekes cuccok\Vizsgaremek-projekt\vizsgaremek\src\main\java\com\mycompany\vizsgaremek\config\Encrypt.java
+M:\Projektek\vizsgaremekes cuccok\Vizsgaremek-projekt\vizsgaremek\src\main\java\com\mycompany\vizsgaremek\config\KvFetcher.java

@@ -17,34 +17,27 @@
     </properties>
 
     <dependencies>
-        <dependency>
-            <groupId>io.jsonwebtoken</groupId>
-            <artifactId>jjwt</artifactId>
-            <version>0.9.1</version>
-            <type>jar</type>
-        </dependency>
-
+        
         <dependency>
             <groupId>io.jsonwebtoken</groupId>
             <artifactId>jjwt-api</artifactId>
-            <version>0.10.7</version>
-            <type>jar</type>
+            <version>0.11.5</version>
         </dependency>
-
+        
         <dependency>
             <groupId>io.jsonwebtoken</groupId>
             <artifactId>jjwt-impl</artifactId>
-            <version>0.11.2</version>
+            <version>0.11.5</version>
             <scope>runtime</scope>
         </dependency>
-
+        
         <dependency>
             <groupId>io.jsonwebtoken</groupId>
             <artifactId>jjwt-jackson</artifactId>
-            <version>0.11.2</version>
+            <version>0.11.5</version>
             <scope>runtime</scope>
         </dependency>
-
+        
         <dependency>
             <groupId>org.json</groupId>
             <artifactId>json</artifactId>
@@ -57,6 +50,19 @@
             <artifactId>javaee-web-api</artifactId>
             <version>7.0</version>
             <scope>provided</scope>
+        </dependency>
+        
+        <dependency>
+            <groupId>top.tanmw</groupId>
+            <artifactId>efficient-boot-common</artifactId>
+            <version>1.1.9</version>
+            <type>jar</type>
+        </dependency>
+        
+        <dependency>
+            <groupId>com.sun.mail</groupId>
+            <artifactId>javax.mail</artifactId>
+            <version>1.6.2</version>
         </dependency>
     </dependencies>
 

@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CarComps Loading</title>
+    <style>
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            background-color: black;
+        }
+        .loading-container {
+            position: relative;
+            width: 200px;
+            height: 200px;
+        }
+        #gear {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%) rotate(0deg);
+            width: 150px;
+            height: 150px;
+            animation: spin 4s linear infinite;
+        }
+        #c {
+            position: absolute;
+            right: -15%;
+            bottom: -27%;
+            width: 282px;
+            height: 304px;
+        }
+        #c-outline {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            fill: none;
+            stroke: white;
+            stroke-width: 20;
+            stroke-dasharray: 600;
+            stroke-dashoffset: 600;
+            animation: drawC 3s linear infinite;
+        }
+        @keyframes spin {
+            from { transform: translate(-50%, -50%) rotate(0deg); }
+            to { transform: translate(-50%, -50%) rotate(360deg); }
+        }
+        @keyframes drawC {
+            0% { stroke-dashoffset: 600; }
+            50% { stroke-dashoffset: 0; }
+            100% { stroke-dashoffset: -600; }
+        }
+    </style>
+</head>
+<body>
+    <div class="loading-container">
+        <img src="c.png" alt="C" id="c">
+        <img src="gear.png" id="gear" alt="spinning gear">
+    </div>
+</body>
+</html>

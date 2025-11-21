@@ -4,7 +4,9 @@
  */
 package com.mycompany.vizsgaremek.controller;
 
+import com.mycompany.vizsgaremek.config.JwtUtil;
 import com.mycompany.vizsgaremek.model.Users;
+import com.mycompany.vizsgaremek.service.AuthenticationService;
 import com.mycompany.vizsgaremek.service.UsersService;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.UriInfo;
@@ -23,7 +25,8 @@ import org.json.JSONObject;
 /**
  * REST Web Service
  *
- * @author neblg
+ * @author ddori
+ * @co-author neblg
  */
 @Path("user")
 public class UsersController {
@@ -32,6 +35,8 @@ public class UsersController {
     private UriInfo context;
 
     private UsersService layer = new UsersService();
+    private final AuthenticationService.userAuth userAuth = new AuthenticationService.userAuth();
+    private final JwtUtil jwt = new JwtUtil();
 
     /**
      * Creates a new instance of UsersController
@@ -66,42 +71,205 @@ public class UsersController {
     @Path("createUser")
     @Consumes(MediaType.APPLICATION_JSON)
     public Response createUser(String body) {
+
         JSONObject bodyObject = new JSONObject(body);
 
         Users createdUser = new Users(
-                bodyObject.getString("email"),
-                bodyObject.getString("username"),
-                bodyObject.getString("password"),
-                bodyObject.getString("firstName"),
-                bodyObject.getString("lastName"),
-                bodyObject.getString("phone"),
-                bodyObject.getString("role"),
-                bodyObject.getString("authSecret"),
-                bodyObject.getString("registrationToken")
+                bodyObject.has("email") ? bodyObject.getString("email") : null,
+                bodyObject.has("username") ? bodyObject.getString("username") : null,
+                bodyObject.has("password") ? bodyObject.getString("password") : null,
+                bodyObject.has("firstName") ? bodyObject.getString("firstName") : null,
+                bodyObject.has("lastName") ? bodyObject.getString("lastName") : null,
+                bodyObject.has("phone") ? bodyObject.getString("phone") : null,
+                bodyObject.has("role") ? bodyObject.getString("role") : null
         );
 
         JSONObject toReturn = layer.createUser(createdUser);
 
-        return Response.status(Integer.parseInt(toReturn.get("statusCode").toString())).entity(toReturn.toString()).type(MediaType.APPLICATION_JSON).build();
+        return Response.status(Integer.parseInt(toReturn.get("statusCode").toString()))
+                .entity(toReturn.toString())
+                .type(MediaType.APPLICATION_JSON)
+                .build();
+
     }
 
     @GET
-    @Path("ReadUsers")
+    @Path("getUsers")
     @Consumes(MediaType.APPLICATION_JSON)
-    public Response ReadUsers() {
-
-        JSONObject toReturn = layer.ReadUsers();
-        return Response.status(Integer.parseInt(toReturn.get("statusCode").toString())).entity(toReturn.toString()).type(MediaType.APPLICATION_JSON).build();
+    public Response getUsers(@HeaderParam("token") String jwtToken) {
+        Boolean validJwt = jwt.validateToken(jwtToken);
+        if (userAuth.isDataMissing(jwtToken)) {
+            //ha nincs megadva a token
+            return Response.status(401).entity("missingToken").type(MediaType.APPLICATION_JSON).build();
+        } else if (validJwt == null) {
+            //lejárt jwt
+            return Response.status(401).entity("tokenExpired").type(MediaType.APPLICATION_JSON).build();
+        } else if (validJwt == false) {
+            //invalid jwt
+            return Response.status(401).entity("invalidToken").type(MediaType.APPLICATION_JSON).build();
+        } else {
+            JSONObject toReturn = layer.getUsers();
+            return Response.status(Integer.parseInt(toReturn.get("statusCode").toString()))
+                    .entity(toReturn.toString())
+                    .type(MediaType.APPLICATION_JSON)
+                    .build();
+        }
     }
-
-
 
     @GET
-    @Path("ReadUserById")
+    @Path("getUserById")
     @Consumes(MediaType.APPLICATION_JSON)
-    public Response ReadUserById(@QueryParam("id") Integer id){
-        
-        JSONObject toReturn = layer.ReadUserById(id);
-        return Response.status(Integer.parseInt(toReturn.get("statusCode").toString())).entity(toReturn.toString()).type(MediaType.APPLICATION_JSON).build();
+    public Response getUserById(@QueryParam("id") Integer id, @HeaderParam("token") String jwtToken) {
+        Boolean validJwt = jwt.validateToken(jwtToken);
+
+        if (validJwt == null) {
+            //lejárt jwt
+            return Response.status(401).entity("tokenExpired").type(MediaType.APPLICATION_JSON).build();
+        } else if (validJwt == false) {
+            //invalid jwt
+            return Response.status(401).entity("invalidToken").type(MediaType.APPLICATION_JSON).build();
+        } else {
+            if (userAuth.isDataMissing(id)) {
+                id = null;
+            }
+            JSONObject toReturn = layer.getUserById(id);
+            return Response.status(Integer.parseInt(toReturn.get("statusCode").toString())).entity(toReturn.toString()).type(MediaType.APPLICATION_JSON).build();
+        }
     }
-}
+
+    @GET
+    @Path("getUserByEmail")
+    @Consumes(MediaType.APPLICATION_JSON)
+    public Response getUserByEmail(@QueryParam("email") String email, @HeaderParam("token") String jwtToken) {
+        Boolean validJwt = jwt.validateToken(jwtToken);
+
+        if (validJwt == null) {
+            //lejárt jwt
+            return Response.status(401).entity("tokenExpired").type(MediaType.APPLICATION_JSON).build();
+        } else if (validJwt == false) {
+            //invalid jwt
+            return Response.status(401).entity("invalidToken").type(MediaType.APPLICATION_JSON).build();
+        } else {
+            JSONObject toReturn = layer.getUserByEmail(email);
+            return Response.status(Integer.parseInt(toReturn.get("statusCode").toString())).entity(toReturn.toString()).type(MediaType.APPLICATION_JSON).build();
+        }
+    }
+
+    @PUT
+    @Path("softDeleteUser")
+    @Consumes(MediaType.APPLICATION_JSON)
+    public Response softDeleteUser(@QueryParam("id") Integer userId, @HeaderParam("token") String jwtToken) {
+        Boolean validJwt = jwt.validateToken(jwtToken);
+
+        if (validJwt == null) {
+            //lejárt jwt
+            return Response.status(401).entity("tokenExpired").type(MediaType.APPLICATION_JSON).build();
+        } else if (validJwt == false) {
+            //invalid jwt
+            return Response.status(401).entity("invalidToken").type(MediaType.APPLICATION_JSON).build();
+        } else {
+            JSONObject toReturn = layer.softDeleteUser(userId);
+
+            return Response.status(Integer.parseInt(toReturn.get("statusCode").toString()))
+                    .entity(toReturn.toString())
+                    .type(MediaType.APPLICATION_JSON)
+                    .build();
+        }
+    }
+
+    @PUT
+    @Path("updateUser")
+    @Consumes(MediaType.APPLICATION_JSON)
+    public Response UpdateUser(@HeaderParam("token") String jwtToken,
+            @QueryParam("id") Integer userId,
+            @QueryParam("email") String email,
+            String body) {
+        Boolean validJwt = jwt.validateToken(jwtToken);
+
+        if (validJwt == null) {
+            //lejárt jwt
+            return Response.status(401).entity("tokenExpired").type(MediaType.APPLICATION_JSON).build();
+        } else if (validJwt == false) {
+            //invalid jwt
+            return Response.status(401).entity("invalidToken").type(MediaType.APPLICATION_JSON).build();
+        } else {
+            JSONObject bodyObject = new JSONObject(body);
+
+            Users updatedUser = new Users();
+
+            if (userId != null) {
+                updatedUser.setId(userId);
+            }
+
+            if (email != null) {
+                updatedUser.setEmail(email);
+            }
+
+            if (bodyObject.has("email") && email == null) {
+                updatedUser.setEmail(bodyObject.getString("email"));
+            }
+
+            if (bodyObject.has("username")) {
+                updatedUser.setUsername(bodyObject.getString("username"));
+            }
+
+            if (bodyObject.has("firstName")) {
+                updatedUser.setFirstName(bodyObject.getString("firstName"));
+            }
+
+            if (bodyObject.has("lastName")) {
+                updatedUser.setLastName(bodyObject.getString("lastName"));
+            }
+
+            if (bodyObject.has("phone")) {
+                updatedUser.setPhone(bodyObject.getString("phone"));
+            }
+
+            if (bodyObject.has("role")) {
+                updatedUser.setRole(bodyObject.getString("role"));
+            }
+
+            if (bodyObject.has("isActive")) {
+                updatedUser.setIsActive(bodyObject.getBoolean("isActive"));
+            }
+
+            if (bodyObject.has("password")) {
+                updatedUser.setPassword(bodyObject.getString("password"));
+            }
+
+            if (bodyObject.has("authSecret")) {
+                updatedUser.setAuthSecret(bodyObject.getString("authSecret"));
+            }
+
+            if (bodyObject.has("registrationToken")) {
+                updatedUser.setRegistrationToken(bodyObject.getString("registrationToken"));
+            }
+
+            JSONObject toReturn = layer.updateUser(updatedUser);
+
+            return Response.status(Integer.parseInt(toReturn.get("statusCode").toString()))
+                    .entity(toReturn.toString())
+                    .type(MediaType.APPLICATION_JSON)
+                    .build();
+        }
+    }
+
+    @PUT
+    @Path("loginUser")
+    @Consumes(MediaType.APPLICATION_JSON)
+    public Response loginUser(String body) {
+        JSONObject bodyObject = new JSONObject(body);
+
+        Users user = new Users(
+                bodyObject.has("email") ? bodyObject.getString("email") : null,
+                bodyObject.has("password") ? bodyObject.getString("password") : null
+        );
+
+        JSONObject toReturn = layer.loginUser(user);
+
+        return Response.status(Integer.parseInt(toReturn.get("statusCode").toString()))
+                .entity(toReturn.toString())
+                .type(MediaType.APPLICATION_JSON)
+                .build();
+    }
+} //CLASS CLOSER DONT DELETE

@@ -4,13 +4,13 @@
  */
 package com.mycompany.vizsgaremek.model;
 
+import com.mycompany.vizsgaremek.service.AuthenticationService;
 import java.io.Serializable;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
 import java.util.List;
-import java.util.UUID;
 import javax.persistence.Basic;
 import javax.persistence.CascadeType;
 import javax.persistence.Column;
@@ -34,7 +34,8 @@ import javax.validation.constraints.Size;
 
 /**
  *
- * @author neblg
+ * @author ddori
+ * @co-author neblg
  */
 @Entity
 @Table(name = "users")
@@ -63,6 +64,7 @@ import javax.validation.constraints.Size;
     @NamedQuery(name = "Users.findByAuthSecret", query = "SELECT u FROM Users u WHERE u.authSecret = :authSecret"),
     @NamedQuery(name = "Users.findByGuid", query = "SELECT u FROM Users u WHERE u.guid = :guid"),
     @NamedQuery(name = "Users.findByRegistrationToken", query = "SELECT u FROM Users u WHERE u.registrationToken = :registrationToken")})
+
 public class Users implements Serializable {
 
     private static final long serialVersionUID = 1L;
@@ -168,35 +170,40 @@ public class Users implements Serializable {
 
     static EntityManagerFactory emf = Persistence.createEntityManagerFactory("com.mycompany_vizsgaremek_war_1.0-SNAPSHOTPU");
     public static SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+    static AuthenticationService.userAuth userAuth = new AuthenticationService.userAuth();
 
     public Users() {
     }
 
-    public Users(Integer id) {
-        this.id = id;
+    //softDeleteUser
+    public Users(Boolean isDeleted) {
+        this.isDeleted = isDeleted;
     }
+    
+    //loginUser
+    public Users(String email, String password) {
+        this.email = email;
+        this.password = password;
+    }
+    
+    
 
-    public Users(Integer id, String email, String username, String password, String authSecret, String guid) {
+    //UpdateUser
+    public Users(Integer id, String email, String username, String firstName, String lastName, String phone, Boolean isActive, String role, String password, String authSecret, String registrationToken) {
         this.id = id;
         this.email = email;
         this.username = username;
-        this.password = password;
-        this.authSecret = authSecret;
-        this.guid = guid;
-    }
-
-    public Users(String email, String username, String password, String firstName, String lastName, String phone, String role, String authSecret, String registrationToken) {
-        this.email = email;
-        this.username = username;
-        this.password = password;
         this.firstName = firstName;
         this.lastName = lastName;
         this.phone = phone;
+        this.isActive = isActive;
         this.role = role;
+        this.password = password;
         this.authSecret = authSecret;
         this.registrationToken = registrationToken;
     }
 
+    //createUser
     public Users(String email, String username, String password, String firstName, String lastName, String phone, String role) {
         this.email = email;
         this.username = username;
@@ -207,34 +214,70 @@ public class Users implements Serializable {
         this.role = role;
     }
 
-    public Users(Integer id, String email, String username, String firstName, String lastName, String phone, String role, Date createdAt, Date updatedAt, Date lastLogin, String guid) {
+    //getUser
+    public Users(
+            Integer id,
+            String email,
+            String username,
+            String firstName,
+            String lastName,
+            String phone,
+            String guid,
+            String role,
+            Boolean isActive,
+            Date lastLogin,
+            Date createdAt,
+            Date updatedAt,
+            Boolean isDeleted) {
         this.id = id;
         this.email = email;
         this.username = username;
         this.firstName = firstName;
         this.lastName = lastName;
         this.phone = phone;
+        this.isActive = isActive;
         this.role = role;
         this.createdAt = createdAt;
         this.updatedAt = updatedAt;
         this.lastLogin = lastLogin;
         this.guid = guid;
+        this.isDeleted = isDeleted;
     }
-    
-    
 
-    public Users(Integer id, String email, String username, String firstName, String lastName, String phone, String guid, String role, Date lastLogin, Date createdAt, Date updatedAt) {
+    //getUserById && getUserByEmail
+    public Users(
+            Integer id,
+            String email,
+            String username,
+            String firstName,
+            String lastName,
+            String phone,
+            String guid,
+            String role,
+            Boolean isActive,
+            Date lastLogin,
+            Date createdAt,
+            Date updatedAt,
+            String password,
+            Boolean isDeleted,
+            String authSecret,
+            String registrationToken) {
         this.id = id;
         this.email = email;
         this.username = username;
+        this.password = password;
         this.firstName = firstName;
         this.lastName = lastName;
         this.phone = phone;
+        this.isActive = isActive;
         this.role = role;
         this.createdAt = createdAt;
         this.updatedAt = updatedAt;
         this.lastLogin = lastLogin;
+        this.isDeleted = isDeleted;
+        this.authSecret = authSecret;
         this.guid = guid;
+        this.registrationToken = registrationToken;
     }
 
     public Integer getId() {
@@ -536,7 +579,6 @@ public class Users implements Serializable {
 
     public static Boolean createUser(Users createdUser) {
         EntityManager em = emf.createEntityManager();
-
         try {
             StoredProcedureQuery spq = em.createStoredProcedureQuery("createUser");
 
@@ -547,8 +589,8 @@ public class Users implements Serializable {
             spq.registerStoredProcedureParameter("p_last_name", String.class, ParameterMode.IN);
             spq.registerStoredProcedureParameter("p_phone", String.class, ParameterMode.IN);
             spq.registerStoredProcedureParameter("p_role", String.class, ParameterMode.IN);
-            spq.registerStoredProcedureParameter("p_auth_secret", String.class, ParameterMode.IN);
-            spq.registerStoredProcedureParameter("p_registration_token", String.class, ParameterMode.IN);
+            spq.registerStoredProcedureParameter("p_auth_secret", String.class, ParameterMode.IN); //OTP
+            spq.registerStoredProcedureParameter("p_registration_token", String.class, ParameterMode.IN); //JWT
 
             spq.setParameter("p_email", createdUser.getEmail());
             spq.setParameter("p_username", createdUser.getUsername());
@@ -556,7 +598,7 @@ public class Users implements Serializable {
             spq.setParameter("p_first_name", createdUser.getFirstName());
             spq.setParameter("p_last_name", createdUser.getLastName());
             spq.setParameter("p_phone", createdUser.getPhone());
-            spq.setParameter("p_role", createdUser.getRole());
+            spq.setParameter("p_role", createdUser.getRole() == null ? "" : createdUser.getRole());
             spq.setParameter("p_auth_secret", createdUser.getAuthSecret());
             spq.setParameter("p_registration_token", createdUser.getRegistrationToken());
 
@@ -567,18 +609,24 @@ public class Users implements Serializable {
         } catch (Exception ex) {
             ex.printStackTrace();
             return false;
+        } finally {
+            em.close();
         }
     }
 
-    public static ArrayList<Users> ReadUsers() {
+    public static ArrayList<Users> getUsers() {
         EntityManager em = emf.createEntityManager();
 
         try {
-            StoredProcedureQuery spq = em.createStoredProcedureQuery("ReadUsers"); // megadott tárolt eljárás nevét kell megadni
-            spq.execute(); // vége zárásként
+            //eljárást meghívjuk
+            StoredProcedureQuery spq = em.createStoredProcedureQuery("getUsers");
+            spq.execute();
 
+            //Amit visszakap információt berakni egy Object[] list-be
             List<Object[]> resultList = spq.getResultList();
+
             ArrayList<Users> toReturn = new ArrayList();
+
             for (Object[] record : resultList) {
                 Users u = new Users(
                         Integer.valueOf(record[0].toString()), //Id
@@ -589,56 +637,226 @@ public class Users implements Serializable {
                         record[5].toString(), // phone
                         record[6].toString(), // guid
                         record[7].toString(), // role
-                        record[8] == null ? null : formatter.parse(record[8].toString()), // last_login
-                        record[9] == null ? null : formatter.parse(record[9].toString()), // created_at
-                        record[10] == null ? null : formatter.parse(record[10].toString()) // updated_at
-
+                        Boolean.valueOf(record[8].toString()), // is_active
+                        record[9] == null ? null : formatter.parse(record[9].toString()), // last_login
+                        record[10] == null ? null : formatter.parse(record[10].toString()), // created_at
+                        record[11] == null ? null : formatter.parse(record[11].toString()), // updated_at
+                        Boolean.valueOf(record[12].toString()) // is deleted
                 );
                 toReturn.add(u);
 
             }
             return toReturn;
         } catch (Exception ex) {
+            if (em.getTransaction().isActive()) {
+                em.getTransaction().rollback(); // Ha hiba van, rollback
+            }
             ex.printStackTrace();
             return null;
+        } finally {
+            em.close();
         }
-
     }
 
-    public static Users ReadUserById(Integer id) {
+    public static Users getUserById(Integer id) {
         EntityManager em = emf.createEntityManager();
 
         try {
-            StoredProcedureQuery spq = em.createStoredProcedureQuery("ReadUserById"); // megadott tárolt eljárás nevét kell megadni
+            StoredProcedureQuery spq = em.createStoredProcedureQuery("getUserById");
             spq.registerStoredProcedureParameter("p_user_id", Integer.class, ParameterMode.IN);
             spq.setParameter("p_user_id", id);
 
             spq.execute(); // vége zárásként
 
             List<Object[]> resultList = spq.getResultList();
+            
+            if(userAuth.isDataMissing(resultList)) {
+                return null;
+            }
+            
             Users toReturn = new Users();
+
             for (Object[] record : resultList) {
+
                 Users u = new Users(
-                        Integer.valueOf(record[0].toString()), //Id
-                        record[1].toString(), // email
-                        record[2].toString(), // username
-                        record[3].toString(), // first name
-                        record[4].toString(), // last name
-                        record[5].toString(), // phone
-                        record[6].toString(), // guid
-                        record[7].toString(), //role
-                        record[8] == null ? null : formatter.parse(record[8].toString()),// last login
-                        record[9] == null ? null : formatter.parse(record[9].toString()), //created at
-                        record[10] == null ? null : formatter.parse(record[10].toString()) // updated at
+                        Integer.valueOf(record[0].toString()),// id
+                        record[1].toString(),// email
+                        record[2].toString(),// username
+                        record[3].toString(),// firstname
+                        record[4].toString(),// lastname
+                        record[5].toString(),// phone
+                        record[6].toString(),// guid
+                        record[7].toString(),// role
+                        Boolean.valueOf(record[8].toString()),// isActive
+                        record[9] == null ? null : formatter.parse(record[9].toString()),// lastLogin
+                        record[10] == null ? null : formatter.parse(record[10].toString()),// createdAt
+                        record[11] == null ? null : formatter.parse(record[11].toString()),// updatedAt
+                        record[12].toString(),// password
+                        Boolean.valueOf(record[13].toString()),// isDeleted
+                        record[14].toString(),// authSecret
+                        record[15].toString()// registrationToken
                 );
                 toReturn = u;
-
             }
             return toReturn;
-
         } catch (Exception ex) {
+            if (em.getTransaction().isActive()) {
+                em.getTransaction().rollback(); // Ha hiba van, rollback
+            }
             ex.printStackTrace();
             return null;
+        } finally {
+            em.close();
         }
     }
-}
+
+    public static Users getUserByEmail(String email) {
+        EntityManager em = emf.createEntityManager();
+
+        try {
+            StoredProcedureQuery spq = em.createStoredProcedureQuery("getUserByEmail");
+            spq.registerStoredProcedureParameter("p_email", String.class, ParameterMode.IN);
+            spq.setParameter("p_email", email);
+
+            spq.execute();
+
+            List<Object[]> resultList = spq.getResultList();
+            
+            if(userAuth.isDataMissing(resultList)) {
+                return null;
+            }
+            
+            Users toReturn = new Users();
+            
+            for (Object[] record : resultList) {
+                Users u = new Users(
+                        Integer.valueOf(record[0].toString()),// id
+                        record[1].toString(),// email
+                        record[2].toString(),// username
+                        record[3].toString(),// firstname
+                        record[4].toString(),// lastname
+                        record[5].toString(),// phone
+                        record[6].toString(),// guid
+                        record[7].toString(),// role
+                        Boolean.valueOf(record[8].toString()),// isActive
+                        record[9] == null ? null : formatter.parse(record[9].toString()),// lastLogin
+                        record[10] == null ? null : formatter.parse(record[10].toString()),// createdAt
+                        record[11] == null ? null : formatter.parse(record[11].toString()),// updatedAt
+                        record[12].toString(),// password
+                        Boolean.valueOf(record[13].toString()),// isDeleted
+                        record[14].toString(),// authSecret
+                        record[15].toString()// registrationToken
+                );
+                toReturn = u;
+            }
+            return toReturn;
+        } catch (Exception ex) {
+            if (em.getTransaction().isActive()) {
+                em.getTransaction().rollback(); // Ha hiba van, rollback
+            }
+            ex.printStackTrace();
+            return null;
+        } finally {
+            em.close();
+        }
+    }
+    public static Boolean softDeleteUser(Integer id) {
+        EntityManager em = emf.createEntityManager();
+        
+        try {
+            em.getTransaction().begin();
+            
+            StoredProcedureQuery spq = em.createNamedStoredProcedureQuery("softDeleteUser");
+            spq.registerStoredProcedureParameter("p_user_id", Integer.class, ParameterMode.IN);
+            spq.setParameter("p_user_id", id);
+            
+            spq.execute();
+            
+            em.getTransaction().commit();
+            
+            return true;
+        } catch (Exception e){
+            if (em.getTransaction().isActive()) {
+                em.getTransaction().rollback(); // ha hiba van, rollback
+            }
+            return false;
+        } finally {
+            em.close();
+        }
+    }
+    public static Boolean updateUser(Users updatedUser) {
+        EntityManager em = emf.createEntityManager();
+
+        try {
+            em.getTransaction().begin();
+            StoredProcedureQuery spq = em.createStoredProcedureQuery("updateUser");
+
+            spq.registerStoredProcedureParameter("p_user_id", Integer.class, ParameterMode.IN);
+            spq.registerStoredProcedureParameter("p_email", String.class, ParameterMode.IN);
+            spq.registerStoredProcedureParameter("p_username", String.class, ParameterMode.IN);
+            spq.registerStoredProcedureParameter("p_first_name", String.class, ParameterMode.IN);
+            spq.registerStoredProcedureParameter("p_last_name", String.class, ParameterMode.IN);
+            spq.registerStoredProcedureParameter("p_phone", String.class, ParameterMode.IN);
+            spq.registerStoredProcedureParameter("p_role", String.class, ParameterMode.IN);
+            spq.registerStoredProcedureParameter("p_is_active", Boolean.class, ParameterMode.IN);
+            spq.registerStoredProcedureParameter("p_password", String.class, ParameterMode.IN);
+            spq.registerStoredProcedureParameter("p_registration_token", String.class, ParameterMode.IN);
+            spq.registerStoredProcedureParameter("p_auth_secret", String.class, ParameterMode.IN);
+
+            spq.setParameter("p_user_id", updatedUser.getId());
+            spq.setParameter("p_email", updatedUser.getEmail());
+            spq.setParameter("p_username", updatedUser.getUsername());
+            spq.setParameter("p_first_name", updatedUser.getFirstName());
+            spq.setParameter("p_last_name", updatedUser.getLastName());
+            spq.setParameter("p_phone", updatedUser.getPhone());
+            spq.setParameter("p_role", updatedUser.getRole());
+            spq.setParameter("p_is_active", updatedUser.getIsActive());
+            spq.setParameter("p_password", updatedUser.getPassword());
+            spq.setParameter("p_registration_token", updatedUser.getRegistrationToken());
+            spq.setParameter("p_auth_secret", updatedUser.getAuthSecret());
+
+            spq.execute();
+
+            em.getTransaction().commit();
+
+            return true;
+
+        } catch (Exception ex) {
+            if (em.getTransaction().isActive()) {
+                em.getTransaction().rollback(); // Ha hiba van, rollback
+            }
+            ex.printStackTrace();
+            return false;
+        } finally {
+            em.close();
+        }
+    }
+    
+    public static Boolean loginUser(Users userData) {
+        EntityManager em = emf.createEntityManager();
+        
+        try {
+            em.getTransaction().begin();
+            
+            StoredProcedureQuery spq = em.createStoredProcedureQuery("user_login");
+            
+            spq.registerStoredProcedureParameter("p_email", String.class, ParameterMode.IN);
+            
+            spq.setParameter("P_email", userData.getEmail());
+            
+            spq.execute();
+            
+            em.getTransaction().commit();
+            
+            return true;
+        } catch (Exception ex) {
+            if (em.getTransaction().isActive()) {
+                em.getTransaction().rollback();
+            }
+            ex.printStackTrace();
+            return false;
+        } finally {
+            em.close();
+        }
+    }
+} //CLASS CLOSER, DONT DELETE
