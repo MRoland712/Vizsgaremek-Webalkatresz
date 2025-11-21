@@ -4,6 +4,7 @@
  */
 package com.mycompany.vizsgaremek.model;
 
+import com.mycompany.vizsgaremek.service.AuthenticationService;
 import java.io.Serializable;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -169,6 +170,7 @@ public class Users implements Serializable {
 
     static EntityManagerFactory emf = Persistence.createEntityManagerFactory("com.mycompany_vizsgaremek_war_1.0-SNAPSHOTPU");
     public static SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+    static AuthenticationService.userAuth userAuth = new AuthenticationService.userAuth();
 
     public Users() {
     }
@@ -667,6 +669,11 @@ public class Users implements Serializable {
             spq.execute(); // vége zárásként
 
             List<Object[]> resultList = spq.getResultList();
+            
+            if(userAuth.isDataMissing(resultList)) {
+                return null;
+            }
+            
             Users toReturn = new Users();
 
             for (Object[] record : resultList) {
@@ -714,6 +721,11 @@ public class Users implements Serializable {
             spq.execute();
 
             List<Object[]> resultList = spq.getResultList();
+            
+            if(userAuth.isDataMissing(resultList)) {
+                return null;
+            }
+            
             Users toReturn = new Users();
             
             for (Object[] record : resultList) {

@@ -114,7 +114,7 @@ public class UsersService {
             createdUser.setAuthSecret(
                     Integer.toString(random.nextInt(900000) + 100000)
             );
-            
+
             //if role is empty / not set
             if (createdUser.getRole() == null || createdUser.getRole().isEmpty()) {
                 createdUser.setRole(null);
@@ -134,12 +134,12 @@ public class UsersService {
             errors.put("InternalServerError");
             return errorAuth.createErrorResponse(errors, 500);
         }
-        
+
         toReturn.put("JWTToken", JwtUtil.generateToken(createdUser.getId(), createdUser.getEmail(), createdUser.getRole(), createdUser.getUsername()));
         toReturn.put("message", "User Created Succesfully");
         return errorAuth.createOKResponse(toReturn);
     }
-    
+
     public JSONObject getUsers() {
         JSONObject toReturn = new JSONObject();
         JSONArray errors = new JSONArray();
@@ -164,7 +164,6 @@ public class UsersService {
             actualUserObject.put("id", actualUser.getId());
             actualUserObject.put("email", actualUser.getEmail());
             actualUserObject.put("username", actualUser.getUsername());
-            actualUserObject.put("email", actualUser.getEmail());
             actualUserObject.put("firstName", actualUser.getFirstName());
             actualUserObject.put("lastName", actualUser.getLastName());
             actualUserObject.put("phone", actualUser.getPhone());
@@ -185,7 +184,6 @@ public class UsersService {
         return toReturn;
 
     }
-    //ToDo: add validation if User is deleted or is Inactive?? 
 
     public JSONObject getUserById(Integer id) {
         JSONObject toReturn = new JSONObject();
@@ -197,7 +195,7 @@ public class UsersService {
         }
 
         //if id is invalid
-        if (userAuth.isValidId(id)) {
+        if (!userAuth.isValidId(id) && !userAuth.isDataMissing(id)) {
             errors.put("InvalidId");
         }
 
@@ -244,7 +242,6 @@ public class UsersService {
         }
     }
 //ToDo: checkolni hogy kell-e break a kód közben (úgy mint a updateUser-ben error check)
-    //ToDo: add validation if User is deleted or is Inactive?? 
 
     public JSONObject getUserByEmail(String email) {
         JSONObject toReturn = new JSONObject();
@@ -256,8 +253,8 @@ public class UsersService {
         }
 
         //if email is invalid
-        if (!userAuth.isValidEmail(email)) {
-            errors.put("MissingEmail");
+        if (!userAuth.isValidEmail(email) && !userAuth.isDataMissing(email)) {
+            errors.put("InvalidEmail");
         }
 
         //if email is invalid or missing
@@ -267,7 +264,7 @@ public class UsersService {
 
         //get data from spq
         Users modelResult = Users.getUserByEmail(email);
-
+        System.out.println("getUserByEmail Modelresult " + modelResult);
         //if spq gives null data
         if (modelResult == null) {
             errors.put("UserNotFound");
@@ -296,10 +293,7 @@ public class UsersService {
             result.put("authSecret", modelResult.getAuthSecret());
             result.put("registrationToken", modelResult.getRegistrationToken());
 
-            toReturn.put("result", result);
-            toReturn.put("status", "success");
-            toReturn.put("statusCode", 200);
-            return toReturn;
+            return errorAuth.createOKResponse(result);
         }
     }
 
@@ -368,6 +362,19 @@ public class UsersService {
         if (userAuth.isDataMissing(updatedUser.getId()) && userAuth.isDataMissing(updatedUser.getEmail())) {
             errors.put("MissingIdAndEmail");
         }
+        
+        //if email is the only parameter given in body
+        if (userAuth.isDataMissing(updatedUser.getId())
+            && !userAuth.isDataMissing(updatedUser.getEmail())
+            && userAuth.isDataMissing(updatedUser.getUsername())
+            && userAuth.isDataMissing(updatedUser.getFirstName())
+            && userAuth.isDataMissing(updatedUser.getLastName())
+            && userAuth.isDataMissing(updatedUser.getPhone())
+            && userAuth.isDataMissing(updatedUser.getPassword())
+            && userAuth.isDataMissing(updatedUser.getRole())) {
+            
+            errors.put("InvalidSearchParameter");
+        }
         if (!userAuth.isDataMissing(updatedUser.getId()) && !userAuth.isValidId(updatedUser.getId())) {
             errors.put("InvalidId");
         }
@@ -384,32 +391,32 @@ public class UsersService {
         Users existingUser = null;
         Object searchData = null;
 
+        // ha a bodyba id megvan adva akkor az alapján keress és emailt updatel
         if (!userAuth.isDataMissing(updatedUser.getId())) {
             existingUser = Users.getUserById(updatedUser.getId());
             searchData = updatedUser.getId();
-        } else {
+        } else { //ha id nincs bodyba akkor email alapján keress
             existingUser = Users.getUserByEmail(updatedUser.getEmail());
             searchData = updatedUser.getEmail();
         }
 
         //ha nem talál usert
-        if (existingUser == null) {
-
+        if (userAuth.isDataMissing(existingUser)) {
             errors.put("UserNotFound");
+        }
 
+        //error check if user not found
+        if (errorAuth.hasErrors(errors)) {
+            return errorAuth.createErrorResponse(errors, 404);
         }
 
         //ha nem hiányzik az email ÉS valid az email
         if (!userAuth.isDataMissing(updatedUser.getEmail()) && userAuth.isValidEmail(updatedUser.getEmail())) {
-
             existingUser.setEmail(updatedUser.getEmail());
-
         }
-        //nem kell több validáció mivel már elöbb lechekkoltuk
 
         //ha nem hiányzik a Username ÉS valid a Username
         if (!userAuth.isDataMissing(updatedUser.getUsername()) && userAuth.isValidUsername(updatedUser.getUsername())) {
-
             existingUser.setUsername(updatedUser.getUsername());
 
         } else if (!userAuth.isDataMissing(updatedUser.getUsername()) && !userAuth.isValidUsername(updatedUser.getUsername())) { //ha nem hiányzik ÉS NEM valid a username
@@ -536,107 +543,79 @@ public class UsersService {
 
         //IF DATA IS MISSING
         if (userAuth.isDataMissing(logInUser.getEmail())) {
-
             errors.put("MissingEmail");
-
         }
         if (userAuth.isDataMissing(logInUser.getPassword())) {
-
             errors.put("MissingPassword");
-
         }
 
         //IF DATA IS INVALID
-        if (!userAuth.isValidEmail(logInUser.getEmail())) {
-
+        if (!userAuth.isValidEmail(logInUser.getEmail()) && !userAuth.isDataMissing(logInUser.getEmail())) {
             errors.put("InvalidEmail");
-
         }
-        if (!userAuth.isValidPassword(logInUser.getPassword())) {
-
+        if (!userAuth.isValidPassword(logInUser.getPassword()) && !userAuth.isDataMissing(logInUser.getPassword())) {
             errors.put("InvalidPassword");
-
         }
 
-        //error check
-        if (errors.length() > 0) {
-            toReturn.put("errorMessage", errors);
-            toReturn.put("status", "failed");
-            toReturn.put("statusCode", 400);
-            return toReturn;
+        //error check if email or psw is invalid or missing
+        if (errorAuth.hasErrors(errors)) {
+            return errorAuth.createErrorResponse(errors, 400);
         }
 
         Users userData = Users.getUserByEmail(logInUser.getEmail());
 
         if (userAuth.isDataMissing(userData)) {
-
             errors.put("UserNotFound");
-
         }
 
         //error check for is userData missing
-        if (errors.length() > 0) {
-            toReturn.put("errorMessage", errors);
-            toReturn.put("status", "failed");
-            toReturn.put("statusCode", 404);
-            return toReturn;
+        if (errorAuth.hasErrors(errors)) {
+            return errorAuth.createErrorResponse(errors, 404);
         }
 
         if (userAuth.isUserDeleted(userData.getIsDeleted())) {
-
             errors.put("UserIsSoftDeleted");
-
         }
 
         //error check for is user Deleted
-        if (errors.length() > 0) {
-            toReturn.put("errorMessage", errors);
-            toReturn.put("status", "failed");
-            toReturn.put("statusCode", 409);
-            return toReturn;
+        if (errorAuth.hasErrors(errors)) {
+            return errorAuth.createErrorResponse(errors, 409);
         }
 
         try {
-            if (!userAuth.isPasswordSame(userData.getPassword(), logInUser.getEmail())) {
+            if (!userAuth.isPasswordSame(logInUser.getPassword(), logInUser.getEmail())) {
                 errors.put("InvalidPassword");
             }
         } catch (Exception ex) {
             ex.printStackTrace();
-
             errors.put("EncryptionError");
-
         }
 
         //error check for is password same
-        if (errors.length() > 0) {
-            toReturn.put("errorMessage", errors);
-            toReturn.put("status", "failed");
-            toReturn.put("statusCode", 401); //unauthorised
-            return toReturn;
+        if (errorAuth.hasErrors(errors)) {
+            return errorAuth.createErrorResponse(errors, 401);
         }
+
         //get data from spq
         Boolean modelResult = Users.loginUser(userData);
 
         //if spq gives null data
         if (userAuth.isDataMissing(modelResult)) {
-
             errors.put("ModelError");
-
         }
 
+        //if ModelError
+        if (errorAuth.hasErrors(errors)) {
+            return errorAuth.createErrorResponse(errors, 500);
+        }
         //If errors has data -> return errors and stop code
-        if (errors.length() > 0) {
-            toReturn.put("errorMessage", errors);
-            toReturn.put("status", "failed");
-            toReturn.put("statusCode", 500);
-            return toReturn;
-        } else {
-            toReturn.put("status", "success");
-            toReturn.put("statusCode", 200);
-            toReturn.put("JWTToken", JwtUtil.generateToken(userData.getId(), userData.getEmail(), userData.getRole(), userData.getUsername()));
-            toReturn.put("Message", "Logged in User Successfully");
-            return toReturn;
+
+        toReturn.put("JWTToken", JwtUtil.generateToken(userData.getId(), userData.getEmail(), userData.getRole(), userData.getUsername()));
+        toReturn.put("Message", "Logged in User Successfully");
+        if (userData.getIsActive() == false) {
+            toReturn.put("Message", "User Is Not Activated");
         }
+        return errorAuth.createOKResponse(toReturn);
     }
 } // DONT DELETE, THIS IS THE CLASS CLOSER
 

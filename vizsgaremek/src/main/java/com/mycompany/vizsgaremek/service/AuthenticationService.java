@@ -7,6 +7,7 @@ package com.mycompany.vizsgaremek.service;
 import com.mycompany.vizsgaremek.model.Users;
 import com.mycompany.vizsgaremek.config.Encrypt;
 import java.util.ArrayList;
+import java.util.List;
 import java.util.regex.Pattern;
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -30,23 +31,22 @@ public class AuthenticationService {
             response.put("statusCode", statusCode);
             return response;
         }
-        
+
         public static JSONObject createOKResponse(JSONObject result) {
             JSONObject response = new JSONObject();
             response.put("result", result);
-            response.put("status", "failed");
+            response.put("status", "success");
             response.put("statusCode", 200);
             return response;
         }
-        
+
         public static JSONObject createOKResponse() {
             JSONObject response = new JSONObject();
             response.put("status", "success");
             response.put("statusCode", 200);
             return response;
         }
-        
-        
+
     }//Class closer
 
     public static class userAuth {
@@ -78,9 +78,13 @@ public class AuthenticationService {
             return (data == null);
         }
 
+        public boolean isDataMissing(List<Object[]> data) {
+            return (data == null || data.isEmpty());
+        }
+
         //ToDO: add a try catch for each isValid method 💀💀 vagy megnezni azt hogy object instanceog <x>
         public boolean isValidId(Integer id) {
-            return id > 0;
+            return id > 0 && id.toString().length() <= 11;
         }
 
         public boolean isValidEmail(String email) {
@@ -187,8 +191,8 @@ public class AuthenticationService {
             }
             try {
                 //debug:
-                /*System.out.println("isPasswordSame:");
-            System.out.println(userdata.getPassword() + " == " + Encrypt.encrypt(password) + " (" + password + ")");*/
+                System.out.println("isPasswordSame:");
+                System.out.println(userdata.getPassword() + " == " + Encrypt.encrypt(password) + " (" + password + ")");
                 return userdata.getPassword().equals(Encrypt.encrypt(password));
             } catch (Exception e) {
                 e.printStackTrace();
