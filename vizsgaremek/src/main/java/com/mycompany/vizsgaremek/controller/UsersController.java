@@ -81,7 +81,7 @@ public class UsersController {
                 bodyObject.has("firstName") ? bodyObject.getString("firstName") : null,
                 bodyObject.has("lastName") ? bodyObject.getString("lastName") : null,
                 bodyObject.has("phone") ? bodyObject.getString("phone") : null,
-                bodyObject.has("role") ? bodyObject.getString("role") : null
+                null
         );
 
         JSONObject toReturn = layer.createUser(createdUser);
@@ -122,7 +122,10 @@ public class UsersController {
     public Response getUserById(@QueryParam("id") Integer id, @HeaderParam("token") String jwtToken) {
         Boolean validJwt = jwt.validateToken(jwtToken);
 
-        if (validJwt == null) {
+        if (userAuth.isDataMissing(jwtToken)) {
+            //ha nincs megadva a token
+            return Response.status(401).entity("missingToken").type(MediaType.APPLICATION_JSON).build();
+        } else if (validJwt == null) {
             //lejárt jwt
             return Response.status(401).entity("tokenExpired").type(MediaType.APPLICATION_JSON).build();
         } else if (validJwt == false) {
@@ -143,7 +146,10 @@ public class UsersController {
     public Response getUserByEmail(@QueryParam("email") String email, @HeaderParam("token") String jwtToken) {
         Boolean validJwt = jwt.validateToken(jwtToken);
 
-        if (validJwt == null) {
+        if (userAuth.isDataMissing(jwtToken)) {
+            //ha nincs megadva a token
+            return Response.status(401).entity("missingToken").type(MediaType.APPLICATION_JSON).build();
+        } else if (validJwt == null) {
             //lejárt jwt
             return Response.status(401).entity("tokenExpired").type(MediaType.APPLICATION_JSON).build();
         } else if (validJwt == false) {
@@ -161,7 +167,10 @@ public class UsersController {
     public Response softDeleteUser(@QueryParam("id") Integer userId, @HeaderParam("token") String jwtToken) {
         Boolean validJwt = jwt.validateToken(jwtToken);
 
-        if (validJwt == null) {
+        if (userAuth.isDataMissing(jwtToken)) {
+            //ha nincs megadva a token
+            return Response.status(401).entity("missingToken").type(MediaType.APPLICATION_JSON).build();
+        } else if (validJwt == null) {
             //lejárt jwt
             return Response.status(401).entity("tokenExpired").type(MediaType.APPLICATION_JSON).build();
         } else if (validJwt == false) {
@@ -186,7 +195,10 @@ public class UsersController {
             String body) {
         Boolean validJwt = jwt.validateToken(jwtToken);
 
-        if (validJwt == null) {
+        if (userAuth.isDataMissing(jwtToken)) {
+            //ha nincs megadva a token
+            return Response.status(401).entity("missingToken").type(MediaType.APPLICATION_JSON).build();
+        } else if (validJwt == null) {
             //lejárt jwt
             return Response.status(401).entity("tokenExpired").type(MediaType.APPLICATION_JSON).build();
         } else if (validJwt == false) {
@@ -223,10 +235,6 @@ public class UsersController {
 
             if (bodyObject.has("phone")) {
                 updatedUser.setPhone(bodyObject.getString("phone"));
-            }
-
-            if (bodyObject.has("role")) {
-                updatedUser.setRole(bodyObject.getString("role"));
             }
 
             if (bodyObject.has("isActive")) {

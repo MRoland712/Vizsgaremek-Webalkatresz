@@ -99,11 +99,32 @@ public class UsersService {
         if (!userAuth.isDataMissing(createdUser.getPhone()) && !userAuth.isValidPhone(createdUser.getPhone())) {
             errors.put("InvalidPhone");
         }
-        //If errors has data -> return errors and stop code
+        
+        //error check if datas given are missing or invalid
         if (errorAuth.hasErrors(errors)) {
             return errorAuth.createErrorResponse(errors, 400);
         }
-
+        
+        //if the email is existing in DB
+        if (userAuth.isEmailSame(createdUser.getEmail())) {
+            errors.put("EmailIsSameAsDB");
+        }
+        
+        //if the username is existing in DB
+        if (userAuth.isUsernameSame(createdUser.getUsername())) {
+            errors.put("UsernameIsSameAsDB");
+        }
+        
+        //if the phone number is existing in DB
+        if (userAuth.isPhoneSame(createdUser.getPhone())) {
+            errors.put("PhoneIsSameAsDB");
+        }
+        
+        //error check if email is existing in db
+        if (errorAuth.hasErrors(errors)) {
+            return errorAuth.createErrorResponse(errors, 409);
+        }
+        
         try {
             // set Password to Encrypted version of entered password
             String encryptedPassword = Encrypt.encrypt(createdUser.getPassword());
@@ -115,10 +136,8 @@ public class UsersService {
                     Integer.toString(random.nextInt(900000) + 100000)
             );
 
-            //if role is empty / not set
-            if (createdUser.getRole() == null || createdUser.getRole().isEmpty()) {
-                createdUser.setRole(null);
-            }
+            //set role to null for default creation of user
+            createdUser.setRole(null);
 
             String token = UUID.randomUUID().toString();
             createdUser.setRegistrationToken(token);
@@ -362,17 +381,17 @@ public class UsersService {
         if (userAuth.isDataMissing(updatedUser.getId()) && userAuth.isDataMissing(updatedUser.getEmail())) {
             errors.put("MissingIdAndEmail");
         }
-        
+
         //if email is the only parameter given in body
         if (userAuth.isDataMissing(updatedUser.getId())
-            && !userAuth.isDataMissing(updatedUser.getEmail())
-            && userAuth.isDataMissing(updatedUser.getUsername())
-            && userAuth.isDataMissing(updatedUser.getFirstName())
-            && userAuth.isDataMissing(updatedUser.getLastName())
-            && userAuth.isDataMissing(updatedUser.getPhone())
-            && userAuth.isDataMissing(updatedUser.getPassword())
-            && userAuth.isDataMissing(updatedUser.getRole())) {
-            
+                && !userAuth.isDataMissing(updatedUser.getEmail())
+                && userAuth.isDataMissing(updatedUser.getUsername())
+                && userAuth.isDataMissing(updatedUser.getFirstName())
+                && userAuth.isDataMissing(updatedUser.getLastName())
+                && userAuth.isDataMissing(updatedUser.getPhone())
+                && userAuth.isDataMissing(updatedUser.getPassword())
+                && userAuth.isDataMissing(updatedUser.getRole())) {
+
             errors.put("InvalidSearchParameter");
         }
         if (!userAuth.isDataMissing(updatedUser.getId()) && !userAuth.isValidId(updatedUser.getId())) {
@@ -452,16 +471,6 @@ public class UsersService {
         } else if (!userAuth.isDataMissing(updatedUser.getPhone()) && !userAuth.isValidPhone(updatedUser.getPhone())) {
 
             errors.put("InvalidPhone");
-
-        }
-
-        if (!userAuth.isDataMissing(updatedUser.getRole()) && userAuth.isValidRole(updatedUser.getRole())) {
-
-            existingUser.setRole(updatedUser.getRole());
-
-        } else if (!userAuth.isDataMissing(updatedUser.getRole()) && !userAuth.isValidRole(updatedUser.getRole())) {
-
-            errors.put("InvalidRole");
 
         }
 

@@ -222,5 +222,59 @@ public class AuthenticationService {
             }
         }
 
-    } //Class closer
-}//Class closer
+        /**
+         * Checks if email is existing in DB
+         *
+         * @param email Email that needs checking
+         *
+         * @return true / false based if the email is existing in DB
+         */
+        public boolean isEmailSame(String email) {
+            Users userdata = Users.getUserByEmail(email);
+            //if user is not found, return false
+            if (userdata == null) {
+                return false;
+            }
+            return true;
+        }
+
+        /**
+         * Checks if username is existing in DB
+         *
+         * @param username Username that needs checking
+         *
+         * @return true / false based if the username is existing in DB
+         */
+        public boolean isUsernameSame(String username) {
+            ArrayList<Users> users = Users.getUsers();
+            //if user is not found, return false
+            for (Users user : users) {
+                if (user.getUsername().equals(username)) {
+                    return true;
+                }
+            }
+            return false;
+        }
+        
+        /**
+         * Checks if phone is existing in DB
+         *
+         * @param phone phone number that needs checking
+         *
+         * @return true / false based if the phone is existing in DB
+         */
+        public boolean isPhoneSame(String phone) {
+            ArrayList<Users> users = Users.getUsers();
+            //if user is not found, return false
+            for (Users user : users) {
+                if (user.getPhone().equals(phone)) {
+                    return true;
+                }
+            }
+            return false;
+        }
+        
+        
+
+    } //User Auth Class closer
+}//Auth Service Class closer
