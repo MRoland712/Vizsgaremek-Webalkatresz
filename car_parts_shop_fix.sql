@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Gép: localhost:3306
--- Létrehozás ideje: 2025. Nov 21. 20:53
+-- Létrehozás ideje: 2025. Nov 24. 09:38
 -- Kiszolgáló verziója: 5.7.24
 -- PHP verzió: 8.3.1
 
@@ -1201,7 +1201,7 @@ CREATE TABLE `warehouse_stock` (
 --
 ALTER TABLE `addresses`
   ADD PRIMARY KEY (`id`),
-  ADD KEY `addresses_ibfk_1` (`user_id`);
+  ADD KEY `user_id` (`user_id`);
 
 --
 -- A tábla indexei `cart_items`
