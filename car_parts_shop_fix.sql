@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Gép: localhost:3306
--- Létrehozás ideje: 2025. Nov 24. 09:38
+-- Létrehozás ideje: 2025. Nov 24. 10:00
 -- Kiszolgáló verziója: 5.7.24
 -- PHP verzió: 8.3.1
 
@@ -220,51 +220,47 @@ CREATE DEFINER=`root`@`localhost` PROCEDURE `getAddressById` (IN `p_address_id` 
     WHERE id = p_address_id;
 END$$
 
-DROP PROCEDURE IF EXISTS `getAddresses`$$
-CREATE DEFINER=`root`@`localhost` PROCEDURE `getAddresses` ()   BEGIN
-	SELECT
-        id,
-        user_id,
-        first_name,
-        last_name,
-        company,
-        tax_number,
-        country,
-        city,
-        zip_code,
-        street,
-        is_default,
-        created_at,
-        updated_at,
-        is_deleted,
-        deleted_at
-        FROM addresses
-        WHERE is_deleted = 0
-        ORDER BY id;
-END$$
-
 DROP PROCEDURE IF EXISTS `getAddressesByUserId`$$
 CREATE DEFINER=`root`@`localhost` PROCEDURE `getAddressesByUserId` (IN `p_user_id` INT)   BEGIN
     SELECT 
-        id,
-        user_id,
-        first_name,
-        last_name,
-        company,
-        tax_number,
-        country,
-        city,
-        zip_code,
-        street,
-        is_default,
-        created_at,
-        updated_at,
-        is_deleted,
-        deleted_at
-    FROM addresses
-    WHERE user_id = p_user_id 
-        AND is_deleted = 0
-    ORDER BY is_default DESC, id DESC;
+        a.id,
+        a.user_id,
+        a.first_name,
+        a.last_name,
+        a.company,
+        a.tax_number,
+        a.country,
+        a.city,
+        a.zip_code,
+        a.street,
+        a.is_default,
+        a.created_at,
+        a.updated_at
+    FROM addresses a
+    WHERE a.user_id = p_user_id
+        AND a.is_deleted = 0
+    ORDER BY a.is_default DESC, a.id DESC;
+END$$
+
+DROP PROCEDURE IF EXISTS `getAllAddresses`$$
+CREATE DEFINER=`root`@`localhost` PROCEDURE `getAllAddresses` ()   BEGIN
+    SELECT 
+        a.id,
+        a.user_id,
+        a.first_name,
+        a.last_name,
+        a.company,
+        a.tax_number,
+        a.country,
+        a.city,
+        a.zip_code,
+        a.street,
+        a.is_default,
+        a.created_at,
+        a.updated_at
+    FROM addresses a
+    WHERE a.is_deleted = 0
+    ORDER BY a.id DESC;
 END$$
 
 DROP PROCEDURE IF EXISTS `getAllManufactureres`$$
