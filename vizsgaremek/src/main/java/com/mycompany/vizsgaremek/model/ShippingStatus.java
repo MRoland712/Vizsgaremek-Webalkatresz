@@ -24,10 +24,11 @@ import javax.xml.bind.annotation.XmlRootElement;
 
 /**
  *
- * @author neblg
+ * @author ddori
  */
 @Entity
 @Table(name = "shipping_status")
+@XmlRootElement
 @NamedQueries({
     @NamedQuery(name = "ShippingStatus.findAll", query = "SELECT s FROM ShippingStatus s"),
     @NamedQuery(name = "ShippingStatus.findById", query = "SELECT s FROM ShippingStatus s WHERE s.id = :id"),
@@ -35,7 +36,6 @@ import javax.xml.bind.annotation.XmlRootElement;
     @NamedQuery(name = "ShippingStatus.findByTrackingNo", query = "SELECT s FROM ShippingStatus s WHERE s.trackingNo = :trackingNo"),
     @NamedQuery(name = "ShippingStatus.findByCreatedAt", query = "SELECT s FROM ShippingStatus s WHERE s.createdAt = :createdAt"),
     @NamedQuery(name = "ShippingStatus.findByUpdatedAt", query = "SELECT s FROM ShippingStatus s WHERE s.updatedAt = :updatedAt")})
-@XmlRootElement
 public class ShippingStatus implements Serializable {
 
     private static final long serialVersionUID = 1L;

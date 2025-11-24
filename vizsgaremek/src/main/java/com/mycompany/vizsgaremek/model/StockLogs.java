@@ -24,17 +24,17 @@ import javax.xml.bind.annotation.XmlRootElement;
 
 /**
  *
- * @author neblg
+ * @author ddori
  */
 @Entity
 @Table(name = "stock_logs")
+@XmlRootElement
 @NamedQueries({
     @NamedQuery(name = "StockLogs.findAll", query = "SELECT s FROM StockLogs s"),
     @NamedQuery(name = "StockLogs.findById", query = "SELECT s FROM StockLogs s WHERE s.id = :id"),
     @NamedQuery(name = "StockLogs.findByChangeAmount", query = "SELECT s FROM StockLogs s WHERE s.changeAmount = :changeAmount"),
     @NamedQuery(name = "StockLogs.findByReason", query = "SELECT s FROM StockLogs s WHERE s.reason = :reason"),
     @NamedQuery(name = "StockLogs.findByCreatedAt", query = "SELECT s FROM StockLogs s WHERE s.createdAt = :createdAt")})
-@XmlRootElement
 public class StockLogs implements Serializable {
 
     private static final long serialVersionUID = 1L;

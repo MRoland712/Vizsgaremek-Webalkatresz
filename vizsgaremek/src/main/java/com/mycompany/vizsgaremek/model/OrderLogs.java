@@ -24,17 +24,17 @@ import javax.xml.bind.annotation.XmlRootElement;
 
 /**
  *
- * @author neblg
+ * @author ddori
  */
 @Entity
 @Table(name = "order_logs")
+@XmlRootElement
 @NamedQueries({
     @NamedQuery(name = "OrderLogs.findAll", query = "SELECT o FROM OrderLogs o"),
     @NamedQuery(name = "OrderLogs.findById", query = "SELECT o FROM OrderLogs o WHERE o.id = :id"),
     @NamedQuery(name = "OrderLogs.findByOldStatus", query = "SELECT o FROM OrderLogs o WHERE o.oldStatus = :oldStatus"),
     @NamedQuery(name = "OrderLogs.findByNewStatus", query = "SELECT o FROM OrderLogs o WHERE o.newStatus = :newStatus"),
     @NamedQuery(name = "OrderLogs.findByChangedAt", query = "SELECT o FROM OrderLogs o WHERE o.changedAt = :changedAt")})
-@XmlRootElement
 public class OrderLogs implements Serializable {
 
     private static final long serialVersionUID = 1L;

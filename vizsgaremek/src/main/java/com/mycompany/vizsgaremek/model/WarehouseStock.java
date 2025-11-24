@@ -23,16 +23,16 @@ import javax.xml.bind.annotation.XmlRootElement;
 
 /**
  *
- * @author neblg
+ * @author ddori
  */
 @Entity
 @Table(name = "warehouse_stock")
+@XmlRootElement
 @NamedQueries({
     @NamedQuery(name = "WarehouseStock.findAll", query = "SELECT w FROM WarehouseStock w"),
     @NamedQuery(name = "WarehouseStock.findById", query = "SELECT w FROM WarehouseStock w WHERE w.id = :id"),
     @NamedQuery(name = "WarehouseStock.findByQuantity", query = "SELECT w FROM WarehouseStock w WHERE w.quantity = :quantity"),
     @NamedQuery(name = "WarehouseStock.findByUpdatedAt", query = "SELECT w FROM WarehouseStock w WHERE w.updatedAt = :updatedAt")})
-@XmlRootElement
 public class WarehouseStock implements Serializable {
 
     private static final long serialVersionUID = 1L;

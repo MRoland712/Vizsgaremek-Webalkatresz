@@ -12,9 +12,7 @@ import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
-import javax.persistence.JoinColumn;
 import javax.persistence.Lob;
-import javax.persistence.ManyToOne;
 import javax.persistence.NamedQueries;
 import javax.persistence.NamedQuery;
 import javax.persistence.Table;
@@ -26,16 +24,16 @@ import javax.xml.bind.annotation.XmlRootElement;
 
 /**
  *
- * @author neblg
+ * @author ddori
  */
 @Entity
 @Table(name = "user_logs")
+@XmlRootElement
 @NamedQueries({
     @NamedQuery(name = "UserLogs.findAll", query = "SELECT u FROM UserLogs u"),
     @NamedQuery(name = "UserLogs.findById", query = "SELECT u FROM UserLogs u WHERE u.id = :id"),
     @NamedQuery(name = "UserLogs.findByAction", query = "SELECT u FROM UserLogs u WHERE u.action = :action"),
     @NamedQuery(name = "UserLogs.findByCreatedAt", query = "SELECT u FROM UserLogs u WHERE u.createdAt = :createdAt")})
-@XmlRootElement
 public class UserLogs implements Serializable {
 
     private static final long serialVersionUID = 1L;
@@ -58,9 +56,6 @@ public class UserLogs implements Serializable {
     @Column(name = "created_at")
     @Temporal(TemporalType.TIMESTAMP)
     private Date createdAt;
-    @JoinColumn(name = "user_id", referencedColumnName = "id")
-    @ManyToOne(optional = false)
-    private Users userId;
 
     public UserLogs() {
     }
@@ -105,14 +100,6 @@ public class UserLogs implements Serializable {
 
     public void setCreatedAt(Date createdAt) {
         this.createdAt = createdAt;
-    }
-
-    public Users getUserId() {
-        return userId;
-    }
-
-    public void setUserId(Users userId) {
-        this.userId = userId;
     }
 
     @Override

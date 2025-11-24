@@ -27,17 +27,19 @@ import javax.xml.bind.annotation.XmlTransient;
 
 /**
  *
- * @author neblg
+ * @author ddori
  */
 @Entity
 @Table(name = "manufacturers")
+@XmlRootElement
 @NamedQueries({
     @NamedQuery(name = "Manufacturers.findAll", query = "SELECT m FROM Manufacturers m"),
     @NamedQuery(name = "Manufacturers.findById", query = "SELECT m FROM Manufacturers m WHERE m.id = :id"),
     @NamedQuery(name = "Manufacturers.findByName", query = "SELECT m FROM Manufacturers m WHERE m.name = :name"),
     @NamedQuery(name = "Manufacturers.findByCountry", query = "SELECT m FROM Manufacturers m WHERE m.country = :country"),
-    @NamedQuery(name = "Manufacturers.findByCreatedAt", query = "SELECT m FROM Manufacturers m WHERE m.createdAt = :createdAt")})
-@XmlRootElement
+    @NamedQuery(name = "Manufacturers.findByCreatedAt", query = "SELECT m FROM Manufacturers m WHERE m.createdAt = :createdAt"),
+    @NamedQuery(name = "Manufacturers.findByIsDeleted", query = "SELECT m FROM Manufacturers m WHERE m.isDeleted = :isDeleted"),
+    @NamedQuery(name = "Manufacturers.findByDeletedAt", query = "SELECT m FROM Manufacturers m WHERE m.deletedAt = :deletedAt")})
 public class Manufacturers implements Serializable {
 
     private static final long serialVersionUID = 1L;
@@ -57,6 +59,11 @@ public class Manufacturers implements Serializable {
     @Column(name = "created_at")
     @Temporal(TemporalType.TIMESTAMP)
     private Date createdAt;
+    @Column(name = "is_deleted")
+    private Boolean isDeleted;
+    @Column(name = "deleted_at")
+    @Temporal(TemporalType.TIMESTAMP)
+    private Date deletedAt;
     @OneToMany(cascade = CascadeType.ALL, mappedBy = "manufacturerId")
     private Collection<Parts> partsCollection;
 
@@ -102,6 +109,22 @@ public class Manufacturers implements Serializable {
 
     public void setCreatedAt(Date createdAt) {
         this.createdAt = createdAt;
+    }
+
+    public Boolean getIsDeleted() {
+        return isDeleted;
+    }
+
+    public void setIsDeleted(Boolean isDeleted) {
+        this.isDeleted = isDeleted;
+    }
+
+    public Date getDeletedAt() {
+        return deletedAt;
+    }
+
+    public void setDeletedAt(Date deletedAt) {
+        this.deletedAt = deletedAt;
     }
 
     @XmlTransient

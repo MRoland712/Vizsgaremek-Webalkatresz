@@ -12,8 +12,6 @@ import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
-import javax.persistence.JoinColumn;
-import javax.persistence.ManyToOne;
 import javax.persistence.NamedQueries;
 import javax.persistence.NamedQuery;
 import javax.persistence.Table;
@@ -25,10 +23,11 @@ import javax.xml.bind.annotation.XmlRootElement;
 
 /**
  *
- * @author neblg
+ * @author ddori
  */
 @Entity
 @Table(name = "email_verifications")
+@XmlRootElement
 @NamedQueries({
     @NamedQuery(name = "EmailVerifications.findAll", query = "SELECT e FROM EmailVerifications e"),
     @NamedQuery(name = "EmailVerifications.findById", query = "SELECT e FROM EmailVerifications e WHERE e.id = :id"),
@@ -36,7 +35,6 @@ import javax.xml.bind.annotation.XmlRootElement;
     @NamedQuery(name = "EmailVerifications.findByVerified", query = "SELECT e FROM EmailVerifications e WHERE e.verified = :verified"),
     @NamedQuery(name = "EmailVerifications.findBySentAt", query = "SELECT e FROM EmailVerifications e WHERE e.sentAt = :sentAt"),
     @NamedQuery(name = "EmailVerifications.findByVerifiedAt", query = "SELECT e FROM EmailVerifications e WHERE e.verifiedAt = :verifiedAt")})
-@XmlRootElement
 public class EmailVerifications implements Serializable {
 
     private static final long serialVersionUID = 1L;
@@ -58,9 +56,6 @@ public class EmailVerifications implements Serializable {
     @Column(name = "verified_at")
     @Temporal(TemporalType.TIMESTAMP)
     private Date verifiedAt;
-    @JoinColumn(name = "user_id", referencedColumnName = "id")
-    @ManyToOne(optional = false)
-    private Users userId;
 
     public EmailVerifications() {
     }
@@ -112,14 +107,6 @@ public class EmailVerifications implements Serializable {
 
     public void setVerifiedAt(Date verifiedAt) {
         this.verifiedAt = verifiedAt;
-    }
-
-    public Users getUserId() {
-        return userId;
-    }
-
-    public void setUserId(Users userId) {
-        this.userId = userId;
     }
 
     @Override

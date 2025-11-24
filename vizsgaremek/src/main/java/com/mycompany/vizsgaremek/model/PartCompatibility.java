@@ -21,16 +21,16 @@ import javax.xml.bind.annotation.XmlRootElement;
 
 /**
  *
- * @author neblg
+ * @author ddori
  */
 @Entity
 @Table(name = "part_compatibility")
+@XmlRootElement
 @NamedQueries({
     @NamedQuery(name = "PartCompatibility.findAll", query = "SELECT p FROM PartCompatibility p"),
     @NamedQuery(name = "PartCompatibility.findById", query = "SELECT p FROM PartCompatibility p WHERE p.id = :id"),
     @NamedQuery(name = "PartCompatibility.findByEngineType", query = "SELECT p FROM PartCompatibility p WHERE p.engineType = :engineType"),
     @NamedQuery(name = "PartCompatibility.findByTransmission", query = "SELECT p FROM PartCompatibility p WHERE p.transmission = :transmission")})
-@XmlRootElement
 public class PartCompatibility implements Serializable {
 
     private static final long serialVersionUID = 1L;

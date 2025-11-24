@@ -14,8 +14,6 @@ import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
-import javax.persistence.JoinColumn;
-import javax.persistence.ManyToOne;
 import javax.persistence.NamedQueries;
 import javax.persistence.NamedQuery;
 import javax.persistence.OneToMany;
@@ -28,16 +26,18 @@ import javax.xml.bind.annotation.XmlTransient;
 
 /**
  *
- * @author neblg
+ * @author ddori
  */
 @Entity
 @Table(name = "orders")
+@XmlRootElement
 @NamedQueries({
     @NamedQuery(name = "Orders.findAll", query = "SELECT o FROM Orders o"),
     @NamedQuery(name = "Orders.findById", query = "SELECT o FROM Orders o WHERE o.id = :id"),
     @NamedQuery(name = "Orders.findByStatus", query = "SELECT o FROM Orders o WHERE o.status = :status"),
-    @NamedQuery(name = "Orders.findByCreatedAt", query = "SELECT o FROM Orders o WHERE o.createdAt = :createdAt")})
-@XmlRootElement
+    @NamedQuery(name = "Orders.findByCreatedAt", query = "SELECT o FROM Orders o WHERE o.createdAt = :createdAt"),
+    @NamedQuery(name = "Orders.findByIsDeleted", query = "SELECT o FROM Orders o WHERE o.isDeleted = :isDeleted"),
+    @NamedQuery(name = "Orders.findByDeletedAt", query = "SELECT o FROM Orders o WHERE o.deletedAt = :deletedAt")})
 public class Orders implements Serializable {
 
     private static final long serialVersionUID = 1L;
@@ -52,6 +52,11 @@ public class Orders implements Serializable {
     @Column(name = "created_at")
     @Temporal(TemporalType.TIMESTAMP)
     private Date createdAt;
+    @Column(name = "is_deleted")
+    private Boolean isDeleted;
+    @Column(name = "deleted_at")
+    @Temporal(TemporalType.TIMESTAMP)
+    private Date deletedAt;
     @OneToMany(cascade = CascadeType.ALL, mappedBy = "orderId")
     private Collection<Payments> paymentsCollection;
     @OneToMany(cascade = CascadeType.ALL, mappedBy = "orderId")
@@ -62,9 +67,6 @@ public class Orders implements Serializable {
     private Collection<OrderItems> orderItemsCollection;
     @OneToMany(cascade = CascadeType.ALL, mappedBy = "orderId")
     private Collection<ShippingStatus> shippingStatusCollection;
-    @JoinColumn(name = "user_id", referencedColumnName = "id")
-    @ManyToOne(optional = false)
-    private Users userId;
 
     public Orders() {
     }
@@ -95,6 +97,22 @@ public class Orders implements Serializable {
 
     public void setCreatedAt(Date createdAt) {
         this.createdAt = createdAt;
+    }
+
+    public Boolean getIsDeleted() {
+        return isDeleted;
+    }
+
+    public void setIsDeleted(Boolean isDeleted) {
+        this.isDeleted = isDeleted;
+    }
+
+    public Date getDeletedAt() {
+        return deletedAt;
+    }
+
+    public void setDeletedAt(Date deletedAt) {
+        this.deletedAt = deletedAt;
     }
 
     @XmlTransient
@@ -140,14 +158,6 @@ public class Orders implements Serializable {
 
     public void setShippingStatusCollection(Collection<ShippingStatus> shippingStatusCollection) {
         this.shippingStatusCollection = shippingStatusCollection;
-    }
-
-    public Users getUserId() {
-        return userId;
-    }
-
-    public void setUserId(Users userId) {
-        this.userId = userId;
     }
 
     @Override

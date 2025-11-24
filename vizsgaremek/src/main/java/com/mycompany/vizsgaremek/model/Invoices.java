@@ -24,16 +24,16 @@ import javax.xml.bind.annotation.XmlRootElement;
 
 /**
  *
- * @author neblg
+ * @author ddori
  */
 @Entity
 @Table(name = "invoices")
+@XmlRootElement
 @NamedQueries({
     @NamedQuery(name = "Invoices.findAll", query = "SELECT i FROM Invoices i"),
     @NamedQuery(name = "Invoices.findById", query = "SELECT i FROM Invoices i WHERE i.id = :id"),
     @NamedQuery(name = "Invoices.findByPdfUrl", query = "SELECT i FROM Invoices i WHERE i.pdfUrl = :pdfUrl"),
     @NamedQuery(name = "Invoices.findByCreatedAt", query = "SELECT i FROM Invoices i WHERE i.createdAt = :createdAt")})
-@XmlRootElement
 public class Invoices implements Serializable {
 
     private static final long serialVersionUID = 1L;

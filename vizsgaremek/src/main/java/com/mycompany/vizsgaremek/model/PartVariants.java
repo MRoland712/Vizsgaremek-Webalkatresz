@@ -22,17 +22,17 @@ import javax.xml.bind.annotation.XmlRootElement;
 
 /**
  *
- * @author neblg
+ * @author ddori
  */
 @Entity
 @Table(name = "part_variants")
+@XmlRootElement
 @NamedQueries({
     @NamedQuery(name = "PartVariants.findAll", query = "SELECT p FROM PartVariants p"),
     @NamedQuery(name = "PartVariants.findById", query = "SELECT p FROM PartVariants p WHERE p.id = :id"),
     @NamedQuery(name = "PartVariants.findByName", query = "SELECT p FROM PartVariants p WHERE p.name = :name"),
     @NamedQuery(name = "PartVariants.findByValue", query = "SELECT p FROM PartVariants p WHERE p.value = :value"),
     @NamedQuery(name = "PartVariants.findByAdditionalPrice", query = "SELECT p FROM PartVariants p WHERE p.additionalPrice = :additionalPrice")})
-@XmlRootElement
 public class PartVariants implements Serializable {
 
     private static final long serialVersionUID = 1L;

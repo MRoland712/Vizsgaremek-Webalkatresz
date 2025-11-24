@@ -31,10 +31,11 @@ import javax.xml.bind.annotation.XmlTransient;
 
 /**
  *
- * @author neblg
+ * @author ddori
  */
 @Entity
 @Table(name = "parts")
+@XmlRootElement
 @NamedQueries({
     @NamedQuery(name = "Parts.findAll", query = "SELECT p FROM Parts p"),
     @NamedQuery(name = "Parts.findById", query = "SELECT p FROM Parts p WHERE p.id = :id"),
@@ -47,8 +48,8 @@ import javax.xml.bind.annotation.XmlTransient;
     @NamedQuery(name = "Parts.findByIsActive", query = "SELECT p FROM Parts p WHERE p.isActive = :isActive"),
     @NamedQuery(name = "Parts.findByCreatedAt", query = "SELECT p FROM Parts p WHERE p.createdAt = :createdAt"),
     @NamedQuery(name = "Parts.findByUpdatedAt", query = "SELECT p FROM Parts p WHERE p.updatedAt = :updatedAt"),
-    @NamedQuery(name = "Parts.findByDeletedAt", query = "SELECT p FROM Parts p WHERE p.deletedAt = :deletedAt")})
-@XmlRootElement
+    @NamedQuery(name = "Parts.findByDeletedAt", query = "SELECT p FROM Parts p WHERE p.deletedAt = :deletedAt"),
+    @NamedQuery(name = "Parts.findByIsDeleted", query = "SELECT p FROM Parts p WHERE p.isDeleted = :isDeleted")})
 public class Parts implements Serializable {
 
     private static final long serialVersionUID = 1L;
@@ -91,6 +92,8 @@ public class Parts implements Serializable {
     @Column(name = "deleted_at")
     @Temporal(TemporalType.TIMESTAMP)
     private Date deletedAt;
+    @Column(name = "is_deleted")
+    private Boolean isDeleted;
     @ManyToMany(mappedBy = "partsCollection")
     private Collection<ProductComparisons> productComparisonsCollection;
     @OneToMany(cascade = CascadeType.ALL, mappedBy = "partId")
@@ -213,6 +216,14 @@ public class Parts implements Serializable {
 
     public void setDeletedAt(Date deletedAt) {
         this.deletedAt = deletedAt;
+    }
+
+    public Boolean getIsDeleted() {
+        return isDeleted;
+    }
+
+    public void setIsDeleted(Boolean isDeleted) {
+        this.isDeleted = isDeleted;
     }
 
     @XmlTransient
