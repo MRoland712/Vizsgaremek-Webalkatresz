@@ -20,10 +20,36 @@ public class AuthenticationService {
 
     public static class errorAuth {
 
+        /**
+         * Checks if given JSONArray has data and returns a Boolean
+         *
+         * @param errors The JSONArray that needs to be checked
+         * @return Boolean true or false based on if the errors JSONArray has
+         * data
+         */
         public static boolean hasErrors(JSONArray errors) {
             return errors.length() > 0;
         }
 
+        /**
+         * Creates an error response with the given JSONArray errors and status
+         * code
+         *
+         * @param errors The JSONArray that contains the errors
+         *
+         * @param statusCode An integer value with a given status code, see
+         * common error codes: 400 - Bad request (validation error / client
+         * sends wrong data) 401 - Unauthorised (Authentication error ex: Wrong
+         * password entered) 404 - Missing (ex:Couldnt find user with given
+         * data) 409 - Conflict (something is the same as in db ex: Email is
+         * same as in DB) 500 - Internal Server Error (Missing required data in
+         * DB ex: isDeleted == null)
+         *
+         * @return a JSONObject with the errors array, a status of "failed" and
+         * the given status code in this format: { "errors": [#errors#],
+         * "status": "failed", "statusCode": #Given status code# }
+         *
+         */
         public static JSONObject createErrorResponse(JSONArray errors, int statusCode) {
             JSONObject response = new JSONObject();
             response.put("errors", errors);
@@ -255,7 +281,7 @@ public class AuthenticationService {
             }
             return false;
         }
-        
+
         /**
          * Checks if phone is existing in DB
          *
@@ -273,8 +299,6 @@ public class AuthenticationService {
             }
             return false;
         }
-        
-        
 
     } //User Auth Class closer
 }//Auth Service Class closer
