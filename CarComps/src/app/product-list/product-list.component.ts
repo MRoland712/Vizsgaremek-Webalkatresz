@@ -1,5 +1,6 @@
 import { Component } from '@angular/core';
 import { ProductCardComponent } from '../product-card/product-card.component';
+import { Product } from './product.model';
 
 /**
  * ==========================================
@@ -9,15 +10,6 @@ import { ProductCardComponent } from '../product-card/product-card.component';
  * Ez a komponens megjeleníti a termékeket grid layoutban,
  * soronként 2 kártyával.
  */
-
-// Termék interface (példa)
-interface Product {
-  id: number;
-  name: string;
-  articleNumber: string;
-  price: number;
-  image: string;
-}
 
 @Component({
   selector: 'app-product-list',

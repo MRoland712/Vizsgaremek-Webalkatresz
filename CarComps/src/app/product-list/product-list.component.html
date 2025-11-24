@@ -7,22 +7,24 @@
 
   <!-- GRID LAYOUT - 2 kártya egy sorban -->
   <div class="product-grid">
+    @for (product of products; track $index) {
+    <app-product-card [product]="product"></app-product-card>
+    }
     <!-- 1. kártya -->
-    <app-product-card></app-product-card>
 
     <!-- 2. kártya -->
-    <app-product-card></app-product-card>
+    <!-- <app-product-card></app-product-card> -->
 
     <!-- 3. kártya (új sor) -->
-    <app-product-card></app-product-card>
+    <!-- <app-product-card></app-product-card> -->
 
     <!-- 4. kártya -->
-    <app-product-card></app-product-card>
+    <!-- <app-product-card></app-product-card> -->
 
     <!-- 5. kártya (új sor) -->
-    <app-product-card></app-product-card>
+    <!-- <app-product-card></app-product-card> -->
 
     <!-- 6. kártya -->
-    <app-product-card></app-product-card>
+    <!-- <app-product-card></app-product-card> -->
   </div>
 </div>

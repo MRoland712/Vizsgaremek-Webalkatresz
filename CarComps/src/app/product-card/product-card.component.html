@@ -1,12 +1,12 @@
 <div class="product-wrapper">
   <div class="left">
-    <img src="{{ productIMG }}" alt="product image" />
+    <img src="{{ product().image }}" alt="product image" />
   </div>
 
   <div class="right">
     <div class="product-desc">
-      <h2>{{ productName }}</h2>
-      <h3>Article Number: {{ articleNumber }}</h3>
+      <h2>{{ product().name }}</h2>
+      <h3>Article Number: {{ product().articleNumber }}</h3>
       @for (item of items; track $index) {
       <!-- termék infók -->
       }
@@ -14,44 +14,7 @@
 
     <!-- Ár -->
     <div class="price-section">
-      <h3 class="price">{{ price }} HUF</h3>
-    </div>
-
-    <!-- Gombok az ár alatt -->
-    <div class="button-container">
-      <div class="quantity-controls">
-        <button type="button" class="quantity-btn decrease" (click)="decreaseQuantity()">
-          <i class="fa-solid fa-angle-down"></i>
-        </button>
-        <span class="quantity-display">{{ quantity() }}</span>
-        <button type="button" class="quantity-btn increase" (click)="increaseQuantity()">
-          <i class="fa-solid fa-angle-up"></i>
-        </button>
-      </div>
-
-      <button type="button" class="add-to-cart-btn" (click)="addToCart()">
-        <i class="fa-solid fa-cart-shopping"></i>
-      </button>
-    </div>
-  </div>
-</div>
-<div class="product-wrapper">
-  <div class="left">
-    <img src="{{ productIMG }}" alt="product image" />
-  </div>
-
-  <div class="right">
-    <div class="product-desc">
-      <h2>{{ productName }}</h2>
-      <h3>Article Number: {{ articleNumber }}</h3>
-      @for (item of items; track $index) {
-      <!-- termék infók -->
-      }
-    </div>
-
-    <!-- Ár -->
-    <div class="price-section">
-      <h3 class="price">{{ price }} HUF</h3>
+      <h3 class="price">{{ product().price }} HUF</h3>
     </div>
 
     <!-- Gombok az ár alatt -->

@@ -8,7 +8,7 @@
   max-width: 1200px;
   margin: 0 auto;
   padding: 40px 20px;
-  background-color: #f5f5f5;
+
   min-height: 100vh;
 }
 
@@ -28,15 +28,6 @@
 
   width: 100%;
 }
-
-/* Vizuális példa:
-   
-   [Kártya] ←24px→ [Kártya]
-      ↓ 24px          ↓ 24px
-   [Kártya] ←24px→ [Kártya]
-      ↓ 24px          ↓ 24px
-   [Kártya] ←24px→ [Kártya]
-*/
 
 /* Responsive - tablet (1 kártya) */
 @media (max-width: 1024px) {

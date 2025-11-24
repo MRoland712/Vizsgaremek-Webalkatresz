@@ -1,4 +1,5 @@
-import { Component, signal } from '@angular/core';
+import { Component, input, OnInit, signal } from '@angular/core';
+import { Product } from '../product-list/product.model';
 
 @Component({
   selector: 'app-product-card',
@@ -8,11 +9,20 @@ import { Component, signal } from '@angular/core';
 })
 export class ProductCardComponent {
   // Termék adatok
-  productIMG = '/assets/CarComps_Logo_BigassC.png';
-  productName = 'Brake disc Front STARK SKBD-0020354';
-  articleNumber = 'SKBD-0020354';
+  product = input.required<Product>();
+
+  productIMG = '';
+  productName = '';
+  articleNumber = '';
   items: any[] = []; // Termék infók (ha kell)
-  price = 11700;
+  price = 0;
+
+  // ngOnInit(): void {
+  //   this.productIMG = this.product().image;
+  //   this.productName = this.product().name;
+  //   this.articleNumber = this.product().articleNumber;
+  //   this.price = this.product().price;
+  // }
 
   // Quantity signal - reactive state
   quantity = signal(0);
