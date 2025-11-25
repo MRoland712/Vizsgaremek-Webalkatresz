@@ -32,8 +32,8 @@ public class AuthenticationService {
         }
 
         /**
-         * Creates an error response with the given JSONArray errors and status
-         * code
+         * Creates an JSONObject error response with the given JSONArray errors
+         * and status code
          *
          * @param errors The JSONArray that contains the errors
          *
@@ -58,6 +58,17 @@ public class AuthenticationService {
             return response;
         }
 
+        /**
+         * Creates an JSONObject OK response with the given JSONObject result
+         * data
+         *
+         * @param result The JSONObject that contains the result data
+         *
+         * @return a JSONObject with the result JSONObject as a "result" a
+         * status of "success" and a "statusCode" of 200 in this format {
+         * "result": [ { #result data# } ], "status": "success", "statusCode":
+         * 200 }
+         */
         public static JSONObject createOKResponse(JSONObject result) {
             JSONObject response = new JSONObject();
             response.put("result", result);
@@ -66,6 +77,14 @@ public class AuthenticationService {
             return response;
         }
 
+        /**
+         * Creates an OK response
+         *
+         * @return a JSONObject with a status of "success" and a "statusCode" of
+         * 200 in this format
+         *
+         * { "status": "success", "statusCode": 200 }
+         */
         public static JSONObject createOKResponse() {
             JSONObject response = new JSONObject();
             response.put("status", "success");

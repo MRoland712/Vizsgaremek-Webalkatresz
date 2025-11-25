@@ -784,6 +784,7 @@ public class Users implements Serializable {
             em.close();
         }
     }
+    
     public static Boolean updateUser(Users updatedUser) {
         EntityManager em = emf.createEntityManager();
 
