@@ -9,6 +9,7 @@ import com.mycompany.vizsgaremek.config.Encrypt;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.regex.Pattern;
+import javax.mail.Address;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
@@ -320,4 +321,239 @@ public class AuthenticationService {
         }
 
     } //User Auth Class closer
+
+    //ADDRESS 
+    public static class addressAuth {
+
+        private static final Pattern EMAIL_PATTERN
+                = Pattern.compile("^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}$");
+
+        // Legalább 8 karakter, tartalmaz nagybetűt, számot és speciális karaktert
+        private static final Pattern PASSWORD_PATTERN
+                = Pattern.compile("^(?=.*[A-Z])(?=.*\\d)(?=.*[^A-Za-z0-9]).{8,}$");
+
+        public boolean isDataMissing(String data) {
+            return (data == null || data.trim().isEmpty());
+        }
+
+        public boolean isDataMissing(Integer data) {
+            return (data == null);
+        }
+
+        public boolean isDataMissing(ArrayList<Address> data) {
+            return (data == null || data.isEmpty());
+        }
+
+        public boolean isDataMissing(Boolean data) {
+            return (data == null);
+        }
+
+        public boolean isDataMissing(Users data) {
+            return (data == null);
+        }
+
+        public boolean isDataMissing(List<Object[]> data) {
+            return (data == null || data.isEmpty());
+        }
+
+        //ToDO: add a try catch for each isValid method 💀💀 vagy megnezni azt hogy object instanceog <x>
+        public boolean isValidId(Integer id) {
+            return id > 0 && id.toString().length() <= 11;
+        }
+        
+        
+        // Nem hiszem hogy szükséges rá kell nézni
+        /*
+
+        public boolean isValidEmail(String email) {
+            return EMAIL_PATTERN.matcher(email).matches();
+        }
+        
+
+        public boolean isValidPassword(String password) {
+            return PASSWORD_PATTERN.matcher(password).matches();
+        }
+        
+        */
+
+        //ToDo: is username in db? 
+
+        public boolean isValidFirstName(String firstName) {
+            return firstName.length() <= 50;
+        }
+
+        public boolean isValidLastName(String lastName) {
+            return lastName.length() <= 50;
+        }
+
+        public boolean isValidCompany(String company) {
+            return company.length() <= 50;
+        }
+
+        public boolean isValidTaxNumber(String taxNumber) {
+            return taxNumber.length() <= 50;
+        }
+        
+        
+        // rá kell nézi erre pontosan 
+        public boolean isValidIsDefault(Boolean isDefault) {
+            try {
+                return isDefault instanceof Boolean;
+            } catch (Exception ex) {
+                ex.printStackTrace();
+                return false;
+            }
+        } 
+
+        public boolean isValidAuthSecret(String authSecret) {
+            try {
+                return authSecret.length() <= 255;
+            } catch (Exception ex) {
+                ex.printStackTrace();
+                return false;
+            }
+        }
+
+        public boolean isValidRegistrationToken(String regToken) {
+            try {
+                return regToken.length() <= 255;
+            } catch (Exception ex) {
+                ex.printStackTrace();
+                return false;
+            }
+        }
+
+        public boolean isAddressDeleted(Boolean isDeleted) {
+            return (isDeleted == true);
+        }
+
+        /**
+         * Checks if the plain password is the same as the Encrypted password in
+         * the DB
+         *
+         * @param password The password that needs to be checked
+         * @param userId Users Id
+         * @return true / false based if the password is the same as the one in
+         * the db
+         * @throws Exception If somehow one of the methods in the return went
+         * wrong
+         */
+        public boolean isPasswordSame(String password, Integer userId) {
+            Users userdata = Users.getUserById(userId);
+            if (userdata == null) {
+                System.err.println("isPasswordSame: Could not find user via id");
+            }
+            try {
+                //debug:
+                /*System.out.println("isPasswordSame:");
+            System.out.println(userdata.getPassword() + " == " + Encrypt.encrypt(password) + " (" + password + ")");*/
+                return userdata.getPassword().equals(Encrypt.encrypt(password));
+            } catch (Exception e) {
+                e.printStackTrace();
+                return false;
+            }
+        }
+
+        /**
+         * Checks if the plain password is the same as the Encrypted password in
+         * the DB
+         *
+         * @param password The password that needs to be checked
+         * @param email User Email
+         * @return true / false based if the password is the same as the one in
+         * the db
+         * @throws Exception and returns false
+         */
+        public boolean isPasswordSame(String password, String email) {
+            Users userdata = Users.getUserByEmail(email);
+            if (userdata == null) {
+                System.err.println("isPasswordSame: Could not find user via email");
+            }
+            try {
+                //debug:
+                System.out.println("isPasswordSame:");
+                System.out.println(userdata.getPassword() + " == " + Encrypt.encrypt(password) + " (" + password + ")");
+                return userdata.getPassword().equals(Encrypt.encrypt(password));
+            } catch (Exception e) {
+                e.printStackTrace();
+                return false;
+            }
+        }
+
+        /**
+         * Checks if the searchCriteria is Integer (id) or String (email) and
+         * runs the coresponding method
+         *
+         * @param password The password that needs to be checked
+         * @param searchCriteria The Object that needs to be checked
+         *
+         * @return true / false based if the password is the same as the one in
+         * the db
+         * @throws IlleagalArgumentExeption with message of "Not acceptable
+         * search criteria: {Object's type that is not supported} "
+         */
+        public boolean isPasswordSame(String password, Object searchCriteria) {
+            if (searchCriteria instanceof Integer) {
+                return isPasswordSame(password, (Integer) searchCriteria);
+            } else if (searchCriteria instanceof String) {
+                return isPasswordSame(password, (String) searchCriteria);
+            } else {
+                throw new IllegalArgumentException("Not acceptable search criteria: " + (searchCriteria != null ? searchCriteria.getClass().getName() : "null"));
+            }
+        }
+
+        /**
+         * Checks if email is existing in DB
+         *
+         * @param email Email that needs checking
+         *
+         * @return true / false based if the email is existing in DB
+         */
+        public boolean isEmailSame(String email) {
+            Users userdata = Users.getUserByEmail(email);
+            //if user is not found, return false
+            if (userdata == null) {
+                return false;
+            }
+            return true;
+        }
+
+        /**
+         * Checks if username is existing in DB
+         *
+         * @param username Username that needs checking
+         *
+         * @return true / false based if the username is existing in DB
+         */
+        public boolean isUsernameSame(String username) {
+            ArrayList<Users> users = Users.getUsers();
+            //if user is not found, return false
+            for (Users user : users) {
+                if (user.getUsername().equals(username)) {
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        /**
+         * Checks if phone is existing in DB
+         *
+         * @param phone phone number that needs checking
+         *
+         * @return true / false based if the phone is existing in DB
+         */
+        public boolean isPhoneSame(String phone) {
+            ArrayList<Users> users = Users.getUsers();
+            //if user is not found, return false
+            for (Users user : users) {
+                if (user.getPhone().equals(phone)) {
+                    return true;
+                }
+            }
+            return false;
+        }
+
+    } //Address Auth Class closer
 }//Auth Service Class closer
+

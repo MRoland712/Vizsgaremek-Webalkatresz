@@ -9,6 +9,8 @@ import java.util.Date;
 import javax.persistence.Basic;
 import javax.persistence.Column;
 import javax.persistence.Entity;
+import javax.persistence.EntityManager;
+import javax.persistence.EntityManagerFactory;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
@@ -16,6 +18,9 @@ import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 import javax.persistence.NamedQueries;
 import javax.persistence.NamedQuery;
+import javax.persistence.ParameterMode;
+import javax.persistence.Persistence;
+import javax.persistence.StoredProcedureQuery;
 import javax.persistence.Table;
 import javax.persistence.Temporal;
 import javax.persistence.TemporalType;
@@ -101,7 +106,9 @@ public class Addresses implements Serializable {
     private Date deletedAt;
     @JoinColumn(name = "user_id", referencedColumnName = "id")
     @ManyToOne(optional = false)
-    private Users userId;
+    private Integer userId;
+    
+    static EntityManagerFactory emf = Persistence.createEntityManagerFactory("com.mycompany_vizsgaremek_war_1.0-SNAPSHOTPU");
 
     public Addresses() {
     }
@@ -117,6 +124,21 @@ public class Addresses implements Serializable {
         this.zipCode = zipCode;
         this.street = street;
     }
+    //createAddress
+
+    public Addresses(Integer userId, String firstName, String lastName, String company, String taxNumber, String country, String city, String zipCode, String street, Boolean isDefault) {
+        this.firstName = firstName;
+        this.lastName = lastName;
+        this.company = company;
+        this.taxNumber = taxNumber;
+        this.country = country;
+        this.city = city;
+        this.zipCode = zipCode;
+        this.street = street;
+        this.isDefault = isDefault;
+        this.userId = userId;
+    }
+    
 
     public Integer getId() {
         return id;
@@ -230,13 +252,14 @@ public class Addresses implements Serializable {
         this.deletedAt = deletedAt;
     }
 
-    public Users getUserId() {
+    public Integer getUserId() {
         return userId;
     }
-
+    
+    /*
     public void setUserId(Users userId) {
         this.userId = userId;
-    }
+    }*/
 
     @Override
     public int hashCode() {
@@ -262,5 +285,43 @@ public class Addresses implements Serializable {
     public String toString() {
         return "com.mycompany.vizsgaremek.model.Addresses[ id=" + id + " ]";
     }
-    
+
+    public static Boolean createAddress(Addresses createdAddress) {
+        EntityManager em = emf.createEntityManager();
+        try {
+            StoredProcedureQuery spq = em.createStoredProcedureQuery("createAddress");
+
+            spq.registerStoredProcedureParameter("p_user_id", Integer.class, ParameterMode.IN);
+            spq.registerStoredProcedureParameter("p_first_name", String.class, ParameterMode.IN);
+            spq.registerStoredProcedureParameter("p_last_name", String.class, ParameterMode.IN);
+            spq.registerStoredProcedureParameter("p_company", String.class, ParameterMode.IN);
+            spq.registerStoredProcedureParameter("p_tax_number", String.class, ParameterMode.IN);
+            spq.registerStoredProcedureParameter("p_country", String.class, ParameterMode.IN);
+            spq.registerStoredProcedureParameter("p_city", String.class, ParameterMode.IN);
+            spq.registerStoredProcedureParameter("p_zip_code", String.class, ParameterMode.IN);
+            spq.registerStoredProcedureParameter("p_street", String.class, ParameterMode.IN);
+            spq.registerStoredProcedureParameter("p_is_default", Integer.class, ParameterMode.IN);
+
+            spq.setParameter("p_user_id", createdAddress.getUserId());
+            spq.setParameter("p_first_name", createdAddress.getFirstName());
+            spq.setParameter("p_last_name", createdAddress.getLastName());
+            spq.setParameter("p_company", createdAddress.getCompany());
+            spq.setParameter("p_tax_number", createdAddress.getTaxNumber());
+            spq.setParameter("p_country", createdAddress.getCountry());
+            spq.setParameter("p_city", createdAddress.getCity());
+            spq.setParameter("p_zip_code", createdAddress.getZipCode());
+            spq.setParameter("p_street", createdAddress.getStreet());
+            spq.setParameter("p_is_default", createdAddress.getIsDefault() == null ? 0 : createdAddress.getIsDefault());
+
+            spq.execute();
+
+            return true;
+
+        } catch (Exception ex) {
+            ex.printStackTrace();
+            return false;
+        } finally {
+            em.close();
+        }
+    }
 }
