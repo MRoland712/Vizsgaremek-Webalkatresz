@@ -22,16 +22,16 @@ import javax.xml.bind.annotation.XmlRootElement;
 
 /**
  *
- * @author neblg
+ * @author ddori
  */
 @Entity
 @Table(name = "part_images")
+@XmlRootElement
 @NamedQueries({
     @NamedQuery(name = "PartImages.findAll", query = "SELECT p FROM PartImages p"),
     @NamedQuery(name = "PartImages.findById", query = "SELECT p FROM PartImages p WHERE p.id = :id"),
     @NamedQuery(name = "PartImages.findByUrl", query = "SELECT p FROM PartImages p WHERE p.url = :url"),
     @NamedQuery(name = "PartImages.findByIsPrimary", query = "SELECT p FROM PartImages p WHERE p.isPrimary = :isPrimary")})
-@XmlRootElement
 public class PartImages implements Serializable {
 
     private static final long serialVersionUID = 1L;

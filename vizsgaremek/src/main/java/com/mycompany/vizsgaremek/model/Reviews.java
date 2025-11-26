@@ -20,13 +20,16 @@ import javax.persistence.NamedQuery;
 import javax.persistence.Table;
 import javax.persistence.Temporal;
 import javax.persistence.TemporalType;
+import javax.validation.constraints.Size;
+import javax.xml.bind.annotation.XmlRootElement;
 
 /**
  *
- * @author neblg
+ * @author ddori
  */
 @Entity
 @Table(name = "reviews")
+@XmlRootElement
 @NamedQueries({
     @NamedQuery(name = "Reviews.findAll", query = "SELECT r FROM Reviews r"),
     @NamedQuery(name = "Reviews.findById", query = "SELECT r FROM Reviews r WHERE r.id = :id"),
@@ -45,6 +48,7 @@ public class Reviews implements Serializable {
     @Column(name = "rating")
     private Integer rating;
     @Lob
+    @Size(max = 65535)
     @Column(name = "comment")
     private String comment;
     @Column(name = "created_at")
@@ -55,9 +59,6 @@ public class Reviews implements Serializable {
     @Column(name = "deleted_at")
     @Temporal(TemporalType.TIMESTAMP)
     private Date deletedAt;
-    @JoinColumn(name = "user_id", referencedColumnName = "id")
-    @ManyToOne(optional = false)
-    private Users userId;
     @JoinColumn(name = "part_id", referencedColumnName = "id")
     @ManyToOne(optional = false)
     private Parts partId;
@@ -115,14 +116,6 @@ public class Reviews implements Serializable {
 
     public void setDeletedAt(Date deletedAt) {
         this.deletedAt = deletedAt;
-    }
-
-    public Users getUserId() {
-        return userId;
-    }
-
-    public void setUserId(Users userId) {
-        this.userId = userId;
     }
 
     public Parts getPartId() {

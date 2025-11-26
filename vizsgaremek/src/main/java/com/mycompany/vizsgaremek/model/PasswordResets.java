@@ -12,8 +12,6 @@ import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
-import javax.persistence.JoinColumn;
-import javax.persistence.ManyToOne;
 import javax.persistence.NamedQueries;
 import javax.persistence.NamedQuery;
 import javax.persistence.Table;
@@ -25,10 +23,11 @@ import javax.xml.bind.annotation.XmlRootElement;
 
 /**
  *
- * @author neblg
+ * @author ddori
  */
 @Entity
 @Table(name = "password_resets")
+@XmlRootElement
 @NamedQueries({
     @NamedQuery(name = "PasswordResets.findAll", query = "SELECT p FROM PasswordResets p"),
     @NamedQuery(name = "PasswordResets.findById", query = "SELECT p FROM PasswordResets p WHERE p.id = :id"),
@@ -36,7 +35,6 @@ import javax.xml.bind.annotation.XmlRootElement;
     @NamedQuery(name = "PasswordResets.findByExpiresAt", query = "SELECT p FROM PasswordResets p WHERE p.expiresAt = :expiresAt"),
     @NamedQuery(name = "PasswordResets.findByUsed", query = "SELECT p FROM PasswordResets p WHERE p.used = :used"),
     @NamedQuery(name = "PasswordResets.findByCreatedAt", query = "SELECT p FROM PasswordResets p WHERE p.createdAt = :createdAt")})
-@XmlRootElement
 public class PasswordResets implements Serializable {
 
     private static final long serialVersionUID = 1L;
@@ -60,9 +58,6 @@ public class PasswordResets implements Serializable {
     @Column(name = "created_at")
     @Temporal(TemporalType.TIMESTAMP)
     private Date createdAt;
-    @JoinColumn(name = "user_id", referencedColumnName = "id")
-    @ManyToOne(optional = false)
-    private Users userId;
 
     public PasswordResets() {
     }
@@ -115,14 +110,6 @@ public class PasswordResets implements Serializable {
 
     public void setCreatedAt(Date createdAt) {
         this.createdAt = createdAt;
-    }
-
-    public Users getUserId() {
-        return userId;
-    }
-
-    public void setUserId(Users userId) {
-        this.userId = userId;
     }
 
     @Override

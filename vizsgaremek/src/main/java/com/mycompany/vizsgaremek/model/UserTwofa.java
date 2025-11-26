@@ -12,8 +12,6 @@ import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
-import javax.persistence.JoinColumn;
-import javax.persistence.ManyToOne;
 import javax.persistence.NamedQueries;
 import javax.persistence.NamedQuery;
 import javax.persistence.Table;
@@ -24,10 +22,11 @@ import javax.xml.bind.annotation.XmlRootElement;
 
 /**
  *
- * @author neblg
+ * @author ddori
  */
 @Entity
 @Table(name = "user_twofa")
+@XmlRootElement
 @NamedQueries({
     @NamedQuery(name = "UserTwofa.findAll", query = "SELECT u FROM UserTwofa u"),
     @NamedQuery(name = "UserTwofa.findById", query = "SELECT u FROM UserTwofa u WHERE u.id = :id"),
@@ -36,7 +35,6 @@ import javax.xml.bind.annotation.XmlRootElement;
     @NamedQuery(name = "UserTwofa.findByRecoveryCodes", query = "SELECT u FROM UserTwofa u WHERE u.recoveryCodes = :recoveryCodes"),
     @NamedQuery(name = "UserTwofa.findByCreatedAt", query = "SELECT u FROM UserTwofa u WHERE u.createdAt = :createdAt"),
     @NamedQuery(name = "UserTwofa.findByUpdatedAt", query = "SELECT u FROM UserTwofa u WHERE u.updatedAt = :updatedAt")})
-@XmlRootElement
 public class UserTwofa implements Serializable {
 
     private static final long serialVersionUID = 1L;
@@ -59,9 +57,6 @@ public class UserTwofa implements Serializable {
     @Column(name = "updated_at")
     @Temporal(TemporalType.TIMESTAMP)
     private Date updatedAt;
-    @JoinColumn(name = "user_id", referencedColumnName = "id")
-    @ManyToOne(optional = false)
-    private Users userId;
 
     public UserTwofa() {
     }
@@ -116,14 +111,6 @@ public class UserTwofa implements Serializable {
 
     public void setUpdatedAt(Date updatedAt) {
         this.updatedAt = updatedAt;
-    }
-
-    public Users getUserId() {
-        return userId;
-    }
-
-    public void setUserId(Users userId) {
-        this.userId = userId;
     }
 
     @Override

@@ -5,27 +5,32 @@
 package com.mycompany.vizsgaremek.model;
 
 import java.io.Serializable;
+import java.util.Collection;
 import java.util.Date;
 import javax.persistence.Basic;
+import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
-import javax.persistence.JoinColumn;
-import javax.persistence.ManyToOne;
 import javax.persistence.NamedQueries;
 import javax.persistence.NamedQuery;
+import javax.persistence.OneToMany;
 import javax.persistence.Table;
 import javax.persistence.Temporal;
 import javax.persistence.TemporalType;
+import javax.validation.constraints.Size;
+import javax.xml.bind.annotation.XmlRootElement;
+import javax.xml.bind.annotation.XmlTransient;
 
 /**
  *
- * @author neblg
+ * @author ddori
  */
 @Entity
 @Table(name = "orders")
+@XmlRootElement
 @NamedQueries({
     @NamedQuery(name = "Orders.findAll", query = "SELECT o FROM Orders o"),
     @NamedQuery(name = "Orders.findById", query = "SELECT o FROM Orders o WHERE o.id = :id"),
@@ -41,6 +46,7 @@ public class Orders implements Serializable {
     @Basic(optional = false)
     @Column(name = "id")
     private Integer id;
+    @Size(max = 20)
     @Column(name = "status")
     private String status;
     @Column(name = "created_at")
@@ -51,9 +57,16 @@ public class Orders implements Serializable {
     @Column(name = "deleted_at")
     @Temporal(TemporalType.TIMESTAMP)
     private Date deletedAt;
-    @JoinColumn(name = "user_id", referencedColumnName = "id")
-    @ManyToOne(optional = false)
-    private Users userId;
+    @OneToMany(cascade = CascadeType.ALL, mappedBy = "orderId")
+    private Collection<Payments> paymentsCollection;
+    @OneToMany(cascade = CascadeType.ALL, mappedBy = "orderId")
+    private Collection<OrderLogs> orderLogsCollection;
+    @OneToMany(cascade = CascadeType.ALL, mappedBy = "orderId")
+    private Collection<Invoices> invoicesCollection;
+    @OneToMany(cascade = CascadeType.ALL, mappedBy = "orderId")
+    private Collection<OrderItems> orderItemsCollection;
+    @OneToMany(cascade = CascadeType.ALL, mappedBy = "orderId")
+    private Collection<ShippingStatus> shippingStatusCollection;
 
     public Orders() {
     }
@@ -102,12 +115,49 @@ public class Orders implements Serializable {
         this.deletedAt = deletedAt;
     }
 
-    public Users getUserId() {
-        return userId;
+    @XmlTransient
+    public Collection<Payments> getPaymentsCollection() {
+        return paymentsCollection;
     }
 
-    public void setUserId(Users userId) {
-        this.userId = userId;
+    public void setPaymentsCollection(Collection<Payments> paymentsCollection) {
+        this.paymentsCollection = paymentsCollection;
+    }
+
+    @XmlTransient
+    public Collection<OrderLogs> getOrderLogsCollection() {
+        return orderLogsCollection;
+    }
+
+    public void setOrderLogsCollection(Collection<OrderLogs> orderLogsCollection) {
+        this.orderLogsCollection = orderLogsCollection;
+    }
+
+    @XmlTransient
+    public Collection<Invoices> getInvoicesCollection() {
+        return invoicesCollection;
+    }
+
+    public void setInvoicesCollection(Collection<Invoices> invoicesCollection) {
+        this.invoicesCollection = invoicesCollection;
+    }
+
+    @XmlTransient
+    public Collection<OrderItems> getOrderItemsCollection() {
+        return orderItemsCollection;
+    }
+
+    public void setOrderItemsCollection(Collection<OrderItems> orderItemsCollection) {
+        this.orderItemsCollection = orderItemsCollection;
+    }
+
+    @XmlTransient
+    public Collection<ShippingStatus> getShippingStatusCollection() {
+        return shippingStatusCollection;
+    }
+
+    public void setShippingStatusCollection(Collection<ShippingStatus> shippingStatusCollection) {
+        this.shippingStatusCollection = shippingStatusCollection;
     }
 
     @Override

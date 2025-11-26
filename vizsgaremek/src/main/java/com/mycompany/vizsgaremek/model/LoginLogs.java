@@ -12,8 +12,6 @@ import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
-import javax.persistence.JoinColumn;
-import javax.persistence.ManyToOne;
 import javax.persistence.NamedQueries;
 import javax.persistence.NamedQuery;
 import javax.persistence.Table;
@@ -24,16 +22,16 @@ import javax.xml.bind.annotation.XmlRootElement;
 
 /**
  *
- * @author neblg
+ * @author ddori
  */
 @Entity
 @Table(name = "login_logs")
+@XmlRootElement
 @NamedQueries({
     @NamedQuery(name = "LoginLogs.findAll", query = "SELECT l FROM LoginLogs l"),
     @NamedQuery(name = "LoginLogs.findById", query = "SELECT l FROM LoginLogs l WHERE l.id = :id"),
     @NamedQuery(name = "LoginLogs.findByUserAgent", query = "SELECT l FROM LoginLogs l WHERE l.userAgent = :userAgent"),
     @NamedQuery(name = "LoginLogs.findByLoggedInAt", query = "SELECT l FROM LoginLogs l WHERE l.loggedInAt = :loggedInAt")})
-@XmlRootElement
 public class LoginLogs implements Serializable {
 
     private static final long serialVersionUID = 1L;
@@ -48,9 +46,6 @@ public class LoginLogs implements Serializable {
     @Column(name = "logged_in_at")
     @Temporal(TemporalType.TIMESTAMP)
     private Date loggedInAt;
-    @JoinColumn(name = "user_id", referencedColumnName = "id")
-    @ManyToOne(optional = false)
-    private Users userId;
 
     public LoginLogs() {
     }
@@ -81,14 +76,6 @@ public class LoginLogs implements Serializable {
 
     public void setLoggedInAt(Date loggedInAt) {
         this.loggedInAt = loggedInAt;
-    }
-
-    public Users getUserId() {
-        return userId;
-    }
-
-    public void setUserId(Users userId) {
-        this.userId = userId;
     }
 
     @Override

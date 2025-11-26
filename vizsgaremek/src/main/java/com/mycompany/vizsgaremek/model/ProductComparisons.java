@@ -16,7 +16,6 @@ import javax.persistence.Id;
 import javax.persistence.JoinColumn;
 import javax.persistence.JoinTable;
 import javax.persistence.ManyToMany;
-import javax.persistence.ManyToOne;
 import javax.persistence.NamedQueries;
 import javax.persistence.NamedQuery;
 import javax.persistence.Table;
@@ -27,15 +26,15 @@ import javax.xml.bind.annotation.XmlTransient;
 
 /**
  *
- * @author neblg
+ * @author ddori
  */
 @Entity
 @Table(name = "product_comparisons")
+@XmlRootElement
 @NamedQueries({
     @NamedQuery(name = "ProductComparisons.findAll", query = "SELECT p FROM ProductComparisons p"),
     @NamedQuery(name = "ProductComparisons.findById", query = "SELECT p FROM ProductComparisons p WHERE p.id = :id"),
     @NamedQuery(name = "ProductComparisons.findByCreatedAt", query = "SELECT p FROM ProductComparisons p WHERE p.createdAt = :createdAt")})
-@XmlRootElement
 public class ProductComparisons implements Serializable {
 
     private static final long serialVersionUID = 1L;
@@ -52,9 +51,6 @@ public class ProductComparisons implements Serializable {
         @JoinColumn(name = "part_id", referencedColumnName = "id")})
     @ManyToMany
     private Collection<Parts> partsCollection;
-    @JoinColumn(name = "user_id", referencedColumnName = "id")
-    @ManyToOne(optional = false)
-    private Users userId;
 
     public ProductComparisons() {
     }
@@ -86,14 +82,6 @@ public class ProductComparisons implements Serializable {
 
     public void setPartsCollection(Collection<Parts> partsCollection) {
         this.partsCollection = partsCollection;
-    }
-
-    public Users getUserId() {
-        return userId;
-    }
-
-    public void setUserId(Users userId) {
-        this.userId = userId;
     }
 
     @Override

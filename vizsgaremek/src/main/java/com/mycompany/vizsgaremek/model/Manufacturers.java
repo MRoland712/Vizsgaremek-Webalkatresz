@@ -20,13 +20,18 @@ import javax.persistence.OneToMany;
 import javax.persistence.Table;
 import javax.persistence.Temporal;
 import javax.persistence.TemporalType;
+import javax.validation.constraints.NotNull;
+import javax.validation.constraints.Size;
+import javax.xml.bind.annotation.XmlRootElement;
+import javax.xml.bind.annotation.XmlTransient;
 
 /**
  *
- * @author neblg
+ * @author ddori
  */
 @Entity
 @Table(name = "manufacturers")
+@XmlRootElement
 @NamedQueries({
     @NamedQuery(name = "Manufacturers.findAll", query = "SELECT m FROM Manufacturers m"),
     @NamedQuery(name = "Manufacturers.findById", query = "SELECT m FROM Manufacturers m WHERE m.id = :id"),
@@ -44,8 +49,11 @@ public class Manufacturers implements Serializable {
     @Column(name = "id")
     private Integer id;
     @Basic(optional = false)
+    @NotNull
+    @Size(min = 1, max = 100)
     @Column(name = "name")
     private String name;
+    @Size(max = 50)
     @Column(name = "country")
     private String country;
     @Column(name = "created_at")
@@ -119,6 +127,7 @@ public class Manufacturers implements Serializable {
         this.deletedAt = deletedAt;
     }
 
+    @XmlTransient
     public Collection<Parts> getPartsCollection() {
         return partsCollection;
     }

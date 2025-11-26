@@ -1,6 +1,5 @@
 # API kulcs file-át ebbe a gitignoreba rakjad 
 .gitignore
 .env
-./Demo/Encrypting-password/Encrypt/target/
-./Demo/java-tools/ToolsTypeShit/target/
-./vizsgaremek/target/
+target/
+*.war

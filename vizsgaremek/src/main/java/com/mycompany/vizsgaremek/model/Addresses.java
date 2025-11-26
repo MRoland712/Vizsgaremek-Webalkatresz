@@ -25,10 +25,11 @@ import javax.xml.bind.annotation.XmlRootElement;
 
 /**
  *
- * @author neblg
+ * @author ddori
  */
 @Entity
 @Table(name = "addresses")
+@XmlRootElement
 @NamedQueries({
     @NamedQuery(name = "Addresses.findAll", query = "SELECT a FROM Addresses a"),
     @NamedQuery(name = "Addresses.findById", query = "SELECT a FROM Addresses a WHERE a.id = :id"),
@@ -45,7 +46,6 @@ import javax.xml.bind.annotation.XmlRootElement;
     @NamedQuery(name = "Addresses.findByUpdatedAt", query = "SELECT a FROM Addresses a WHERE a.updatedAt = :updatedAt"),
     @NamedQuery(name = "Addresses.findByIsDeleted", query = "SELECT a FROM Addresses a WHERE a.isDeleted = :isDeleted"),
     @NamedQuery(name = "Addresses.findByDeletedAt", query = "SELECT a FROM Addresses a WHERE a.deletedAt = :deletedAt")})
-@XmlRootElement
 public class Addresses implements Serializable {
 
     private static final long serialVersionUID = 1L;

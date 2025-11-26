@@ -5,8 +5,10 @@
 package com.mycompany.vizsgaremek.model;
 
 import java.io.Serializable;
+import java.util.Collection;
 import java.util.Date;
 import javax.persistence.Basic;
+import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
@@ -14,16 +16,21 @@ import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.NamedQueries;
 import javax.persistence.NamedQuery;
+import javax.persistence.OneToMany;
 import javax.persistence.Table;
 import javax.persistence.Temporal;
 import javax.persistence.TemporalType;
+import javax.validation.constraints.Size;
+import javax.xml.bind.annotation.XmlRootElement;
+import javax.xml.bind.annotation.XmlTransient;
 
 /**
  *
- * @author neblg
+ * @author ddori
  */
 @Entity
 @Table(name = "warehouses")
+@XmlRootElement
 @NamedQueries({
     @NamedQuery(name = "Warehouses.findAll", query = "SELECT w FROM Warehouses w"),
     @NamedQuery(name = "Warehouses.findById", query = "SELECT w FROM Warehouses w WHERE w.id = :id"),
@@ -40,8 +47,10 @@ public class Warehouses implements Serializable {
     @Basic(optional = false)
     @Column(name = "id")
     private Integer id;
+    @Size(max = 50)
     @Column(name = "name")
     private String name;
+    @Size(max = 255)
     @Column(name = "location")
     private String location;
     @Column(name = "created_at")
@@ -52,6 +61,8 @@ public class Warehouses implements Serializable {
     @Column(name = "deleted_at")
     @Temporal(TemporalType.TIMESTAMP)
     private Date deletedAt;
+    @OneToMany(cascade = CascadeType.ALL, mappedBy = "warehouseId")
+    private Collection<WarehouseStock> warehouseStockCollection;
 
     public Warehouses() {
     }
@@ -106,6 +117,15 @@ public class Warehouses implements Serializable {
 
     public void setDeletedAt(Date deletedAt) {
         this.deletedAt = deletedAt;
+    }
+
+    @XmlTransient
+    public Collection<WarehouseStock> getWarehouseStockCollection() {
+        return warehouseStockCollection;
+    }
+
+    public void setWarehouseStockCollection(Collection<WarehouseStock> warehouseStockCollection) {
+        this.warehouseStockCollection = warehouseStockCollection;
     }
 
     @Override
