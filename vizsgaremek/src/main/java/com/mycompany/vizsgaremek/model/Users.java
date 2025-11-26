@@ -17,6 +17,7 @@ import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
+import javax.persistence.EntityTransaction;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
@@ -31,14 +32,15 @@ import javax.persistence.Temporal;
 import javax.persistence.TemporalType;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
+import javax.xml.bind.annotation.XmlTransient;
 
 /**
  *
  * @author ddori
- * @co-author neblg
  */
 @Entity
 @Table(name = "users")
+//@XmlRootElement
 @NamedQueries({
     @NamedQuery(name = "Users.findAll", query = "SELECT u FROM Users u"),
     @NamedQuery(name = "Users.findById", query = "SELECT u FROM Users u WHERE u.id = :id"),
@@ -64,7 +66,6 @@ import javax.validation.constraints.Size;
     @NamedQuery(name = "Users.findByAuthSecret", query = "SELECT u FROM Users u WHERE u.authSecret = :authSecret"),
     @NamedQuery(name = "Users.findByGuid", query = "SELECT u FROM Users u WHERE u.guid = :guid"),
     @NamedQuery(name = "Users.findByRegistrationToken", query = "SELECT u FROM Users u WHERE u.registrationToken = :registrationToken")})
-
 public class Users implements Serializable {
 
     private static final long serialVersionUID = 1L;
@@ -147,26 +148,6 @@ public class Users implements Serializable {
     private String registrationToken;
     @OneToMany(cascade = CascadeType.ALL, mappedBy = "userId")
     private Collection<Addresses> addressesCollection;
-    @OneToMany(cascade = CascadeType.ALL, mappedBy = "userId")
-    private Collection<EmailVerifications> emailVerificationsCollection;
-    @OneToMany(cascade = CascadeType.ALL, mappedBy = "userId")
-    private Collection<LoginLogs> loginLogsCollection;
-    @OneToMany(cascade = CascadeType.ALL, mappedBy = "userId")
-    private Collection<Reviews> reviewsCollection;
-    @OneToMany(cascade = CascadeType.ALL, mappedBy = "userId")
-    private Collection<ProductComparisons> productComparisonsCollection;
-    @OneToMany(cascade = CascadeType.ALL, mappedBy = "userId")
-    private Collection<UserLogs> userLogsCollection;
-    @OneToMany(cascade = CascadeType.ALL, mappedBy = "userId")
-    private Collection<Sessions> sessionsCollection;
-    @OneToMany(cascade = CascadeType.ALL, mappedBy = "userId")
-    private Collection<CartItems> cartItemsCollection;
-    @OneToMany(cascade = CascadeType.ALL, mappedBy = "userId")
-    private Collection<PasswordResets> passwordResetsCollection;
-    @OneToMany(cascade = CascadeType.ALL, mappedBy = "userId")
-    private Collection<UserTwofa> userTwofaCollection;
-    @OneToMany(cascade = CascadeType.ALL, mappedBy = "userId")
-    private Collection<Orders> ordersCollection;
 
     static EntityManagerFactory emf = Persistence.createEntityManagerFactory("com.mycompany_vizsgaremek_war_1.0-SNAPSHOTPU");
     public static SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
@@ -174,19 +155,12 @@ public class Users implements Serializable {
 
     public Users() {
     }
-
-    //softDeleteUser
-    public Users(Boolean isDeleted) {
-        this.isDeleted = isDeleted;
-    }
     
     //loginUser
     public Users(String email, String password) {
         this.email = email;
         this.password = password;
     }
-    
-    
 
     //UpdateUser
     public Users(Integer id, String email, String username, String firstName, String lastName, String phone, Boolean isActive, String role, String password, String authSecret, String registrationToken) {
@@ -464,92 +438,13 @@ public class Users implements Serializable {
         this.registrationToken = registrationToken;
     }
 
+    @XmlTransient
     public Collection<Addresses> getAddressesCollection() {
         return addressesCollection;
     }
 
     public void setAddressesCollection(Collection<Addresses> addressesCollection) {
         this.addressesCollection = addressesCollection;
-    }
-
-    public Collection<EmailVerifications> getEmailVerificationsCollection() {
-        return emailVerificationsCollection;
-    }
-
-    public void setEmailVerificationsCollection(Collection<EmailVerifications> emailVerificationsCollection) {
-        this.emailVerificationsCollection = emailVerificationsCollection;
-    }
-
-    public Collection<LoginLogs> getLoginLogsCollection() {
-        return loginLogsCollection;
-    }
-
-    public void setLoginLogsCollection(Collection<LoginLogs> loginLogsCollection) {
-        this.loginLogsCollection = loginLogsCollection;
-    }
-
-    public Collection<Reviews> getReviewsCollection() {
-        return reviewsCollection;
-    }
-
-    public void setReviewsCollection(Collection<Reviews> reviewsCollection) {
-        this.reviewsCollection = reviewsCollection;
-    }
-
-    public Collection<ProductComparisons> getProductComparisonsCollection() {
-        return productComparisonsCollection;
-    }
-
-    public void setProductComparisonsCollection(Collection<ProductComparisons> productComparisonsCollection) {
-        this.productComparisonsCollection = productComparisonsCollection;
-    }
-
-    public Collection<UserLogs> getUserLogsCollection() {
-        return userLogsCollection;
-    }
-
-    public void setUserLogsCollection(Collection<UserLogs> userLogsCollection) {
-        this.userLogsCollection = userLogsCollection;
-    }
-
-    public Collection<Sessions> getSessionsCollection() {
-        return sessionsCollection;
-    }
-
-    public void setSessionsCollection(Collection<Sessions> sessionsCollection) {
-        this.sessionsCollection = sessionsCollection;
-    }
-
-    public Collection<CartItems> getCartItemsCollection() {
-        return cartItemsCollection;
-    }
-
-    public void setCartItemsCollection(Collection<CartItems> cartItemsCollection) {
-        this.cartItemsCollection = cartItemsCollection;
-    }
-
-    public Collection<PasswordResets> getPasswordResetsCollection() {
-        return passwordResetsCollection;
-    }
-
-    public void setPasswordResetsCollection(Collection<PasswordResets> passwordResetsCollection) {
-        this.passwordResetsCollection = passwordResetsCollection;
-    }
-
-    public Collection<UserTwofa> getUserTwofaCollection() {
-        return userTwofaCollection;
-    }
-
-    public void setUserTwofaCollection(Collection<UserTwofa> userTwofaCollection) {
-        this.userTwofaCollection = userTwofaCollection;
-    }
-
-    public Collection<Orders> getOrdersCollection() {
-        return ordersCollection;
-    }
-
-    public void setOrdersCollection(Collection<Orders> ordersCollection) {
-        this.ordersCollection = ordersCollection;
     }
 
     @Override
@@ -610,6 +505,7 @@ public class Users implements Serializable {
             ex.printStackTrace();
             return false;
         } finally {
+            em.clear();
             em.close();
         }
     }
@@ -654,6 +550,7 @@ public class Users implements Serializable {
             ex.printStackTrace();
             return null;
         } finally {
+            em.clear();
             em.close();
         }
     }
@@ -669,11 +566,11 @@ public class Users implements Serializable {
             spq.execute(); // vége zárásként
 
             List<Object[]> resultList = spq.getResultList();
-            
-            if(userAuth.isDataMissing(resultList)) {
+
+            if (userAuth.isDataMissing(resultList)) {
                 return null;
             }
-            
+
             Users toReturn = new Users();
 
             for (Object[] record : resultList) {
@@ -706,6 +603,7 @@ public class Users implements Serializable {
             ex.printStackTrace();
             return null;
         } finally {
+            em.clear();
             em.close();
         }
     }
@@ -721,13 +619,13 @@ public class Users implements Serializable {
             spq.execute();
 
             List<Object[]> resultList = spq.getResultList();
-            
-            if(userAuth.isDataMissing(resultList)) {
+
+            if (userAuth.isDataMissing(resultList)) {
                 return null;
             }
-            
+
             Users toReturn = new Users();
-            
+
             for (Object[] record : resultList) {
                 Users u = new Users(
                         Integer.valueOf(record[0].toString()),// id
@@ -760,31 +658,33 @@ public class Users implements Serializable {
             em.close();
         }
     }
+
     public static Boolean softDeleteUser(Integer id) {
         EntityManager em = emf.createEntityManager();
-        
+
         try {
             em.getTransaction().begin();
-            
+
             StoredProcedureQuery spq = em.createNamedStoredProcedureQuery("softDeleteUser");
             spq.registerStoredProcedureParameter("p_user_id", Integer.class, ParameterMode.IN);
             spq.setParameter("p_user_id", id);
-            
+
             spq.execute();
-            
+
             em.getTransaction().commit();
-            
+
             return true;
-        } catch (Exception e){
+        } catch (Exception e) {
             if (em.getTransaction().isActive()) {
                 em.getTransaction().rollback(); // ha hiba van, rollback
             }
             return false;
         } finally {
+            em.clear();
             em.close();
         }
     }
-    
+
     public static Boolean updateUser(Users updatedUser) {
         EntityManager em = emf.createEntityManager();
 
@@ -829,35 +729,37 @@ public class Users implements Serializable {
             ex.printStackTrace();
             return false;
         } finally {
+            em.clear();
             em.close();
         }
     }
-    
+
     public static Boolean loginUser(Users userData) {
         EntityManager em = emf.createEntityManager();
-        
+        EntityTransaction tr = em.getTransaction();
         try {
-            em.getTransaction().begin();
-            
+            tr.begin();
+
             StoredProcedureQuery spq = em.createStoredProcedureQuery("user_login");
-            
+
             spq.registerStoredProcedureParameter("p_email", String.class, ParameterMode.IN);
-            
+
             spq.setParameter("P_email", userData.getEmail());
-            
+
             spq.execute();
-            
-            em.getTransaction().commit();
-            
+
+            tr.commit();
+
             return true;
         } catch (Exception ex) {
-            if (em.getTransaction().isActive()) {
-                em.getTransaction().rollback();
+            if (tr.isActive()) {
+                tr.rollback();
             }
             ex.printStackTrace();
             return false;
         } finally {
+            em.clear();
             em.close();
         }
     }
-} //CLASS CLOSER, DONT DELETE
+}
