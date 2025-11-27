@@ -4,7 +4,10 @@
  */
 package com.mycompany.vizsgaremek.service;
 
+import com.mycompany.vizsgaremek.config.JwtUtil;
 import com.mycompany.vizsgaremek.model.Addresses;
+import com.mycompany.vizsgaremek.service.AuthenticationService.addressAuth;
+import com.mycompany.vizsgaremek.service.AuthenticationService.errorAuth;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
@@ -14,6 +17,8 @@ import org.json.JSONObject;
  */
 public class AddressService {
 
+    private final addressAuth addressAuth = new addressAuth();
+
     /**
      * commonly used error codes 400 - Bad request (validation error / client
      * sends wrong data) 401 - Unauthorised (Authentication error ex: Wrong
@@ -22,131 +27,42 @@ public class AddressService {
      * DB) 500 - Internal Server Error (Missing required data in DB ex:
      * isDeleted == null)
      */
+    
     //ToDo: checkolni hogy kell-e break a kód közben (úgy mint a updateUser-ben error check)
-    /*public JSONObject createAddress(Addresses createAddress) {
+    
+    public JSONObject createAddress(Addresses createAddress) {
         JSONObject toReturn = new JSONObject();
         JSONArray errors = new JSONArray();
 
         //IF REQUIRED DATA IS MISSING
-        //if email is missing
-        
-        if (userAuth.isDataMissing(createdUser.getEmail())) {
-            errors.put("MissingEmail");
-        }
-
-        //if Username is missing
-        if (userAuth.isDataMissing(createdUser.getUsername())) {
-            errors.put("MissingUsername");
-        }
-
-        //if Password is missing
-        if (userAuth.isDataMissing(createdUser.getPassword())) {
-            errors.put("MissingPassword");
-        }
-
         //if firstName is missing
-        if (userAuth.isDataMissing(createdUser.getFirstName())) {
+        if (addressAuth.isDataMissing(createAddress.getFirstName())) {
             errors.put("MissingFirstName");
         }
 
         //if lastName is missing
-        if (userAuth.isDataMissing(createdUser.getLastName())) {
+        if (addressAuth.isDataMissing(createAddress.getLastName())) {
             errors.put("MissingLastName");
         }
 
-        //if phone is missing
-        if (userAuth.isDataMissing(createdUser.getPhone())) {
-            errors.put("MissingPhone");
-        }
-
         //IF DATAS ARE INVALID
-        //if email is invalid
-        if (!userAuth.isDataMissing(createdUser.getEmail()) && !userAuth.isValidEmail(createdUser.getEmail())) {
-            errors.put("InvalidEmail");
-        }
-
-        //if Username is invalid
-        if (!userAuth.isDataMissing(createdUser.getUsername()) && !userAuth.isValidUsername(createdUser.getUsername())) {
-            errors.put("InvalidUsername");
-        }
-
-        //if Password is invalid
-        if (!userAuth.isDataMissing(createdUser.getPassword()) && !userAuth.isValidPassword(createdUser.getPassword())) {
-            errors.put("InvalidPassword");
-        }
-
         //if firstName is invalid
-        if (!userAuth.isDataMissing(createdUser.getFirstName()) && !userAuth.isValidFirstName(createdUser.getFirstName())) {
+        if (!addressAuth.isDataMissing(createAddress.getFirstName()) && !addressAuth.isValidFirstName(createAddress.getFirstName())) {
             errors.put("InvalidFirstName");
         }
 
         //if lastName is invalid
-        if (!userAuth.isDataMissing(createdUser.getLastName()) && !userAuth.isValidLastName(createdUser.getLastName())) {
+        if (!addressAuth.isDataMissing(createAddress.getLastName()) && !addressAuth.isValidLastName(createAddress.getLastName())) {
             errors.put("InvalidLastName");
-        }
-
-        //if phone is invalid
-        if (!userAuth.isDataMissing(createdUser.getPhone()) && !userAuth.isValidPhone(createdUser.getPhone())) {
-            errors.put("InvalidPhone");
         }
 
         //error check if datas given are missing or invalid
         if (errorAuth.hasErrors(errors)) {
             return errorAuth.createErrorResponse(errors, 400);
         }
-
-        //if the email is existing in DB
-        if (userAuth.isEmailSame(createdUser.getEmail())) {
-            errors.put("EmailIsSameAsDB");
-        }
-
-        //if the username is existing in DB
-        if (userAuth.isUsernameSame(createdUser.getUsername())) {
-            errors.put("UsernameIsSameAsDB");
-        }
-
-        //if the phone number is existing in DB
-        if (userAuth.isPhoneSame(createdUser.getPhone())) {
-            errors.put("PhoneIsSameAsDB");
-        }
-
-        //error check if email is existing in db
-        if (errorAuth.hasErrors(errors)) {
-            return errorAuth.createErrorResponse(errors, 409);
-        }
-
-        try {
-            // set Password to Encrypted version of entered password
-            String encryptedPassword = Encrypt.encrypt(createdUser.getPassword());
-            createdUser.setPassword(encryptedPassword);
-
-            //Create OTP
-            Random random = new Random();
-            createdUser.setAuthSecret(
-                    Integer.toString(random.nextInt(900000) + 100000)
-            );
-
-            //set role to null for default creation of user
-            createdUser.setRole(null);
-
-            String token = UUID.randomUUID().toString();
-            createdUser.setRegistrationToken(token);
-
-            Boolean modelResult = Users.createUser(createdUser);
-
-            if (!modelResult) {
-                errors.put("ModelError");
-            }
-
-        } catch (Exception e) {
-            e.printStackTrace();
-            errors.put("InternalServerError");
-            return errorAuth.createErrorResponse(errors, 500);
-        }
-
-        toReturn.put("JWTToken", JwtUtil.generateToken(createdUser.getId(), createdUser.getEmail(), createdUser.getRole(), createdUser.getUsername()));
-        toReturn.put("message", "User Created Succesfully");
+        toReturn.put("message", "Address Created Succesfully");
         return errorAuth.createOKResponse(toReturn);
-    }*/
+    } // createAddress Closer
+} // Class Closer
 
-}
+
