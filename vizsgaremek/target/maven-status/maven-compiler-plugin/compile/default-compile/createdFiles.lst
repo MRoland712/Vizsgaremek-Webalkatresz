@@ -24,6 +24,7 @@ com\mycompany\vizsgaremek\model\PartImages.class
 com\mycompany\vizsgaremek\model\PasswordResets.class
 com\mycompany\vizsgaremek\model\StockLogs.class
 com\mycompany\vizsgaremek\model\Invoices.class
+com\mycompany\vizsgaremek\service\AuthenticationService$addressAuth.class
 com\mycompany\vizsgaremek\controller\ApplicationConfig.class
 com\mycompany\vizsgaremek\model\ProductComparisons.class
 com\mycompany\vizsgaremek\config\TFA.class
@@ -33,6 +34,7 @@ com\mycompany\vizsgaremek\model\PartCompatibility.class
 com\mycompany\vizsgaremek\model\OrderLogs.class
 com\mycompany\vizsgaremek\controller\UsersController.class
 com\mycompany\vizsgaremek\model\Orders.class
+com\mycompany\vizsgaremek\controller\AddressesController.class
 com\mycompany\vizsgaremek\config\SendEmailWithOTP.class
 com\mycompany\vizsgaremek\model\Parts.class
 com\mycompany\vizsgaremek\config\SendEmailWithOTP$1.class
@@ -41,4 +43,5 @@ com\mycompany\vizsgaremek\model\VehicleBrands.class
 com\mycompany\vizsgaremek\model\Addresses.class
 com\mycompany\vizsgaremek\config\KvFetcher.class
 com\mycompany\vizsgaremek\model\ShippingStatus.class
+com\mycompany\vizsgaremek\service\AddressService.class
 com\mycompany\vizsgaremek\model\MotorModels.class

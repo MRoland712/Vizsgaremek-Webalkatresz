@@ -24,6 +24,7 @@ public class ApplicationConfig extends Application {
     
 
     private void addRestResourceClasses(Set<Class<?>> resources) {
+        resources.add(com.mycompany.vizsgaremek.controller.AddressesController.class);
         resources.add(com.mycompany.vizsgaremek.controller.UserLogsController.class);
         resources.add(com.mycompany.vizsgaremek.controller.UsersController.class);
     }

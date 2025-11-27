@@ -9,6 +9,7 @@ import com.mycompany.vizsgaremek.config.Encrypt;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.regex.Pattern;
+import javax.mail.Address;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
@@ -162,12 +163,7 @@ public class AuthenticationService {
         }
 
         public boolean isValidIsActive(Boolean isActive) {
-            try {
-                return isActive instanceof Boolean;
-            } catch (Exception ex) {
-                ex.printStackTrace();
-                return false;
-            }
+            return isActive instanceof Boolean;
         }
 
         public boolean isValidAuthSecret(String authSecret) {
@@ -320,4 +316,65 @@ public class AuthenticationService {
         }
 
     } //User Auth Class closer
+
+    //ADDRESS 
+    public static class addressAuth {
+
+        public boolean isDataMissing(String data) {
+            return (data == null || data.trim().isEmpty());
+        }
+
+        public boolean isDataMissing(Integer data) {
+            return (data == null);
+        }
+
+        public boolean isDataMissing(ArrayList<Address> data) {
+            return (data == null || data.isEmpty());
+        }
+
+        public boolean isDataMissing(Boolean data) {
+            return (data == null);
+        }
+
+        public boolean isDataMissing(Address data) {
+            return (data == null);
+        }
+
+        public boolean isDataMissing(List<Object[]> data) {
+            return (data == null || data.isEmpty());
+        }
+
+        //ToDO: add a try catch for each isValid method 💀💀 vagy megnezni azt hogy object instanceog <x>
+        public boolean isValidId(Integer id) {
+            return id > 0 && id.toString().length() <= 11;
+        }
+        //ToDo: is username in db? 
+
+        public boolean isValidFirstName(String firstName) {
+            return firstName.length() <= 50;
+        }
+
+        public boolean isValidLastName(String lastName) {
+            return lastName.length() <= 50;
+        }
+
+        public boolean isValidCompany(String company) {
+            return company.length() <= 50;
+        }
+
+        public boolean isValidTaxNumber(String taxNumber) {
+            return taxNumber.length() <= 50;
+        }
+
+        // rá kell nézi erre pontosan 
+        public boolean isValidIsDefault(Boolean isDefault) {
+            return isDefault instanceof Boolean;
+        }
+
+        public boolean isAddressDeleted(Boolean isDeleted) {
+            return (isDeleted == true);
+        }
+
+    } //Address Auth Class closer
 }//Auth Service Class closer
+
