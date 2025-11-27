@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Gép: localhost:3306
--- Létrehozás ideje: 2025. Nov 24. 10:00
+-- Létrehozás ideje: 2025. Nov 27. 11:11
 -- Kiszolgáló verziója: 5.7.24
 -- PHP verzió: 8.3.1
 
@@ -196,6 +196,22 @@ CREATE DEFINER=`root`@`localhost` PROCEDURE `createUser` (IN `p_email` VARCHAR(2
     SELECT LAST_INSERT_ID() AS new_user_id;
 
     COMMIT;
+END$$
+
+DROP PROCEDURE IF EXISTS `createUserLogs`$$
+CREATE DEFINER=`root`@`localhost` PROCEDURE `createUserLogs` (IN `p_user_id` INT, IN `p_action` VARCHAR(255), IN `p_details` TEXT)   BEGIN
+    INSERT INTO user_logs (
+        user_id,
+        action,
+        details,
+        created_at
+    )
+    VALUES (
+        p_user_id,
+        p_action,
+        p_details,
+        NOW()
+    );
 END$$
 
 DROP PROCEDURE IF EXISTS `getAddressById`$$
@@ -653,6 +669,17 @@ CREATE DEFINER=`root`@`localhost` PROCEDURE `updateUser` (IN `p_user_id` INT, IN
         auth_secret = p_auth_secret
     WHERE id = p_user_id OR email = p_email;
   COMMIT;
+END$$
+
+DROP PROCEDURE IF EXISTS `updateUserLogs`$$
+CREATE DEFINER=`root`@`localhost` PROCEDURE `updateUserLogs` (IN `p_user_id` INT, IN `p_action` VARCHAR(255), IN `p_details` TEXT)   BEGIN
+    UPDATE user_logs
+    SET
+        action = p_action,
+        details = p_details,
+        created_at = NOW()
+    WHERE user_id = p_user_id
+    ORDER BY created_at DESC;
 END$$
 
 DROP PROCEDURE IF EXISTS `user_login`$$
