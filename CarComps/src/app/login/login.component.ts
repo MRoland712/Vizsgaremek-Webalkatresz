@@ -1,6 +1,13 @@
 import { Component, DestroyRef, inject, OnInit } from '@angular/core';
-import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
+import {
+  FormBuilder,
+  FormControl,
+  FormGroup,
+  ReactiveFormsModule,
+  Validators,
+} from '@angular/forms';
 import { debounceTime } from 'rxjs';
+import { LoginService } from './login.service';
 
 let initialEmailValue = '';
 let initialPasswordValue = '';
@@ -20,17 +27,44 @@ if (savedForm) {
 export class LoginComponent implements OnInit {
   private destroyRef = inject(DestroyRef);
 
-  loginForm = new FormGroup({
-    email: new FormControl(initialEmailValue, {
-      validators: [Validators.email, Validators.required],
-    }),
-    password: new FormControl(initialPasswordValue, {
-      validators: [Validators.required],
-    }),
+  // loginForm = new FormGroup({
+  //   email: new FormControl(initialEmailValue, {
+  //     validators: [Validators.email, Validators.required],
+  //   }),
+  //   password: new FormControl(initialPasswordValue, {
+  //     validators: [Validators.required],
+  //   }),
+  // });
+
+  fb = inject(FormBuilder);
+  loginService = inject(LoginService);
+
+  loginForm = this.fb.nonNullable.group({
+    email: [initialEmailValue, [Validators.required, Validators.email]],
+    password: [initialPasswordValue, Validators.required],
   });
+
   onLoginSubmit() {
-    const enteredEmail = this.loginForm.value.email;
-    const enteredPassword = this.loginForm.value.password;
+    const finalLoginData = {
+      email: this.loginForm.value.email!,
+      password: this.loginForm.value.password!,
+    };
+    // spread operator másolatot csinál az eredeti objectről
+
+    // const secondObject = {
+    //   ...finalLoginData,
+    //   email: 'asdfg',
+    // };
+
+    console.log(finalLoginData);
+    // console.log(secondObject);
+
+    this.loginService.login(finalLoginData).subscribe({
+      next: (res) => {
+        console.log(res);
+        localStorage.setItem('jwt', res.result.JWTToken!);
+      },
+    });
   }
   ngOnInit() {
     // const savedForm = window.localStorage.getItem('saved-login-form');

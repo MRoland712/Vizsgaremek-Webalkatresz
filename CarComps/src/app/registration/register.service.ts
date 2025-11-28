@@ -1,3 +1,5 @@
+import { HttpClient } from '@angular/common/http';
+import { inject, Injectable } from '@angular/core';
 import { AbstractControl, ValidationErrors } from '@angular/forms';
 import { of } from 'rxjs';
 
@@ -83,4 +85,10 @@ export function passwordMatchValidator(control: AbstractControl): ValidationErro
   }
 
   return password.value === rePassword.value ? null : { passwordMismatch: true };
+}
+@Injectable({
+  providedIn: 'root',
+})
+export class registerService {
+  private httpClient = inject(HttpClient);
 }
