@@ -66,9 +66,12 @@ public class AddressesController {
     public Response createAddress(String body) {
 
         JSONObject bodyObject = new JSONObject(body);
+        
+        Users user = new Users();
+        user.setId(bodyObject.has("userId") ? bodyObject.getInt("userId"): null);
 
         Addresses createdAddress = new Addresses(
-                bodyObject.has("userId") ? bodyObject.getInt("userId") : null,
+                user,
                 bodyObject.has("firstName") ? bodyObject.getString("firstName") : null,
                 bodyObject.has("lastName") ? bodyObject.getString("lastName") : null,
                 bodyObject.has("company") ? bodyObject.getString("company") : null,
@@ -77,7 +80,7 @@ public class AddressesController {
                 bodyObject.has("city") ? bodyObject.getString("city") : null,
                 bodyObject.has("zipCode") ? bodyObject.getString("zipCode") : null,
                 bodyObject.has("street") ? bodyObject.getString("street") : null,
-                bodyObject.has("isDefault") ? Boolean.valueOf(bodyObject.getString("isDefault")) : false
+                bodyObject.has("isDefault") ? bodyObject.getBoolean("isDefault"): false
         );
 
         JSONObject toReturn = layer.createAddress(createdAddress);

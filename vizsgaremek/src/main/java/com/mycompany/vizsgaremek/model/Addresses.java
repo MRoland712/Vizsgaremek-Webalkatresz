@@ -106,7 +106,7 @@ public class Addresses implements Serializable {
     private Date deletedAt;
     @JoinColumn(name = "user_id", referencedColumnName = "id")
     @ManyToOne(optional = false)
-    private Integer userId;
+    private Users userId;
     
     static EntityManagerFactory emf = Persistence.createEntityManagerFactory("com.mycompany_vizsgaremek_war_1.0-SNAPSHOTPU");
 
@@ -126,7 +126,8 @@ public class Addresses implements Serializable {
     }
     //createAddress
 
-    public Addresses(Integer userId, String firstName, String lastName, String company, String taxNumber, String country, String city, String zipCode, String street, Boolean isDefault) {
+    public Addresses(Users userId, String firstName, String lastName, String company, String taxNumber, String country, String city, String zipCode, String street, Boolean isDefault) {
+        this.userId = userId;
         this.firstName = firstName;
         this.lastName = lastName;
         this.company = company;
@@ -136,8 +137,9 @@ public class Addresses implements Serializable {
         this.zipCode = zipCode;
         this.street = street;
         this.isDefault = isDefault;
-        this.userId = userId;
     }
+
+    
     
 
     public Integer getId() {
@@ -252,7 +254,7 @@ public class Addresses implements Serializable {
         this.deletedAt = deletedAt;
     }
 
-    public Integer getUserId() {
+    public Users getUserId() {
         return userId;
     }
     
@@ -302,7 +304,7 @@ public class Addresses implements Serializable {
             spq.registerStoredProcedureParameter("p_street", String.class, ParameterMode.IN);
             spq.registerStoredProcedureParameter("p_is_default", Integer.class, ParameterMode.IN);
 
-            spq.setParameter("p_user_id", createdAddress.getUserId());
+            spq.setParameter("p_user_id", createdAddress.getUserId().getId());
             spq.setParameter("p_first_name", createdAddress.getFirstName());
             spq.setParameter("p_last_name", createdAddress.getLastName());
             spq.setParameter("p_company", createdAddress.getCompany());
@@ -311,7 +313,7 @@ public class Addresses implements Serializable {
             spq.setParameter("p_city", createdAddress.getCity());
             spq.setParameter("p_zip_code", createdAddress.getZipCode());
             spq.setParameter("p_street", createdAddress.getStreet());
-            spq.setParameter("p_is_default", createdAddress.getIsDefault() == null ? 0 : createdAddress.getIsDefault());
+            spq.setParameter("p_is_default", Boolean.TRUE.equals(createdAddress.getIsDefault())? 1:0);
 
             spq.execute();
 

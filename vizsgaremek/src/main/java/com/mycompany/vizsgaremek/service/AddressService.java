@@ -27,42 +27,46 @@ public class AddressService {
      * DB) 500 - Internal Server Error (Missing required data in DB ex:
      * isDeleted == null)
      */
-    
     //ToDo: checkolni hogy kell-e break a kód közben (úgy mint a updateUser-ben error check)
-    
+// AddressService.java
     public JSONObject createAddress(Addresses createAddress) {
         JSONObject toReturn = new JSONObject();
         JSONArray errors = new JSONArray();
 
-        //IF REQUIRED DATA IS MISSING
-        //if firstName is missing
+        // VALIDÁCIÓK...
         if (addressAuth.isDataMissing(createAddress.getFirstName())) {
             errors.put("MissingFirstName");
         }
 
-        //if lastName is missing
         if (addressAuth.isDataMissing(createAddress.getLastName())) {
             errors.put("MissingLastName");
         }
 
-        //IF DATAS ARE INVALID
-        //if firstName is invalid
         if (!addressAuth.isDataMissing(createAddress.getFirstName()) && !addressAuth.isValidFirstName(createAddress.getFirstName())) {
             errors.put("InvalidFirstName");
         }
 
-        //if lastName is invalid
         if (!addressAuth.isDataMissing(createAddress.getLastName()) && !addressAuth.isValidLastName(createAddress.getLastName())) {
             errors.put("InvalidLastName");
         }
 
-        //error check if datas given are missing or invalid
         if (errorAuth.hasErrors(errors)) {
             return errorAuth.createErrorResponse(errors, 400);
         }
-        toReturn.put("message", "Address Created Succesfully");
-        return errorAuth.createOKResponse(toReturn);
+
+        // MODEL HÍVÁS
+        if (Addresses.createAddress(createAddress)) {  // ← Static metódus hívás!
+            toReturn.put("message", "Address Created Successfully");
+            toReturn.put("statusCode", 201);
+            toReturn.put("success", true);
+            return toReturn;
+        } else {
+            JSONObject error = new JSONObject();
+            error.put("message", "Address Creation Failed");
+            error.put("statusCode", 500);
+            error.put("success", false);
+            return error;
+        }
     } // createAddress Closer
 } // Class Closer
-
 
