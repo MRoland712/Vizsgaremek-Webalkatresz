@@ -1,7 +1,8 @@
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { inject, Injectable } from '@angular/core';
 import { AbstractControl, ValidationErrors } from '@angular/forms';
-import { of } from 'rxjs';
+import { Observable, of } from 'rxjs';
+import { RegisterBody, RegisterResponse } from './register.model';
 
 //Speciális karakterek validator
 export function mustContainSpecialCharacters(control: AbstractControl) {
@@ -89,6 +90,17 @@ export function passwordMatchValidator(control: AbstractControl): ValidationErro
 @Injectable({
   providedIn: 'root',
 })
-export class registerService {
+export class RegisterService {
+  private readonly baseUrl = 'http://api.carcomps.hu/vizsgaremek-1.0-SNAPSHOT/webresources/';
+  private readonly registerUrl = this.baseUrl + 'user/createUser';
   private httpClient = inject(HttpClient);
+  headers = {
+    headers: new HttpHeaders({
+      'Content-Type': 'application/json',
+      'Access-Control-Allow-Origin': 'http://localhost:4200',
+    }),
+  };
+  register(body: RegisterBody): Observable<RegisterResponse> {
+    return this.httpClient.post<RegisterResponse>(this.registerUrl, body, this.headers);
+  }
 }

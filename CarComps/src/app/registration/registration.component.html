@@ -3,6 +3,7 @@
     <div class="login-container">
       <div class="form-header">
         <img src="assets/CarComps_Logo_C_white.png" alt="CarComps Logo" class="logo" />
+        <!--új wallpaper-->
         <h2>Regisztráció</h2>
       </div>
 
@@ -19,6 +20,34 @@
         <p class="error-message">
           Hibás felhasználónév! (3-20 karakter, csak betűk, számok, - és _ használható)
         </p>
+        }
+      </div>
+
+      <div class="firstname-control">
+        <input
+          type="text"
+          class="form__field"
+          placeholder="Vezetéknév"
+          id="firstname"
+          formControlName="firstname"
+        />
+        <label for="firstname" class="form__label">Vezetéknév</label>
+        @if (firstnameIsInvalid) {
+        <p class="error-message">Adja meg a vezetéknevét!</p>
+        }
+      </div>
+
+      <div class="lastname-control">
+        <input
+          type="text"
+          class="form__field"
+          placeholder="Keresztnév"
+          id="lastname"
+          formControlName="lastname"
+        />
+        <label for="lastname" class="form__label">Keresztnév</label>
+        @if (lastnameIsInvalid) {
+        <p class="error-message">Adja meg a keresztnevét!</p>
         }
       </div>
 

@@ -23,6 +23,12 @@ import {
 })
 export class RegistrationComponent {
   signupForm = new FormGroup({
+    firstname: new FormControl('', {
+      validators: [Validators.required],
+    }),
+    lastname: new FormControl('', {
+      validators: [Validators.required],
+    }),
     username: new FormControl('', {
       validators: [
         Validators.required,
@@ -79,14 +85,31 @@ export class RegistrationComponent {
       (this.signupForm.controls.rePassword.invalid || this.signupForm.errors?.['passwordMismatch'])
     );
   }
+  get firstnameIsInvalid() {
+    return (
+      this.signupForm.controls.rePassword.touched &&
+      this.signupForm.controls.rePassword.dirty &&
+      this.signupForm.controls.firstname.invalid
+    );
+  }
+  get lastnameIsInvalid() {
+    return (
+      this.signupForm.controls.rePassword.touched &&
+      this.signupForm.controls.rePassword.dirty &&
+      this.signupForm.controls.firstname.invalid
+    );
+  }
 
   onSignUpSubmit() {
     if (this.signupForm.valid) {
       console.log('Form submitted:', {
+        firstname: this.signupForm.value.firstname,
+        lastname: this.signupForm.value.lastname,
         username: this.signupForm.value.username,
         email: this.signupForm.value.email,
         password: this.signupForm.value.password,
       });
+
       // Itt végezheted el a regisztrációs logikát
       // Például: this.authService.register(this.signupForm.value.username, this.signupForm.value.email, this.signupForm.value.password)
     } else {
