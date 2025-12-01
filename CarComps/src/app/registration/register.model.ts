@@ -8,7 +8,7 @@ export interface RegisterBody {
 }
 export interface RegisterResponse {
   result: {
-    Message?: string;
+    message?: string;
     JWTToken?: string;
   };
   status: string;

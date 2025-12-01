@@ -111,6 +111,7 @@ export class RegistrationComponent {
       this.signupForm.controls.phone.invalid
     );
   }
+  isLoading() {}
   onSignUpSubmit() {
     const finalRegisterData = {
       firstName: this.signupForm.value.firstname!,
@@ -124,6 +125,7 @@ export class RegistrationComponent {
     this.registerService.register(finalRegisterData).subscribe({
       next: (res) => {
         console.log(res);
+        localStorage.setItem('jwt', res.result.JWTToken!);
       },
     });
   }
