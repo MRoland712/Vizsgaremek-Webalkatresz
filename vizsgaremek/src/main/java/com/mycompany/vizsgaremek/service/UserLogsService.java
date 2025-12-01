@@ -20,5 +20,6 @@ public class UserLogsService {
     public JSONObject createUserLogs(UserLogs createdUserLog, Integer userId) {
         JSONObject toReturn = new JSONObject();
         JSONArray errors = new JSONArray();
+        return toReturn;
     }
 }

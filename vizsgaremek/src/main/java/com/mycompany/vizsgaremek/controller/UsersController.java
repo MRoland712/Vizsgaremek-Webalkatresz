@@ -104,7 +104,7 @@ public class UsersController {
     @Consumes(MediaType.APPLICATION_XML)
     public void putXml(String content) {
     }
-
+    
     @POST
     @Path("createUser")
     @Consumes(MediaType.APPLICATION_JSON)
