@@ -5,6 +5,7 @@
 package com.mycompany.vizsgaremek.service;
 
 import com.mycompany.vizsgaremek.model.Users;
+import com.mycompany.vizsgaremek.model.UserLogs;
 import java.util.ArrayList;
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -129,29 +130,33 @@ public class UsersService {
             // set Password to Encrypted version of entered password
             String encryptedPassword = Encrypt.encrypt(createdUser.getPassword());
             createdUser.setPassword(encryptedPassword);
-
-            //Create OTP
-            Random random = new Random();
-            createdUser.setAuthSecret(
-                    Integer.toString(random.nextInt(900000) + 100000)
-            );
-
-            //set role to null for default creation of user
-            createdUser.setRole(null);
-
-            String token = UUID.randomUUID().toString();
-            createdUser.setRegistrationToken(token);
-
-            Boolean modelResult = Users.createUser(createdUser);
-
-            if (!modelResult) {
-                errors.put("ModelError");
-            }
-
         } catch (Exception e) {
             e.printStackTrace();
             errors.put("InternalServerError");
             return errorAuth.createErrorResponse(errors, 500);
+        }
+        
+        //Create OTP
+        Random random = new Random();
+        createdUser.setAuthSecret(
+                Integer.toString(random.nextInt(900000) + 100000)
+        );
+
+        //set role to null for default creation of user
+        createdUser.setRole(null);
+
+        String token = UUID.randomUUID().toString();
+        createdUser.setRegistrationToken(token);
+
+        Boolean modelResult = Users.createUser(createdUser);
+
+        if (!modelResult) {
+            errors.put("ModelError");
+        }
+        
+        Boolean userLog = UserLogs.createUserLogs(createdUserLog, modelResult.  )
+        if (modelResult) {
+            
         }
 
         toReturn.put("JWTToken", JwtUtil.generateToken(createdUser.getId(), createdUser.getEmail(), createdUser.getRole(), createdUser.getUsername()));
@@ -370,7 +375,7 @@ public class UsersService {
 
         toReturn.put("status", "success");
         toReturn.put("statusCode", 200);
-        toReturn.put("Message", "Deleted User Succesfully");
+        toReturn.put("message", "Deleted User Succesfully");
         return toReturn;
     }
 
@@ -630,9 +635,9 @@ public class UsersService {
         }
 
         toReturn.put("JWTToken", JwtUtil.generateToken(userData.getId(), userData.getEmail(), userData.getRole(), userData.getUsername()));
-        toReturn.put("Message", "Logged in User Successfully");
+        toReturn.put("message", "Logged in User Successfully");
         if (userData.getIsActive() == false) {
-            toReturn.put("Message", "User Is Not Activated");
+            toReturn.put("message", "User Is Not Activated");
         }
         return errorAuth.createOKResponse(toReturn);
     }

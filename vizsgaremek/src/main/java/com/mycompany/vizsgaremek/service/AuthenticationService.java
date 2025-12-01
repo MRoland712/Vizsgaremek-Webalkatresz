@@ -21,6 +21,10 @@ public class AuthenticationService {
 
     public static class errorAuth {
 
+        public boolean isDataMissing(JSONObject data) {
+            return (data == null || data.isEmpty());
+        }
+
         /**
          * Checks if given JSONArray has data and returns a Boolean
          *
@@ -375,9 +379,32 @@ public class AuthenticationService {
         }
 
     } //Address Auth Class closer
-    
+
     public static class userLogsAuth {
+
+        public boolean isDataMissing(String data) {
+            return (data == null || data.trim().isEmpty());
+        }
+
+        public boolean isDataMissing(Integer data) {
+            return (data == null);
+        }
+
+        public boolean isDataMissing(Boolean data) {
+            return (data == null);
+        }
         
+        public boolean isValidUserId(Integer userId) {
+            return (userId > 0 && userId.toString().length() > 11);
+        }
+        
+        public boolean isValidAction(String action) {
+            return (action.length() > 255);
+        }
+        
+        public boolean isValidDetail(String detail) {
+            return true; // ToDo: kitalálni ennek valami validationt
+        }
     }//User Logs Auth Class closer
 }//Auth Service Class closer
 

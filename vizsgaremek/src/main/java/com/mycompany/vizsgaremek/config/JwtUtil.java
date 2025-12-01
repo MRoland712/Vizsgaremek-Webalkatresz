@@ -21,7 +21,7 @@ public class JwtUtil {
     private static final String SECRET_KEY = base64Converters.base64Converter(KvFetcher.getDataFromKV("JWTSecretKey"));
 
     // Token validity: 24 hours 24 * 60 * 60 * 1000
-    private static final long TOKEN_VALIDITY = 1;
+    private static final long TOKEN_VALIDITY = 1000;
 
     /**
      * Get signing key from SECRET_KEY string

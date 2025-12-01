@@ -52,8 +52,9 @@ public class UsersController {
         }
 
         Boolean validJwt = jwt.validateToken(jwtToken);
+        Boolean expiredToken = jwt.isTokenExpired(jwtToken);
 
-        if (validJwt == null) {
+        if (expiredToken) {
             errors.put("TokenExpired");
             return Response.status(401)
                     .entity(errorAuth.createErrorResponse(errors, 401).toString())
@@ -82,7 +83,22 @@ public class UsersController {
     @Consumes(MediaType.APPLICATION_XML)
     public void putXml(String content) {
     }
-    
+
+    @GET
+    @Path("validateJWT")
+    @Consumes(MediaType.APPLICATION_JSON)
+    public Response validateJWTEndpoint(@HeaderParam("token") String jwtToken) {
+        Response jwtError = validateJwtAndReturnError(jwtToken);
+        if (jwtError != null) {
+            return jwtError;
+        }
+
+        return Response.status(200)
+                .entity(errorAuth.createOKResponse().toString())
+                .type(MediaType.APPLICATION_JSON)
+                .build();
+    }
+
     @POST
     @Path("createUser")
     @Consumes(MediaType.APPLICATION_JSON)
