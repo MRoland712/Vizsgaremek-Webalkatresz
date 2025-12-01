@@ -7,7 +7,10 @@ export interface RegisterBody {
   phone: string;
 }
 export interface RegisterResponse {
-  errors: [];
+  result: {
+    Message?: string;
+    JWTToken?: string;
+  };
   status: string;
   statusCode: number;
 }

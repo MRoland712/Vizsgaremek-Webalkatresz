@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, inject } from '@angular/core';
 import {
   AbstractControl,
   FormControl,
@@ -13,6 +13,7 @@ import {
   mustContainUpperCase,
   emailMustHaveDomainValidator,
   passwordMatchValidator,
+  RegisterService,
 } from './register.service';
 
 @Component({
@@ -22,6 +23,7 @@ import {
   styleUrls: ['./registration.component.css'],
 })
 export class RegistrationComponent {
+  registerService = inject(RegisterService);
   signupForm = new FormGroup({
     firstname: new FormControl('', {
       validators: [Validators.required],
@@ -39,6 +41,9 @@ export class RegistrationComponent {
     }),
     email: new FormControl('', {
       validators: [Validators.email, Validators.required, emailMustHaveDomainValidator],
+    }),
+    phone: new FormControl('', {
+      validators: [Validators.required, Validators.maxLength(17)],
     }),
     password: new FormControl('', {
       validators: [
@@ -99,26 +104,27 @@ export class RegistrationComponent {
       this.signupForm.controls.firstname.invalid
     );
   }
-
+  get phoneNumberIsInvalid() {
+    return (
+      this.signupForm.controls.phone.touched &&
+      this.signupForm.controls.phone.dirty &&
+      this.signupForm.controls.phone.invalid
+    );
+  }
   onSignUpSubmit() {
-    if (this.signupForm.valid) {
-      console.log('Form submitted:', {
-        firstname: this.signupForm.value.firstname,
-        lastname: this.signupForm.value.lastname,
-        username: this.signupForm.value.username,
-        email: this.signupForm.value.email,
-        password: this.signupForm.value.password,
-      });
-
-      // Itt végezheted el a regisztrációs logikát
-      // Például: this.authService.register(this.signupForm.value.username, this.signupForm.value.email, this.signupForm.value.password)
-    } else {
-      // Megjelölünk minden mezőt mint touched, hogy megjelenjenek a hibaüzenetek
-      Object.keys(this.signupForm.controls).forEach((key) => {
-        const control = this.signupForm.get(key);
-        control?.markAsTouched();
-        control?.markAsDirty();
-      });
-    }
+    const finalRegisterData = {
+      firstName: this.signupForm.value.firstname!,
+      lastName: this.signupForm.value.lastname!,
+      username: this.signupForm.value.username!,
+      email: this.signupForm.value.email!,
+      password: this.signupForm.value.password!,
+      repassword: this.signupForm.value.rePassword!,
+      phone: this.signupForm.value.phone!,
+    };
+    this.registerService.register(finalRegisterData).subscribe({
+      next: (res) => {
+        console.log(res);
+      },
+    });
   }
 }

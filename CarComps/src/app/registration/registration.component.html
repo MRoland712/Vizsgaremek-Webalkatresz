@@ -36,6 +36,19 @@
         <p class="error-message">Adja meg a vezetéknevét!</p>
         }
       </div>
+      <div class="phone-control">
+        <input
+          type="text"
+          class="form__field"
+          placeholder="Telefonszám"
+          id="phone"
+          formControlName="phone"
+        />
+        <label for="phone" class="form__label">Telefonszám</label>
+        @if (phoneNumberIsInvalid) {
+        <p class="error-message">Adja meg a telefonszámát!</p>
+        }
+      </div>
 
       <div class="lastname-control">
         <input
