@@ -143,7 +143,7 @@ public class Addresses implements Serializable {
         this.isDefault = isDefault;
     }
 
-    //getAllAddresses
+    //getAllAddresses & getAddressById
     public Addresses(Integer id, String firstName, String lastName, String company, String taxNumber, String country, String city, String zipCode, String street, Boolean isDefault, Date createdAt, Date updatedAt, Boolean isDeleted, Date deletedAt, Users userId) {
         this.id = id;
         this.firstName = firstName;
@@ -161,6 +161,9 @@ public class Addresses implements Serializable {
         this.deletedAt = deletedAt;
         this.userId = userId;
     }
+    
+    //updateAddress
+    
 
     public Integer getId() {
         return id;
@@ -442,4 +445,79 @@ public class Addresses implements Serializable {
             em.close();
         }
     }
+    
+    public static Boolean softDeleteAddress(Integer id) {
+        EntityManager em = emf.createEntityManager();
+
+        try {
+            em.getTransaction().begin();
+
+            StoredProcedureQuery spq = em.createNamedStoredProcedureQuery("softDeleteAddress");
+            spq.registerStoredProcedureParameter("p_address_id", Integer.class, ParameterMode.IN);
+            spq.setParameter("p_address_id", id);
+
+            spq.execute();
+
+            em.getTransaction().commit();
+
+            return true;
+        } catch (Exception e) {
+            if (em.getTransaction().isActive()) {
+                em.getTransaction().rollback(); // ha hiba van, rollback
+            }
+            return false;
+        } finally {
+            em.clear();
+            em.close();
+        }
+    }
+    
+    /*public static Boolean updateAddress(Addresses updatedAddress) {
+        EntityManager em = emf.createEntityManager();
+
+        try {
+            em.getTransaction().begin();
+            StoredProcedureQuery spq = em.createStoredProcedureQuery("updateAddress");
+
+            spq.registerStoredProcedureParameter("p_address_id", Integer.class, ParameterMode.IN);
+            spq.registerStoredProcedureParameter("p_email", String.class, ParameterMode.IN);
+            spq.registerStoredProcedureParameter("p_username", String.class, ParameterMode.IN);
+            spq.registerStoredProcedureParameter("p_first_name", String.class, ParameterMode.IN);
+            spq.registerStoredProcedureParameter("p_last_name", String.class, ParameterMode.IN);
+            spq.registerStoredProcedureParameter("p_phone", String.class, ParameterMode.IN);
+            spq.registerStoredProcedureParameter("p_role", String.class, ParameterMode.IN);
+            spq.registerStoredProcedureParameter("p_is_active", Boolean.class, ParameterMode.IN);
+            spq.registerStoredProcedureParameter("p_password", String.class, ParameterMode.IN);
+            spq.registerStoredProcedureParameter("p_registration_token", String.class, ParameterMode.IN);
+            spq.registerStoredProcedureParameter("p_auth_secret", String.class, ParameterMode.IN);
+
+            spq.setParameter("p_address_id", updatedAddress.getId());
+            spq.setParameter("p_email", updatedAddress.getEmail());
+            spq.setParameter("p_username", updatedAddress.getUsername());
+            spq.setParameter("p_first_name", updatedAddress.getFirstName());
+            spq.setParameter("p_last_name", updatedAddress.getLastName());
+            spq.setParameter("p_phone", updatedAddress.getPhone());
+            spq.setParameter("p_role", updatedAddress.getRole());
+            spq.setParameter("p_is_active", updatedAddress.getIsActive());
+            spq.setParameter("p_password", updatedAddress.getPassword());
+            spq.setParameter("p_registration_token", updatedAddress.getRegistrationToken());
+            spq.setParameter("p_auth_secret", updatedAddress.getAuthSecret());
+
+            spq.execute();
+
+            em.getTransaction().commit();
+
+            return true;
+
+        } catch (Exception ex) {
+            if (em.getTransaction().isActive()) {
+                em.getTransaction().rollback(); // Ha hiba van, rollback
+            }
+            ex.printStackTrace();
+            return false;
+        } finally {
+            em.clear();
+            em.close();
+        }
+    }*/
 }

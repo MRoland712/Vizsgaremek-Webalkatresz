@@ -161,5 +161,63 @@ public class AddressService {
 
         return toReturn;
     }
+    
+    public JSONObject softDeleteAddress(Integer id) {
+        JSONObject toReturn = new JSONObject();
+        JSONArray errors = new JSONArray();
+
+        //If id is Missing
+        if (!addressAuth.isDataMissing(id)) {
+            errors.put("MissingId");
+        }
+
+        //If id is Invalid
+        if (!addressAuth.isValidId(id)) {
+            errors.put("InvalidId");
+        }
+
+        //if id is invalid or missing
+        if (errorAuth.hasErrors(errors)) {
+            return errorAuth.createErrorResponse(errors, 400);
+        }
+
+        //get data from spq
+        Addresses modelResult = Addresses.getAddressById(id);
+
+        //if spq gives null data
+        if (modelResult == null) {
+            errors.put("AddressNotFound");
+        }
+
+        //if address not found
+        if (errorAuth.hasErrors(errors)) {
+            return errorAuth.createErrorResponse(errors, 404);
+        }
+
+        if (modelResult.getIsDeleted() == true) {
+            errors.put("UserIsSoftDeleted");
+        }
+
+        //if address is soft deleted
+        if (errorAuth.hasErrors(errors)) {
+            return errorAuth.createErrorResponse(errors, 409);
+        }
+
+        Boolean result = Addresses.softDeleteAddress(id);
+
+        if (!result) {
+            errors.put("ServerError");
+        }
+
+        //if serverError
+        if (errorAuth.hasErrors(errors)) {
+            return errorAuth.createErrorResponse(errors, 500);
+        }
+
+        toReturn.put("status", "success");
+        toReturn.put("statusCode", 200);
+        toReturn.put("Message", "Deleted Address Succesfully");
+        return toReturn;
+    }
 } // Class Closer
 
