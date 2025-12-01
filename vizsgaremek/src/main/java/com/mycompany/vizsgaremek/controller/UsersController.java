@@ -34,63 +34,41 @@ public class UsersController {
     public UsersController() {
     }
 
-    // ============================================
-    // ⭐ CORS Preflight Handler (OPTIONS) ⭐
-    // ============================================
     @OPTIONS
-    @Path("{path:.*}")
-    public Response handleCorsPreFlight() {
-        return Response.ok()
-                .header("Access-Control-Allow-Origin", "*")
-                .header("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS")
-                .header("Access-Control-Allow-Headers", "origin, content-type, accept, authorization, token")
-                .header("Access-Control-Allow-Credentials", "true")
-                .build();
+    @Path("{path : .*}")
+    public Response handlePreflightRequest() {
+        return Response.ok().build();  // A CorsFilter automatikusan hozzáadja a header-öket
     }
 
-    // ============================================
-    // ⭐ Helper method CORS header-ökhöz ⭐
-    // ============================================
-    private Response.ResponseBuilder addCorsHeaders(Response.ResponseBuilder responseBuilder) {
-        return responseBuilder
-                .header("Access-Control-Allow-Origin", "*")
-                .header("Access-Control-Allow-Credentials", "true")
-                .header("Access-Control-Allow-Headers", "origin, content-type, accept, authorization, token")
-                .header("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS");
-    }
-
-    // ============================================
-    // ⭐ Helper method JWT validációhoz ⭐
-    // ============================================
     private Response validateJwtAndReturnError(String jwtToken) {
         JSONArray errors = new JSONArray();
-        
+
         if (userAuth.isDataMissing(jwtToken)) {
             errors.put("MissingToken");
-            return addCorsHeaders(Response.status(401))
+            return Response.status(401)
                     .entity(errorAuth.createErrorResponse(errors, 401).toString())
                     .type(MediaType.APPLICATION_JSON)
                     .build();
         }
-        
+
         Boolean validJwt = jwt.validateToken(jwtToken);
-        
+
         if (validJwt == null) {
             errors.put("TokenExpired");
-            return addCorsHeaders(Response.status(401))
+            return Response.status(401)
                     .entity(errorAuth.createErrorResponse(errors, 401).toString())
                     .type(MediaType.APPLICATION_JSON)
                     .build();
         }
-        
+
         if (validJwt == false) {
             errors.put("InvalidToken");
-            return addCorsHeaders(Response.status(401))
+            return Response.status(401)
                     .entity(errorAuth.createErrorResponse(errors, 401).toString())
                     .type(MediaType.APPLICATION_JSON)
                     .build();
         }
-        
+
         return null; // Token valid
     }
 
@@ -123,7 +101,7 @@ public class UsersController {
 
         JSONObject toReturn = layer.createUser(createdUser);
 
-        return addCorsHeaders(Response.status(Integer.parseInt(toReturn.get("statusCode").toString())))
+        return Response.status(Integer.parseInt(toReturn.get("statusCode").toString()))
                 .entity(toReturn.toString())
                 .type(MediaType.APPLICATION_JSON)
                 .build();
@@ -139,8 +117,8 @@ public class UsersController {
         }
 
         JSONObject toReturn = layer.getUsers();
-        
-        return addCorsHeaders(Response.status(Integer.parseInt(toReturn.get("statusCode").toString())))
+
+        return Response.status(Integer.parseInt(toReturn.get("statusCode").toString()))
                 .entity(toReturn.toString())
                 .type(MediaType.APPLICATION_JSON)
                 .build();
@@ -158,10 +136,10 @@ public class UsersController {
         if (userAuth.isDataMissing(id)) {
             id = null;
         }
-        
+
         JSONObject toReturn = layer.getUserById(id);
-        
-        return addCorsHeaders(Response.status(Integer.parseInt(toReturn.get("statusCode").toString())))
+
+        return Response.status(Integer.parseInt(toReturn.get("statusCode").toString()))
                 .entity(toReturn.toString())
                 .type(MediaType.APPLICATION_JSON)
                 .build();
@@ -177,8 +155,8 @@ public class UsersController {
         }
 
         JSONObject toReturn = layer.getUserByEmail(email);
-        
-        return addCorsHeaders(Response.status(Integer.parseInt(toReturn.get("statusCode").toString())))
+
+        return Response.status(Integer.parseInt(toReturn.get("statusCode").toString()))
                 .entity(toReturn.toString())
                 .type(MediaType.APPLICATION_JSON)
                 .build();
@@ -195,7 +173,7 @@ public class UsersController {
 
         JSONObject toReturn = layer.softDeleteUser(userId);
 
-        return addCorsHeaders(Response.status(Integer.parseInt(toReturn.get("statusCode").toString())))
+        return Response.status(Integer.parseInt(toReturn.get("statusCode").toString()))
                 .entity(toReturn.toString())
                 .type(MediaType.APPLICATION_JSON)
                 .build();
@@ -208,7 +186,7 @@ public class UsersController {
             @QueryParam("id") Integer userId,
             @QueryParam("email") String email,
             String body) {
-        
+
         Response jwtError = validateJwtAndReturnError(jwtToken);
         if (jwtError != null) {
             return jwtError;
@@ -253,7 +231,7 @@ public class UsersController {
 
         JSONObject toReturn = layer.updateUser(updatedUser);
 
-        return addCorsHeaders(Response.status(Integer.parseInt(toReturn.get("statusCode").toString())))
+        return Response.status(Integer.parseInt(toReturn.get("statusCode").toString()))
                 .entity(toReturn.toString())
                 .type(MediaType.APPLICATION_JSON)
                 .build();
@@ -272,7 +250,7 @@ public class UsersController {
 
         JSONObject toReturn = layer.loginUser(user);
 
-        return addCorsHeaders(Response.status(Integer.parseInt(toReturn.get("statusCode").toString())))
+        return Response.status(Integer.parseInt(toReturn.get("statusCode").toString()))
                 .entity(toReturn.toString())
                 .type(MediaType.APPLICATION_JSON)
                 .build();
