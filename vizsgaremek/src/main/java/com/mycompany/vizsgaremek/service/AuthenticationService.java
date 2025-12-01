@@ -376,6 +376,10 @@ public class AuthenticationService {
             return (isDeleted == true);
         }
 
+        public boolean isDataMissing(Addresses data) {
+            return (data == null);
+        }
+
     } //Address Auth Class closer
 }//Auth Service Class closer
 

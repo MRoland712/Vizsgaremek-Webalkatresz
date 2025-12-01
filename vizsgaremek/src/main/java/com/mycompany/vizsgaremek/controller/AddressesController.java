@@ -15,6 +15,7 @@ import javax.ws.rs.GET;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.PUT;
+import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import org.json.JSONObject;
@@ -66,9 +67,9 @@ public class AddressesController {
     public Response createAddress(String body) {
 
         JSONObject bodyObject = new JSONObject(body);
-        
+
         Users user = new Users();
-        user.setId(bodyObject.has("userId") ? bodyObject.getInt("userId"): null);
+        user.setId(bodyObject.has("userId") ? bodyObject.getInt("userId") : null);
 
         Addresses createdAddress = new Addresses(
                 user,
@@ -80,7 +81,7 @@ public class AddressesController {
                 bodyObject.has("city") ? bodyObject.getString("city") : null,
                 bodyObject.has("zipCode") ? bodyObject.getString("zipCode") : null,
                 bodyObject.has("street") ? bodyObject.getString("street") : null,
-                bodyObject.has("isDefault") ? bodyObject.getBoolean("isDefault"): false
+                bodyObject.has("isDefault") ? bodyObject.getBoolean("isDefault") : false
         );
 
         JSONObject toReturn = layer.createAddress(createdAddress);
@@ -90,19 +91,31 @@ public class AddressesController {
                 .type(MediaType.APPLICATION_JSON)
                 .build();
     }
-    
+
     @GET
     @Path("getAllAddresses")
     @Consumes(MediaType.APPLICATION_JSON)
-    public Response getAllAddresses(){
+    public Response getAllAddresses() {
         AddressService addressService = new AddressService();
         JSONObject toReturn = addressService.getAllAddresses();
-        
+
         return Response.status(Integer.parseInt(toReturn.get("statusCode").toString()))
                 .entity(toReturn.toString())
                 .type(MediaType.APPLICATION_JSON)
                 .build();
     }
-    
-    
+
+    @GET
+    @Path("getAddressById")
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response getAddressById(@QueryParam("id") Integer id) {
+
+        JSONObject toReturn = layer.getAddressById(id);
+
+        return Response.status(Integer.parseInt(toReturn.get("statusCode").toString()))
+                .entity(toReturn.toString())
+                .type(MediaType.APPLICATION_JSON)
+                .build();
+    }
+
 }

@@ -21,7 +21,7 @@ public class AddressService {
     private final addressAuth addressAuth = new addressAuth();
 
     /**
-     * commonly used error codes 400 -                              Bad request (validation error / client
+     * commonly used error codes 400 - Bad request (validation error / client
      * sends wrong data) 401 - Unauthorised (Authentication error ex: Wrong
      * password entered) 404 - Missing (ex: Couldnt find user with given data)
      * 409 - Conflict (something is the same as in db ex: Email is same as in
@@ -69,51 +69,97 @@ public class AddressService {
             return error;
         }
     } // createAddress Closer
-    
+
     public JSONObject getAllAddresses() {
         JSONObject toReturn = new JSONObject();
         JSONArray errors = new JSONArray();
 
+        // MODEL HÍVÁS
         ArrayList<Addresses> modelResult = Addresses.getAllAddresses();
 
-        //If no data in DB
+        // VALIDÁCIÓ - If no data in DB
         if (addressAuth.isDataMissing(modelResult)) {
-            errors.put("ModelExeption");
+            errors.put("ModelException");
         }
 
-        //if modelexeption
+        // If modelexeption
         if (errorAuth.hasErrors(errors)) {
             return errorAuth.createErrorResponse(errors, 500);
         }
 
-        JSONArray result = new JSONArray();
+        // KONVERZIÓ ArrayList --> JSONArray
+        JSONArray addressArray = new JSONArray();
 
-        for (Addresses actualAddress : modelResult) {
-            JSONObject actualAddressObject = new JSONObject();
+        for (Addresses address : modelResult) {
+            JSONObject addressObj = new JSONObject();
+            addressObj.put("id", address.getId());
+            addressObj.put("userId", address.getUserId().getId());
+            addressObj.put("firstName", address.getFirstName());
+            addressObj.put("lastName", address.getLastName());
+            addressObj.put("company", address.getCompany());
+            addressObj.put("taxNumber", address.getTaxNumber());
+            addressObj.put("country", address.getCountry());
+            addressObj.put("city", address.getCity());
+            addressObj.put("zipCode", address.getZipCode());
+            addressObj.put("street", address.getStreet());
+            addressObj.put("isDefault", address.getIsDefault());
+            addressObj.put("createdAt", address.getCreatedAt());
+            addressObj.put("updatedAt", address.getUpdatedAt());
 
-            actualAddressObject.put("id", actualAddress.getId());
-            actualAddressObject.put("userId", actualAddress.getUserId());
-            actualAddressObject.put("firstName", actualAddress.getFirstName());
-            actualAddressObject.put("lastName", actualAddress.getLastName());
-            actualAddressObject.put("company", actualAddress.getCompany());
-            actualAddressObject.put("taxNumber", actualAddress.getTaxNumber());
-            actualAddressObject.put("country", actualAddress.getCountry());
-            actualAddressObject.put("city", actualAddress.getCity());
-            actualAddressObject.put("zipCode", actualAddress.getZipCode());
-            actualAddressObject.put("street", actualAddress.getStreet());
-            actualAddressObject.put("isDefault", actualAddress.getIsDefault());
-            actualAddressObject.put("createdAt", actualAddress.getCreatedAt() == null ? null : actualAddress.getCreatedAt().toString());
-            actualAddressObject.put("updatedAt", actualAddress.getUpdatedAt() == null ? null : actualAddress.getUpdatedAt().toString());
-            actualAddressObject.put("isDeleted", actualAddress.getIsDeleted());
-
-            result.put(actualAddressObject);
+            addressArray.put(addressObj);
         }
 
-        toReturn.put("result", result);
-        toReturn.put("status", "success");
+        toReturn.put("success", true);
+        toReturn.put("addresses", addressArray);
+        toReturn.put("count", modelResult.size());
         toReturn.put("statusCode", 200);
-        return toReturn;
 
+        return toReturn;
+    }
+
+    public JSONObject getAddressById(Integer id) {
+        JSONObject toReturn = new JSONObject();
+        JSONArray errors = new JSONArray();
+
+        // Validáció - ID hiányzik
+        if (addressAuth.isDataMissing(id)) {
+            errors.put("MissingId");
+        }
+
+        if (errorAuth.hasErrors(errors)) {
+            return errorAuth.createErrorResponse(errors, 400);
+        }
+
+        // MODEL HÍVÁS
+        Addresses address = Addresses.getAddressById(id);
+
+        // Validáció - Nem található
+        if (addressAuth.isDataMissing(address)) {
+            errors.put("AddressNotFound");
+            return errorAuth.createErrorResponse(errors, 404);
+        }
+
+        // KONVERZIÓ - Addresses → JSONObject
+        JSONObject addressObj = new JSONObject();
+        addressObj.put("id", address.getId());
+        addressObj.put("userId", address.getUserId().getId());
+        addressObj.put("firstName", address.getFirstName());
+        addressObj.put("lastName", address.getLastName());
+        addressObj.put("company", address.getCompany());
+        addressObj.put("taxNumber", address.getTaxNumber());
+        addressObj.put("country", address.getCountry());
+        addressObj.put("city", address.getCity());
+        addressObj.put("zipCode", address.getZipCode());
+        addressObj.put("street", address.getStreet());
+        addressObj.put("isDefault", address.getIsDefault());
+        addressObj.put("createdAt", address.getCreatedAt());
+        addressObj.put("updatedAt", address.getUpdatedAt());
+
+        toReturn.put("success", true);
+        toReturn.put("address", addressObj);
+        toReturn.put("statusCode", 200);
+
+        return toReturn;
     }
 } // Class Closer
 
