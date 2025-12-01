@@ -90,4 +90,19 @@ public class AddressesController {
                 .type(MediaType.APPLICATION_JSON)
                 .build();
     }
+    
+    @GET
+    @Path("getAllAddresses")
+    @Consumes(MediaType.APPLICATION_JSON)
+    public Response getAllAddresses(){
+        AddressService addressService = new AddressService();
+        JSONObject toReturn = addressService.getAllAddresses();
+        
+        return Response.status(Integer.parseInt(toReturn.get("statusCode").toString()))
+                .entity(toReturn.toString())
+                .type(MediaType.APPLICATION_JSON)
+                .build();
+    }
+    
+    
 }

@@ -8,6 +8,7 @@ import com.mycompany.vizsgaremek.config.JwtUtil;
 import com.mycompany.vizsgaremek.model.Addresses;
 import com.mycompany.vizsgaremek.service.AuthenticationService.addressAuth;
 import com.mycompany.vizsgaremek.service.AuthenticationService.errorAuth;
+import java.util.ArrayList;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
@@ -20,7 +21,7 @@ public class AddressService {
     private final addressAuth addressAuth = new addressAuth();
 
     /**
-     * commonly used error codes 400 - Bad request (validation error / client
+     * commonly used error codes 400 -                              Bad request (validation error / client
      * sends wrong data) 401 - Unauthorised (Authentication error ex: Wrong
      * password entered) 404 - Missing (ex: Couldnt find user with given data)
      * 409 - Conflict (something is the same as in db ex: Email is same as in
@@ -68,5 +69,51 @@ public class AddressService {
             return error;
         }
     } // createAddress Closer
+    
+    public JSONObject getAllAddresses() {
+        JSONObject toReturn = new JSONObject();
+        JSONArray errors = new JSONArray();
+
+        ArrayList<Addresses> modelResult = Addresses.getAllAddresses();
+
+        //If no data in DB
+        if (addressAuth.isDataMissing(modelResult)) {
+            errors.put("ModelExeption");
+        }
+
+        //if modelexeption
+        if (errorAuth.hasErrors(errors)) {
+            return errorAuth.createErrorResponse(errors, 500);
+        }
+
+        JSONArray result = new JSONArray();
+
+        for (Addresses actualAddress : modelResult) {
+            JSONObject actualAddressObject = new JSONObject();
+
+            actualAddressObject.put("id", actualAddress.getId());
+            actualAddressObject.put("userId", actualAddress.getUserId());
+            actualAddressObject.put("firstName", actualAddress.getFirstName());
+            actualAddressObject.put("lastName", actualAddress.getLastName());
+            actualAddressObject.put("company", actualAddress.getCompany());
+            actualAddressObject.put("taxNumber", actualAddress.getTaxNumber());
+            actualAddressObject.put("country", actualAddress.getCountry());
+            actualAddressObject.put("city", actualAddress.getCity());
+            actualAddressObject.put("zipCode", actualAddress.getZipCode());
+            actualAddressObject.put("street", actualAddress.getStreet());
+            actualAddressObject.put("isDefault", actualAddress.getIsDefault());
+            actualAddressObject.put("createdAt", actualAddress.getCreatedAt() == null ? null : actualAddress.getCreatedAt().toString());
+            actualAddressObject.put("updatedAt", actualAddress.getUpdatedAt() == null ? null : actualAddress.getUpdatedAt().toString());
+            actualAddressObject.put("isDeleted", actualAddress.getIsDeleted());
+
+            result.put(actualAddressObject);
+        }
+
+        toReturn.put("result", result);
+        toReturn.put("status", "success");
+        toReturn.put("statusCode", 200);
+        return toReturn;
+
+    }
 } // Class Closer
 

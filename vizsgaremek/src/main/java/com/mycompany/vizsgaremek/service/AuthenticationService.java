@@ -6,6 +6,7 @@ package com.mycompany.vizsgaremek.service;
 
 import com.mycompany.vizsgaremek.model.Users;
 import com.mycompany.vizsgaremek.config.Encrypt;
+import com.mycompany.vizsgaremek.model.Addresses;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.regex.Pattern;
@@ -328,7 +329,7 @@ public class AuthenticationService {
             return (data == null);
         }
 
-        public boolean isDataMissing(ArrayList<Address> data) {
+        public boolean isDataMissing(ArrayList<Addresses> data) {
             return (data == null || data.isEmpty());
         }
 
