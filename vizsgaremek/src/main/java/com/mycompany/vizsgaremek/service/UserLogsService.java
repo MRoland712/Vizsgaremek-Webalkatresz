@@ -5,6 +5,7 @@
 package com.mycompany.vizsgaremek.service;
 
 import com.mycompany.vizsgaremek.model.UserLogs;
+import org.json.JSONArray;
 import org.json.JSONObject;
 
 /**
@@ -16,7 +17,8 @@ public class UserLogsService {
     private final AuthenticationService.userLogsAuth userLogsAuth = new AuthenticationService.userLogsAuth();
     private final AuthenticationService.errorAuth errorAuth = new AuthenticationService.errorAuth();
 
-    public JSONObject createUserLogs(UserLogs createdUserLog) {
-
+    public JSONObject createUserLogs(UserLogs createdUserLog, Integer userId) {
+        JSONObject toReturn = new JSONObject();
+        JSONArray errors = new JSONArray();
     }
 }

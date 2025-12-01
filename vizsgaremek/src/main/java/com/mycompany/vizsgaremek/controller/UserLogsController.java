@@ -14,6 +14,7 @@ import javax.ws.rs.GET;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.PUT;
+import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import org.json.JSONObject;
@@ -60,7 +61,7 @@ public class UserLogsController {
     @POST
     @Path("createUserLog")
     @Consumes(MediaType.APPLICATION_JSON)
-    public Response createUserLogs(String body) {
+    public Response createUserLogs(String body, @QueryParam("userId") Integer userId) {
 
         JSONObject bodyObject = new JSONObject(body);
         
@@ -69,7 +70,7 @@ public class UserLogsController {
                 bodyObject.has("details") ? bodyObject.getString("details") : null
         );
 
-        JSONObject toReturn = layer.createUserLogs(createdUserLog);
+        JSONObject toReturn = layer.createUserLogs(createdUserLog, userId);
 
         return Response.status(Integer.parseInt(toReturn.get("statusCode").toString()))
                 .entity(toReturn.toString())

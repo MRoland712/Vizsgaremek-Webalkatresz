@@ -317,7 +317,6 @@ public class AuthenticationService {
 
     } //User Auth Class closer
 
-    //ADDRESS 
     public static class addressAuth {
 
         public boolean isDataMissing(String data) {
@@ -376,5 +375,9 @@ public class AuthenticationService {
         }
 
     } //Address Auth Class closer
+    
+    public static class userLogsAuth {
+        
+    }//User Logs Auth Class closer
 }//Auth Service Class closer
 

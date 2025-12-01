@@ -106,7 +106,7 @@ public class Addresses implements Serializable {
     private Date deletedAt;
     @JoinColumn(name = "user_id", referencedColumnName = "id")
     @ManyToOne(optional = false)
-    private Integer userId;
+    private Users user;
     
     static EntityManagerFactory emf = Persistence.createEntityManagerFactory("com.mycompany_vizsgaremek_war_1.0-SNAPSHOTPU");
 
@@ -124,9 +124,9 @@ public class Addresses implements Serializable {
         this.zipCode = zipCode;
         this.street = street;
     }
+    
     //createAddress
-
-    public Addresses(Integer userId, String firstName, String lastName, String company, String taxNumber, String country, String city, String zipCode, String street, Boolean isDefault) {
+    public Addresses(Users user, String firstName, String lastName, String company, String taxNumber, String country, String city, String zipCode, String street, Boolean isDefault) {
         this.firstName = firstName;
         this.lastName = lastName;
         this.company = company;
@@ -136,7 +136,7 @@ public class Addresses implements Serializable {
         this.zipCode = zipCode;
         this.street = street;
         this.isDefault = isDefault;
-        this.userId = userId;
+        this.user = user;
     }
     
 
@@ -252,14 +252,17 @@ public class Addresses implements Serializable {
         this.deletedAt = deletedAt;
     }
 
-    public Integer getUserId() {
-        return userId;
+   public Users getUser() {
+        return user;
+    }
+
+    public void setUser(Users user) {
+        this.user = user;
     }
     
-    /*
-    public void setUserId(Users userId) {
-        this.userId = userId;
-    }*/
+    public Integer getUserId() {
+        return user != null ? user.getId() : null;
+    }
 
     @Override
     public int hashCode() {

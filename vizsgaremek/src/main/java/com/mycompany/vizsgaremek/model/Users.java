@@ -146,7 +146,7 @@ public class Users implements Serializable {
     @Size(max = 255)
     @Column(name = "registration_token")
     private String registrationToken;
-    @OneToMany(cascade = CascadeType.ALL, mappedBy = "userId")
+    @OneToMany(cascade = CascadeType.ALL, mappedBy = "user")
     private Collection<Addresses> addressesCollection;
 
     static EntityManagerFactory emf = Persistence.createEntityManagerFactory("com.mycompany_vizsgaremek_war_1.0-SNAPSHOTPU");
@@ -155,7 +155,7 @@ public class Users implements Serializable {
 
     public Users() {
     }
-    
+
     //loginUser
     public Users(String email, String password) {
         this.email = email;
