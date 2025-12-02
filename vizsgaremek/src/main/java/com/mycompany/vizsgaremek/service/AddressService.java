@@ -167,14 +167,14 @@ public class AddressService {
         JSONArray errors = new JSONArray();
 
         //If id is Missing
-        if (!addressAuth.isDataMissing(id)) {
+        if (addressAuth.isDataMissing(id)) {
             errors.put("MissingId");
         }
 
         //If id is Invalid
-        if (!addressAuth.isValidId(id)) {
-            errors.put("InvalidId");
-        }
+        if (!addressAuth.isDataMissing(id) && !addressAuth.isValidId(id)) {  // Csak ha NEM missing!
+        errors.put("InvalidId");
+    }
 
         //if id is invalid or missing
         if (errorAuth.hasErrors(errors)) {
@@ -219,5 +219,134 @@ public class AddressService {
         toReturn.put("Message", "Deleted Address Succesfully");
         return toReturn;
     }
+    
+    /*public JSONObject updateAddress(Addresses updatedAddress) {
+        JSONObject toReturn = new JSONObject();
+        JSONArray errors = new JSONArray();
+
+        //if no search parameter (id or street) is given
+        if (addressAuth.isDataMissing(updatedAddress.getId()) && addressAuth.isDataMissing(updatedAddress.getEmail())) {
+            errors.put("MissingSearchParameter");
+        }
+
+        //if userid as a search parameter is NOT missing AND IS INVALID
+        if (!addressAuth.isDataMissing(updatedAddress.getId()) && !addressAuth.isValidId(updatedAddress.getId())) {
+            errors.put("InvalidId");
+        }
+
+        //if street as a search parameter is NOT missing AND IS INVALID
+        if (!addressAuth.isDataMissing(updatedAddress.getEmail()) && !addressAuth.isValidEmail(updatedAddress.getEmail())) {
+            errors.put("InvalidStreet");
+        }
+        
+        //if zipcode as a search parameter is NOT missing AND IS INVALID
+        if (!addressAuth.isDataMissing(updatedAddress.getEmail()) && !addressAuth.isValidEmail(updatedAddress.getEmail())) {
+            errors.put("InvalidZipCode");
+        }
+
+        //error check if Search Parameters are wrong
+        if (errorAuth.hasErrors(errors)) {
+            return errorAuth.createErrorResponse(errors, 400);
+        }
+
+        Addresses existingUser = null;
+        Object searchData = null;
+
+        //if id or street or zipCode is set in the queryparam, set it as the search parameter and find the user via the given search parameter
+        if (!addressAuth.isDataMissing(updatedAddress.getId())) {
+            existingUser = Addresses.getUserById(updatedAddress.getId());
+            searchData = updatedAddress.getId();
+        } else {
+            existingUser = Addresses.getUserByEmail(updatedAddress.getEmail());
+            searchData = updatedAddress.getEmail();
+        }
+
+        //if Address not found
+        if (addressAuth.isDataMissing(existingUser)) {
+            errors.put("UserNotFound");
+        }
+
+        //error check if user not found
+        if (errorAuth.hasErrors(errors)) {
+            return errorAuth.createErrorResponse(errors, 404);
+        }
+
+        //if email is NOT missing AND IS VALID
+        if (!addressAuth.isDataMissing(updatedAddress.getEmail()) && addressAuth.isValidEmail(updatedAddress.getEmail())) {
+            existingUser.setEmail(updatedAddress.getEmail());
+        }
+
+        //if username is NOT missing AND IS VALID
+        if (!addressAuth.isDataMissing(updatedAddress.getUsername()) && addressAuth.isValidUsername(updatedAddress.getUsername())) {
+            existingUser.setUsername(updatedAddress.getUsername());
+        }
+
+        //if firstName is NOT missing AND IS VALID
+        if (!addressAuth.isDataMissing(updatedAddress.getFirstName()) && addressAuth.isValidFirstName(updatedAddress.getFirstName())) {
+            existingUser.setFirstName(updatedAddress.getFirstName());
+        }
+
+        //if lastName is NOT missing AND IS VALID
+        if (!addressAuth.isDataMissing(updatedAddress.getLastName()) && addressAuth.isValidFirstName(updatedAddress.getLastName())) {
+            existingUser.setLastName(updatedAddress.getLastName());
+        }
+
+        //if phone is NOT missing AND IS VALID
+        if (!addressAuth.isDataMissing(updatedAddress.getPhone()) && addressAuth.isValidPhone(updatedAddress.getPhone())) {
+            existingUser.setPhone(updatedAddress.getPhone());
+        }
+
+        //if isActive is NOT missing AND IS VALID
+        if (!addressAuth.isDataMissing(updatedAddress.getIsActive()) && userAuth.isValidIsActive(updatedUser.getIsActive())) {
+            existingUser.setIsActive(updatedAddress.getIsActive());
+        }
+
+        //if authSecret is NOT missing AND IS VALID
+        if (!addressAuth.isDataMissing(updatedAddress.getAuthSecret()) && userAuth.isValidAuthSecret(updatedUser.getAuthSecret())) {
+            existingUser.setAuthSecret(updatedAddress.getAuthSecret());
+        }
+
+        //if registrationToken is NOT missing AND IS VALID
+        if (!addressAuth.isDataMissing(updatedAddress.getRegistrationToken()) && userAuth.isValidRegistrationToken(updatedUser.getRegistrationToken())) {
+            existingUser.setRegistrationToken(updatedAddress.getRegistrationToken());
+        }
+
+        //if username is NOT missing AND is NOT VALID
+        if (!addressAuth.isDataMissing(updatedAddress.getUsername()) && !userAuth.isValidUsername(updatedUser.getUsername())) {
+            errors.put("InvalidUsername");
+        }
+
+        //if firstName is NOT missing AND is NOT VALID
+        if (!addressAuth.isDataMissing(updatedAddress.getFirstName()) && !userAuth.isValidFirstName(updatedUser.getFirstName())) {
+            errors.put("InvalidFirstName");
+        }
+
+        //if lastName is NOT missing AND is NOT VALID
+        if (!addressAuth.isDataMissing(updatedAddress.getLastName()) && !userAuth.isValidLastName(updatedUser.getLastName())) {
+            errors.put("InvalidLastName");
+        }
+
+        //if phone is NOT missing AND is NOT VALID
+        if (!addressAuth.isDataMissing(updatedAddress.getPhone()) && !userAuth.isValidPhone(updatedUser.getPhone())) {
+            errors.put("InvalidPhone");
+        }
+
+        //if isActive is NOT missing AND is NOT VALID
+        if (!addressAuth.isDataMissing(updatedAddress.getIsActive()) && !userAuth.isValidIsActive(updatedUser.getIsActive())) {
+            errors.put("InvalidIsActive");
+        }
+
+        //if authSecret is NOT missing AND is NOT VALID
+        if (!addressAuth.isDataMissing(updatedAddress.getAuthSecret()) && !userAuth.isValidAuthSecret(updatedUser.getAuthSecret())) {
+            errors.put("InvalidAuthSecret");
+        }
+
+        //error check if datas are invalid
+        if (errorAuth.hasErrors(errors)) {
+            return errorAuth.createErrorResponse(errors, 400);
+        }
+
+        return errorAuth.createOKResponse();
+    }*/
 } // Class Closer
 

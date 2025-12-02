@@ -131,4 +131,65 @@ public class AddressesController {
                 .type(MediaType.APPLICATION_JSON)
                 .build();
     }
+    
+    /*@PUT
+    @Path("updateAddress")
+    @Consumes(MediaType.APPLICATION_JSON)
+    public Response updateAddress(
+            @QueryParam("id") Integer addressId,
+            @QueryParam("userId") Integer userId,
+            @QueryParam("email") String email,
+            String body) {
+        
+            JSONObject bodyObject = new JSONObject(body);
+
+            Addresses updatedAddress = new Addresses();
+            
+            if(addressId != null){
+                updatedAddress.setId(addressId);
+            }
+
+            if (userId != null) {
+                updatedAddress.getUserId();
+            }
+            spq.setParameter("p_user_id", createdAddress.getUserId().getId());
+            spq.setParameter("p_first_name", createdAddress.getFirstName());
+            spq.setParameter("p_last_name", createdAddress.getLastName());
+            spq.setParameter("p_company", createdAddress.getCompany());
+            spq.setParameter("p_tax_number", createdAddress.getTaxNumber());
+            spq.setParameter("p_country", createdAddress.getCountry());
+            spq.setParameter("p_city", createdAddress.getCity());
+            spq.setParameter("p_zip_code", createdAddress.getZipCode());
+            spq.setParameter("p_street", createdAddress.getStreet());
+            spq.setParameter("p_is_default", Boolean.TRUE.equals(createdAddress.getIsDefault()) ? 1 : 0);
+            
+            if (bodyObject.has("firstName")) {
+                updatedAddress.setFirstName(bodyObject.getString("firstName"));
+            }
+
+            if (bodyObject.has("lastName")) {
+                updatedAddress.setLastName(bodyObject.getString("lastName"));
+            }
+
+            if (bodyObject.has("company")) {
+                updatedAddress.setCompany(bodyObject.getString("company"));
+            }
+
+            if (bodyObject.has("taxNumber")) {
+                updatedAddress.setTaxNumber(bodyObject.getString("taxNumber"));
+            }
+
+            if (bodyObject.has("password")) {
+                updatedAddress.setPassword(bodyObject.getString("password"));
+            }
+
+
+            JSONObject toReturn = layer.updateUser(updatedUser);
+
+            return Response.status(Integer.parseInt(toReturn.get("statusCode").toString()))
+                    .entity(toReturn.toString())
+                    .type(MediaType.APPLICATION_JSON)
+                    .build();
+        }
+    }*/
 }

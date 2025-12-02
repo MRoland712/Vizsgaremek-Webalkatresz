@@ -163,6 +163,21 @@ public class Addresses implements Serializable {
     }
     
     //updateAddress
+
+    public Addresses(Integer id, Users userId,  String firstName, String lastName, String company, String taxNumber, String country, String city, String zipCode, String street, Boolean isDefault, Boolean isDeleted) {
+        this.id = id;
+        this.userId = userId;
+        this.firstName = firstName;
+        this.lastName = lastName;
+        this.company = company;
+        this.taxNumber = taxNumber;
+        this.country = country;
+        this.city = city;
+        this.zipCode = zipCode;
+        this.street = street;
+        this.isDefault = isDefault;
+        this.isDeleted = isDeleted;
+    }
     
 
     public Integer getId() {
@@ -452,7 +467,7 @@ public class Addresses implements Serializable {
         try {
             em.getTransaction().begin();
 
-            StoredProcedureQuery spq = em.createNamedStoredProcedureQuery("softDeleteAddress");
+            StoredProcedureQuery spq = em.createStoredProcedureQuery("softDeleteAddress");
             spq.registerStoredProcedureParameter("p_address_id", Integer.class, ParameterMode.IN);
             spq.setParameter("p_address_id", id);
 
@@ -472,36 +487,41 @@ public class Addresses implements Serializable {
         }
     }
     
-    /*public static Boolean updateAddress(Addresses updatedAddress) {
+    public static Boolean updateAddress(Addresses updatedAddress) {
         EntityManager em = emf.createEntityManager();
 
         try {
             em.getTransaction().begin();
             StoredProcedureQuery spq = em.createStoredProcedureQuery("updateAddress");
-
+            
+            // Integer id, String firstName, String lastName, String company, String taxNumber, String country, String city, 
+            //String zipCode, String street, Boolean isDefault, Boolean isDeleted, Users userId
+            
+            
             spq.registerStoredProcedureParameter("p_address_id", Integer.class, ParameterMode.IN);
-            spq.registerStoredProcedureParameter("p_email", String.class, ParameterMode.IN);
-            spq.registerStoredProcedureParameter("p_username", String.class, ParameterMode.IN);
+            spq.registerStoredProcedureParameter("p_user_id", Integer.class, ParameterMode.IN);
             spq.registerStoredProcedureParameter("p_first_name", String.class, ParameterMode.IN);
             spq.registerStoredProcedureParameter("p_last_name", String.class, ParameterMode.IN);
-            spq.registerStoredProcedureParameter("p_phone", String.class, ParameterMode.IN);
-            spq.registerStoredProcedureParameter("p_role", String.class, ParameterMode.IN);
-            spq.registerStoredProcedureParameter("p_is_active", Boolean.class, ParameterMode.IN);
-            spq.registerStoredProcedureParameter("p_password", String.class, ParameterMode.IN);
-            spq.registerStoredProcedureParameter("p_registration_token", String.class, ParameterMode.IN);
-            spq.registerStoredProcedureParameter("p_auth_secret", String.class, ParameterMode.IN);
-
+            spq.registerStoredProcedureParameter("p_company", String.class, ParameterMode.IN);
+            spq.registerStoredProcedureParameter("p_tax_number", String.class, ParameterMode.IN);
+            spq.registerStoredProcedureParameter("p_country", String.class, ParameterMode.IN);
+            spq.registerStoredProcedureParameter("p_city", String.class, ParameterMode.IN);
+            spq.registerStoredProcedureParameter("p_zip_code", String.class, ParameterMode.IN);
+            spq.registerStoredProcedureParameter("p_street", String.class, ParameterMode.IN);
+            spq.registerStoredProcedureParameter("p_is_default", Integer.class, ParameterMode.IN);
+            spq.registerStoredProcedureParameter("p_is_deleted", Integer.class, ParameterMode.IN);
+            
             spq.setParameter("p_address_id", updatedAddress.getId());
-            spq.setParameter("p_email", updatedAddress.getEmail());
-            spq.setParameter("p_username", updatedAddress.getUsername());
+            spq.setParameter("p_user_id", updatedAddress.getUserId().getId());
             spq.setParameter("p_first_name", updatedAddress.getFirstName());
             spq.setParameter("p_last_name", updatedAddress.getLastName());
-            spq.setParameter("p_phone", updatedAddress.getPhone());
-            spq.setParameter("p_role", updatedAddress.getRole());
-            spq.setParameter("p_is_active", updatedAddress.getIsActive());
-            spq.setParameter("p_password", updatedAddress.getPassword());
-            spq.setParameter("p_registration_token", updatedAddress.getRegistrationToken());
-            spq.setParameter("p_auth_secret", updatedAddress.getAuthSecret());
+            spq.setParameter("p_company", updatedAddress.getCompany());
+            spq.setParameter("p_tax_number", updatedAddress.getTaxNumber());
+            spq.setParameter("p_country", updatedAddress.getCountry());
+            spq.setParameter("p_city", updatedAddress.getCity());
+            spq.setParameter("p_zip_code", updatedAddress.getZipCode());
+            spq.setParameter("p_street", updatedAddress.getStreet());
+            spq.setParameter("p_is_default", Boolean.TRUE.equals(updatedAddress.getIsDefault()) ? 1 : 0);
 
             spq.execute();
 
@@ -519,5 +539,5 @@ public class Addresses implements Serializable {
             em.clear();
             em.close();
         }
-    }*/
+    }
 }
