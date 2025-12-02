@@ -140,7 +140,7 @@ public class UserLogs implements Serializable {
     public static Boolean createUserLogs(UserLogs createdUserLog, Integer userId) {
         EntityManager em = emf.createEntityManager();
         try {
-            StoredProcedureQuery spq = em.createStoredProcedureQuery("createUser");
+            StoredProcedureQuery spq = em.createStoredProcedureQuery("createUserLogs");
 
             spq.registerStoredProcedureParameter("p_user_id", Integer.class, ParameterMode.IN);
             spq.registerStoredProcedureParameter("p_action", String.class, ParameterMode.IN);

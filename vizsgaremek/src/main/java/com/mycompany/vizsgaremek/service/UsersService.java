@@ -135,7 +135,7 @@ public class UsersService {
             errors.put("InternalServerError");
             return errorAuth.createErrorResponse(errors, 500);
         }
-        
+
         //Create OTP
         Random random = new Random();
         createdUser.setAuthSecret(
@@ -153,10 +153,23 @@ public class UsersService {
         if (!modelResult) {
             errors.put("ModelError");
         }
-        
-        Boolean userLog = UserLogs.createUserLogs(createdUserLog, modelResult.  )
-        if (modelResult) {
-            
+
+        if (errorAuth.hasErrors(errors)) {
+            return errorAuth.createErrorResponse(errors, 500);
+        }
+
+        UserLogs createdUserLog = new UserLogs();
+        createdUserLog.setAction("createUser");
+        createdUserLog.setDetails("User " + createdUser.getUsername() + " registered.");
+
+        Boolean userLog = UserLogs.createUserLogs(createdUserLog, Users.getUserByEmail(createdUser.getEmail()).getId());
+
+        if (!userLog) {
+            errors.put("UserLogError");
+        }
+
+        if (errorAuth.hasErrors(errors)) {
+            toReturn.put("message", "Failed To Log User Action");
         }
 
         toReturn.put("JWTToken", JwtUtil.generateToken(createdUser.getId(), createdUser.getEmail(), createdUser.getRole(), createdUser.getUsername()));
@@ -440,44 +453,58 @@ public class UsersService {
             return errorAuth.createErrorResponse(errors, 404);
         }
 
+        ArrayList<String> updatedDatas = new ArrayList<String>();
+
         //if email is NOT missing AND IS VALID
         if (!userAuth.isDataMissing(updatedUser.getEmail()) && userAuth.isValidEmail(updatedUser.getEmail())) {
             existingUser.setEmail(updatedUser.getEmail());
+            if (searchData != updatedUser.getEmail()) {
+                updatedDatas.add("email");
+            }
         }
-
+        
+        String oldUsername = existingUser.getUsername();;
+        
         //if username is NOT missing AND IS VALID
         if (!userAuth.isDataMissing(updatedUser.getUsername()) && userAuth.isValidUsername(updatedUser.getUsername())) {
             existingUser.setUsername(updatedUser.getUsername());
+            updatedDatas.add("username");
         }
 
         //if firstName is NOT missing AND IS VALID
         if (!userAuth.isDataMissing(updatedUser.getFirstName()) && userAuth.isValidFirstName(updatedUser.getFirstName())) {
             existingUser.setFirstName(updatedUser.getFirstName());
+            updatedDatas.add("first name");
         }
 
         //if lastName is NOT missing AND IS VALID
         if (!userAuth.isDataMissing(updatedUser.getLastName()) && userAuth.isValidFirstName(updatedUser.getLastName())) {
             existingUser.setLastName(updatedUser.getLastName());
+            updatedDatas.add("last name");
         }
 
         //if phone is NOT missing AND IS VALID
         if (!userAuth.isDataMissing(updatedUser.getPhone()) && userAuth.isValidPhone(updatedUser.getPhone())) {
             existingUser.setPhone(updatedUser.getPhone());
+            updatedDatas.add("phone");
         }
 
         //if isActive is NOT missing AND IS VALID
         if (!userAuth.isDataMissing(updatedUser.getIsActive()) && userAuth.isValidIsActive(updatedUser.getIsActive())) {
             existingUser.setIsActive(updatedUser.getIsActive());
+            updatedDatas.add("is active");
         }
 
         //if authSecret is NOT missing AND IS VALID
         if (!userAuth.isDataMissing(updatedUser.getAuthSecret()) && userAuth.isValidAuthSecret(updatedUser.getAuthSecret())) {
             existingUser.setAuthSecret(updatedUser.getAuthSecret());
+            updatedDatas.add("auth secret");
         }
 
         //if registrationToken is NOT missing AND IS VALID
         if (!userAuth.isDataMissing(updatedUser.getRegistrationToken()) && userAuth.isValidRegistrationToken(updatedUser.getRegistrationToken())) {
             existingUser.setRegistrationToken(updatedUser.getRegistrationToken());
+            updatedDatas.add("registration token");
         }
 
         //if username is NOT missing AND is NOT VALID
@@ -559,6 +586,20 @@ public class UsersService {
             return errorAuth.createErrorResponse(errors, 500);
         }
 
+        UserLogs createdUserLog = new UserLogs();
+        createdUserLog.setAction("updateUser");
+        createdUserLog.setDetails("User " + oldUsername + " Updated the following data(s): " + updatedDatas.toString());
+
+        Boolean userLog = UserLogs.createUserLogs(createdUserLog, existingUser.getId());
+
+        if (!userLog) {
+            errors.put("UserLogError");
+        }
+
+        if (errorAuth.hasErrors(errors)) {
+            toReturn.put("message", "Failed To Log User Action");
+        }
+
         return errorAuth.createOKResponse();
     }
 
@@ -632,6 +673,20 @@ public class UsersService {
         //if ModelError
         if (errorAuth.hasErrors(errors)) {
             return errorAuth.createErrorResponse(errors, 500);
+        }
+
+        UserLogs createdUserLog = new UserLogs();
+        createdUserLog.setAction("loginUser");
+        createdUserLog.setDetails("User " + userData.getUsername() + " logged in.");
+
+        Boolean userLog = UserLogs.createUserLogs(createdUserLog, userData.getId());
+
+        if (!userLog) {
+            errors.put("UserLogError");
+        }
+
+        if (errorAuth.hasErrors(errors)) {
+            toReturn.put("message", "Failed To Log User Action");
         }
 
         toReturn.put("JWTToken", JwtUtil.generateToken(userData.getId(), userData.getEmail(), userData.getRole(), userData.getUsername()));
