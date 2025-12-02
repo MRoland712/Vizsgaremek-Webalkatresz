@@ -2,9 +2,9 @@
   <form [formGroup]="loginForm" (ngSubmit)="onLoginSubmit()">
     <div class="login-container">
       <div class="form-header">
-        <a href=""
-          ><img src="assets/CarComps_Logo_C_white.png" alt="CarComps Logo" class="logo"
-        /></a>
+        <a routerLink="/">
+          <img src="assets/CarComps_Logo_C_white.png" alt="CarComps Logo" class="logo" />
+        </a>
 
         <h2>Bejelentkezés</h2>
       </div>
@@ -30,7 +30,7 @@
         />
         <label for="password" class="form__label">Jelszó</label>
         <div class="forgot-password-container">
-          <a href="">elfelejtetted a jelszavad?</a>
+          <a routerLink="/login">elfelejtetted a jelszavad?</a>
         </div>
       </div>
 
@@ -45,7 +45,7 @@
       </div>
     </div>
     <button type="submit" class="button">Bejelentkezés</button>
-    <p>Nincs még fiókod?<a href="" class="reg-link">Regisztrálj egy újat!</a></p>
+    <p>Nincs még fiókod?<a routerLink="/registration" class="reg-link">Regisztrálj egy újat!</a></p>
     @if (emailIsInvalid) {
     <p class="error-message">hibás email</p>
     } @if (passwordIsInvalid) {

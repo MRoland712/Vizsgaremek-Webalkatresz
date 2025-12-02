@@ -6,6 +6,7 @@ import {
   ReactiveFormsModule,
   Validators,
 } from '@angular/forms';
+import { Router, RouterLink } from '@angular/router';
 import { debounceTime } from 'rxjs';
 import { LoginService } from './login.service';
 
@@ -20,21 +21,13 @@ if (savedForm) {
 
 @Component({
   selector: 'app-login',
-  imports: [ReactiveFormsModule],
+  imports: [ReactiveFormsModule, RouterLink],
   templateUrl: './login.component.html',
   styleUrl: './login.component.css',
 })
 export class LoginComponent implements OnInit {
   private destroyRef = inject(DestroyRef);
-
-  // loginForm = new FormGroup({
-  //   email: new FormControl(initialEmailValue, {
-  //     validators: [Validators.email, Validators.required],
-  //   }),
-  //   password: new FormControl(initialPasswordValue, {
-  //     validators: [Validators.required],
-  //   }),
-  // });
+  private router = inject(Router);
 
   fb = inject(FormBuilder);
   loginService = inject(LoginService);
@@ -49,33 +42,24 @@ export class LoginComponent implements OnInit {
       email: this.loginForm.value.email!,
       password: this.loginForm.value.password!,
     };
-    // spread operator másolatot csinál az eredeti objectről
-
-    // const secondObject = {
-    //   ...finalLoginData,
-    //   email: 'asdfg',
-    // };
 
     console.log(finalLoginData);
-    // console.log(secondObject);
 
     this.loginService.login(finalLoginData).subscribe({
       next: (res) => {
         console.log(res);
         localStorage.setItem('jwt', res.result.JWTToken!);
+        // Sikeres bejelentkezés után navigálás a főoldalra
+        this.router.navigate(['/']);
+      },
+      error: (err) => {
+        console.error('Bejelentkezési hiba:', err);
+        // Itt kezelheted a hibákat (pl. toast üzenet)
       },
     });
   }
-  ngOnInit() {
-    // const savedForm = window.localStorage.getItem('saved-login-form');
-    //  if (savedForm) {
-    //    const loadedForm = JSON.parse(savedForm);
-    //   this.loginForm.patchValue({
-    //     email: loadedForm.email,
-    //    password: loadedForm.password,
-    //  });
-    //  }
 
+  ngOnInit() {
     const subscription = this.loginForm.valueChanges.pipe(debounceTime(500)).subscribe({
       next: (value) => {
         window.localStorage.setItem(
@@ -86,6 +70,7 @@ export class LoginComponent implements OnInit {
     });
     this.destroyRef.onDestroy(() => subscription.unsubscribe());
   }
+
   get emailIsInvalid() {
     return (
       this.loginForm.controls.email.touched &&
@@ -93,6 +78,7 @@ export class LoginComponent implements OnInit {
       this.loginForm.controls.email.invalid
     );
   }
+
   get passwordIsInvalid() {
     return (
       this.loginForm.controls.password.touched &&

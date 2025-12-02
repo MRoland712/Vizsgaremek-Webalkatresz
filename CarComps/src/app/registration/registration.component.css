@@ -16,7 +16,7 @@
   left: 0;
   width: 550px;
   height: 100%;
-  background-color: #3a3a3a;
+  background-color: white;
   z-index: 1;
 }
 
@@ -121,7 +121,7 @@ form {
   font-size: 1rem;
   cursor: text;
   top: 10px;
-  color: rgba(255, 255, 255, 0.6);
+  color: #ffffff;
 }
 
 /* Floating labels */
@@ -132,7 +132,7 @@ form {
   display: block;
   transition: 0.3s;
   font-size: 0.85rem;
-  color: rgba(255, 255, 255, 0.8);
+  color: #ffffff;
   font-weight: 400;
   pointer-events: none;
 }

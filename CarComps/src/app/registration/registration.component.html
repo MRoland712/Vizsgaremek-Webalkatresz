@@ -2,7 +2,9 @@
   <form [formGroup]="signupForm" (ngSubmit)="onSignUpSubmit()">
     <div class="login-container">
       <div class="form-header">
-        <img src="assets/CarComps_Logo_C_white.png" alt="CarComps Logo" class="logo" />
+        <a routerLink="/">
+          <img src="assets/CarComps_Logo_C_white.png" alt="CarComps Logo" class="logo" />
+        </a>
         <!--új wallpaper-->
         <h2>Regisztráció</h2>
       </div>
@@ -111,6 +113,6 @@
     </div>
 
     <button type="submit" class="button">Fiók létrehozása</button>
-    <p>Van már fiókod?<a href="/login" class="reg-link">Jelentkezz be!</a></p>
+    <p>Van már fiókod?<a routerLink="/login" class="reg-link">Jelentkezz be!</a></p>
   </form>
 </div>

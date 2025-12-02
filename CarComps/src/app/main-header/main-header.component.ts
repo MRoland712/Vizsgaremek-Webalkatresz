@@ -1,11 +1,13 @@
 import { Component, DestroyRef, inject, signal } from '@angular/core';
 import { FormControl, ReactiveFormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
+import { RouterLink } from '@angular/router';
 import { debounceTime, distinctUntilChanged } from 'rxjs';
 import { SearchResult } from '../main-header/search.service';
+
 @Component({
   selector: 'app-main-header',
-  imports: [ReactiveFormsModule, CommonModule],
+  imports: [ReactiveFormsModule, CommonModule, RouterLink],
   templateUrl: './main-header.component.html',
   styleUrl: './main-header.component.css',
 })

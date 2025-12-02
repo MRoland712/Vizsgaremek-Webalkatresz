@@ -7,6 +7,7 @@ import {
   ValidationErrors,
   Validators,
 } from '@angular/forms';
+import { Router, RouterLink } from '@angular/router';
 import {
   mustContainNumbers,
   mustContainSpecialCharacters,
@@ -18,12 +19,14 @@ import {
 
 @Component({
   selector: 'app-reg',
-  imports: [ReactiveFormsModule],
+  imports: [ReactiveFormsModule, RouterLink],
   templateUrl: './registration.component.html',
   styleUrls: ['./registration.component.css'],
 })
 export class RegistrationComponent {
   registerService = inject(RegisterService);
+  private router = inject(Router);
+
   signupForm = new FormGroup({
     firstname: new FormControl('', {
       validators: [Validators.required],
@@ -90,6 +93,7 @@ export class RegistrationComponent {
       (this.signupForm.controls.rePassword.invalid || this.signupForm.errors?.['passwordMismatch'])
     );
   }
+
   get firstnameIsInvalid() {
     return (
       this.signupForm.controls.rePassword.touched &&
@@ -97,6 +101,7 @@ export class RegistrationComponent {
       this.signupForm.controls.firstname.invalid
     );
   }
+
   get lastnameIsInvalid() {
     return (
       this.signupForm.controls.rePassword.touched &&
@@ -104,6 +109,7 @@ export class RegistrationComponent {
       this.signupForm.controls.firstname.invalid
     );
   }
+
   get phoneNumberIsInvalid() {
     return (
       this.signupForm.controls.phone.touched &&
@@ -111,7 +117,9 @@ export class RegistrationComponent {
       this.signupForm.controls.phone.invalid
     );
   }
+
   isLoading() {}
+
   onSignUpSubmit() {
     const finalRegisterData = {
       firstName: this.signupForm.value.firstname!,
@@ -126,6 +134,12 @@ export class RegistrationComponent {
       next: (res) => {
         console.log(res);
         localStorage.setItem('jwt', res.result.JWTToken!);
+        // Sikeres regisztráció után navigálás a főoldalra
+        this.router.navigate(['/']);
+      },
+      error: (err) => {
+        console.error('Regisztrációs hiba:', err);
+        // Itt kezelheted a hibákat (pl. toast üzenet)
       },
     });
   }
