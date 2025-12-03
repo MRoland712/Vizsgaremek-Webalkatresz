@@ -216,9 +216,7 @@ public class UsersService {
         }
 
         toReturn.put("result", result);
-        toReturn.put("status", "success");
-        toReturn.put("statusCode", 200);
-        return toReturn;
+        return errorAuth.createOKResponse(toReturn);
 
     }
 
@@ -252,33 +250,32 @@ public class UsersService {
         //error check if user not found
         if (errorAuth.hasErrors(errors)) {
             return errorAuth.createErrorResponse(errors, 404);
-        } else {
-            JSONObject result = new JSONObject();
-
-            result.put("id", modelResult.getId());
-            result.put("guid", modelResult.getGuid());
-            result.put("email", modelResult.getEmail());
-            result.put("username", modelResult.getUsername());
-            result.put("password", modelResult.getPassword());
-            result.put("firstName", modelResult.getFirstName());
-            result.put("lastName", modelResult.getLastName());
-            result.put("phone", modelResult.getPhone());
-            result.put("isActive", modelResult.getIsActive());
-            result.put("role", modelResult.getRole());
-            result.put("createdAt", modelResult.getCreatedAt() == null ? "" : modelResult.getCreatedAt().toString());
-            result.put("updateAt", modelResult.getUpdatedAt() == null ? "" : modelResult.getUpdatedAt().toString());
-            result.put("lastLogin", modelResult.getLastLogin() == null ? "" : modelResult.getLastLogin().toString());
-            result.put("isDeleted", modelResult.getIsDeleted());
-            result.put("authSecret", modelResult.getAuthSecret());
-            result.put("registrationToken", modelResult.getRegistrationToken());
-
-            toReturn.put("result", result);
-            toReturn.put("status", "success");
-            toReturn.put("statusCode", 200);
-            return toReturn;
         }
+        JSONObject result = new JSONObject();
+
+        result.put("id", modelResult.getId());
+        result.put("guid", modelResult.getGuid());
+        result.put("email", modelResult.getEmail());
+        result.put("username", modelResult.getUsername());
+        result.put("password", modelResult.getPassword());
+        result.put("firstName", modelResult.getFirstName());
+        result.put("lastName", modelResult.getLastName());
+        result.put("phone", modelResult.getPhone());
+        result.put("isActive", modelResult.getIsActive());
+        result.put("role", modelResult.getRole());
+        result.put("createdAt", modelResult.getCreatedAt() == null ? "" : modelResult.getCreatedAt().toString());
+        result.put("updateAt", modelResult.getUpdatedAt() == null ? "" : modelResult.getUpdatedAt().toString());
+        result.put("lastLogin", modelResult.getLastLogin() == null ? "" : modelResult.getLastLogin().toString());
+        result.put("isDeleted", modelResult.getIsDeleted());
+        result.put("authSecret", modelResult.getAuthSecret());
+        result.put("registrationToken", modelResult.getRegistrationToken());
+
+        toReturn.put("result", result);
+        toReturn.put("status", "success");
+        toReturn.put("statusCode", 200);
+        return toReturn;
+
     }
-//ToDo: checkolni hogy kell-e break a kód közben (úgy mint a updateUser-ben error check)
 
     public JSONObject getUserByEmail(String email) {
         JSONObject toReturn = new JSONObject();
@@ -303,35 +300,36 @@ public class UsersService {
         Users modelResult = Users.getUserByEmail(email);
         System.out.println("getUserByEmail Modelresult " + modelResult);
         //if spq gives null data
-        if (modelResult == null) {
+        if (userAuth.isDataMissing(modelResult)) {
             errors.put("UserNotFound");
         }
 
         //if user is not found
         if (errorAuth.hasErrors(errors)) {
             return errorAuth.createErrorResponse(errors, 404);
-        } else {
-            JSONObject result = new JSONObject();
-
-            result.put("id", modelResult.getId());
-            result.put("guid", modelResult.getGuid());
-            result.put("email", modelResult.getEmail());
-            result.put("username", modelResult.getUsername());
-            result.put("password", modelResult.getPassword());
-            result.put("firstName", modelResult.getFirstName());
-            result.put("lastName", modelResult.getLastName());
-            result.put("phone", modelResult.getPhone());
-            result.put("isActive", modelResult.getIsActive());
-            result.put("role", modelResult.getRole());
-            result.put("createdAt", modelResult.getCreatedAt() == null ? "" : modelResult.getCreatedAt().toString());
-            result.put("updateAt", modelResult.getUpdatedAt() == null ? "" : modelResult.getUpdatedAt().toString());
-            result.put("lastLogin", modelResult.getLastLogin() == null ? "" : modelResult.getLastLogin().toString());
-            result.put("isDeleted", modelResult.getIsDeleted());
-            result.put("authSecret", modelResult.getAuthSecret());
-            result.put("registrationToken", modelResult.getRegistrationToken());
-
-            return errorAuth.createOKResponse(result);
         }
+        JSONObject result = new JSONObject();
+
+        result.put("id", modelResult.getId());
+        result.put("guid", modelResult.getGuid());
+        result.put("email", modelResult.getEmail());
+        result.put("username", modelResult.getUsername());
+        result.put("password", modelResult.getPassword());
+        result.put("firstName", modelResult.getFirstName());
+        result.put("lastName", modelResult.getLastName());
+        result.put("phone", modelResult.getPhone());
+        result.put("isActive", modelResult.getIsActive());
+        result.put("role", modelResult.getRole());
+        result.put("createdAt", modelResult.getCreatedAt() == null ? "" : modelResult.getCreatedAt().toString());
+        result.put("updateAt", modelResult.getUpdatedAt() == null ? "" : modelResult.getUpdatedAt().toString());
+        result.put("lastLogin", modelResult.getLastLogin() == null ? "" : modelResult.getLastLogin().toString());
+        result.put("isDeleted", modelResult.getIsDeleted());
+        result.put("authSecret", modelResult.getAuthSecret());
+        result.put("registrationToken", modelResult.getRegistrationToken());
+
+        toReturn.put("result", result);
+        return errorAuth.createOKResponse(toReturn);
+
     }
 
     public JSONObject softDeleteUser(Integer id) {
@@ -339,7 +337,7 @@ public class UsersService {
         JSONArray errors = new JSONArray();
 
         //If id is Missing
-        if (!userAuth.isDataMissing(id)) {
+        if (userAuth.isDataMissing(id)) {
             errors.put("MissingId");
         }
 
@@ -357,7 +355,7 @@ public class UsersService {
         Users modelResult = Users.getUserById(id);
 
         //if spq gives null data
-        if (modelResult == null) {
+        if (userAuth.isDataMissing(modelResult)) {
             errors.put("UserNotFound");
         }
 
@@ -376,7 +374,7 @@ public class UsersService {
         }
 
         Boolean result = Users.softDeleteUser(id);
-
+        System.out.println("softDeleteUser result:"+ result);
         if (!result) {
             errors.put("ServerError");
         }
@@ -386,10 +384,22 @@ public class UsersService {
             return errorAuth.createErrorResponse(errors, 500);
         }
 
-        toReturn.put("status", "success");
-        toReturn.put("statusCode", 200);
-        toReturn.put("message", "Deleted User Succesfully");
-        return toReturn;
+        UserLogs createdUserLog = new UserLogs();
+        createdUserLog.setAction("softDeleteUser");
+        createdUserLog.setDetails("User " + modelResult.getUsername() + " Has deleted their account. ");
+
+        Boolean userLog = UserLogs.createUserLogs(createdUserLog, modelResult.getId());
+
+        if (!userLog) {
+            errors.put("UserLogError");
+        }
+
+        if (errorAuth.hasErrors(errors)) {
+            toReturn.put("warning", "Failed To Log User Action");
+            return errorAuth.createOKResponse(toReturn);
+        }
+        
+        return errorAuth.createOKResponse();
     }
 
     public JSONObject updateUser(Users updatedUser) {
@@ -462,9 +472,9 @@ public class UsersService {
                 updatedDatas.add("email");
             }
         }
-        
+
         String oldUsername = existingUser.getUsername();;
-        
+
         //if username is NOT missing AND IS VALID
         if (!userAuth.isDataMissing(updatedUser.getUsername()) && userAuth.isValidUsername(updatedUser.getUsername())) {
             existingUser.setUsername(updatedUser.getUsername());
@@ -597,7 +607,7 @@ public class UsersService {
         }
 
         if (errorAuth.hasErrors(errors)) {
-            toReturn.put("message", "Failed To Log User Action");
+            toReturn.put("warning", "Failed To Log User Action");
         }
 
         return errorAuth.createOKResponse();

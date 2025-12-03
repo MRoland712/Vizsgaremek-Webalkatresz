@@ -665,7 +665,7 @@ public class Users implements Serializable {
         try {
             em.getTransaction().begin();
 
-            StoredProcedureQuery spq = em.createNamedStoredProcedureQuery("softDeleteUser");
+            StoredProcedureQuery spq = em.createStoredProcedureQuery("softDeleteUser");
             spq.registerStoredProcedureParameter("p_user_id", Integer.class, ParameterMode.IN);
             spq.setParameter("p_user_id", id);
 
@@ -678,6 +678,7 @@ public class Users implements Serializable {
             if (em.getTransaction().isActive()) {
                 em.getTransaction().rollback(); // ha hiba van, rollback
             }
+            System.err.println(e);
             return false;
         } finally {
             em.clear();
