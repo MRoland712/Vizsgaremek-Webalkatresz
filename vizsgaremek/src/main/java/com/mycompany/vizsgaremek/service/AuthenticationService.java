@@ -324,6 +324,9 @@ public class AuthenticationService {
         public boolean isDataMissing(String data) {
             return (data == null || data.trim().isEmpty());
         }
+        public boolean isDataMissing(Users data) {
+            return (data == null);
+        }
 
         public boolean isDataMissing(Integer data) {
             return (data == null);
@@ -345,11 +348,17 @@ public class AuthenticationService {
             return (data == null || data.isEmpty());
         }
 
-        //ToDO: add a try catch for each isValid method 💀💀 vagy megnezni azt hogy object instanceog <x>
         public boolean isValidId(Integer id) {
             return id > 0 && id.toString().length() <= 11;
         }
-        //ToDo: is username in db? 
+        
+        public boolean isValidUserId(Users user) {
+            Integer userId = user.getId();
+            return userId > 0 && userId.toString().length() <= 11;
+        }
+        public boolean isValidUserId(Integer userId) {
+            return userId > 0 && userId.toString().length() <= 11;
+        }
 
         public boolean isValidFirstName(String firstName) {
             return firstName.length() <= 50;
@@ -366,8 +375,23 @@ public class AuthenticationService {
         public boolean isValidTaxNumber(String taxNumber) {
             return taxNumber.length() <= 50;
         }
+        
+        public boolean isValidZipCode(String zipCode){
+            return zipCode.length() <= 50;
+        }
+        
+        public boolean isValidStreet(String street){
+            return street.length() <= 50;
+        }
+        
+        public boolean isValidCity(String city){
+            return city.length() <= 50;
+        }
+        
+        public boolean isValidCountry (String country){
+            return country.length() <= 50;
+        }
 
-        // rá kell nézi erre pontosan 
         public boolean isValidIsDefault(Boolean isDefault) {
             return isDefault instanceof Boolean;
         }

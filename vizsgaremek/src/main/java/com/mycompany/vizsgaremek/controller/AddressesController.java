@@ -118,6 +118,19 @@ public class AddressesController {
                 .type(MediaType.APPLICATION_JSON)
                 .build();
     }
+    
+    @GET
+    @Path("getAddressByUserId")
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response getAddressByUserId(@QueryParam("userId") Integer id) {
+
+        JSONObject toReturn = layer.getAddressByUserId(id);
+
+        return Response.status(Integer.parseInt(toReturn.get("statusCode").toString()))
+                .entity(toReturn.toString())
+                .type(MediaType.APPLICATION_JSON)
+                .build();
+    }
 
     @PUT
     @Path("softDeleteAddress")
@@ -131,65 +144,88 @@ public class AddressesController {
                 .type(MediaType.APPLICATION_JSON)
                 .build();
     }
-    
-    /*@PUT
+
+    @PUT
     @Path("updateAddress")
     @Consumes(MediaType.APPLICATION_JSON)
     public Response updateAddress(
             @QueryParam("id") Integer addressId,
             @QueryParam("userId") Integer userId,
-            @QueryParam("email") String email,
+            @QueryParam("street") String street,
             String body) {
-        
-            JSONObject bodyObject = new JSONObject(body);
 
-            Addresses updatedAddress = new Addresses();
-            
-            if(addressId != null){
-                updatedAddress.setId(addressId);
-            }
+        JSONObject bodyObject = new JSONObject(body);
 
-            if (userId != null) {
-                updatedAddress.getUserId();
-            }
-            spq.setParameter("p_user_id", createdAddress.getUserId().getId());
-            spq.setParameter("p_first_name", createdAddress.getFirstName());
-            spq.setParameter("p_last_name", createdAddress.getLastName());
-            spq.setParameter("p_company", createdAddress.getCompany());
-            spq.setParameter("p_tax_number", createdAddress.getTaxNumber());
-            spq.setParameter("p_country", createdAddress.getCountry());
-            spq.setParameter("p_city", createdAddress.getCity());
-            spq.setParameter("p_zip_code", createdAddress.getZipCode());
-            spq.setParameter("p_street", createdAddress.getStreet());
-            spq.setParameter("p_is_default", Boolean.TRUE.equals(createdAddress.getIsDefault()) ? 1 : 0);
-            
-            if (bodyObject.has("firstName")) {
-                updatedAddress.setFirstName(bodyObject.getString("firstName"));
-            }
+        Addresses updatedAddress = new Addresses();
 
-            if (bodyObject.has("lastName")) {
-                updatedAddress.setLastName(bodyObject.getString("lastName"));
-            }
-
-            if (bodyObject.has("company")) {
-                updatedAddress.setCompany(bodyObject.getString("company"));
-            }
-
-            if (bodyObject.has("taxNumber")) {
-                updatedAddress.setTaxNumber(bodyObject.getString("taxNumber"));
-            }
-
-            if (bodyObject.has("password")) {
-                updatedAddress.setPassword(bodyObject.getString("password"));
-            }
-
-
-            JSONObject toReturn = layer.updateUser(updatedUser);
-
-            return Response.status(Integer.parseInt(toReturn.get("statusCode").toString()))
-                    .entity(toReturn.toString())
-                    .type(MediaType.APPLICATION_JSON)
-                    .build();
+        if (addressId != null) {
+            updatedAddress.setId(addressId);
         }
-    }*/
+
+        if (street != null) {
+            updatedAddress.setStreet(street);
+        }
+
+        if (userId != null) {
+            Users user = new Users();
+            user.setId(userId);
+            updatedAddress.setUserId(user);
+        } else if (addressId != null || street != null){
+            Users user = new Users();
+            Integer idFromAddressId = Addresses.getAddressById(addressId).getId();
+            Integer idFromStreet = null; //Addresses.getAddressByStreet(street).getId();
+            if (idFromAddressId != null || idFromStreet != null) {
+                user.setId(idFromAddressId != null ? idFromAddressId : idFromStreet);
+            } else {
+                return Response.status(400).entity("invalidSearchParameter").type(MediaType.APPLICATION_JSON).build();
+            }
+            updatedAddress.setUserId(user);
+        } else {
+            return Response.status(400).entity("invalidSearchParameter").type(MediaType.APPLICATION_JSON).build();
+        }
+
+        if (bodyObject.has("firstName")) {
+            updatedAddress.setFirstName(bodyObject.getString("firstName"));
+        }
+
+        if (bodyObject.has("lastName")) {
+            updatedAddress.setLastName(bodyObject.getString("lastName"));
+        }
+
+        if (bodyObject.has("company")) {
+            updatedAddress.setCompany(bodyObject.getString("company"));
+        }
+
+        if (bodyObject.has("taxNumber")) {
+            updatedAddress.setTaxNumber(bodyObject.getString("taxNumber"));
+        }
+
+        if (bodyObject.has("country")) {
+            updatedAddress.setCountry(bodyObject.getString("country"));
+        }
+        
+        if (bodyObject.has("city")) {
+            updatedAddress.setCity(bodyObject.getString("city"));
+        }
+        
+        if (bodyObject.has("zipCode")) {
+            updatedAddress.setZipCode(bodyObject.getString("zipCode"));
+        }
+        
+        if (bodyObject.has("street")) {
+            updatedAddress.setStreet(bodyObject.getString("street"));
+        }
+        
+        if (bodyObject.has("isDefault")) {
+            updatedAddress.setIsDefault(bodyObject.getBoolean("isDefault"));
+        }
+
+        JSONObject toReturn = layer.updateAddress(updatedAddress);
+
+        return Response.status(Integer.parseInt(toReturn.get("statusCode").toString()))
+                .entity(toReturn.toString())
+                .type(MediaType.APPLICATION_JSON)
+                .build();
+    }
 }
+

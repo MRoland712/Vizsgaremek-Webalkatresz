@@ -143,7 +143,7 @@ public class Addresses implements Serializable {
         this.isDefault = isDefault;
     }
 
-    //getAllAddresses & getAddressById
+    //getAllAddresses & getAddressById & getAddressByUserId
     public Addresses(Integer id, String firstName, String lastName, String company, String taxNumber, String country, String city, String zipCode, String street, Boolean isDefault, Date createdAt, Date updatedAt, Boolean isDeleted, Date deletedAt, Users userId) {
         this.id = id;
         this.firstName = firstName;
@@ -296,10 +296,10 @@ public class Addresses implements Serializable {
         return userId;
     }
 
-    /*
+    
     public void setUserId(Users userId) {
         this.userId = userId;
-    }*/
+    }
     @Override
     public int hashCode() {
         int hash = 0;
@@ -461,6 +461,52 @@ public class Addresses implements Serializable {
         }
     }
     
+    public static Addresses getAddressByUserId(Integer userId) {
+        EntityManager em = emf.createEntityManager();
+        try {
+            StoredProcedureQuery spq = em.createStoredProcedureQuery("getAddressByUserId");
+            spq.registerStoredProcedureParameter("p_user_id", Integer.class, ParameterMode.IN);
+            spq.setParameter("p_user_id", userId);
+            spq.execute();
+
+            List<Object[]> resultList = spq.getResultList();
+
+            // Csak EGY rekord van (getById)
+            Object[] record = resultList.get(0);
+
+            // Users objektum létrehozása
+            Users user = new Users();
+            user.setId(Integer.valueOf(record[1].toString()));
+
+            // Addresses objektum létrehozása
+            Addresses a = new Addresses(
+                    Integer.valueOf(record[0].toString()), // 1. id
+                    record[2] != null ? record[2].toString() : null, // 2. firstName
+                    record[3] != null ? record[3].toString() : null, // 3. lastName
+                    record[4] != null ? record[4].toString() : null, // 4. company
+                    record[5] != null ? record[5].toString() : null, // 5. taxNumber
+                    record[6] != null ? record[6].toString() : null, // 6. country
+                    record[7] != null ? record[7].toString() : null, // 7. city
+                    record[8] != null ? record[8].toString() : null, // 8. zipCode
+                    record[9] != null ? record[9].toString() : null, // 9. street
+                    Boolean.valueOf(record[10].toString()), // 10. isDefault
+                    record[11] == null ? null : formatter.parse(record[11].toString()), // 11. createdAt
+                    record[12] == null ? null : formatter.parse(record[12].toString()), // 12. updatedAt
+                    Boolean.FALSE, // 13. isDeleted
+                    null, // 14. deletedAt
+                    user // 15. userId
+            );
+
+            return a;
+
+        } catch (Exception ex) {
+            ex.printStackTrace();
+            return null;
+        } finally {
+            em.close();
+        }
+    }
+    
     public static Boolean softDeleteAddress(Integer id) {
         EntityManager em = emf.createEntityManager();
 
@@ -522,6 +568,7 @@ public class Addresses implements Serializable {
             spq.setParameter("p_zip_code", updatedAddress.getZipCode());
             spq.setParameter("p_street", updatedAddress.getStreet());
             spq.setParameter("p_is_default", Boolean.TRUE.equals(updatedAddress.getIsDefault()) ? 1 : 0);
+            spq.setParameter("p_is_deleted", Boolean.TRUE.equals(updatedAddress.getIsDefault()) ? 1 : 0);
 
             spq.execute();
 
