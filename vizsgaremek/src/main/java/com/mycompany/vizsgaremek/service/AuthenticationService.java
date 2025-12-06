@@ -7,6 +7,8 @@ package com.mycompany.vizsgaremek.service;
 import com.mycompany.vizsgaremek.model.Users;
 import com.mycompany.vizsgaremek.config.Encrypt;
 import com.mycompany.vizsgaremek.model.Addresses;
+import com.mycompany.vizsgaremek.model.Manufacturers;
+import com.mycompany.vizsgaremek.model.Parts;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.regex.Pattern;
@@ -405,5 +407,91 @@ public class AuthenticationService {
         }
 
     } //Address Auth Class closer
+    
+    //Parts
+    public static class partsAuth {
+
+        public boolean isDataMissing(String data) {
+            return (data == null || data.trim().isEmpty());
+        }
+        public boolean isDataMissing(Manufacturers data) {
+            return (data == null);
+        }
+
+        public boolean isDataMissing(Integer data) {
+            return (data == null);
+        }
+
+        public boolean isDataMissing(ArrayList<Parts> data) {
+            return (data == null || data.isEmpty());
+        }
+
+        public boolean isDataMissing(Boolean data) {
+            return (data == null);
+        }
+
+        public boolean isDataMissing(Parts data) {
+            return (data == null);
+        }
+
+        public boolean isDataMissing(List<Object[]> data) {
+            return (data == null || data.isEmpty());
+        }
+
+        public boolean isValidId(Integer id) {
+            return id > 0 && id.toString().length() <= 11;
+        }
+        
+        public boolean isValidManufacturerId(Manufacturers manufacturer) {
+            Integer manufacturerId = manufacturer.getId();
+            return manufacturerId > 0 && manufacturerId.toString().length() <= 11;
+        }
+        public boolean isValidManufacturerId(Integer manufacturerId) {
+            return manufacturerId > 0 && manufacturerId.toString().length() <= 11;
+        }
+
+        public boolean isValidSku(String sku) {
+            return sku.length() <= 50;
+        }
+
+        public boolean isValidName(String name) {
+            return name.length() <= 50;
+        }
+
+        public boolean isValidCategory(String category) {
+            return category.length() <= 50;
+        }
+        
+        //BigDecimal 
+        public boolean isValidPrice(String price) {
+            return price.length() <= 50;
+        }
+        
+        //Integer
+        public boolean isValidStock(String stock){
+            return stock.length() <= 50;
+        }
+        
+        public boolean isValidStatus(String status){
+            return status.length() <= 50;
+        }
+        
+        
+        // we will have to talk about this
+        public boolean isValidActive(Boolean isActive) {
+            return isActive instanceof Boolean;
+        }
+
+        public boolean isPartsDeleted(Boolean isDeleted) {
+            return (isDeleted == true);
+        }
+
+        public boolean isDataMissing(Addresses data) {
+            return (data == null);
+        }
+
+    } //Parts Auth Class closer
+  
+    
 }//Auth Service Class closer
 

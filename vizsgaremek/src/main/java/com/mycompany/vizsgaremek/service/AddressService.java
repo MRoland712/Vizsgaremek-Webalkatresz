@@ -29,7 +29,7 @@ public class AddressService {
      * isDeleted == null)
      */
     //ToDo: checkolni hogy kell-e break a kód közben (úgy mint a updateUser-ben error check)
-// AddressService.java
+    // AddressService.java
     public JSONObject createAddress(Addresses createAddress) {
         JSONObject toReturn = new JSONObject();
         JSONArray errors = new JSONArray();
@@ -37,6 +37,10 @@ public class AddressService {
         // VALIDÁCIÓK...
         if (addressAuth.isDataMissing(createAddress.getFirstName())) {
             errors.put("MissingFirstName");
+        }
+        
+        if (addressAuth.isDataMissing(createAddress.getUserId())) {
+            errors.put("MissingUserId");
         }
 
         if (addressAuth.isDataMissing(createAddress.getLastName())) {
@@ -50,6 +54,23 @@ public class AddressService {
         if (!addressAuth.isDataMissing(createAddress.getLastName()) && !addressAuth.isValidLastName(createAddress.getLastName())) {
             errors.put("InvalidLastName");
         }
+        
+        if (!addressAuth.isDataMissing(createAddress.getCountry()) && !addressAuth.isValidCountry(createAddress.getCountry())) {
+            errors.put("InvalidCountry");
+        }
+        
+        if (!addressAuth.isDataMissing(createAddress.getCity()) && !addressAuth.isValidCity(createAddress.getCity())) {
+            errors.put("InvalidCity");
+        }
+        
+        if (!addressAuth.isDataMissing(createAddress.getZipCode()) && !addressAuth.isValidZipCode(createAddress.getZipCode())) {
+            errors.put("InvalidZipCode");
+        }
+        
+        if (!addressAuth.isDataMissing(createAddress.getUserId()) && !addressAuth.isValidUserId(createAddress.getUserId())) {
+            errors.put("InvalidUserId");
+        }
+        
 
         if (errorAuth.hasErrors(errors)) {
             return errorAuth.createErrorResponse(errors, 400);
