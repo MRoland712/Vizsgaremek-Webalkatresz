@@ -26,9 +26,9 @@ import org.json.JSONObject;
  */
 @Path("userLogs")
 public class UserLogsController {
-    
+
     private UserLogsService layer = new UserLogsService();
-    
+
     @Context
     private UriInfo context;
 
@@ -39,7 +39,9 @@ public class UserLogsController {
     }
 
     /**
-     * Retrieves representation of an instance of com.mycompany.vizsgaremek.controller.UserLogsController
+     * Retrieves representation of an instance of
+     * com.mycompany.vizsgaremek.controller.UserLogsController
+     *
      * @return an instance of java.lang.String
      */
     @GET
@@ -51,20 +53,21 @@ public class UserLogsController {
 
     /**
      * PUT method for updating or creating an instance of UserLogsController
+     *
      * @param content representation for the resource
      */
     @PUT
     @Consumes(MediaType.APPLICATION_XML)
     public void putXml(String content) {
     }
-    
+
     @POST
     @Path("createUserLog")
     @Consumes(MediaType.APPLICATION_JSON)
     public Response createUserLogs(String body, @QueryParam("userId") Integer userId) {
 
         JSONObject bodyObject = new JSONObject(body);
-        
+
         UserLogs createdUserLog = new UserLogs(
                 bodyObject.has("action") ? bodyObject.getString("action") : null,
                 bodyObject.has("details") ? bodyObject.getString("details") : null
@@ -77,5 +80,25 @@ public class UserLogsController {
                 .type(MediaType.APPLICATION_JSON)
                 .build();
 
+    }
+
+    @PUT
+    @Path("updateUserLogs")
+    @Consumes(MediaType.APPLICATION_JSON)
+    public Response updateUserLogs(String body, @QueryParam("id") Integer id) {
+        
+        JSONObject bodyObject = new JSONObject(body);
+        
+        UserLogs updatedUserLog = new UserLogs(
+                bodyObject.has("action") ? bodyObject.getString("action") : null,
+                bodyObject.has("details") ? bodyObject.getString("details") : null
+        );
+
+        JSONObject toReturn = layer.updateUserLogs(updatedUserLog, id);
+
+        return Response.status(Integer.parseInt(toReturn.get("statusCode").toString()))
+                .entity(toReturn.toString())
+                .type(MediaType.APPLICATION_JSON)
+                .build();
     }
 }

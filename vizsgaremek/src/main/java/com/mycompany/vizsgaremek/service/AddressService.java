@@ -36,23 +36,23 @@ public class AddressService {
 
         //IF REQUIRED DATA IS MISSING
         //if firstName is missing
-        if (addressAuth.isDataMissing(createAddress.getFirstName())) {
+        if (AuthenticationService.isDataMissing(createAddress.getFirstName())) {
             errors.put("MissingFirstName");
         }
 
         //if lastName is missing
-        if (addressAuth.isDataMissing(createAddress.getLastName())) {
+        if (AuthenticationService.isDataMissing(createAddress.getLastName())) {
             errors.put("MissingLastName");
         }
 
         //IF DATAS ARE INVALID
         //if firstName is invalid
-        if (!addressAuth.isDataMissing(createAddress.getFirstName()) && !addressAuth.isValidFirstName(createAddress.getFirstName())) {
+        if (!AuthenticationService.isDataMissing(createAddress.getFirstName()) && !addressAuth.isValidFirstName(createAddress.getFirstName())) {
             errors.put("InvalidFirstName");
         }
 
         //if lastName is invalid
-        if (!addressAuth.isDataMissing(createAddress.getLastName()) && !addressAuth.isValidLastName(createAddress.getLastName())) {
+        if (!AuthenticationService.isDataMissing(createAddress.getLastName()) && !addressAuth.isValidLastName(createAddress.getLastName())) {
             errors.put("InvalidLastName");
         }
 

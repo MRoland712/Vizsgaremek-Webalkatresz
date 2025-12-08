@@ -5,12 +5,15 @@
 package com.mycompany.vizsgaremek.model;
 
 import static com.mycompany.vizsgaremek.model.Users.emf;
+import com.mycompany.vizsgaremek.service.AuthenticationService;
 import java.io.Serializable;
 import java.util.Date;
+import java.util.List;
 import javax.persistence.Basic;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.EntityManager;
+import javax.persistence.EntityManagerFactory;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
@@ -18,6 +21,7 @@ import javax.persistence.Lob;
 import javax.persistence.NamedQueries;
 import javax.persistence.NamedQuery;
 import javax.persistence.ParameterMode;
+import javax.persistence.Persistence;
 import javax.persistence.StoredProcedureQuery;
 import javax.persistence.Table;
 import javax.persistence.Temporal;
@@ -60,7 +64,10 @@ public class UserLogs implements Serializable {
     @Column(name = "created_at")
     @Temporal(TemporalType.TIMESTAMP)
     private Date createdAt;
-
+    
+    static EntityManagerFactory emf = Persistence.createEntityManagerFactory("com.mycompany_vizsgaremek_war_1.0-SNAPSHOTPU");
+    static AuthenticationService.userLogsAuth userLogsAuth = new AuthenticationService.userLogsAuth();
+    
     public UserLogs() {
     }
 
@@ -73,7 +80,7 @@ public class UserLogs implements Serializable {
         this.action = action;
         this.createdAt = createdAt;
     }
-    //createUserLogs
+    //createUserLogs && updateUserLogs
     public UserLogs(String action, String details) {
         this.action = action;
         this.details = details;
@@ -137,6 +144,56 @@ public class UserLogs implements Serializable {
         return "com.mycompany.vizsgaremek.model.UserLogs[ id=" + id + " ]";
     }
     
+    public static Boolean getUserLogById(Integer id) {
+        try {
+            EntityManager em = emf.createEntityManager();
+            
+            StoredProcedureQuery spq = em.createStoredProcedureQuery("getUserLogById");
+            spq.registerStoredProcedureParameter("p_id", Integer.class, ParameterMode.IN);
+            spq.setParameter("p_id", id);
+
+            spq.execute(); // vége zárásként
+
+            List<Object[]> resultList = spq.getResultList();
+
+            if (AuthenticationService.isDataMissing(resultList)) {
+                return null;
+            }
+
+            Users toReturn = new Users();
+
+            for (Object[] record : resultList) {
+
+                Users u = new Users(
+                        Integer.valueOf(record[0].toString()),// id
+                        record[1].toString(),// email
+                        record[2].toString(),// username
+                        record[3].toString(),// firstname
+                        record[4].toString(),// lastname
+                        record[5].toString(),// phone
+                        record[6].toString(),// guid
+                        record[7].toString(),// role
+                        Boolean.valueOf(record[8].toString()),// isActive
+                        record[9] == null ? null : formatter.parse(record[9].toString()),// lastLogin
+                        record[10] == null ? null : formatter.parse(record[10].toString()),// createdAt
+                        record[11] == null ? null : formatter.parse(record[11].toString()),// updatedAt
+                        record[12].toString(),// password
+                        Boolean.valueOf(record[13].toString()),// isDeleted
+                        record[14].toString(),// authSecret
+                        record[15].toString()// registrationToken
+                );
+                toReturn = u;
+            }
+            return toReturn;
+
+        } catch (Exception ex) {
+            return false;
+        } finally {
+            em.clear();
+            em.close();
+        }
+    }
+    
     public static Boolean createUserLogs(UserLogs createdUserLog, Integer userId) {
         EntityManager em = emf.createEntityManager();
         try {
@@ -155,6 +212,38 @@ public class UserLogs implements Serializable {
             return true;
 
         } catch (Exception ex) {
+            return false;
+        } finally {
+            em.clear();
+            em.close();
+        }
+    }
+    
+    public static Boolean updateUserLogs(UserLogs updatedUserLog, Integer id) {
+        EntityManager em = emf.createEntityManager();
+
+        try {
+            em.getTransaction().begin();
+            StoredProcedureQuery spq = em.createStoredProcedureQuery("updateUserLogs");
+
+            spq.registerStoredProcedureParameter("p_id", Integer.class, ParameterMode.IN);
+            spq.registerStoredProcedureParameter("p_action", String.class, ParameterMode.IN);
+            spq.registerStoredProcedureParameter("p_details", String.class, ParameterMode.IN);
+
+            spq.setParameter("p_id", id);
+            spq.setParameter("p_action", updatedUserLog.getAction());
+            spq.setParameter("p_details", updatedUserLog.getDetails());
+
+            spq.execute();
+
+            em.getTransaction().commit();
+
+            return true;
+
+        } catch (Exception ex) {
+            if (em.getTransaction().isActive()) {
+                em.getTransaction().rollback(); // Ha hiba van, rollback
+            }
             ex.printStackTrace();
             return false;
         } finally {

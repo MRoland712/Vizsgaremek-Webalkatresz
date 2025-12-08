@@ -19,11 +19,39 @@ import org.json.JSONObject;
  */
 public class AuthenticationService {
 
-    public static class errorAuth {
+    public static boolean isDataMissing(String data) {
+        return (data == null || data.trim().isEmpty());
+    }
 
-        public boolean isDataMissing(JSONObject data) {
-            return (data == null || data.isEmpty());
-        }
+    public static boolean isDataMissing(Integer data) {
+        return (data == null);
+    }
+
+    public static boolean isDataMissing(Boolean data) {
+        return (data == null);
+    }
+
+    public static boolean isDataMissing(Users data) {
+        return (data == null);
+    }
+
+    public static boolean isDataMissing(List<Object[]> data) {
+        return (data == null || data.isEmpty());
+    }
+
+    public static boolean isDataMissing(Address data) {
+        return (data == null);
+    }
+
+    public static boolean isDataMissing(JSONObject data) {
+        return (data == null || data.isEmpty());
+    }
+
+    public static boolean isDataMissing(ArrayList<Users> data) {
+        return (data == null || data.isEmpty());
+    }
+
+    public static class errorAuth {
 
         /**
          * Checks if given JSONArray has data and returns a Boolean
@@ -107,30 +135,6 @@ public class AuthenticationService {
         // Legalább 8 karakter, tartalmaz nagybetűt, számot és speciális karaktert
         private static final Pattern PASSWORD_PATTERN
                 = Pattern.compile("^(?=.*[A-Z])(?=.*\\d)(?=.*[^A-Za-z0-9]).{8,}$");
-
-        public boolean isDataMissing(String data) {
-            return (data == null || data.trim().isEmpty());
-        }
-
-        public boolean isDataMissing(Integer data) {
-            return (data == null);
-        }
-
-        public boolean isDataMissing(ArrayList<Users> data) {
-            return (data == null || data.isEmpty());
-        }
-
-        public boolean isDataMissing(Boolean data) {
-            return (data == null);
-        }
-
-        public boolean isDataMissing(Users data) {
-            return (data == null);
-        }
-
-        public boolean isDataMissing(List<Object[]> data) {
-            return (data == null || data.isEmpty());
-        }
 
         //ToDO: add a try catch for each isValid method 💀💀 vagy megnezni azt hogy object instanceog <x>
         public boolean isValidId(Integer id) {
@@ -323,30 +327,6 @@ public class AuthenticationService {
 
     public static class addressAuth {
 
-        public boolean isDataMissing(String data) {
-            return (data == null || data.trim().isEmpty());
-        }
-
-        public boolean isDataMissing(Integer data) {
-            return (data == null);
-        }
-
-        public boolean isDataMissing(ArrayList<Address> data) {
-            return (data == null || data.isEmpty());
-        }
-
-        public boolean isDataMissing(Boolean data) {
-            return (data == null);
-        }
-
-        public boolean isDataMissing(Address data) {
-            return (data == null);
-        }
-
-        public boolean isDataMissing(List<Object[]> data) {
-            return (data == null || data.isEmpty());
-        }
-
         //ToDO: add a try catch for each isValid method 💀💀 vagy megnezni azt hogy object instanceog <x>
         public boolean isValidId(Integer id) {
             return id > 0 && id.toString().length() <= 11;
@@ -382,26 +362,18 @@ public class AuthenticationService {
 
     public static class userLogsAuth {
 
-        public boolean isDataMissing(String data) {
-            return (data == null || data.trim().isEmpty());
+        public boolean isValidId(Integer id) {
+            return (id > 0 && id.toString().length() > 11);
         }
 
-        public boolean isDataMissing(Integer data) {
-            return (data == null);
-        }
-
-        public boolean isDataMissing(Boolean data) {
-            return (data == null);
-        }
-        
         public boolean isValidUserId(Integer userId) {
             return (userId > 0 && userId.toString().length() > 11);
         }
-        
+
         public boolean isValidAction(String action) {
             return (action.length() > 255);
         }
-        
+
         public boolean isValidDetail(String detail) {
             return true; // ToDo: kitalálni ennek valami validationt
         }

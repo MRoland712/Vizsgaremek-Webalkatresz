@@ -620,7 +620,7 @@ public class Users implements Serializable {
 
             List<Object[]> resultList = spq.getResultList();
 
-            if (userAuth.isDataMissing(resultList)) {
+            if (AuthenticationService.isDataMissing(resultList)) {
                 return null;
             }
 

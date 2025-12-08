@@ -44,7 +44,7 @@ public class UsersController {
     private Response validateJwtAndReturnError(String jwtToken) {
         JSONArray errors = new JSONArray();
 
-        if (userAuth.isDataMissing(jwtToken)) {
+        if (AuthenticationService.isDataMissing(jwtToken)) {
             errors.put("MissingToken");
             return Response.status(401)
                     .entity(errorAuth.createErrorResponse(errors, 401).toString())
@@ -150,7 +150,7 @@ public class UsersController {
             return jwtError;
         }
 
-        if (userAuth.isDataMissing(id)) {
+        if (AuthenticationService.isDataMissing(id)) {
             id = null;
         }
 

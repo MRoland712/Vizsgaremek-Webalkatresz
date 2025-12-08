@@ -41,63 +41,63 @@ public class UsersService {
 
         //IF REQUIRED DATA IS MISSING
         //if email is missing
-        if (userAuth.isDataMissing(createdUser.getEmail())) {
+        if (AuthenticationService.isDataMissing(createdUser.getEmail())) {
             errors.put("MissingEmail");
         }
 
         //if Username is missing
-        if (userAuth.isDataMissing(createdUser.getUsername())) {
+        if (AuthenticationService.isDataMissing(createdUser.getUsername())) {
             errors.put("MissingUsername");
         }
 
         //if Password is missing
-        if (userAuth.isDataMissing(createdUser.getPassword())) {
+        if (AuthenticationService.isDataMissing(createdUser.getPassword())) {
             errors.put("MissingPassword");
         }
 
         //if firstName is missing
-        if (userAuth.isDataMissing(createdUser.getFirstName())) {
+        if (AuthenticationService.isDataMissing(createdUser.getFirstName())) {
             errors.put("MissingFirstName");
         }
 
         //if lastName is missing
-        if (userAuth.isDataMissing(createdUser.getLastName())) {
+        if (AuthenticationService.isDataMissing(createdUser.getLastName())) {
             errors.put("MissingLastName");
         }
 
         //if phone is missing
-        if (userAuth.isDataMissing(createdUser.getPhone())) {
+        if (AuthenticationService.isDataMissing(createdUser.getPhone())) {
             errors.put("MissingPhone");
         }
 
         //IF DATAS ARE INVALID
         //if email is invalid
-        if (!userAuth.isDataMissing(createdUser.getEmail()) && !userAuth.isValidEmail(createdUser.getEmail())) {
+        if (!AuthenticationService.isDataMissing(createdUser.getEmail()) && !userAuth.isValidEmail(createdUser.getEmail())) {
             errors.put("InvalidEmail");
         }
 
         //if Username is invalid
-        if (!userAuth.isDataMissing(createdUser.getUsername()) && !userAuth.isValidUsername(createdUser.getUsername())) {
+        if (!AuthenticationService.isDataMissing(createdUser.getUsername()) && !userAuth.isValidUsername(createdUser.getUsername())) {
             errors.put("InvalidUsername");
         }
 
         //if Password is invalid
-        if (!userAuth.isDataMissing(createdUser.getPassword()) && !userAuth.isValidPassword(createdUser.getPassword())) {
+        if (!AuthenticationService.isDataMissing(createdUser.getPassword()) && !userAuth.isValidPassword(createdUser.getPassword())) {
             errors.put("InvalidPassword");
         }
 
         //if firstName is invalid
-        if (!userAuth.isDataMissing(createdUser.getFirstName()) && !userAuth.isValidFirstName(createdUser.getFirstName())) {
+        if (!AuthenticationService.isDataMissing(createdUser.getFirstName()) && !userAuth.isValidFirstName(createdUser.getFirstName())) {
             errors.put("InvalidFirstName");
         }
 
         //if lastName is invalid
-        if (!userAuth.isDataMissing(createdUser.getLastName()) && !userAuth.isValidLastName(createdUser.getLastName())) {
+        if (!AuthenticationService.isDataMissing(createdUser.getLastName()) && !userAuth.isValidLastName(createdUser.getLastName())) {
             errors.put("InvalidLastName");
         }
 
         //if phone is invalid
-        if (!userAuth.isDataMissing(createdUser.getPhone()) && !userAuth.isValidPhone(createdUser.getPhone())) {
+        if (!AuthenticationService.isDataMissing(createdUser.getPhone()) && !userAuth.isValidPhone(createdUser.getPhone())) {
             errors.put("InvalidPhone");
         }
 
@@ -184,7 +184,7 @@ public class UsersService {
         ArrayList<Users> modelResult = Users.getUsers();
 
         //If no data in DB
-        if (userAuth.isDataMissing(modelResult)) {
+        if (AuthenticationService.isDataMissing(modelResult)) {
             errors.put("ModelExeption");
         }
 
@@ -225,12 +225,12 @@ public class UsersService {
         JSONArray errors = new JSONArray();
 
         //if id is missing
-        if (userAuth.isDataMissing(id)) {
+        if (AuthenticationService.isDataMissing(id)) {
             errors.put("MissingId");
         }
 
         //if id is invalid
-        if (!userAuth.isValidId(id) && !userAuth.isDataMissing(id)) {
+        if (!userAuth.isValidId(id) && !AuthenticationService.isDataMissing(id)) {
             errors.put("InvalidId");
         }
 
@@ -282,12 +282,12 @@ public class UsersService {
         JSONArray errors = new JSONArray();
 
         //if email is missing
-        if (userAuth.isDataMissing(email)) {
+        if (AuthenticationService.isDataMissing(email)) {
             errors.put("MissingEmail");
         }
 
         //if email is invalid
-        if (!userAuth.isValidEmail(email) && !userAuth.isDataMissing(email)) {
+        if (!userAuth.isValidEmail(email) && !AuthenticationService.isDataMissing(email)) {
             errors.put("InvalidEmail");
         }
 
@@ -300,7 +300,7 @@ public class UsersService {
         Users modelResult = Users.getUserByEmail(email);
         System.out.println("getUserByEmail Modelresult " + modelResult);
         //if spq gives null data
-        if (userAuth.isDataMissing(modelResult)) {
+        if (AuthenticationService.isDataMissing(modelResult)) {
             errors.put("UserNotFound");
         }
 
@@ -337,7 +337,7 @@ public class UsersService {
         JSONArray errors = new JSONArray();
 
         //If id is Missing
-        if (userAuth.isDataMissing(id)) {
+        if (AuthenticationService.isDataMissing(id)) {
             errors.put("MissingId");
         }
 
@@ -355,7 +355,7 @@ public class UsersService {
         Users modelResult = Users.getUserById(id);
 
         //if spq gives null data
-        if (userAuth.isDataMissing(modelResult)) {
+        if (AuthenticationService.isDataMissing(modelResult)) {
             errors.put("UserNotFound");
         }
 
@@ -407,32 +407,32 @@ public class UsersService {
         JSONArray errors = new JSONArray();
 
         //if no search parameter (id or email) is given
-        if (userAuth.isDataMissing(updatedUser.getId()) && userAuth.isDataMissing(updatedUser.getEmail())) {
+        if (AuthenticationService.isDataMissing(updatedUser.getId()) && AuthenticationService.isDataMissing(updatedUser.getEmail())) {
             errors.put("MissingSearchParameter");
         }
 
         //if email is the only parameter given in body
-        if (userAuth.isDataMissing(updatedUser.getId())
-                && !userAuth.isDataMissing(updatedUser.getEmail())
-                && userAuth.isDataMissing(updatedUser.getUsername())
-                && userAuth.isDataMissing(updatedUser.getFirstName())
-                && userAuth.isDataMissing(updatedUser.getLastName())
-                && userAuth.isDataMissing(updatedUser.getPhone())
-                && userAuth.isDataMissing(updatedUser.getIsActive())
-                && userAuth.isDataMissing(updatedUser.getPassword())
-                && userAuth.isDataMissing(updatedUser.getAuthSecret())
-                && userAuth.isDataMissing(updatedUser.getRegistrationToken())) {
+        if (AuthenticationService.isDataMissing(updatedUser.getId())
+                && !AuthenticationService.isDataMissing(updatedUser.getEmail())
+                && AuthenticationService.isDataMissing(updatedUser.getUsername())
+                && AuthenticationService.isDataMissing(updatedUser.getFirstName())
+                && AuthenticationService.isDataMissing(updatedUser.getLastName())
+                && AuthenticationService.isDataMissing(updatedUser.getPhone())
+                && AuthenticationService.isDataMissing(updatedUser.getIsActive())
+                && AuthenticationService.isDataMissing(updatedUser.getPassword())
+                && AuthenticationService.isDataMissing(updatedUser.getAuthSecret())
+                && AuthenticationService.isDataMissing(updatedUser.getRegistrationToken())) {
 
             errors.put("InvalidSearchParameter");
         }
 
         //if id as a search parameter is NOT missing AND IS INVALID
-        if (!userAuth.isDataMissing(updatedUser.getId()) && !userAuth.isValidId(updatedUser.getId())) {
+        if (!AuthenticationService.isDataMissing(updatedUser.getId()) && !userAuth.isValidId(updatedUser.getId())) {
             errors.put("InvalidId");
         }
 
         //if email as a search parameter is NOT missing AND IS INVALID
-        if (!userAuth.isDataMissing(updatedUser.getEmail()) && !userAuth.isValidEmail(updatedUser.getEmail())) {
+        if (!AuthenticationService.isDataMissing(updatedUser.getEmail()) && !userAuth.isValidEmail(updatedUser.getEmail())) {
             errors.put("InvalidEmail");
         }
 
@@ -445,7 +445,7 @@ public class UsersService {
         Object searchData = null;
 
         //if id or email is set in the queryparam, set it as the search parameter and find the user via the given search parameter
-        if (!userAuth.isDataMissing(updatedUser.getId())) {
+        if (!AuthenticationService.isDataMissing(updatedUser.getId())) {
             existingUser = Users.getUserById(updatedUser.getId());
             searchData = updatedUser.getId();
         } else {
@@ -454,7 +454,7 @@ public class UsersService {
         }
 
         //if User not found
-        if (userAuth.isDataMissing(existingUser)) {
+        if (AuthenticationService.isDataMissing(existingUser)) {
             errors.put("UserNotFound");
         }
 
@@ -466,7 +466,7 @@ public class UsersService {
         ArrayList<String> updatedDatas = new ArrayList<String>();
 
         //if email is NOT missing AND IS VALID
-        if (!userAuth.isDataMissing(updatedUser.getEmail()) && userAuth.isValidEmail(updatedUser.getEmail())) {
+        if (!AuthenticationService.isDataMissing(updatedUser.getEmail()) && userAuth.isValidEmail(updatedUser.getEmail())) {
             existingUser.setEmail(updatedUser.getEmail());
             if (searchData != updatedUser.getEmail()) {
                 updatedDatas.add("email");
@@ -476,89 +476,89 @@ public class UsersService {
         String oldUsername = existingUser.getUsername();;
 
         //if username is NOT missing AND IS VALID
-        if (!userAuth.isDataMissing(updatedUser.getUsername()) && userAuth.isValidUsername(updatedUser.getUsername())) {
+        if (!AuthenticationService.isDataMissing(updatedUser.getUsername()) && userAuth.isValidUsername(updatedUser.getUsername())) {
             existingUser.setUsername(updatedUser.getUsername());
             updatedDatas.add("username");
         }
 
         //if firstName is NOT missing AND IS VALID
-        if (!userAuth.isDataMissing(updatedUser.getFirstName()) && userAuth.isValidFirstName(updatedUser.getFirstName())) {
+        if (!AuthenticationService.isDataMissing(updatedUser.getFirstName()) && userAuth.isValidFirstName(updatedUser.getFirstName())) {
             existingUser.setFirstName(updatedUser.getFirstName());
             updatedDatas.add("first name");
         }
 
         //if lastName is NOT missing AND IS VALID
-        if (!userAuth.isDataMissing(updatedUser.getLastName()) && userAuth.isValidFirstName(updatedUser.getLastName())) {
+        if (!AuthenticationService.isDataMissing(updatedUser.getLastName()) && userAuth.isValidFirstName(updatedUser.getLastName())) {
             existingUser.setLastName(updatedUser.getLastName());
             updatedDatas.add("last name");
         }
 
         //if phone is NOT missing AND IS VALID
-        if (!userAuth.isDataMissing(updatedUser.getPhone()) && userAuth.isValidPhone(updatedUser.getPhone())) {
+        if (!AuthenticationService.isDataMissing(updatedUser.getPhone()) && userAuth.isValidPhone(updatedUser.getPhone())) {
             existingUser.setPhone(updatedUser.getPhone());
             updatedDatas.add("phone");
         }
 
         //if isActive is NOT missing AND IS VALID
-        if (!userAuth.isDataMissing(updatedUser.getIsActive()) && userAuth.isValidIsActive(updatedUser.getIsActive())) {
+        if (!AuthenticationService.isDataMissing(updatedUser.getIsActive()) && userAuth.isValidIsActive(updatedUser.getIsActive())) {
             existingUser.setIsActive(updatedUser.getIsActive());
             updatedDatas.add("is active");
         }
 
         //if authSecret is NOT missing AND IS VALID
-        if (!userAuth.isDataMissing(updatedUser.getAuthSecret()) && userAuth.isValidAuthSecret(updatedUser.getAuthSecret())) {
+        if (!AuthenticationService.isDataMissing(updatedUser.getAuthSecret()) && userAuth.isValidAuthSecret(updatedUser.getAuthSecret())) {
             existingUser.setAuthSecret(updatedUser.getAuthSecret());
             updatedDatas.add("auth secret");
         }
 
         //if registrationToken is NOT missing AND IS VALID
-        if (!userAuth.isDataMissing(updatedUser.getRegistrationToken()) && userAuth.isValidRegistrationToken(updatedUser.getRegistrationToken())) {
+        if (!AuthenticationService.isDataMissing(updatedUser.getRegistrationToken()) && userAuth.isValidRegistrationToken(updatedUser.getRegistrationToken())) {
             existingUser.setRegistrationToken(updatedUser.getRegistrationToken());
             updatedDatas.add("registration token");
         }
 
         //if username is NOT missing AND is NOT VALID
-        if (!userAuth.isDataMissing(updatedUser.getUsername()) && !userAuth.isValidUsername(updatedUser.getUsername())) {
+        if (!AuthenticationService.isDataMissing(updatedUser.getUsername()) && !userAuth.isValidUsername(updatedUser.getUsername())) {
             errors.put("InvalidUsername");
         }
 
         //if firstName is NOT missing AND is NOT VALID
-        if (!userAuth.isDataMissing(updatedUser.getFirstName()) && !userAuth.isValidFirstName(updatedUser.getFirstName())) {
+        if (!AuthenticationService.isDataMissing(updatedUser.getFirstName()) && !userAuth.isValidFirstName(updatedUser.getFirstName())) {
             errors.put("InvalidFirstName");
         }
 
         //if lastName is NOT missing AND is NOT VALID
-        if (!userAuth.isDataMissing(updatedUser.getLastName()) && !userAuth.isValidLastName(updatedUser.getLastName())) {
+        if (!AuthenticationService.isDataMissing(updatedUser.getLastName()) && !userAuth.isValidLastName(updatedUser.getLastName())) {
             errors.put("InvalidLastName");
         }
 
         //if phone is NOT missing AND is NOT VALID
-        if (!userAuth.isDataMissing(updatedUser.getPhone()) && !userAuth.isValidPhone(updatedUser.getPhone())) {
+        if (!AuthenticationService.isDataMissing(updatedUser.getPhone()) && !userAuth.isValidPhone(updatedUser.getPhone())) {
             errors.put("InvalidPhone");
         }
 
         //if isActive is NOT missing AND is NOT VALID
-        if (!userAuth.isDataMissing(updatedUser.getIsActive()) && !userAuth.isValidIsActive(updatedUser.getIsActive())) {
+        if (!AuthenticationService.isDataMissing(updatedUser.getIsActive()) && !userAuth.isValidIsActive(updatedUser.getIsActive())) {
             errors.put("InvalidIsActive");
         }
 
         //if authSecret is NOT missing AND is NOT VALID
-        if (!userAuth.isDataMissing(updatedUser.getAuthSecret()) && !userAuth.isValidAuthSecret(updatedUser.getAuthSecret())) {
+        if (!AuthenticationService.isDataMissing(updatedUser.getAuthSecret()) && !userAuth.isValidAuthSecret(updatedUser.getAuthSecret())) {
             errors.put("InvalidAuthSecret");
         }
 
         //if registrationToken is NOT missing AND is NOT VALID
-        if (!userAuth.isDataMissing(updatedUser.getRegistrationToken()) && !userAuth.isValidRegistrationToken(updatedUser.getRegistrationToken())) {
+        if (!AuthenticationService.isDataMissing(updatedUser.getRegistrationToken()) && !userAuth.isValidRegistrationToken(updatedUser.getRegistrationToken())) {
             errors.put("InvalidRegistrationToken");
         }
 
         //if password is NOT missing AND is NOT VALID
-        if (!userAuth.isDataMissing(updatedUser.getPassword()) && !userAuth.isValidPassword(updatedUser.getPassword())) {
+        if (!AuthenticationService.isDataMissing(updatedUser.getPassword()) && !userAuth.isValidPassword(updatedUser.getPassword())) {
             errors.put("InvalidPassword");
         }
 
         //if password is not missing AND is already EXISTING in db
-        if (!userAuth.isDataMissing(updatedUser.getPassword()) && userAuth.isPasswordSame(updatedUser.getPassword(), searchData)) {
+        if (!AuthenticationService.isDataMissing(updatedUser.getPassword()) && userAuth.isPasswordSame(updatedUser.getPassword(), searchData)) {
             errors.put("PasswordInDB");
         }
 
@@ -567,7 +567,7 @@ public class UsersService {
             return errorAuth.createErrorResponse(errors, 400);
         }
 
-        if (!userAuth.isDataMissing(updatedUser.getPassword())) {
+        if (!AuthenticationService.isDataMissing(updatedUser.getPassword())) {
             try {
                 String encryptedPassword = Encrypt.encrypt(updatedUser.getPassword());
                 existingUser.setPassword(encryptedPassword);
@@ -618,18 +618,18 @@ public class UsersService {
         JSONArray errors = new JSONArray();
 
         //IF DATA IS MISSING
-        if (userAuth.isDataMissing(logInUser.getEmail())) {
+        if (AuthenticationService.isDataMissing(logInUser.getEmail())) {
             errors.put("MissingEmail");
         }
-        if (userAuth.isDataMissing(logInUser.getPassword())) {
+        if (AuthenticationService.isDataMissing(logInUser.getPassword())) {
             errors.put("MissingPassword");
         }
 
         //IF DATA IS INVALID
-        if (!userAuth.isValidEmail(logInUser.getEmail()) && !userAuth.isDataMissing(logInUser.getEmail())) {
+        if (!userAuth.isValidEmail(logInUser.getEmail()) && !AuthenticationService.isDataMissing(logInUser.getEmail())) {
             errors.put("InvalidEmail");
         }
-        if (!userAuth.isValidPassword(logInUser.getPassword()) && !userAuth.isDataMissing(logInUser.getPassword())) {
+        if (!userAuth.isValidPassword(logInUser.getPassword()) && !AuthenticationService.isDataMissing(logInUser.getPassword())) {
             errors.put("InvalidPassword");
         }
 
@@ -640,7 +640,7 @@ public class UsersService {
 
         Users userData = Users.getUserByEmail(logInUser.getEmail());
 
-        if (userAuth.isDataMissing(userData)) {
+        if (AuthenticationService.isDataMissing(userData)) {
             errors.put("UserNotFound");
         }
 
@@ -676,7 +676,7 @@ public class UsersService {
         Boolean modelResult = Users.loginUser(userData);
 
         //if spq gives null data
-        if (userAuth.isDataMissing(modelResult)) {
+        if (AuthenticationService.isDataMissing(modelResult)) {
             errors.put("ModelError");
         }
 

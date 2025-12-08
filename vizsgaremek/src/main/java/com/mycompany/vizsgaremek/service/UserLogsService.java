@@ -22,23 +22,23 @@ public class UserLogsService {
         JSONObject toReturn = new JSONObject();
         JSONArray errors = new JSONArray();
 
-        if (userLogsAuth.isDataMissing(userId)) {
+        if (AuthenticationService.isDataMissing(userId)) {
             errors.put("MissingUserId");
         }
-        if (userLogsAuth.isDataMissing(createdUserLog.getAction())) {
+        if (AuthenticationService.isDataMissing(createdUserLog.getAction())) {
             errors.put("MissingAction");
         }
-        if (userLogsAuth.isDataMissing(createdUserLog.getDetails())) {
+        if (AuthenticationService.isDataMissing(createdUserLog.getDetails())) {
             toReturn.put("message", "Details Is Missing");
         }
 
-        if (!userLogsAuth.isDataMissing(userId) && !userLogsAuth.isValidUserId(userId)) {
+        if (!AuthenticationService.isDataMissing(userId) && !userLogsAuth.isValidUserId(userId)) {
             errors.put("InvalidId");
         }
-        if (!userLogsAuth.isDataMissing(createdUserLog.getAction()) && !userLogsAuth.isValidAction(createdUserLog.getAction())) {
+        if (!AuthenticationService.isDataMissing(createdUserLog.getAction()) && !userLogsAuth.isValidAction(createdUserLog.getAction())) {
             errors.put("InvalidAction");
         }
-        if (!userLogsAuth.isDataMissing(createdUserLog.getDetails()) && !userLogsAuth.isValidDetail(createdUserLog.getDetails())) {
+        if (!AuthenticationService.isDataMissing(createdUserLog.getDetails()) && !userLogsAuth.isValidDetail(createdUserLog.getDetails())) {
             errors.put("InvalidDetails");
         }
 
@@ -48,7 +48,7 @@ public class UserLogsService {
         
         Boolean result = UserLogs.createUserLogs(createdUserLog, userId);
         
-        if (userLogsAuth.isDataMissing(result)) {
+        if (AuthenticationService.isDataMissing(result)) {
             errors.put("ModelError");
         }
         
@@ -56,7 +56,52 @@ public class UserLogsService {
             return errorAuth.createErrorResponse(errors, 500);
         }
         
-        if (!errorAuth.isDataMissing(toReturn)) {
+        if (!AuthenticationService.isDataMissing(toReturn)) {
+            return errorAuth.createOKResponse(toReturn);
+        } else {
+            return errorAuth.createOKResponse();
+        }
+    }
+    
+    public JSONObject updateUserLogs(UserLogs updatedUserLogs, Integer id) {
+        JSONObject toReturn = new JSONObject();
+        JSONArray errors = new JSONArray();
+        
+        if (AuthenticationService.isDataMissing(id)) {
+            errors.put("MissingId");
+        }
+        if (AuthenticationService.isDataMissing(updatedUserLogs.getAction())) {
+            errors.put("MissingAction");
+        }
+        if (AuthenticationService.isDataMissing(updatedUserLogs.getDetails())) {
+            toReturn.put("message", "Details Is Missing");
+        }
+
+        if (!AuthenticationService.isDataMissing(id) && !userLogsAuth.isValidId(id)) {
+            errors.put("InvalidId");
+        }
+        if (!AuthenticationService.isDataMissing(updatedUserLogs.getAction()) && !userLogsAuth.isValidAction(updatedUserLogs.getAction())) {
+            errors.put("InvalidAction");
+        }
+        if (!AuthenticationService.isDataMissing(updatedUserLogs.getDetails()) && !userLogsAuth.isValidDetail(updatedUserLogs.getDetails())) {
+            errors.put("InvalidDetails");
+        }
+
+        if (errorAuth.hasErrors(errors)) {
+            return errorAuth.createErrorResponse(errors, 400);
+        }
+        
+        Boolean result = UserLogs.updateUserLogs(updatedUserLogs, id);
+        
+        if (AuthenticationService.isDataMissing(result)) {
+            errors.put("ModelError");
+        }
+        
+        if (errorAuth.hasErrors(errors)) {
+            return errorAuth.createErrorResponse(errors, 500);
+        }
+        
+        if (!AuthenticationService.isDataMissing(toReturn)) {
             return errorAuth.createOKResponse(toReturn);
         } else {
             return errorAuth.createOKResponse();
