@@ -15,6 +15,7 @@ import javax.ws.rs.GET;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.PUT;
+import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import org.json.JSONObject;
@@ -31,7 +32,6 @@ public class PartsController {
     private UriInfo context;
     private PartsService layer = new PartsService();
 
-
     /**
      * Creates a new instance of PartsController
      */
@@ -39,7 +39,9 @@ public class PartsController {
     }
 
     /**
-     * Retrieves representation of an instance of com.mycompany.vizsgaremek.controller.PartsController
+     * Retrieves representation of an instance of
+     * com.mycompany.vizsgaremek.controller.PartsController
+     *
      * @return an instance of java.lang.String
      */
     @GET
@@ -51,13 +53,14 @@ public class PartsController {
 
     /**
      * PUT method for updating or creating an instance of PartsController
+     *
      * @param content representation for the resource
      */
     @PUT
     @Consumes(MediaType.APPLICATION_JSON)
     public void putJson(String content) {
     }
-    
+
     @POST
     @Path("createParts")
     @Consumes(MediaType.APPLICATION_JSON)
@@ -86,13 +89,53 @@ public class PartsController {
                 .type(MediaType.APPLICATION_JSON)
                 .build();
     }
-    
+
     @GET
     @Path("getAllParts")
     @Consumes(MediaType.APPLICATION_JSON)
     public Response getAllParts() {
         PartsService partsService = new PartsService();
         JSONObject toReturn = partsService.getAllParts();
+
+        return Response.status(Integer.parseInt(toReturn.get("statusCode").toString()))
+                .entity(toReturn.toString())
+                .type(MediaType.APPLICATION_JSON)
+                .build();
+    }
+
+    @GET
+    @Path("getPartsById")
+    @Consumes(MediaType.APPLICATION_JSON)
+    public Response getPartsById(@QueryParam("id") Integer Id) {
+        PartsService partsService = new PartsService();
+        
+        JSONObject toReturn = partsService.getPartsById(Id);
+
+        return Response.status(Integer.parseInt(toReturn.get("statusCode").toString()))
+                .entity(toReturn.toString())
+                .type(MediaType.APPLICATION_JSON)
+                .build();
+    }
+    
+    @GET
+    @Path("getPartsByManufacturerId")
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response getPartsByManufacturerId(@QueryParam("manufacturerId") Integer id) {
+
+        JSONObject toReturn = layer.getPartsByManufacturerId(id);
+
+        return Response.status(Integer.parseInt(toReturn.get("statusCode").toString()))
+                .entity(toReturn.toString())
+                .type(MediaType.APPLICATION_JSON)
+                .build();
+    }
+    
+    @PUT
+    @Path("softDeleteParts")
+    @Consumes(MediaType.APPLICATION_JSON)
+    public Response softDeleteParts(@QueryParam("id") Integer partsId) {
+
+        JSONObject toReturn = layer.softDeleteParts(partsId);
 
         return Response.status(Integer.parseInt(toReturn.get("statusCode").toString()))
                 .entity(toReturn.toString())

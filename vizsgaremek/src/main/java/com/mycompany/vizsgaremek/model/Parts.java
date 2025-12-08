@@ -153,7 +153,7 @@ public class Parts implements Serializable {
         this.isActive = isActive;
     }
 
-    //getAllParts
+    //getAllParts & getPartsById
     public Parts(Integer id, String sku, String name, String category, BigDecimal price, Integer stock, String status, Boolean isActive, Date createdAt, Date updatedAt, Date deletedAt, Boolean isDeleted, Manufacturers manufacturerId) {
         this.id = id;
         this.sku = sku;
@@ -458,6 +458,120 @@ public class Parts implements Serializable {
             }
             ex.printStackTrace();
             return null;
+        } finally {
+            em.clear();
+            em.close();
+        }
+    }
+
+    public static Parts getPartsById(Integer id) {
+        EntityManager em = emf.createEntityManager();
+        try {
+            StoredProcedureQuery spq = em.createStoredProcedureQuery("getPartsById");
+            spq.registerStoredProcedureParameter("p_parts_id", Integer.class, ParameterMode.IN);
+            spq.setParameter("p_parts_id", id);
+            spq.execute();
+
+            List<Object[]> resultList = spq.getResultList();
+
+            // Csak EGY rekord van (getById)
+            Object[] record = resultList.get(0);
+
+            // Manufactuer objektum létrehozása
+            Manufacturers manufacturer = new Manufacturers();
+            manufacturer.setId(Integer.valueOf(record[1].toString()));
+
+            // Addresses objektum létrehozása
+            Parts p = new Parts(
+                    Integer.valueOf(record[0].toString()), // 1. id
+                    record[2] != null ? record[2].toString() : null, // 2. sku
+                    record[3] != null ? record[3].toString() : null, // 3. name
+                    record[4] != null ? record[4].toString() : null, // 4. category 
+                    record[5] != null ? new BigDecimal(record[5].toString()) : null, // 5. price 
+                    record[6] != null ? Integer.valueOf(record[6].toString()) : null, // 6. stock 
+                    record[7] != null ? record[7].toString() : null, // 7. status
+                    Boolean.valueOf(record[8].toString()), // 8. isActive
+                    record[9] == null ? null : formatter.parse(record[9].toString()), // 9. createdAt
+                    record[10] == null ? null : formatter.parse(record[10].toString()), // 10. updatedAt
+                    record[11] == null ? null : formatter.parse(record[11].toString()), // 11. deletedAt
+                    Boolean.FALSE, // 12. isDeleted
+                    manufacturer // 13. manufacturerId
+            );
+
+            return p;
+
+        } catch (Exception ex) {
+            ex.printStackTrace();
+            return null;
+        } finally {
+            em.close();
+        }
+    }
+    
+    public static Parts getPartsByManufacturerId(Integer manufacturerId) {
+        EntityManager em = emf.createEntityManager();
+        try {
+            StoredProcedureQuery spq = em.createStoredProcedureQuery("getPartsByManufacturerId");
+            spq.registerStoredProcedureParameter("p_manufacturer_id", Integer.class, ParameterMode.IN);
+            spq.setParameter("p_manufacturer_id", manufacturerId);
+            spq.execute();
+
+            List<Object[]> resultList = spq.getResultList();
+
+            // Csak EGY rekord van (getById)
+            Object[] record = resultList.get(0);
+
+            // Users objektum létrehozása
+            Manufacturers manufacturer = new Manufacturers();
+            manufacturer.setId(Integer.valueOf(record[1].toString()));
+
+            // Addresses objektum létrehozása
+            Parts p = new Parts(
+                    Integer.valueOf(record[0].toString()), // 1. id
+                    record[2] != null ? record[2].toString() : null, // 2. sku
+                    record[3] != null ? record[3].toString() : null, // 3. name
+                    record[4] != null ? record[4].toString() : null, // 4. category 
+                    record[5] != null ? new BigDecimal(record[5].toString()) : null, // 5. price 
+                    record[6] != null ? Integer.valueOf(record[6].toString()) : null, // 6. stock 
+                    record[7] != null ? record[7].toString() : null, // 7. status
+                    Boolean.valueOf(record[8].toString()), // 8. isActive
+                    record[9] == null ? null : formatter.parse(record[9].toString()), // 9. createdAt
+                    record[10] == null ? null : formatter.parse(record[10].toString()), // 10. updatedAt
+                    record[11] == null ? null : formatter.parse(record[11].toString()), // 11. deletedAt
+                    Boolean.FALSE, // 12. isDeleted
+                    manufacturer // 13. manufacturerId
+            );
+
+            return p;
+
+        } catch (Exception ex) {
+            ex.printStackTrace();
+            return null;
+        } finally {
+            em.close();
+        }
+    }
+    
+    public static Boolean softDeleteParts(Integer id) {
+        EntityManager em = emf.createEntityManager();
+
+        try {
+            em.getTransaction().begin();
+
+            StoredProcedureQuery spq = em.createStoredProcedureQuery("softDeleteParts");
+            spq.registerStoredProcedureParameter("p_parts_id", Integer.class, ParameterMode.IN);
+            spq.setParameter("p_parts_id", id);
+
+            spq.execute();
+
+            em.getTransaction().commit();
+
+            return true;
+        } catch (Exception e) {
+            if (em.getTransaction().isActive()) {
+                em.getTransaction().rollback(); // ha hiba van, rollback
+            }
+            return false;
         } finally {
             em.clear();
             em.close();
