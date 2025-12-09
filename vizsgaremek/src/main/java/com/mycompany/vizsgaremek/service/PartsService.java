@@ -243,7 +243,7 @@ public class PartsService {
         }
 
         //get data from spq
-        Parts modelResult = Parts.softDeleteParts(id);
+        Parts modelResult = Parts.getPartsById(id);
 
         //if spq gives null data
         if (modelResult == null) {

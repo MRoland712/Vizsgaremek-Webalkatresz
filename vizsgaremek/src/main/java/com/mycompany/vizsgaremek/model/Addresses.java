@@ -518,7 +518,6 @@ public class Addresses implements Serializable {
             spq.setParameter("p_address_id", id);
 
             spq.execute();
-
             em.getTransaction().commit();
 
             return true;

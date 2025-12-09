@@ -563,7 +563,6 @@ public class Parts implements Serializable {
             spq.setParameter("p_parts_id", id);
 
             spq.execute();
-
             em.getTransaction().commit();
 
             return true;
