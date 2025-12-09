@@ -1,26 +1,29 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
-<persistence xmlns="http://xmlns.jcp.org/xml/ns/persistence" 
-             xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
-             version="2.1" 
-             xsi:schemaLocation="http://xmlns.jcp.org/xml/ns/persistence                                  
-                                 http://xmlns.jcp.org/xml/ns/persistence/persistence_2_1.xsd">
+<persistence xmlns="http://xmlns.jcp.org/xml/ns/persistence" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="2.1" xsi:schemaLocation="http://xmlns.jcp.org/xml/ns/persistence                                  http://xmlns.jcp.org/xml/ns/persistence/persistence_2_1.xsd">
         
     <persistence-unit name="com.mycompany_vizsgaremek_war_1.0-SNAPSHOTPU" transaction-type="JTA">
                 
         <!-- Ez a WildFly-ban létező datasource -->
-        <!-- VÁLTOZTATVA: java:/car_parts_shop_fix -> java:jboss/datasources/CarPartsDS -->
-        <jta-data-source>java:jboss/datasources/CarPartsDS</jta-data-source>
+                
+        <jta-data-source>java:/car_parts_shop_fix</jta-data-source>
                 
         <!-- Automatikus entitásfelismerés -->
+                
         <exclude-unlisted-classes>false</exclude-unlisted-classes>
                 
         <properties>
+                        
             <property name="hibernate.hbm2ddl.auto" value="none"/>
+                        
             <property name="hibernate.show_sql" value="true"/>
+                        
             <property name="hibernate.format_sql" value="true"/>
-            
-            <!-- VÁLTOZTATVA: Oracle10gDialect -> MySQL5InnoDBDialect -->
-            <property name="hibernate.dialect" value="org.hibernate.dialect.MySQL5InnoDBDialect"/>
+                        
+            <property name="hibernate.dialect" value="org.hibernate.dialect.Oracle10gDialect"/>
+                    
         </properties>
+            
     </persistence-unit>
+    
 </persistence>
+s
