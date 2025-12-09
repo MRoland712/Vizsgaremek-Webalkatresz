@@ -14,6 +14,8 @@ import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
+import javax.persistence.JoinColumn;
+import javax.persistence.ManyToOne;
 import javax.persistence.NamedQueries;
 import javax.persistence.NamedQuery;
 import javax.persistence.OneToMany;
@@ -26,7 +28,7 @@ import javax.xml.bind.annotation.XmlTransient;
 
 /**
  *
- * @author ddori
+ * @author neblg
  */
 @Entity
 @Table(name = "orders")
@@ -60,13 +62,16 @@ public class Orders implements Serializable {
     @OneToMany(cascade = CascadeType.ALL, mappedBy = "orderId")
     private Collection<Payments> paymentsCollection;
     @OneToMany(cascade = CascadeType.ALL, mappedBy = "orderId")
+    private Collection<ShippingStatus> shippingStatusCollection;
+    @OneToMany(cascade = CascadeType.ALL, mappedBy = "orderId")
     private Collection<OrderLogs> orderLogsCollection;
     @OneToMany(cascade = CascadeType.ALL, mappedBy = "orderId")
     private Collection<Invoices> invoicesCollection;
+    @JoinColumn(name = "user_id", referencedColumnName = "id")
+    @ManyToOne(optional = false)
+    private Users userId;
     @OneToMany(cascade = CascadeType.ALL, mappedBy = "orderId")
     private Collection<OrderItems> orderItemsCollection;
-    @OneToMany(cascade = CascadeType.ALL, mappedBy = "orderId")
-    private Collection<ShippingStatus> shippingStatusCollection;
 
     public Orders() {
     }
@@ -125,6 +130,15 @@ public class Orders implements Serializable {
     }
 
     @XmlTransient
+    public Collection<ShippingStatus> getShippingStatusCollection() {
+        return shippingStatusCollection;
+    }
+
+    public void setShippingStatusCollection(Collection<ShippingStatus> shippingStatusCollection) {
+        this.shippingStatusCollection = shippingStatusCollection;
+    }
+
+    @XmlTransient
     public Collection<OrderLogs> getOrderLogsCollection() {
         return orderLogsCollection;
     }
@@ -142,6 +156,14 @@ public class Orders implements Serializable {
         this.invoicesCollection = invoicesCollection;
     }
 
+    public Users getUserId() {
+        return userId;
+    }
+
+    public void setUserId(Users userId) {
+        this.userId = userId;
+    }
+
     @XmlTransient
     public Collection<OrderItems> getOrderItemsCollection() {
         return orderItemsCollection;
@@ -149,15 +171,6 @@ public class Orders implements Serializable {
 
     public void setOrderItemsCollection(Collection<OrderItems> orderItemsCollection) {
         this.orderItemsCollection = orderItemsCollection;
-    }
-
-    @XmlTransient
-    public Collection<ShippingStatus> getShippingStatusCollection() {
-        return shippingStatusCollection;
-    }
-
-    public void setShippingStatusCollection(Collection<ShippingStatus> shippingStatusCollection) {
-        this.shippingStatusCollection = shippingStatusCollection;
     }
 
     @Override

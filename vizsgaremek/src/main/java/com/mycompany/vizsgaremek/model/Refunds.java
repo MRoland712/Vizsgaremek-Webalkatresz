@@ -25,7 +25,7 @@ import javax.xml.bind.annotation.XmlRootElement;
 
 /**
  *
- * @author ddori
+ * @author neblg
  */
 @Entity
 @Table(name = "refunds")
@@ -35,7 +35,9 @@ import javax.xml.bind.annotation.XmlRootElement;
     @NamedQuery(name = "Refunds.findById", query = "SELECT r FROM Refunds r WHERE r.id = :id"),
     @NamedQuery(name = "Refunds.findByAmount", query = "SELECT r FROM Refunds r WHERE r.amount = :amount"),
     @NamedQuery(name = "Refunds.findByReason", query = "SELECT r FROM Refunds r WHERE r.reason = :reason"),
-    @NamedQuery(name = "Refunds.findByRefundedAt", query = "SELECT r FROM Refunds r WHERE r.refundedAt = :refundedAt")})
+    @NamedQuery(name = "Refunds.findByRefundedAt", query = "SELECT r FROM Refunds r WHERE r.refundedAt = :refundedAt"),
+    @NamedQuery(name = "Refunds.findByIsDeleted", query = "SELECT r FROM Refunds r WHERE r.isDeleted = :isDeleted"),
+    @NamedQuery(name = "Refunds.findByDeletedAt", query = "SELECT r FROM Refunds r WHERE r.deletedAt = :deletedAt")})
 public class Refunds implements Serializable {
 
     private static final long serialVersionUID = 1L;
@@ -53,6 +55,11 @@ public class Refunds implements Serializable {
     @Column(name = "refunded_at")
     @Temporal(TemporalType.TIMESTAMP)
     private Date refundedAt;
+    @Column(name = "is_deleted")
+    private Boolean isDeleted;
+    @Column(name = "deleted_at")
+    @Temporal(TemporalType.TIMESTAMP)
+    private Date deletedAt;
     @JoinColumn(name = "payment_id", referencedColumnName = "id")
     @ManyToOne(optional = false)
     private Payments paymentId;
@@ -94,6 +101,22 @@ public class Refunds implements Serializable {
 
     public void setRefundedAt(Date refundedAt) {
         this.refundedAt = refundedAt;
+    }
+
+    public Boolean getIsDeleted() {
+        return isDeleted;
+    }
+
+    public void setIsDeleted(Boolean isDeleted) {
+        this.isDeleted = isDeleted;
+    }
+
+    public Date getDeletedAt() {
+        return deletedAt;
+    }
+
+    public void setDeletedAt(Date deletedAt) {
+        this.deletedAt = deletedAt;
     }
 
     public Payments getPaymentId() {

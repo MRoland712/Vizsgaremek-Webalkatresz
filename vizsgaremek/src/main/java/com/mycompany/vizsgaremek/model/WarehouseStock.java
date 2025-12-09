@@ -23,7 +23,7 @@ import javax.xml.bind.annotation.XmlRootElement;
 
 /**
  *
- * @author ddori
+ * @author neblg
  */
 @Entity
 @Table(name = "warehouse_stock")
@@ -32,7 +32,10 @@ import javax.xml.bind.annotation.XmlRootElement;
     @NamedQuery(name = "WarehouseStock.findAll", query = "SELECT w FROM WarehouseStock w"),
     @NamedQuery(name = "WarehouseStock.findById", query = "SELECT w FROM WarehouseStock w WHERE w.id = :id"),
     @NamedQuery(name = "WarehouseStock.findByQuantity", query = "SELECT w FROM WarehouseStock w WHERE w.quantity = :quantity"),
-    @NamedQuery(name = "WarehouseStock.findByUpdatedAt", query = "SELECT w FROM WarehouseStock w WHERE w.updatedAt = :updatedAt")})
+    @NamedQuery(name = "WarehouseStock.findByCreatedAt", query = "SELECT w FROM WarehouseStock w WHERE w.createdAt = :createdAt"),
+    @NamedQuery(name = "WarehouseStock.findByUpdatedAt", query = "SELECT w FROM WarehouseStock w WHERE w.updatedAt = :updatedAt"),
+    @NamedQuery(name = "WarehouseStock.findByIsDeleted", query = "SELECT w FROM WarehouseStock w WHERE w.isDeleted = :isDeleted"),
+    @NamedQuery(name = "WarehouseStock.findByDeletedAt", query = "SELECT w FROM WarehouseStock w WHERE w.deletedAt = :deletedAt")})
 public class WarehouseStock implements Serializable {
 
     private static final long serialVersionUID = 1L;
@@ -43,9 +46,17 @@ public class WarehouseStock implements Serializable {
     private Integer id;
     @Column(name = "quantity")
     private Integer quantity;
+    @Column(name = "created_at")
+    @Temporal(TemporalType.TIMESTAMP)
+    private Date createdAt;
     @Column(name = "updated_at")
     @Temporal(TemporalType.TIMESTAMP)
     private Date updatedAt;
+    @Column(name = "is_deleted")
+    private Boolean isDeleted;
+    @Column(name = "deleted_at")
+    @Temporal(TemporalType.TIMESTAMP)
+    private Date deletedAt;
     @JoinColumn(name = "warehouse_id", referencedColumnName = "id")
     @ManyToOne(optional = false)
     private Warehouses warehouseId;
@@ -76,12 +87,36 @@ public class WarehouseStock implements Serializable {
         this.quantity = quantity;
     }
 
+    public Date getCreatedAt() {
+        return createdAt;
+    }
+
+    public void setCreatedAt(Date createdAt) {
+        this.createdAt = createdAt;
+    }
+
     public Date getUpdatedAt() {
         return updatedAt;
     }
 
     public void setUpdatedAt(Date updatedAt) {
         this.updatedAt = updatedAt;
+    }
+
+    public Boolean getIsDeleted() {
+        return isDeleted;
+    }
+
+    public void setIsDeleted(Boolean isDeleted) {
+        this.isDeleted = isDeleted;
+    }
+
+    public Date getDeletedAt() {
+        return deletedAt;
+    }
+
+    public void setDeletedAt(Date deletedAt) {
+        this.deletedAt = deletedAt;
     }
 
     public Warehouses getWarehouseId() {

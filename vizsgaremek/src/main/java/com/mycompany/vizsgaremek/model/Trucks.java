@@ -12,13 +12,12 @@ import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
-import javax.persistence.JoinColumn;
-import javax.persistence.ManyToOne;
 import javax.persistence.NamedQueries;
 import javax.persistence.NamedQuery;
 import javax.persistence.Table;
 import javax.persistence.Temporal;
 import javax.persistence.TemporalType;
+import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
 import javax.xml.bind.annotation.XmlRootElement;
 
@@ -27,18 +26,20 @@ import javax.xml.bind.annotation.XmlRootElement;
  * @author neblg
  */
 @Entity
-@Table(name = "shipping_status")
+@Table(name = "trucks")
 @XmlRootElement
 @NamedQueries({
-    @NamedQuery(name = "ShippingStatus.findAll", query = "SELECT s FROM ShippingStatus s"),
-    @NamedQuery(name = "ShippingStatus.findById", query = "SELECT s FROM ShippingStatus s WHERE s.id = :id"),
-    @NamedQuery(name = "ShippingStatus.findByStatus", query = "SELECT s FROM ShippingStatus s WHERE s.status = :status"),
-    @NamedQuery(name = "ShippingStatus.findByTrackingNo", query = "SELECT s FROM ShippingStatus s WHERE s.trackingNo = :trackingNo"),
-    @NamedQuery(name = "ShippingStatus.findByCreatedAt", query = "SELECT s FROM ShippingStatus s WHERE s.createdAt = :createdAt"),
-    @NamedQuery(name = "ShippingStatus.findByUpdatedAt", query = "SELECT s FROM ShippingStatus s WHERE s.updatedAt = :updatedAt"),
-    @NamedQuery(name = "ShippingStatus.findByIsDeleted", query = "SELECT s FROM ShippingStatus s WHERE s.isDeleted = :isDeleted"),
-    @NamedQuery(name = "ShippingStatus.findByDeletedAt", query = "SELECT s FROM ShippingStatus s WHERE s.deletedAt = :deletedAt")})
-public class ShippingStatus implements Serializable {
+    @NamedQuery(name = "Trucks.findAll", query = "SELECT t FROM Trucks t"),
+    @NamedQuery(name = "Trucks.findById", query = "SELECT t FROM Trucks t WHERE t.id = :id"),
+    @NamedQuery(name = "Trucks.findByBrand", query = "SELECT t FROM Trucks t WHERE t.brand = :brand"),
+    @NamedQuery(name = "Trucks.findByModel", query = "SELECT t FROM Trucks t WHERE t.model = :model"),
+    @NamedQuery(name = "Trucks.findByYearFrom", query = "SELECT t FROM Trucks t WHERE t.yearFrom = :yearFrom"),
+    @NamedQuery(name = "Trucks.findByYearTo", query = "SELECT t FROM Trucks t WHERE t.yearTo = :yearTo"),
+    @NamedQuery(name = "Trucks.findByCreatedAt", query = "SELECT t FROM Trucks t WHERE t.createdAt = :createdAt"),
+    @NamedQuery(name = "Trucks.findByUpdatedAt", query = "SELECT t FROM Trucks t WHERE t.updatedAt = :updatedAt"),
+    @NamedQuery(name = "Trucks.findByIsDeleted", query = "SELECT t FROM Trucks t WHERE t.isDeleted = :isDeleted"),
+    @NamedQuery(name = "Trucks.findByDeletedAt", query = "SELECT t FROM Trucks t WHERE t.deletedAt = :deletedAt")})
+public class Trucks implements Serializable {
 
     private static final long serialVersionUID = 1L;
     @Id
@@ -46,12 +47,20 @@ public class ShippingStatus implements Serializable {
     @Basic(optional = false)
     @Column(name = "id")
     private Integer id;
-    @Size(max = 50)
-    @Column(name = "status")
-    private String status;
-    @Size(max = 50)
-    @Column(name = "tracking_no")
-    private String trackingNo;
+    @Basic(optional = false)
+    @NotNull
+    @Size(min = 1, max = 100)
+    @Column(name = "brand")
+    private String brand;
+    @Basic(optional = false)
+    @NotNull
+    @Size(min = 1, max = 100)
+    @Column(name = "model")
+    private String model;
+    @Column(name = "year_from")
+    private Integer yearFrom;
+    @Column(name = "year_to")
+    private Integer yearTo;
     @Column(name = "created_at")
     @Temporal(TemporalType.TIMESTAMP)
     private Date createdAt;
@@ -63,15 +72,18 @@ public class ShippingStatus implements Serializable {
     @Column(name = "deleted_at")
     @Temporal(TemporalType.TIMESTAMP)
     private Date deletedAt;
-    @JoinColumn(name = "order_id", referencedColumnName = "id")
-    @ManyToOne(optional = false)
-    private Orders orderId;
 
-    public ShippingStatus() {
+    public Trucks() {
     }
 
-    public ShippingStatus(Integer id) {
+    public Trucks(Integer id) {
         this.id = id;
+    }
+
+    public Trucks(Integer id, String brand, String model) {
+        this.id = id;
+        this.brand = brand;
+        this.model = model;
     }
 
     public Integer getId() {
@@ -82,20 +94,36 @@ public class ShippingStatus implements Serializable {
         this.id = id;
     }
 
-    public String getStatus() {
-        return status;
+    public String getBrand() {
+        return brand;
     }
 
-    public void setStatus(String status) {
-        this.status = status;
+    public void setBrand(String brand) {
+        this.brand = brand;
     }
 
-    public String getTrackingNo() {
-        return trackingNo;
+    public String getModel() {
+        return model;
     }
 
-    public void setTrackingNo(String trackingNo) {
-        this.trackingNo = trackingNo;
+    public void setModel(String model) {
+        this.model = model;
+    }
+
+    public Integer getYearFrom() {
+        return yearFrom;
+    }
+
+    public void setYearFrom(Integer yearFrom) {
+        this.yearFrom = yearFrom;
+    }
+
+    public Integer getYearTo() {
+        return yearTo;
+    }
+
+    public void setYearTo(Integer yearTo) {
+        this.yearTo = yearTo;
     }
 
     public Date getCreatedAt() {
@@ -130,14 +158,6 @@ public class ShippingStatus implements Serializable {
         this.deletedAt = deletedAt;
     }
 
-    public Orders getOrderId() {
-        return orderId;
-    }
-
-    public void setOrderId(Orders orderId) {
-        this.orderId = orderId;
-    }
-
     @Override
     public int hashCode() {
         int hash = 0;
@@ -148,10 +168,10 @@ public class ShippingStatus implements Serializable {
     @Override
     public boolean equals(Object object) {
         // TODO: Warning - this method won't work in the case the id fields are not set
-        if (!(object instanceof ShippingStatus)) {
+        if (!(object instanceof Trucks)) {
             return false;
         }
-        ShippingStatus other = (ShippingStatus) object;
+        Trucks other = (Trucks) object;
         if ((this.id == null && other.id != null) || (this.id != null && !this.id.equals(other.id))) {
             return false;
         }
@@ -160,7 +180,7 @@ public class ShippingStatus implements Serializable {
 
     @Override
     public String toString() {
-        return "com.mycompany.vizsgaremek.model.ShippingStatus[ id=" + id + " ]";
+        return "com.mycompany.vizsgaremek.model.Trucks[ id=" + id + " ]";
     }
     
 }

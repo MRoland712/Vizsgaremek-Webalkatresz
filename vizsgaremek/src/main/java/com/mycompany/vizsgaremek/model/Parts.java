@@ -21,7 +21,6 @@ import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.JoinColumn;
-import javax.persistence.ManyToMany;
 import javax.persistence.ManyToOne;
 import javax.persistence.NamedQueries;
 import javax.persistence.NamedQuery;
@@ -39,7 +38,7 @@ import javax.xml.bind.annotation.XmlTransient;
 
 /**
  *
- * @author ddori
+ * @author neblg
  */
 @Entity
 @Table(name = "parts")
@@ -102,33 +101,29 @@ public class Parts implements Serializable {
     private Date deletedAt;
     @Column(name = "is_deleted")
     private Boolean isDeleted;
-    @ManyToMany(mappedBy = "partsCollection")
-    private Collection<ProductComparisons> productComparisonsCollection;
-    @OneToMany(cascade = CascadeType.ALL, mappedBy = "partId")
-    private Collection<PartCompatibility> partCompatibilityCollection;
-    @OneToMany(cascade = CascadeType.ALL, mappedBy = "partId")
-    private Collection<Reviews> reviewsCollection;
-    @OneToMany(cascade = CascadeType.ALL, mappedBy = "partId")
-    private Collection<StockLogs> stockLogsCollection;
-    @OneToMany(cascade = CascadeType.ALL, mappedBy = "partId")
-    private Collection<OrderItems> orderItemsCollection;
     @OneToMany(cascade = CascadeType.ALL, mappedBy = "partId")
     private Collection<CartItems> cartItemsCollection;
     @OneToMany(cascade = CascadeType.ALL, mappedBy = "partId")
     private Collection<PartImages> partImagesCollection;
     @OneToMany(cascade = CascadeType.ALL, mappedBy = "partId")
     private Collection<PartVariants> partVariantsCollection;
+    @OneToMany(cascade = CascadeType.ALL, mappedBy = "partId")
+    private Collection<Reviews> reviewsCollection;
+    @OneToMany(cascade = CascadeType.ALL, mappedBy = "partId")
+    private Collection<StockLogs> stockLogsCollection;
     @JoinColumn(name = "manufacturer_id", referencedColumnName = "id")
     @ManyToOne(optional = false)
     private Manufacturers manufacturerId;
     @OneToMany(cascade = CascadeType.ALL, mappedBy = "partId")
     private Collection<WarehouseStock> warehouseStockCollection;
+    @OneToMany(cascade = CascadeType.ALL, mappedBy = "partId")
+    private Collection<OrderItems> orderItemsCollection;
+    
+    static EntityManagerFactory emf = Persistence.createEntityManagerFactory("com.mycompany_vizsgaremek_war_1.0-SNAPSHOTPU");
+    public static SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 
     public Parts() {
     }
-
-    static EntityManagerFactory emf = Persistence.createEntityManagerFactory("com.mycompany_vizsgaremek_war_1.0-SNAPSHOTPU");
-    public static SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 
     public Parts(Integer id) {
         this.id = id;
@@ -141,9 +136,8 @@ public class Parts implements Serializable {
         this.price = price;
     }
 
-    //createParts
-    public Parts(Manufacturers manufacturerId, String sku, String name, String category, BigDecimal price, Integer stock, String status, Boolean isActive) {
-        this.manufacturerId = manufacturerId;
+    // createParts
+    public Parts(String sku, String name, String category, BigDecimal price, Integer stock, String status, Boolean isActive, Manufacturers manufacturerId) {
         this.sku = sku;
         this.name = name;
         this.category = category;
@@ -151,9 +145,11 @@ public class Parts implements Serializable {
         this.stock = stock;
         this.status = status;
         this.isActive = isActive;
+        this.manufacturerId = manufacturerId;
     }
+    
+    //getAllParts getPartsById
 
-    //getAllParts & getPartsById
     public Parts(Integer id, String sku, String name, String category, BigDecimal price, Integer stock, String status, Boolean isActive, Date createdAt, Date updatedAt, Date deletedAt, Boolean isDeleted, Manufacturers manufacturerId) {
         this.id = id;
         this.sku = sku;
@@ -169,6 +165,9 @@ public class Parts implements Serializable {
         this.isDeleted = isDeleted;
         this.manufacturerId = manufacturerId;
     }
+    
+    
+    
 
     public Integer getId() {
         return id;
@@ -267,51 +266,6 @@ public class Parts implements Serializable {
     }
 
     @XmlTransient
-    public Collection<ProductComparisons> getProductComparisonsCollection() {
-        return productComparisonsCollection;
-    }
-
-    public void setProductComparisonsCollection(Collection<ProductComparisons> productComparisonsCollection) {
-        this.productComparisonsCollection = productComparisonsCollection;
-    }
-
-    @XmlTransient
-    public Collection<PartCompatibility> getPartCompatibilityCollection() {
-        return partCompatibilityCollection;
-    }
-
-    public void setPartCompatibilityCollection(Collection<PartCompatibility> partCompatibilityCollection) {
-        this.partCompatibilityCollection = partCompatibilityCollection;
-    }
-
-    @XmlTransient
-    public Collection<Reviews> getReviewsCollection() {
-        return reviewsCollection;
-    }
-
-    public void setReviewsCollection(Collection<Reviews> reviewsCollection) {
-        this.reviewsCollection = reviewsCollection;
-    }
-
-    @XmlTransient
-    public Collection<StockLogs> getStockLogsCollection() {
-        return stockLogsCollection;
-    }
-
-    public void setStockLogsCollection(Collection<StockLogs> stockLogsCollection) {
-        this.stockLogsCollection = stockLogsCollection;
-    }
-
-    @XmlTransient
-    public Collection<OrderItems> getOrderItemsCollection() {
-        return orderItemsCollection;
-    }
-
-    public void setOrderItemsCollection(Collection<OrderItems> orderItemsCollection) {
-        this.orderItemsCollection = orderItemsCollection;
-    }
-
-    @XmlTransient
     public Collection<CartItems> getCartItemsCollection() {
         return cartItemsCollection;
     }
@@ -338,6 +292,24 @@ public class Parts implements Serializable {
         this.partVariantsCollection = partVariantsCollection;
     }
 
+    @XmlTransient
+    public Collection<Reviews> getReviewsCollection() {
+        return reviewsCollection;
+    }
+
+    public void setReviewsCollection(Collection<Reviews> reviewsCollection) {
+        this.reviewsCollection = reviewsCollection;
+    }
+
+    @XmlTransient
+    public Collection<StockLogs> getStockLogsCollection() {
+        return stockLogsCollection;
+    }
+
+    public void setStockLogsCollection(Collection<StockLogs> stockLogsCollection) {
+        this.stockLogsCollection = stockLogsCollection;
+    }
+
     public Manufacturers getManufacturerId() {
         return manufacturerId;
     }
@@ -353,6 +325,15 @@ public class Parts implements Serializable {
 
     public void setWarehouseStockCollection(Collection<WarehouseStock> warehouseStockCollection) {
         this.warehouseStockCollection = warehouseStockCollection;
+    }
+
+    @XmlTransient
+    public Collection<OrderItems> getOrderItemsCollection() {
+        return orderItemsCollection;
+    }
+
+    public void setOrderItemsCollection(Collection<OrderItems> orderItemsCollection) {
+        this.orderItemsCollection = orderItemsCollection;
     }
 
     @Override
@@ -379,7 +360,7 @@ public class Parts implements Serializable {
     public String toString() {
         return "com.mycompany.vizsgaremek.model.Parts[ id=" + id + " ]";
     }
-
+    
     public static Boolean createParts(Parts createdParts) {
         EntityManager em = emf.createEntityManager();
         try {
@@ -576,5 +557,5 @@ public class Parts implements Serializable {
             em.close();
         }
     }
-
+    
 }

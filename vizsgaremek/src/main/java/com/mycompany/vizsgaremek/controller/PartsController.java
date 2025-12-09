@@ -72,14 +72,14 @@ public class PartsController {
         manufacturer.setId(bodyObject.has("manufacturerId") ? bodyObject.getInt("manufacturerId") : null);
 
         Parts createdParts = new Parts(
-                manufacturer,
                 bodyObject.has("sku") ? bodyObject.getString("sku") : null,
                 bodyObject.has("name") ? bodyObject.getString("name") : null,
                 bodyObject.has("category") ? bodyObject.getString("category") : null,
                 bodyObject.has("price") ? bodyObject.getBigDecimal("price") : null,
                 bodyObject.has("stock") ? bodyObject.getInt("stock") : null,
                 bodyObject.has("status") ? bodyObject.getString("status") : null,
-                bodyObject.has("isActive") ? bodyObject.getBoolean("isActive") : false
+                bodyObject.has("isActive") ? bodyObject.getBoolean("isActive") : false,
+                manufacturer
         );
 
         JSONObject toReturn = layer.createParts(createdParts);

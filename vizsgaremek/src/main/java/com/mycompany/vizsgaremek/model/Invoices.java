@@ -24,7 +24,7 @@ import javax.xml.bind.annotation.XmlRootElement;
 
 /**
  *
- * @author ddori
+ * @author neblg
  */
 @Entity
 @Table(name = "invoices")
@@ -33,7 +33,9 @@ import javax.xml.bind.annotation.XmlRootElement;
     @NamedQuery(name = "Invoices.findAll", query = "SELECT i FROM Invoices i"),
     @NamedQuery(name = "Invoices.findById", query = "SELECT i FROM Invoices i WHERE i.id = :id"),
     @NamedQuery(name = "Invoices.findByPdfUrl", query = "SELECT i FROM Invoices i WHERE i.pdfUrl = :pdfUrl"),
-    @NamedQuery(name = "Invoices.findByCreatedAt", query = "SELECT i FROM Invoices i WHERE i.createdAt = :createdAt")})
+    @NamedQuery(name = "Invoices.findByCreatedAt", query = "SELECT i FROM Invoices i WHERE i.createdAt = :createdAt"),
+    @NamedQuery(name = "Invoices.findByIsDeleted", query = "SELECT i FROM Invoices i WHERE i.isDeleted = :isDeleted"),
+    @NamedQuery(name = "Invoices.findByDeletedAt", query = "SELECT i FROM Invoices i WHERE i.deletedAt = :deletedAt")})
 public class Invoices implements Serializable {
 
     private static final long serialVersionUID = 1L;
@@ -48,6 +50,11 @@ public class Invoices implements Serializable {
     @Column(name = "created_at")
     @Temporal(TemporalType.TIMESTAMP)
     private Date createdAt;
+    @Column(name = "is_deleted")
+    private Boolean isDeleted;
+    @Column(name = "deleted_at")
+    @Temporal(TemporalType.TIMESTAMP)
+    private Date deletedAt;
     @JoinColumn(name = "order_id", referencedColumnName = "id")
     @ManyToOne(optional = false)
     private Orders orderId;
@@ -81,6 +88,22 @@ public class Invoices implements Serializable {
 
     public void setCreatedAt(Date createdAt) {
         this.createdAt = createdAt;
+    }
+
+    public Boolean getIsDeleted() {
+        return isDeleted;
+    }
+
+    public void setIsDeleted(Boolean isDeleted) {
+        this.isDeleted = isDeleted;
+    }
+
+    public Date getDeletedAt() {
+        return deletedAt;
+    }
+
+    public void setDeletedAt(Date deletedAt) {
+        this.deletedAt = deletedAt;
     }
 
     public Orders getOrderId() {

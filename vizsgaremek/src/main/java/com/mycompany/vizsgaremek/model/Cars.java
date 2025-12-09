@@ -12,8 +12,6 @@ import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
-import javax.persistence.JoinColumn;
-import javax.persistence.ManyToOne;
 import javax.persistence.NamedQueries;
 import javax.persistence.NamedQuery;
 import javax.persistence.Table;
@@ -25,19 +23,23 @@ import javax.xml.bind.annotation.XmlRootElement;
 
 /**
  *
- * @author ddori
+ * @author neblg
  */
 @Entity
-@Table(name = "motor_models")
+@Table(name = "cars")
 @XmlRootElement
 @NamedQueries({
-    @NamedQuery(name = "MotorModels.findAll", query = "SELECT m FROM MotorModels m"),
-    @NamedQuery(name = "MotorModels.findById", query = "SELECT m FROM MotorModels m WHERE m.id = :id"),
-    @NamedQuery(name = "MotorModels.findByName", query = "SELECT m FROM MotorModels m WHERE m.name = :name"),
-    @NamedQuery(name = "MotorModels.findByYearFrom", query = "SELECT m FROM MotorModels m WHERE m.yearFrom = :yearFrom"),
-    @NamedQuery(name = "MotorModels.findByYearTo", query = "SELECT m FROM MotorModels m WHERE m.yearTo = :yearTo"),
-    @NamedQuery(name = "MotorModels.findByCreatedAt", query = "SELECT m FROM MotorModels m WHERE m.createdAt = :createdAt")})
-public class MotorModels implements Serializable {
+    @NamedQuery(name = "Cars.findAll", query = "SELECT c FROM Cars c"),
+    @NamedQuery(name = "Cars.findById", query = "SELECT c FROM Cars c WHERE c.id = :id"),
+    @NamedQuery(name = "Cars.findByBrand", query = "SELECT c FROM Cars c WHERE c.brand = :brand"),
+    @NamedQuery(name = "Cars.findByModel", query = "SELECT c FROM Cars c WHERE c.model = :model"),
+    @NamedQuery(name = "Cars.findByYearFrom", query = "SELECT c FROM Cars c WHERE c.yearFrom = :yearFrom"),
+    @NamedQuery(name = "Cars.findByYearTo", query = "SELECT c FROM Cars c WHERE c.yearTo = :yearTo"),
+    @NamedQuery(name = "Cars.findByCreatedAt", query = "SELECT c FROM Cars c WHERE c.createdAt = :createdAt"),
+    @NamedQuery(name = "Cars.findByUpdatedAt", query = "SELECT c FROM Cars c WHERE c.updatedAt = :updatedAt"),
+    @NamedQuery(name = "Cars.findByIsDeleted", query = "SELECT c FROM Cars c WHERE c.isDeleted = :isDeleted"),
+    @NamedQuery(name = "Cars.findByDeletedAt", query = "SELECT c FROM Cars c WHERE c.deletedAt = :deletedAt")})
+public class Cars implements Serializable {
 
     private static final long serialVersionUID = 1L;
     @Id
@@ -48,8 +50,13 @@ public class MotorModels implements Serializable {
     @Basic(optional = false)
     @NotNull
     @Size(min = 1, max = 100)
-    @Column(name = "name")
-    private String name;
+    @Column(name = "brand")
+    private String brand;
+    @Basic(optional = false)
+    @NotNull
+    @Size(min = 1, max = 100)
+    @Column(name = "model")
+    private String model;
     @Column(name = "year_from")
     private Integer yearFrom;
     @Column(name = "year_to")
@@ -57,20 +64,26 @@ public class MotorModels implements Serializable {
     @Column(name = "created_at")
     @Temporal(TemporalType.TIMESTAMP)
     private Date createdAt;
-    @JoinColumn(name = "brand_id", referencedColumnName = "id")
-    @ManyToOne(optional = false)
-    private MotorBrands brandId;
+    @Column(name = "updated_at")
+    @Temporal(TemporalType.TIMESTAMP)
+    private Date updatedAt;
+    @Column(name = "is_deleted")
+    private Boolean isDeleted;
+    @Column(name = "deleted_at")
+    @Temporal(TemporalType.TIMESTAMP)
+    private Date deletedAt;
 
-    public MotorModels() {
+    public Cars() {
     }
 
-    public MotorModels(Integer id) {
+    public Cars(Integer id) {
         this.id = id;
     }
 
-    public MotorModels(Integer id, String name) {
+    public Cars(Integer id, String brand, String model) {
         this.id = id;
-        this.name = name;
+        this.brand = brand;
+        this.model = model;
     }
 
     public Integer getId() {
@@ -81,12 +94,20 @@ public class MotorModels implements Serializable {
         this.id = id;
     }
 
-    public String getName() {
-        return name;
+    public String getBrand() {
+        return brand;
     }
 
-    public void setName(String name) {
-        this.name = name;
+    public void setBrand(String brand) {
+        this.brand = brand;
+    }
+
+    public String getModel() {
+        return model;
+    }
+
+    public void setModel(String model) {
+        this.model = model;
     }
 
     public Integer getYearFrom() {
@@ -113,12 +134,28 @@ public class MotorModels implements Serializable {
         this.createdAt = createdAt;
     }
 
-    public MotorBrands getBrandId() {
-        return brandId;
+    public Date getUpdatedAt() {
+        return updatedAt;
     }
 
-    public void setBrandId(MotorBrands brandId) {
-        this.brandId = brandId;
+    public void setUpdatedAt(Date updatedAt) {
+        this.updatedAt = updatedAt;
+    }
+
+    public Boolean getIsDeleted() {
+        return isDeleted;
+    }
+
+    public void setIsDeleted(Boolean isDeleted) {
+        this.isDeleted = isDeleted;
+    }
+
+    public Date getDeletedAt() {
+        return deletedAt;
+    }
+
+    public void setDeletedAt(Date deletedAt) {
+        this.deletedAt = deletedAt;
     }
 
     @Override
@@ -131,10 +168,10 @@ public class MotorModels implements Serializable {
     @Override
     public boolean equals(Object object) {
         // TODO: Warning - this method won't work in the case the id fields are not set
-        if (!(object instanceof MotorModels)) {
+        if (!(object instanceof Cars)) {
             return false;
         }
-        MotorModels other = (MotorModels) object;
+        Cars other = (Cars) object;
         if ((this.id == null && other.id != null) || (this.id != null && !this.id.equals(other.id))) {
             return false;
         }
@@ -143,7 +180,7 @@ public class MotorModels implements Serializable {
 
     @Override
     public String toString() {
-        return "com.mycompany.vizsgaremek.model.MotorModels[ id=" + id + " ]";
+        return "com.mycompany.vizsgaremek.model.Cars[ id=" + id + " ]";
     }
     
 }
