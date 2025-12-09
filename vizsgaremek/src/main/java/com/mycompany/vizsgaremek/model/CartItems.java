@@ -23,7 +23,7 @@ import javax.xml.bind.annotation.XmlRootElement;
 
 /**
  *
- * @author ddori
+ * @author neblg
  */
 @Entity
 @Table(name = "cart_items")
@@ -32,7 +32,9 @@ import javax.xml.bind.annotation.XmlRootElement;
     @NamedQuery(name = "CartItems.findAll", query = "SELECT c FROM CartItems c"),
     @NamedQuery(name = "CartItems.findById", query = "SELECT c FROM CartItems c WHERE c.id = :id"),
     @NamedQuery(name = "CartItems.findByQuantity", query = "SELECT c FROM CartItems c WHERE c.quantity = :quantity"),
-    @NamedQuery(name = "CartItems.findByAddedAt", query = "SELECT c FROM CartItems c WHERE c.addedAt = :addedAt")})
+    @NamedQuery(name = "CartItems.findByAddedAt", query = "SELECT c FROM CartItems c WHERE c.addedAt = :addedAt"),
+    @NamedQuery(name = "CartItems.findByIsDeleted", query = "SELECT c FROM CartItems c WHERE c.isDeleted = :isDeleted"),
+    @NamedQuery(name = "CartItems.findByDeletedAt", query = "SELECT c FROM CartItems c WHERE c.deletedAt = :deletedAt")})
 public class CartItems implements Serializable {
 
     private static final long serialVersionUID = 1L;
@@ -46,6 +48,14 @@ public class CartItems implements Serializable {
     @Column(name = "added_at")
     @Temporal(TemporalType.TIMESTAMP)
     private Date addedAt;
+    @Column(name = "is_deleted")
+    private Boolean isDeleted;
+    @Column(name = "deleted_at")
+    @Temporal(TemporalType.TIMESTAMP)
+    private Date deletedAt;
+    @JoinColumn(name = "user_id", referencedColumnName = "id")
+    @ManyToOne(optional = false)
+    private Users userId;
     @JoinColumn(name = "part_id", referencedColumnName = "id")
     @ManyToOne(optional = false)
     private Parts partId;
@@ -79,6 +89,30 @@ public class CartItems implements Serializable {
 
     public void setAddedAt(Date addedAt) {
         this.addedAt = addedAt;
+    }
+
+    public Boolean getIsDeleted() {
+        return isDeleted;
+    }
+
+    public void setIsDeleted(Boolean isDeleted) {
+        this.isDeleted = isDeleted;
+    }
+
+    public Date getDeletedAt() {
+        return deletedAt;
+    }
+
+    public void setDeletedAt(Date deletedAt) {
+        this.deletedAt = deletedAt;
+    }
+
+    public Users getUserId() {
+        return userId;
+    }
+
+    public void setUserId(Users userId) {
+        this.userId = userId;
     }
 
     public Parts getPartId() {

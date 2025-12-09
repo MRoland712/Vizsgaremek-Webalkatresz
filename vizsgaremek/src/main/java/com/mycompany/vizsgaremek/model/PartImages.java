@@ -5,6 +5,7 @@
 package com.mycompany.vizsgaremek.model;
 
 import java.io.Serializable;
+import java.util.Date;
 import javax.persistence.Basic;
 import javax.persistence.Column;
 import javax.persistence.Entity;
@@ -16,13 +17,15 @@ import javax.persistence.ManyToOne;
 import javax.persistence.NamedQueries;
 import javax.persistence.NamedQuery;
 import javax.persistence.Table;
+import javax.persistence.Temporal;
+import javax.persistence.TemporalType;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
 import javax.xml.bind.annotation.XmlRootElement;
 
 /**
  *
- * @author ddori
+ * @author neblg
  */
 @Entity
 @Table(name = "part_images")
@@ -31,7 +34,10 @@ import javax.xml.bind.annotation.XmlRootElement;
     @NamedQuery(name = "PartImages.findAll", query = "SELECT p FROM PartImages p"),
     @NamedQuery(name = "PartImages.findById", query = "SELECT p FROM PartImages p WHERE p.id = :id"),
     @NamedQuery(name = "PartImages.findByUrl", query = "SELECT p FROM PartImages p WHERE p.url = :url"),
-    @NamedQuery(name = "PartImages.findByIsPrimary", query = "SELECT p FROM PartImages p WHERE p.isPrimary = :isPrimary")})
+    @NamedQuery(name = "PartImages.findByIsPrimary", query = "SELECT p FROM PartImages p WHERE p.isPrimary = :isPrimary"),
+    @NamedQuery(name = "PartImages.findByCreatedAt", query = "SELECT p FROM PartImages p WHERE p.createdAt = :createdAt"),
+    @NamedQuery(name = "PartImages.findByIsDeleted", query = "SELECT p FROM PartImages p WHERE p.isDeleted = :isDeleted"),
+    @NamedQuery(name = "PartImages.findByDeletedAt", query = "SELECT p FROM PartImages p WHERE p.deletedAt = :deletedAt")})
 public class PartImages implements Serializable {
 
     private static final long serialVersionUID = 1L;
@@ -47,6 +53,14 @@ public class PartImages implements Serializable {
     private String url;
     @Column(name = "is_primary")
     private Boolean isPrimary;
+    @Column(name = "created_at")
+    @Temporal(TemporalType.TIMESTAMP)
+    private Date createdAt;
+    @Column(name = "is_deleted")
+    private Boolean isDeleted;
+    @Column(name = "deleted_at")
+    @Temporal(TemporalType.TIMESTAMP)
+    private Date deletedAt;
     @JoinColumn(name = "part_id", referencedColumnName = "id")
     @ManyToOne(optional = false)
     private Parts partId;
@@ -85,6 +99,30 @@ public class PartImages implements Serializable {
 
     public void setIsPrimary(Boolean isPrimary) {
         this.isPrimary = isPrimary;
+    }
+
+    public Date getCreatedAt() {
+        return createdAt;
+    }
+
+    public void setCreatedAt(Date createdAt) {
+        this.createdAt = createdAt;
+    }
+
+    public Boolean getIsDeleted() {
+        return isDeleted;
+    }
+
+    public void setIsDeleted(Boolean isDeleted) {
+        this.isDeleted = isDeleted;
+    }
+
+    public Date getDeletedAt() {
+        return deletedAt;
+    }
+
+    public void setDeletedAt(Date deletedAt) {
+        this.deletedAt = deletedAt;
     }
 
     public Parts getPartId() {

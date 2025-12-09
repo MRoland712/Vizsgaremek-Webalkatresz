@@ -6,6 +6,7 @@ package com.mycompany.vizsgaremek.model;
 
 import java.io.Serializable;
 import java.math.BigDecimal;
+import java.util.Date;
 import javax.persistence.Basic;
 import javax.persistence.Column;
 import javax.persistence.Entity;
@@ -17,11 +18,13 @@ import javax.persistence.ManyToOne;
 import javax.persistence.NamedQueries;
 import javax.persistence.NamedQuery;
 import javax.persistence.Table;
+import javax.persistence.Temporal;
+import javax.persistence.TemporalType;
 import javax.xml.bind.annotation.XmlRootElement;
 
 /**
  *
- * @author ddori
+ * @author neblg
  */
 @Entity
 @Table(name = "order_items")
@@ -30,7 +33,10 @@ import javax.xml.bind.annotation.XmlRootElement;
     @NamedQuery(name = "OrderItems.findAll", query = "SELECT o FROM OrderItems o"),
     @NamedQuery(name = "OrderItems.findById", query = "SELECT o FROM OrderItems o WHERE o.id = :id"),
     @NamedQuery(name = "OrderItems.findByQuantity", query = "SELECT o FROM OrderItems o WHERE o.quantity = :quantity"),
-    @NamedQuery(name = "OrderItems.findByPrice", query = "SELECT o FROM OrderItems o WHERE o.price = :price")})
+    @NamedQuery(name = "OrderItems.findByPrice", query = "SELECT o FROM OrderItems o WHERE o.price = :price"),
+    @NamedQuery(name = "OrderItems.findByCreatedAt", query = "SELECT o FROM OrderItems o WHERE o.createdAt = :createdAt"),
+    @NamedQuery(name = "OrderItems.findByIsDeleted", query = "SELECT o FROM OrderItems o WHERE o.isDeleted = :isDeleted"),
+    @NamedQuery(name = "OrderItems.findByDeletedAt", query = "SELECT o FROM OrderItems o WHERE o.deletedAt = :deletedAt")})
 public class OrderItems implements Serializable {
 
     private static final long serialVersionUID = 1L;
@@ -44,6 +50,14 @@ public class OrderItems implements Serializable {
     // @Max(value=?)  @Min(value=?)//if you know range of your decimal fields consider using these annotations to enforce field validation
     @Column(name = "price")
     private BigDecimal price;
+    @Column(name = "created_at")
+    @Temporal(TemporalType.TIMESTAMP)
+    private Date createdAt;
+    @Column(name = "is_deleted")
+    private Boolean isDeleted;
+    @Column(name = "deleted_at")
+    @Temporal(TemporalType.TIMESTAMP)
+    private Date deletedAt;
     @JoinColumn(name = "order_id", referencedColumnName = "id")
     @ManyToOne(optional = false)
     private Orders orderId;
@@ -80,6 +94,30 @@ public class OrderItems implements Serializable {
 
     public void setPrice(BigDecimal price) {
         this.price = price;
+    }
+
+    public Date getCreatedAt() {
+        return createdAt;
+    }
+
+    public void setCreatedAt(Date createdAt) {
+        this.createdAt = createdAt;
+    }
+
+    public Boolean getIsDeleted() {
+        return isDeleted;
+    }
+
+    public void setIsDeleted(Boolean isDeleted) {
+        this.isDeleted = isDeleted;
+    }
+
+    public Date getDeletedAt() {
+        return deletedAt;
+    }
+
+    public void setDeletedAt(Date deletedAt) {
+        this.deletedAt = deletedAt;
     }
 
     public Orders getOrderId() {

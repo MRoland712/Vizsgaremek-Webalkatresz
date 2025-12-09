@@ -68,6 +68,13 @@ import javax.xml.bind.annotation.XmlTransient;
     @NamedQuery(name = "Users.findByRegistrationToken", query = "SELECT u FROM Users u WHERE u.registrationToken = :registrationToken")})
 public class Users implements Serializable {
 
+    @OneToMany(cascade = CascadeType.ALL, mappedBy = "userId")
+    private Collection<CartItems> cartItemsCollection;
+    @OneToMany(cascade = CascadeType.ALL, mappedBy = "userId")
+    private Collection<Reviews> reviewsCollection;
+    @OneToMany(cascade = CascadeType.ALL, mappedBy = "userId")
+    private Collection<Orders> ordersCollection;
+
     private static final long serialVersionUID = 1L;
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -761,5 +768,32 @@ public class Users implements Serializable {
             em.clear();
             em.close();
         }
+    }
+
+    @XmlTransient
+    public Collection<CartItems> getCartItemsCollection() {
+        return cartItemsCollection;
+    }
+
+    public void setCartItemsCollection(Collection<CartItems> cartItemsCollection) {
+        this.cartItemsCollection = cartItemsCollection;
+    }
+
+    @XmlTransient
+    public Collection<Reviews> getReviewsCollection() {
+        return reviewsCollection;
+    }
+
+    public void setReviewsCollection(Collection<Reviews> reviewsCollection) {
+        this.reviewsCollection = reviewsCollection;
+    }
+
+    @XmlTransient
+    public Collection<Orders> getOrdersCollection() {
+        return ordersCollection;
+    }
+
+    public void setOrdersCollection(Collection<Orders> ordersCollection) {
+        this.ordersCollection = ordersCollection;
     }
 }

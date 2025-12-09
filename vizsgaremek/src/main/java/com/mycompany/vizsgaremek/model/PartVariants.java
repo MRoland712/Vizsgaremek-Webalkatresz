@@ -6,6 +6,7 @@ package com.mycompany.vizsgaremek.model;
 
 import java.io.Serializable;
 import java.math.BigDecimal;
+import java.util.Date;
 import javax.persistence.Basic;
 import javax.persistence.Column;
 import javax.persistence.Entity;
@@ -17,12 +18,14 @@ import javax.persistence.ManyToOne;
 import javax.persistence.NamedQueries;
 import javax.persistence.NamedQuery;
 import javax.persistence.Table;
+import javax.persistence.Temporal;
+import javax.persistence.TemporalType;
 import javax.validation.constraints.Size;
 import javax.xml.bind.annotation.XmlRootElement;
 
 /**
  *
- * @author ddori
+ * @author neblg
  */
 @Entity
 @Table(name = "part_variants")
@@ -32,7 +35,10 @@ import javax.xml.bind.annotation.XmlRootElement;
     @NamedQuery(name = "PartVariants.findById", query = "SELECT p FROM PartVariants p WHERE p.id = :id"),
     @NamedQuery(name = "PartVariants.findByName", query = "SELECT p FROM PartVariants p WHERE p.name = :name"),
     @NamedQuery(name = "PartVariants.findByValue", query = "SELECT p FROM PartVariants p WHERE p.value = :value"),
-    @NamedQuery(name = "PartVariants.findByAdditionalPrice", query = "SELECT p FROM PartVariants p WHERE p.additionalPrice = :additionalPrice")})
+    @NamedQuery(name = "PartVariants.findByAdditionalPrice", query = "SELECT p FROM PartVariants p WHERE p.additionalPrice = :additionalPrice"),
+    @NamedQuery(name = "PartVariants.findByCreatedAt", query = "SELECT p FROM PartVariants p WHERE p.createdAt = :createdAt"),
+    @NamedQuery(name = "PartVariants.findByIsDeleted", query = "SELECT p FROM PartVariants p WHERE p.isDeleted = :isDeleted"),
+    @NamedQuery(name = "PartVariants.findByDeletedAt", query = "SELECT p FROM PartVariants p WHERE p.deletedAt = :deletedAt")})
 public class PartVariants implements Serializable {
 
     private static final long serialVersionUID = 1L;
@@ -50,6 +56,14 @@ public class PartVariants implements Serializable {
     // @Max(value=?)  @Min(value=?)//if you know range of your decimal fields consider using these annotations to enforce field validation
     @Column(name = "additional_price")
     private BigDecimal additionalPrice;
+    @Column(name = "created_at")
+    @Temporal(TemporalType.TIMESTAMP)
+    private Date createdAt;
+    @Column(name = "is_deleted")
+    private Boolean isDeleted;
+    @Column(name = "deleted_at")
+    @Temporal(TemporalType.TIMESTAMP)
+    private Date deletedAt;
     @JoinColumn(name = "part_id", referencedColumnName = "id")
     @ManyToOne(optional = false)
     private Parts partId;
@@ -91,6 +105,30 @@ public class PartVariants implements Serializable {
 
     public void setAdditionalPrice(BigDecimal additionalPrice) {
         this.additionalPrice = additionalPrice;
+    }
+
+    public Date getCreatedAt() {
+        return createdAt;
+    }
+
+    public void setCreatedAt(Date createdAt) {
+        this.createdAt = createdAt;
+    }
+
+    public Boolean getIsDeleted() {
+        return isDeleted;
+    }
+
+    public void setIsDeleted(Boolean isDeleted) {
+        this.isDeleted = isDeleted;
+    }
+
+    public Date getDeletedAt() {
+        return deletedAt;
+    }
+
+    public void setDeletedAt(Date deletedAt) {
+        this.deletedAt = deletedAt;
     }
 
     public Parts getPartId() {
