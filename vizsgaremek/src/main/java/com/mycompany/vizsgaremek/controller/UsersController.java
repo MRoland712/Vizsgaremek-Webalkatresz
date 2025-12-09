@@ -41,39 +41,6 @@ public class UsersController {
         return Response.ok().build();  // A CorsFilter automatikusan hozzáadja a header-öket
     }
 
-    private Response validateJwtAndReturnError(String jwtToken) {
-        JSONArray errors = new JSONArray();
-
-        if (AuthenticationService.isDataMissing(jwtToken)) {
-            errors.put("MissingToken");
-            return Response.status(401)
-                    .entity(errorAuth.createErrorResponse(errors, 401).toString())
-                    .type(MediaType.APPLICATION_JSON)
-                    .build();
-        }
-
-        Boolean validJwt = jwt.validateToken(jwtToken);
-        Boolean expiredToken = jwt.isTokenExpired(jwtToken);
-
-        if (expiredToken) {
-            errors.put("TokenExpired");
-            return Response.status(401)
-                    .entity(errorAuth.createErrorResponse(errors, 401).toString())
-                    .type(MediaType.APPLICATION_JSON)
-                    .build();
-        }
-
-        if (validJwt == false) {
-            errors.put("InvalidToken");
-            return Response.status(401)
-                    .entity(errorAuth.createErrorResponse(errors, 401).toString())
-                    .type(MediaType.APPLICATION_JSON)
-                    .build();
-        }
-
-        return null; // Token valid
-    }
-
     @GET
     @Produces(MediaType.APPLICATION_XML)
     public String getXml() {
@@ -89,7 +56,7 @@ public class UsersController {
     @Path("validateJWT")
     @Consumes(MediaType.APPLICATION_JSON)
     public Response validateJWTEndpoint(@HeaderParam("token") String jwtToken) {
-        Response jwtError = validateJwtAndReturnError(jwtToken);
+        Response jwtError = jwt.validateJwtAndReturnError(jwtToken);
         if (jwtError != null) {
             return jwtError;
         }
@@ -128,7 +95,7 @@ public class UsersController {
     @Path("getUsers")
     @Consumes(MediaType.APPLICATION_JSON)
     public Response getUsers(@HeaderParam("token") String jwtToken) {
-        Response jwtError = validateJwtAndReturnError(jwtToken);
+        Response jwtError = jwt.validateJwtAndReturnError(jwtToken);
         if (jwtError != null) {
             return jwtError;
         }
@@ -145,7 +112,7 @@ public class UsersController {
     @Path("getUserById")
     @Consumes(MediaType.APPLICATION_JSON)
     public Response getUserById(@QueryParam("id") Integer id, @HeaderParam("token") String jwtToken) {
-        Response jwtError = validateJwtAndReturnError(jwtToken);
+        Response jwtError = jwt.validateJwtAndReturnError(jwtToken);
         if (jwtError != null) {
             return jwtError;
         }
@@ -166,7 +133,7 @@ public class UsersController {
     @Path("getUserByEmail")
     @Consumes(MediaType.APPLICATION_JSON)
     public Response getUserByEmail(@QueryParam("email") String email, @HeaderParam("token") String jwtToken) {
-        Response jwtError = validateJwtAndReturnError(jwtToken);
+        Response jwtError = jwt.validateJwtAndReturnError(jwtToken);
         if (jwtError != null) {
             return jwtError;
         }
@@ -183,7 +150,7 @@ public class UsersController {
     @Path("softDeleteUser")
     @Consumes(MediaType.APPLICATION_JSON)
     public Response softDeleteUser(@QueryParam("id") Integer userId, @HeaderParam("token") String jwtToken) {
-        Response jwtError = validateJwtAndReturnError(jwtToken);
+        Response jwtError = jwt.validateJwtAndReturnError(jwtToken);
         if (jwtError != null) {
             return jwtError;
         }
@@ -204,7 +171,7 @@ public class UsersController {
             @QueryParam("email") String email,
             String body) {
 
-        Response jwtError = validateJwtAndReturnError(jwtToken);
+        Response jwtError = jwt.validateJwtAndReturnError(jwtToken);
         if (jwtError != null) {
             return jwtError;
         }

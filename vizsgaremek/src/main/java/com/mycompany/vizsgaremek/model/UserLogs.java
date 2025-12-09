@@ -4,22 +4,25 @@
  */
 package com.mycompany.vizsgaremek.model;
 
-import static com.mycompany.vizsgaremek.model.Users.emf;
-import com.mycompany.vizsgaremek.service.AuthenticationService;
 import java.io.Serializable;
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Date;
 import java.util.List;
 import javax.persistence.Basic;
+import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
+import javax.persistence.EntityTransaction;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
-import javax.persistence.Lob;
 import javax.persistence.NamedQueries;
 import javax.persistence.NamedQuery;
+import javax.persistence.OneToMany;
 import javax.persistence.ParameterMode;
 import javax.persistence.Persistence;
 import javax.persistence.StoredProcedureQuery;
@@ -29,11 +32,18 @@ import javax.persistence.TemporalType;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
 import javax.xml.bind.annotation.XmlRootElement;
+import javax.xml.bind.annotation.XmlTransient;
+import com.mycompany.vizsgaremek.service.AuthenticationService;
+import javax.persistence.JoinColumn;
+import javax.persistence.Lob;
+import javax.persistence.ManyToOne;
+
 
 /**
  *
  * @author ddori
  */
+
 @Entity
 @Table(name = "user_logs")
 @XmlRootElement
@@ -64,10 +74,14 @@ public class UserLogs implements Serializable {
     @Column(name = "created_at")
     @Temporal(TemporalType.TIMESTAMP)
     private Date createdAt;
-    
+    @JoinColumn(name = "user_id", referencedColumnName = "id")
+    @ManyToOne(optional = false)
+    private Users userId;
+
     static EntityManagerFactory emf = Persistence.createEntityManagerFactory("com.mycompany_vizsgaremek_war_1.0-SNAPSHOTPU");
-    static AuthenticationService.userLogsAuth userLogsAuth = new AuthenticationService.userLogsAuth();
-    
+    public static SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+    static AuthenticationService.userAuth userAuth = new AuthenticationService.userAuth();
+
     public UserLogs() {
     }
 
@@ -80,11 +94,28 @@ public class UserLogs implements Serializable {
         this.action = action;
         this.createdAt = createdAt;
     }
-    //createUserLogs && updateUserLogs
+    
     public UserLogs(String action, String details) {
         this.action = action;
         this.details = details;
     }
+    
+    //updateUserLog
+    public UserLogs(String action, String details, Users userId) {
+        this.action = action;
+        this.details = details;
+        this.userId = userId;
+    }
+    
+    //getUserLogById
+    public UserLogs(Integer id, String action, String details, Date createdAt, Users userId) {
+        this.id = id;
+        this.action = action;
+        this.details = details;
+        this.createdAt = createdAt;
+        this.userId = userId;
+    }
+    
     
 
     public Integer getId() {
@@ -119,6 +150,14 @@ public class UserLogs implements Serializable {
         this.createdAt = createdAt;
     }
 
+    public Users getUserId() {
+        return userId;
+    }
+
+    public void setUserId(Users userId) {
+        this.userId = userId;
+    }
+
     @Override
     public int hashCode() {
         int hash = 0;
@@ -143,57 +182,7 @@ public class UserLogs implements Serializable {
     public String toString() {
         return "com.mycompany.vizsgaremek.model.UserLogs[ id=" + id + " ]";
     }
-    
-    public static Boolean getUserLogById(Integer id) {
-        try {
-            EntityManager em = emf.createEntityManager();
-            
-            StoredProcedureQuery spq = em.createStoredProcedureQuery("getUserLogById");
-            spq.registerStoredProcedureParameter("p_id", Integer.class, ParameterMode.IN);
-            spq.setParameter("p_id", id);
 
-            spq.execute(); // vége zárásként
-
-            List<Object[]> resultList = spq.getResultList();
-
-            if (AuthenticationService.isDataMissing(resultList)) {
-                return null;
-            }
-
-            Users toReturn = new Users();
-
-            for (Object[] record : resultList) {
-
-                Users u = new Users(
-                        Integer.valueOf(record[0].toString()),// id
-                        record[1].toString(),// email
-                        record[2].toString(),// username
-                        record[3].toString(),// firstname
-                        record[4].toString(),// lastname
-                        record[5].toString(),// phone
-                        record[6].toString(),// guid
-                        record[7].toString(),// role
-                        Boolean.valueOf(record[8].toString()),// isActive
-                        record[9] == null ? null : formatter.parse(record[9].toString()),// lastLogin
-                        record[10] == null ? null : formatter.parse(record[10].toString()),// createdAt
-                        record[11] == null ? null : formatter.parse(record[11].toString()),// updatedAt
-                        record[12].toString(),// password
-                        Boolean.valueOf(record[13].toString()),// isDeleted
-                        record[14].toString(),// authSecret
-                        record[15].toString()// registrationToken
-                );
-                toReturn = u;
-            }
-            return toReturn;
-
-        } catch (Exception ex) {
-            return false;
-        } finally {
-            em.clear();
-            em.close();
-        }
-    }
-    
     public static Boolean createUserLogs(UserLogs createdUserLog, Integer userId) {
         EntityManager em = emf.createEntityManager();
         try {
@@ -218,8 +207,8 @@ public class UserLogs implements Serializable {
             em.close();
         }
     }
-    
-    public static Boolean updateUserLogs(UserLogs updatedUserLog, Integer id) {
+
+    /*public static Boolean updateUserLogs(UserLogs updatedUserLog, Integer id) {
         EntityManager em = emf.createEntityManager();
 
         try {
@@ -251,4 +240,54 @@ public class UserLogs implements Serializable {
             em.close();
         }
     }
+    
+    public static UserLogs getUserLogById(Integer id) {
+        EntityManager em = emf.createEntityManager();
+
+        try {
+            StoredProcedureQuery spq = em.createStoredProcedureQuery("getUserLogById");
+            spq.registerStoredProcedureParameter("p_id", Integer.class, ParameterMode.IN);
+            spq.setParameter("p_id", id);
+
+            spq.execute(); // vége zárásként
+
+            List<Object[]> resultList = spq.getResultList();
+
+            if (AuthenticationService.isDataMissing(resultList)) {
+                return null;
+            }
+
+            UserLogs toReturn = new UserLogs();
+
+            for (Object[] record : resultList) {
+                System.out.println(record[0].toString() + "¤");
+                System.out.println(record[1].toString()+ "¤");
+                System.out.println(record[2].toString()+ "¤");
+                System.out.println(record[3].toString()+ "¤");
+                System.out.println(record[4].toString()+ "¤");
+                
+                Users user = new Users();
+                user.setId(Integer.valueOf(record[1].toString()));
+                
+                UserLogs u = new UserLogs(
+                        Integer.valueOf(record[0].toString()),// id
+                        record[2].toString(),// Action
+                        record[3].toString(),// Details
+                        record[4] == null ? null : formatter.parse(record[4].toString()),// created_at
+                        user
+                );
+                toReturn = u;
+            }
+            return toReturn;
+        } catch (Exception ex) {
+            if (em.getTransaction().isActive()) {
+                em.getTransaction().rollback(); // Ha hiba van, rollback
+            }
+            ex.printStackTrace();
+            return null;
+        } finally {
+            em.clear();
+            em.close();
+        }
+    }*/
 }

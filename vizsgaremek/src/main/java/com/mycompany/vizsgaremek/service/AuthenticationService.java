@@ -4,8 +4,8 @@
  */
 package com.mycompany.vizsgaremek.service;
 
-import com.mycompany.vizsgaremek.model.Users;
 import com.mycompany.vizsgaremek.config.Encrypt;
+import com.mycompany.vizsgaremek.model.*;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.regex.Pattern;
@@ -32,6 +32,10 @@ public class AuthenticationService {
     }
 
     public static boolean isDataMissing(Users data) {
+        return (data == null);
+    }
+    
+    public static boolean isDataMissing(UserLogs data) {
         return (data == null);
     }
 

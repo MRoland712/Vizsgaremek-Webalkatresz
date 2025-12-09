@@ -4,7 +4,6 @@
  */
 package com.mycompany.vizsgaremek.model;
 
-import com.mycompany.vizsgaremek.service.AuthenticationService;
 import java.io.Serializable;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -32,7 +31,9 @@ import javax.persistence.Temporal;
 import javax.persistence.TemporalType;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
+import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.XmlTransient;
+import com.mycompany.vizsgaremek.service.AuthenticationService;
 
 /**
  *
@@ -40,7 +41,7 @@ import javax.xml.bind.annotation.XmlTransient;
  */
 @Entity
 @Table(name = "users")
-//@XmlRootElement
+@XmlRootElement
 @NamedQueries({
     @NamedQuery(name = "Users.findAll", query = "SELECT u FROM Users u"),
     @NamedQuery(name = "Users.findById", query = "SELECT u FROM Users u WHERE u.id = :id"),
@@ -146,8 +147,8 @@ public class Users implements Serializable {
     @Size(max = 255)
     @Column(name = "registration_token")
     private String registrationToken;
-    @OneToMany(cascade = CascadeType.ALL, mappedBy = "user")
-    private Collection<Addresses> addressesCollection;
+    @OneToMany(cascade = CascadeType.ALL, mappedBy = "userId")
+    private Collection<UserLogs> userLogsCollection;
 
     static EntityManagerFactory emf = Persistence.createEntityManagerFactory("com.mycompany_vizsgaremek_war_1.0-SNAPSHOTPU");
     public static SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
@@ -439,12 +440,12 @@ public class Users implements Serializable {
     }
 
     @XmlTransient
-    public Collection<Addresses> getAddressesCollection() {
-        return addressesCollection;
+    public Collection<UserLogs> getUserLogsCollection() {
+        return userLogsCollection;
     }
 
-    public void setAddressesCollection(Collection<Addresses> addressesCollection) {
-        this.addressesCollection = addressesCollection;
+    public void setUserLogsCollection(Collection<UserLogs> userLogsCollection) {
+        this.userLogsCollection = userLogsCollection;
     }
 
     @Override
@@ -567,7 +568,7 @@ public class Users implements Serializable {
 
             List<Object[]> resultList = spq.getResultList();
 
-            if (userAuth.isDataMissing(resultList)) {
+            if (AuthenticationService.isDataMissing(resultList)) {
                 return null;
             }
 
