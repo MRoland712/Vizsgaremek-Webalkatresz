@@ -5,7 +5,10 @@
 package com.mycompany.vizsgaremek.model;
 
 import java.io.Serializable;
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 import javax.persistence.Basic;
 import javax.persistence.Column;
 import javax.persistence.Entity;
@@ -106,9 +109,10 @@ public class Addresses implements Serializable {
     private Date deletedAt;
     @JoinColumn(name = "user_id", referencedColumnName = "id")
     @ManyToOne(optional = false)
-    private Users user;
-    
+    private Users userId;
+
     static EntityManagerFactory emf = Persistence.createEntityManagerFactory("com.mycompany_vizsgaremek_war_1.0-SNAPSHOTPU");
+    public static SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 
     public Addresses() {
     }
@@ -124,9 +128,10 @@ public class Addresses implements Serializable {
         this.zipCode = zipCode;
         this.street = street;
     }
-    
     //createAddress
-    public Addresses(Users user, String firstName, String lastName, String company, String taxNumber, String country, String city, String zipCode, String street, Boolean isDefault) {
+
+    public Addresses(Users userId, String firstName, String lastName, String company, String taxNumber, String country, String city, String zipCode, String street, Boolean isDefault) {
+        this.userId = userId;
         this.firstName = firstName;
         this.lastName = lastName;
         this.company = company;
@@ -136,7 +141,42 @@ public class Addresses implements Serializable {
         this.zipCode = zipCode;
         this.street = street;
         this.isDefault = isDefault;
-        this.user = user;
+    }
+
+    //getAllAddresses & getAddressById & getAddressByUserId
+    public Addresses(Integer id, String firstName, String lastName, String company, String taxNumber, String country, String city, String zipCode, String street, Boolean isDefault, Date createdAt, Date updatedAt, Boolean isDeleted, Date deletedAt, Users userId) {
+        this.id = id;
+        this.firstName = firstName;
+        this.lastName = lastName;
+        this.company = company;
+        this.taxNumber = taxNumber;
+        this.country = country;
+        this.city = city;
+        this.zipCode = zipCode;
+        this.street = street;
+        this.isDefault = isDefault;
+        this.createdAt = createdAt;
+        this.updatedAt = updatedAt;
+        this.isDeleted = isDeleted;
+        this.deletedAt = deletedAt;
+        this.userId = userId;
+    }
+    
+    //updateAddress
+
+    public Addresses(Integer id, Users userId,  String firstName, String lastName, String company, String taxNumber, String country, String city, String zipCode, String street, Boolean isDefault, Boolean isDeleted) {
+        this.id = id;
+        this.userId = userId;
+        this.firstName = firstName;
+        this.lastName = lastName;
+        this.company = company;
+        this.taxNumber = taxNumber;
+        this.country = country;
+        this.city = city;
+        this.zipCode = zipCode;
+        this.street = street;
+        this.isDefault = isDefault;
+        this.isDeleted = isDeleted;
     }
     
 
@@ -252,18 +292,14 @@ public class Addresses implements Serializable {
         this.deletedAt = deletedAt;
     }
 
-   public Users getUser() {
-        return user;
+    public Users getUserId() {
+        return userId;
     }
 
-    public void setUser(Users user) {
-        this.user = user;
-    }
     
-    public Integer getUserId() {
-        return user != null ? user.getId() : null;
+    public void setUserId(Users userId) {
+        this.userId = userId;
     }
-
     @Override
     public int hashCode() {
         int hash = 0;
@@ -305,7 +341,7 @@ public class Addresses implements Serializable {
             spq.registerStoredProcedureParameter("p_street", String.class, ParameterMode.IN);
             spq.registerStoredProcedureParameter("p_is_default", Integer.class, ParameterMode.IN);
 
-            spq.setParameter("p_user_id", createdAddress.getUserId());
+            spq.setParameter("p_user_id", createdAddress.getUserId().getId());
             spq.setParameter("p_first_name", createdAddress.getFirstName());
             spq.setParameter("p_last_name", createdAddress.getLastName());
             spq.setParameter("p_company", createdAddress.getCompany());
@@ -314,7 +350,7 @@ public class Addresses implements Serializable {
             spq.setParameter("p_city", createdAddress.getCity());
             spq.setParameter("p_zip_code", createdAddress.getZipCode());
             spq.setParameter("p_street", createdAddress.getStreet());
-            spq.setParameter("p_is_default", createdAddress.getIsDefault() == null ? 0 : createdAddress.getIsDefault());
+            spq.setParameter("p_is_default", Boolean.TRUE.equals(createdAddress.getIsDefault()) ? 1 : 0);
 
             spq.execute();
 
@@ -324,6 +360,229 @@ public class Addresses implements Serializable {
             ex.printStackTrace();
             return false;
         } finally {
+            em.close();
+        }
+    }
+
+    public static ArrayList<Addresses> getAllAddresses() {
+        EntityManager em = emf.createEntityManager();
+
+        try {
+            //eljárást meghívjuk
+            StoredProcedureQuery spq = em.createStoredProcedureQuery("getAllAddresses");
+            spq.execute();
+
+            //Amit visszakap információt berakni egy Object[] list-be
+            List<Object[]> resultList = spq.getResultList();
+
+            ArrayList<Addresses> toReturn = new ArrayList();
+
+            for (Object[] record : resultList) {
+                // user_id Users objektum létrehozása
+                Users user = new Users();
+                user.setId(Integer.valueOf(record[1].toString()));
+
+                Addresses a = new Addresses(
+                        Integer.valueOf(record[0].toString()), // 1. id
+                        record[2] != null ? record[2].toString() : null, // 2. firstName
+                        record[3] != null ? record[3].toString() : null, // 3. lastName
+                        record[4] != null ? record[4].toString() : null, // 4. company ← NULL CHECK!
+                        record[5] != null ? record[5].toString() : null, // 5. taxNumber
+                        record[6] != null ? record[6].toString() : null, // 6. country
+                        record[7] != null ? record[7].toString() : null, // 7. city
+                        record[8] != null ? record[8].toString() : null, // 8. zipCode
+                        record[9] != null ? record[9].toString() : null, // 9. street
+                        Boolean.valueOf(record[10].toString()), // 10. isDefault
+                        record[11] == null ? null : formatter.parse(record[11].toString()), // 11. createdAt
+                        record[12] == null ? null : formatter.parse(record[12].toString()), // 12. updatedAt
+                        Boolean.FALSE, // 13. isDeleted
+                        null, // 14. deletedAt
+                        user // 15. userId
+                );
+
+                toReturn.add(a);
+            }
+            return toReturn;
+        } catch (Exception ex) {
+            if (em.getTransaction().isActive()) {
+                em.getTransaction().rollback(); // Ha hiba van, rollback
+            }
+            ex.printStackTrace();
+            return null;
+        } finally {
+            em.clear();
+            em.close();
+        }
+    }
+
+    public static Addresses getAddressById(Integer id) {
+        EntityManager em = emf.createEntityManager();
+        try {
+            StoredProcedureQuery spq = em.createStoredProcedureQuery("getAddressById");
+            spq.registerStoredProcedureParameter("p_address_id", Integer.class, ParameterMode.IN);
+            spq.setParameter("p_address_id", id);
+            spq.execute();
+
+            List<Object[]> resultList = spq.getResultList();
+
+            // Csak EGY rekord van (getById)
+            Object[] record = resultList.get(0);
+
+            // Users objektum létrehozása
+            Users user = new Users();
+            user.setId(Integer.valueOf(record[1].toString()));
+
+            // Addresses objektum létrehozása
+            Addresses a = new Addresses(
+                    Integer.valueOf(record[0].toString()), // 1. id
+                    record[2] != null ? record[2].toString() : null, // 2. firstName
+                    record[3] != null ? record[3].toString() : null, // 3. lastName
+                    record[4] != null ? record[4].toString() : null, // 4. company
+                    record[5] != null ? record[5].toString() : null, // 5. taxNumber
+                    record[6] != null ? record[6].toString() : null, // 6. country
+                    record[7] != null ? record[7].toString() : null, // 7. city
+                    record[8] != null ? record[8].toString() : null, // 8. zipCode
+                    record[9] != null ? record[9].toString() : null, // 9. street
+                    Boolean.valueOf(record[10].toString()), // 10. isDefault
+                    record[11] == null ? null : formatter.parse(record[11].toString()), // 11. createdAt
+                    record[12] == null ? null : formatter.parse(record[12].toString()), // 12. updatedAt
+                    Boolean.FALSE, // 13. isDeleted
+                    null, // 14. deletedAt
+                    user // 15. userId
+            );
+
+            return a;
+
+        } catch (Exception ex) {
+            ex.printStackTrace();
+            return null;
+        } finally {
+            em.close();
+        }
+    }
+    
+    public static Addresses getAddressByUserId(Integer userId) {
+        EntityManager em = emf.createEntityManager();
+        try {
+            StoredProcedureQuery spq = em.createStoredProcedureQuery("getAddressByUserId");
+            spq.registerStoredProcedureParameter("p_user_id", Integer.class, ParameterMode.IN);
+            spq.setParameter("p_user_id", userId);
+            spq.execute();
+
+            List<Object[]> resultList = spq.getResultList();
+
+            // Csak EGY rekord van (getById)
+            Object[] record = resultList.get(0);
+
+            // Users objektum létrehozása
+            Users user = new Users();
+            user.setId(Integer.valueOf(record[1].toString()));
+
+            // Addresses objektum létrehozása
+            Addresses a = new Addresses(
+                    Integer.valueOf(record[0].toString()), // 1. id
+                    record[2] != null ? record[2].toString() : null, // 2. firstName
+                    record[3] != null ? record[3].toString() : null, // 3. lastName
+                    record[4] != null ? record[4].toString() : null, // 4. company
+                    record[5] != null ? record[5].toString() : null, // 5. taxNumber
+                    record[6] != null ? record[6].toString() : null, // 6. country
+                    record[7] != null ? record[7].toString() : null, // 7. city
+                    record[8] != null ? record[8].toString() : null, // 8. zipCode
+                    record[9] != null ? record[9].toString() : null, // 9. street
+                    Boolean.valueOf(record[10].toString()), // 10. isDefault
+                    record[11] == null ? null : formatter.parse(record[11].toString()), // 11. createdAt
+                    record[12] == null ? null : formatter.parse(record[12].toString()), // 12. updatedAt
+                    Boolean.FALSE, // 13. isDeleted
+                    null, // 14. deletedAt
+                    user // 15. userId
+            );
+
+            return a;
+
+        } catch (Exception ex) {
+            ex.printStackTrace();
+            return null;
+        } finally {
+            em.close();
+        }
+    }
+    
+    public static Boolean softDeleteAddress(Integer id) {
+        EntityManager em = emf.createEntityManager();
+
+        try {
+            em.getTransaction().begin();
+
+            StoredProcedureQuery spq = em.createStoredProcedureQuery("softDeleteAddress");
+            spq.registerStoredProcedureParameter("p_address_id", Integer.class, ParameterMode.IN);
+            spq.setParameter("p_address_id", id);
+
+            spq.execute();
+            em.getTransaction().commit();
+
+            return true;
+        } catch (Exception e) {
+            if (em.getTransaction().isActive()) {
+                em.getTransaction().rollback(); // ha hiba van, rollback
+            }
+            return false;
+        } finally {
+            em.clear();
+            em.close();
+        }
+    }
+    
+    public static Boolean updateAddress(Addresses updatedAddress) {
+        EntityManager em = emf.createEntityManager();
+
+        try {
+            em.getTransaction().begin();
+            StoredProcedureQuery spq = em.createStoredProcedureQuery("updateAddress");
+            
+            // Integer id, String firstName, String lastName, String company, String taxNumber, String country, String city, 
+            //String zipCode, String street, Boolean isDefault, Boolean isDeleted, Users userId
+            
+            
+            spq.registerStoredProcedureParameter("p_address_id", Integer.class, ParameterMode.IN);
+            spq.registerStoredProcedureParameter("p_user_id", Integer.class, ParameterMode.IN);
+            spq.registerStoredProcedureParameter("p_first_name", String.class, ParameterMode.IN);
+            spq.registerStoredProcedureParameter("p_last_name", String.class, ParameterMode.IN);
+            spq.registerStoredProcedureParameter("p_company", String.class, ParameterMode.IN);
+            spq.registerStoredProcedureParameter("p_tax_number", String.class, ParameterMode.IN);
+            spq.registerStoredProcedureParameter("p_country", String.class, ParameterMode.IN);
+            spq.registerStoredProcedureParameter("p_city", String.class, ParameterMode.IN);
+            spq.registerStoredProcedureParameter("p_zip_code", String.class, ParameterMode.IN);
+            spq.registerStoredProcedureParameter("p_street", String.class, ParameterMode.IN);
+            spq.registerStoredProcedureParameter("p_is_default", Integer.class, ParameterMode.IN);
+            spq.registerStoredProcedureParameter("p_is_deleted", Integer.class, ParameterMode.IN);
+            
+            spq.setParameter("p_address_id", updatedAddress.getId());
+            spq.setParameter("p_user_id", updatedAddress.getUserId().getId());
+            spq.setParameter("p_first_name", updatedAddress.getFirstName());
+            spq.setParameter("p_last_name", updatedAddress.getLastName());
+            spq.setParameter("p_company", updatedAddress.getCompany());
+            spq.setParameter("p_tax_number", updatedAddress.getTaxNumber());
+            spq.setParameter("p_country", updatedAddress.getCountry());
+            spq.setParameter("p_city", updatedAddress.getCity());
+            spq.setParameter("p_zip_code", updatedAddress.getZipCode());
+            spq.setParameter("p_street", updatedAddress.getStreet());
+            spq.setParameter("p_is_default", Boolean.TRUE.equals(updatedAddress.getIsDefault()) ? 1 : 0);
+            spq.setParameter("p_is_deleted", Boolean.TRUE.equals(updatedAddress.getIsDefault()) ? 1 : 0);
+
+            spq.execute();
+
+            em.getTransaction().commit();
+
+            return true;
+
+        } catch (Exception ex) {
+            if (em.getTransaction().isActive()) {
+                em.getTransaction().rollback(); // Ha hiba van, rollback
+            }
+            ex.printStackTrace();
+            return false;
+        } finally {
+            em.clear();
             em.close();
         }
     }
