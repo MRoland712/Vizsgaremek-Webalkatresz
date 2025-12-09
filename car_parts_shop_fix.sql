@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Gép: localhost:3306
--- Létrehozás ideje: 2025. Nov 27. 11:11
+-- Létrehozás ideje: 2025. Dec 09. 09:44
 -- Kiszolgáló verziója: 5.7.24
 -- PHP verzió: 8.3.1
 
@@ -307,6 +307,27 @@ CREATE DEFINER=`root`@`localhost` PROCEDURE `getAllOrders` ()   BEGIN
      ORDER BY id;
 END$$
 
+DROP PROCEDURE IF EXISTS `getAllParts`$$
+CREATE DEFINER=`root`@`localhost` PROCEDURE `getAllParts` ()   BEGIN
+	SELECT
+    	id,
+        manufacturer_id,
+        sku,
+        name,
+        category,
+        price,
+        stock,
+        status,
+        is_active,
+        created_at,
+        updated_at,
+        deleted_at,
+        is_deleted
+	FROM parts
+    WHERE is_deleted = 0
+    ORDER BY id;
+END$$
+
 DROP PROCEDURE IF EXISTS `getAllReviews`$$
 CREATE DEFINER=`root`@`localhost` PROCEDURE `getAllReviews` ()   BEGIN
 	SELECT
@@ -360,27 +381,6 @@ CREATE DEFINER=`root`@`localhost` PROCEDURE `getOrdersByUserId` (IN `p_user_id` 
         deleted_at
      FROM orders
      WHERE user_id = p_user_id;
-END$$
-
-DROP PROCEDURE IF EXISTS `getParts`$$
-CREATE DEFINER=`root`@`localhost` PROCEDURE `getParts` ()   BEGIN
-	SELECT
-    	id,
-        manufacturer_id,
-        sku,
-        name,
-        category,
-        price,
-        stock,
-        status,
-        is_active,
-        created_at,
-        updated_at,
-        deleted_at,
-        is_deleted
-	FROM parts
-    WHERE is_deleted = 0
-    ORDER BY id;
 END$$
 
 DROP PROCEDURE IF EXISTS `getPartsById`$$
@@ -724,6 +724,53 @@ CREATE TABLE `addresses` (
   `deleted_at` datetime DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
+--
+-- A tábla adatainak kiíratása `addresses`
+--
+
+INSERT INTO `addresses` (`id`, `user_id`, `first_name`, `last_name`, `company`, `tax_number`, `country`, `city`, `zip_code`, `street`, `is_default`, `created_at`, `updated_at`, `is_deleted`, `deleted_at`) VALUES
+(1, 1, 'János', 'Kovács', NULL, NULL, 'Magyarország', 'Budapest', '1053', 'Kossuth Lajos utca 12', 1, '2025-11-20 23:08:08', '2025-11-20 23:08:08', 0, NULL),
+(2, 2, 'Anna', 'Nagy', 'Nagy Kft', '12345678-2-42', 'Magyarország', 'Debrecen', '4024', 'Piac utca 34', 1, '2025-11-20 23:08:08', '2025-11-20 23:08:08', 0, NULL),
+(3, 3, 'Péter', 'Tóth', NULL, NULL, 'Magyarország', 'Szeged', '6720', 'Kárász utca 56', 1, '2025-11-20 23:08:08', '2025-11-20 23:08:08', 0, NULL),
+(4, 4, 'Mária', 'Varga', 'Varga Bt', '87654321-1-41', 'Magyarország', 'Pécs', '7621', 'Széchenyi tér 23', 1, '2025-11-20 23:08:08', '2025-11-20 23:08:08', 0, NULL),
+(5, 5, 'László', 'Horváth', NULL, NULL, 'Magyarország', 'Győr', '9021', 'Baross út 78', 0, '2025-11-20 23:08:08', '2025-11-30 20:54:24', 0, NULL),
+(6, 6, 'Éva', 'Kiss', NULL, NULL, 'Magyarország', 'Miskolc', '3525', 'Széchenyi utca 45', 1, '2025-11-20 23:08:08', '2025-11-20 23:08:08', 0, NULL),
+(7, 7, 'István', 'Szabó', 'Szabó és Társa Kft', '23456789-2-43', 'Magyarország', 'Kecskemét', '6000', 'Rákóczi út 67', 1, '2025-11-20 23:08:08', '2025-11-20 23:08:08', 0, NULL),
+(8, 8, 'Katalin', 'Molnár', NULL, NULL, 'Magyarország', 'Székesfehérvár', '8000', 'Fő utca 89', 1, '2025-11-20 23:08:08', '2025-11-20 23:08:08', 0, NULL),
+(9, 9, 'Gábor', 'Németh', NULL, NULL, 'Magyarország', 'Nyíregyháza', '4400', 'Bethlen utca 12', 1, '2025-11-20 23:08:08', '2025-11-20 23:08:08', 0, NULL),
+(10, 10, 'Zsuzsanna', 'Farkas', 'Farkas Szolgáltató Kft', '34567890-1-42', 'Magyarország', 'Szombathely', '9700', 'Kossuth tér 34', 1, '2025-11-20 23:08:08', '2025-11-20 23:08:08', 0, NULL),
+(11, 11, 'András', 'Balogh', NULL, NULL, 'Magyarország', 'Sopron', '9400', 'Várkerület 56', 1, '2025-11-20 23:08:08', '2025-11-20 23:08:08', 0, NULL),
+(12, 12, 'Eszter', 'Papp', NULL, NULL, 'Magyarország', 'Eger', '3300', 'Dobó tér 78', 1, '2025-11-20 23:08:08', '2025-11-20 23:08:08', 0, NULL),
+(13, 13, 'Róbert', 'Takács', 'Takács Autó Kft', '45678901-2-44', 'Magyarország', 'Veszprém', '8200', 'Óváros tér 23', 1, '2025-11-20 23:08:08', '2025-11-20 23:08:08', 0, NULL),
+(14, 14, 'Ilona', 'Juhász', NULL, NULL, 'Magyarország', 'Szolnok', '5000', 'Kossuth út 45', 1, '2025-11-20 23:08:08', '2025-11-20 23:08:08', 0, NULL),
+(15, 15, 'Tamás', 'Lakatos', NULL, NULL, 'Magyarország', 'Kaposvár', '7400', 'Fő utca 67', 1, '2025-11-20 23:08:08', '2025-11-20 23:08:08', 0, NULL),
+(16, 1, 'teszt2', 'teszt2', 'fdsfdsa', 'fadsadsf', 'fdsasadf', 'hashash', '7626', 'zekker', 0, '2025-11-30 14:53:43', '2025-11-30 14:53:43', 0, NULL),
+(17, 1, 'Péter', 'Nagy', 'Teszt Kft.', '12345678-1-23', 'Magyarország', 'Szeged', '6720', 'Tisza utca 15.', 0, '2025-11-30 16:54:12', '2025-11-30 16:54:12', 0, NULL),
+(18, 5, 'Teszt', 'Péter', 'Teszter Kft.', '1234567328-1-23', 'Magyarország', 'Szeged', '6720', 'Tisza utca 15.', 0, '2025-11-30 20:54:24', '2025-12-01 14:29:00', 0, NULL),
+(19, 5, 'Teszt', 'Péter', 'Teszter Kft.', '1234567328-1-23', 'Magyarország', 'Szeged', '6720', 'Tisza utca 15.', 0, '2025-12-01 14:29:00', '2025-12-01 14:29:04', 0, NULL),
+(20, 5, 'Teszt', 'Péter', 'Teszter Kft.', '1234567328-1-23', 'Magyarország', 'Szeged', '6720', 'Tisza utca 15.', 0, '2025-12-01 14:29:04', '2025-12-06 14:52:23', 1, '2025-12-02 10:11:19'),
+(21, 5, 'FŐTeszt', 'FŐTeszt', 'FŐTeszt Kft.', '1234567328-1-23', 'Magyarország', 'Szeged', '6720', 'Tisza utca 15.', 0, '2025-12-06 14:52:23', '2025-12-06 14:52:36', 0, NULL),
+(22, 5, 'FŐTeszt', 'FŐTeszt', 'FŐTeszt Kft.', '1234567328-1-23', 'Magyarország', '', '6720', 'Tisza utca 15.', 1, '2025-12-06 14:52:36', '2025-12-08 11:39:19', 1, '2025-12-08 11:39:19');
+
+-- --------------------------------------------------------
+
+--
+-- Tábla szerkezet ehhez a táblához `cars`
+--
+
+DROP TABLE IF EXISTS `cars`;
+CREATE TABLE `cars` (
+  `id` int(11) NOT NULL,
+  `brand` varchar(100) NOT NULL,
+  `model` varchar(100) NOT NULL,
+  `year_from` int(11) DEFAULT NULL,
+  `year_to` int(11) DEFAULT NULL,
+  `created_at` datetime DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` datetime DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  `is_deleted` tinyint(1) DEFAULT '0',
+  `deleted_at` datetime DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
 -- --------------------------------------------------------
 
 --
@@ -736,8 +783,31 @@ CREATE TABLE `cart_items` (
   `user_id` int(11) NOT NULL,
   `part_id` int(11) NOT NULL,
   `quantity` int(11) DEFAULT '1',
-  `added_at` datetime DEFAULT CURRENT_TIMESTAMP
+  `added_at` datetime DEFAULT CURRENT_TIMESTAMP,
+  `is_deleted` tinyint(1) DEFAULT '0',
+  `deleted_at` datetime DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+--
+-- A tábla adatainak kiíratása `cart_items`
+--
+
+INSERT INTO `cart_items` (`id`, `user_id`, `part_id`, `quantity`, `added_at`, `is_deleted`, `deleted_at`) VALUES
+(1, 2, 1, 1, '2025-12-09 10:32:51', 0, NULL),
+(2, 2, 6, 2, '2025-12-09 10:32:51', 0, NULL),
+(3, 3, 3, 4, '2025-12-09 10:32:51', 0, NULL),
+(4, 4, 4, 2, '2025-12-09 10:32:51', 0, NULL),
+(5, 5, 5, 1, '2025-12-09 10:32:51', 0, NULL),
+(6, 6, 7, 1, '2025-12-09 10:32:51', 0, NULL),
+(7, 7, 8, 1, '2025-12-09 10:32:51', 0, NULL),
+(8, 8, 9, 1, '2025-12-09 10:32:51', 0, NULL),
+(9, 9, 10, 1, '2025-12-09 10:32:51', 0, NULL),
+(10, 10, 11, 1, '2025-12-09 10:32:51', 0, NULL),
+(11, 11, 12, 1, '2025-12-09 10:32:51', 0, NULL),
+(12, 12, 13, 1, '2025-12-09 10:32:51', 0, NULL),
+(13, 13, 14, 2, '2025-12-09 10:32:51', 0, NULL),
+(14, 14, 15, 3, '2025-12-09 10:32:51', 0, NULL),
+(15, 15, 1, 1, '2025-12-09 10:32:51', 0, NULL);
 
 -- --------------------------------------------------------
 
@@ -766,7 +836,9 @@ CREATE TABLE `invoices` (
   `id` int(11) NOT NULL,
   `order_id` int(11) NOT NULL,
   `pdf_url` varchar(255) DEFAULT NULL,
-  `created_at` datetime DEFAULT CURRENT_TIMESTAMP
+  `created_at` datetime DEFAULT CURRENT_TIMESTAMP,
+  `is_deleted` tinyint(1) DEFAULT '0',
+  `deleted_at` datetime DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 -- --------------------------------------------------------
@@ -782,6 +854,27 @@ CREATE TABLE `login_logs` (
   `user_agent` varchar(255) DEFAULT NULL,
   `logged_in_at` datetime DEFAULT CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+--
+-- A tábla adatainak kiíratása `login_logs`
+--
+
+INSERT INTO `login_logs` (`id`, `user_id`, `user_agent`, `logged_in_at`) VALUES
+(1, 1, 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) Chrome/120.0.0.0', '2025-12-09 10:32:51'),
+(2, 2, 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) Safari/605.1.15', '2025-12-09 10:32:51'),
+(3, 3, 'Mozilla/5.0 (X11; Linux x86_64) Firefox/121.0', '2025-12-09 10:32:51'),
+(4, 4, 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) Edge/120.0.0.0', '2025-12-09 10:32:51'),
+(5, 5, 'Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X) Safari/604.1', '2025-12-09 10:32:51'),
+(6, 6, 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) Chrome/120.0.0.0', '2025-12-09 10:32:51'),
+(7, 7, 'Mozilla/5.0 (iPad; CPU OS 17_0 like Mac OS X) Safari/604.1', '2025-12-09 10:32:51'),
+(8, 8, 'Mozilla/5.0 (Android 14; Mobile) Chrome/120.0.0.0', '2025-12-09 10:32:51'),
+(9, 9, 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) Firefox/121.0', '2025-12-09 10:32:51'),
+(10, 10, 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) Chrome/120.0.0.0', '2025-12-09 10:32:51'),
+(11, 11, 'Mozilla/5.0 (X11; Ubuntu; Linux x86_64) Firefox/121.0', '2025-12-09 10:32:51'),
+(12, 12, 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) Opera/105.0.0.0', '2025-12-09 10:32:51'),
+(13, 13, 'Mozilla/5.0 (iPhone; CPU iPhone OS 17_1 like Mac OS X) Safari/604.1', '2025-12-09 10:32:51'),
+(14, 14, 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) Chrome/120.0.0.0', '2025-12-09 10:32:51'),
+(15, 15, 'Mozilla/5.0 (Android 14; Mobile) Firefox/121.0', '2025-12-09 10:32:51');
 
 -- --------------------------------------------------------
 
@@ -799,6 +892,67 @@ CREATE TABLE `manufacturers` (
   `deleted_at` datetime DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
+--
+-- A tábla adatainak kiíratása `manufacturers`
+--
+
+INSERT INTO `manufacturers` (`id`, `name`, `country`, `created_at`, `is_deleted`, `deleted_at`) VALUES
+(1, 'Bosch', 'Németország', '2025-11-21 09:58:46', 0, NULL),
+(2, 'Denso', 'Japán', '2025-11-21 09:58:46', 0, NULL),
+(3, 'Continental', 'Németország', '2025-11-21 09:58:46', 0, NULL),
+(4, 'Valeo', 'Franciaország', '2025-11-21 09:58:46', 0, NULL),
+(5, 'Mahle', 'Németország', '2025-11-21 09:58:46', 0, NULL),
+(6, 'Mann-Filter', 'Németország', '2025-11-21 09:58:46', 0, NULL),
+(7, 'NGK', 'Japán', '2025-11-21 09:58:46', 0, NULL),
+(8, 'Brembo', 'Olaszország', '2025-11-21 09:58:46', 0, NULL),
+(9, 'Sachs', 'Németország', '2025-11-21 09:58:46', 0, NULL),
+(10, 'SKF', 'Svédország', '2025-11-21 09:58:46', 0, NULL),
+(11, 'Gates', 'USA', '2025-11-21 09:58:46', 0, NULL),
+(12, 'Hella', 'Németország', '2025-11-21 09:58:46', 0, NULL),
+(13, 'Castrol', 'Egyesült Királyság', '2025-11-21 09:58:46', 0, NULL),
+(14, 'Mobil', 'USA', '2025-11-21 09:58:46', 0, NULL),
+(15, 'Shell', 'Hollandia', '2025-11-21 09:58:46', 0, NULL);
+
+-- --------------------------------------------------------
+
+--
+-- Tábla szerkezet ehhez a táblához `motors`
+--
+
+DROP TABLE IF EXISTS `motors`;
+CREATE TABLE `motors` (
+  `id` int(11) NOT NULL,
+  `brand` varchar(100) NOT NULL,
+  `model` varchar(100) NOT NULL,
+  `year_from` int(11) DEFAULT NULL,
+  `year_to` int(11) DEFAULT NULL,
+  `created_at` datetime DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` datetime DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  `is_deleted` tinyint(1) DEFAULT '0',
+  `deleted_at` datetime DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+--
+-- A tábla adatainak kiíratása `motors`
+--
+
+INSERT INTO `motors` (`id`, `brand`, `model`, `year_from`, `year_to`, `created_at`, `updated_at`, `is_deleted`, `deleted_at`) VALUES
+(1, 'Honda', 'CBR1000RR', 2017, NULL, '2025-12-09 10:32:51', '2025-12-09 10:32:51', 0, NULL),
+(2, 'Honda', 'CB500X', 2019, NULL, '2025-12-09 10:32:51', '2025-12-09 10:32:51', 0, NULL),
+(3, 'Yamaha', 'YZF-R1', 2015, NULL, '2025-12-09 10:32:51', '2025-12-09 10:32:51', 0, NULL),
+(4, 'Yamaha', 'MT-07', 2018, NULL, '2025-12-09 10:32:51', '2025-12-09 10:32:51', 0, NULL),
+(5, 'Kawasaki', 'Ninja ZX-10R', 2016, NULL, '2025-12-09 10:32:51', '2025-12-09 10:32:51', 0, NULL),
+(6, 'Kawasaki', 'Z900', 2020, NULL, '2025-12-09 10:32:51', '2025-12-09 10:32:51', 0, NULL),
+(7, 'Suzuki', 'GSX-R1000', 2017, NULL, '2025-12-09 10:32:51', '2025-12-09 10:32:51', 0, NULL),
+(8, 'Suzuki', 'V-Strom 650', 2019, NULL, '2025-12-09 10:32:51', '2025-12-09 10:32:51', 0, NULL),
+(9, 'BMW', 'R1250GS', 2019, NULL, '2025-12-09 10:32:51', '2025-12-09 10:32:51', 0, NULL),
+(10, 'BMW', 'S1000RR', 2020, NULL, '2025-12-09 10:32:51', '2025-12-09 10:32:51', 0, NULL),
+(11, 'Ducati', 'Panigale V4', 2018, NULL, '2025-12-09 10:32:51', '2025-12-09 10:32:51', 0, NULL),
+(12, 'Ducati', 'Multistrada 1260', 2019, NULL, '2025-12-09 10:32:51', '2025-12-09 10:32:51', 0, NULL),
+(13, 'KTM', '1290 Super Duke R', 2020, NULL, '2025-12-09 10:32:51', '2025-12-09 10:32:51', 0, NULL),
+(14, 'Triumph', 'Street Triple RS', 2019, NULL, '2025-12-09 10:32:51', '2025-12-09 10:32:51', 0, NULL),
+(15, 'Harley-Davidson', 'Street Glide', 2021, NULL, '2025-12-09 10:32:51', '2025-12-09 10:32:51', 0, NULL);
+
 -- --------------------------------------------------------
 
 --
@@ -809,22 +963,6 @@ DROP TABLE IF EXISTS `motor_brands`;
 CREATE TABLE `motor_brands` (
   `id` int(11) NOT NULL,
   `name` varchar(100) NOT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
-
--- --------------------------------------------------------
-
---
--- Tábla szerkezet ehhez a táblához `motor_models`
---
-
-DROP TABLE IF EXISTS `motor_models`;
-CREATE TABLE `motor_models` (
-  `id` int(11) NOT NULL,
-  `brand_id` int(11) NOT NULL,
-  `name` varchar(100) NOT NULL,
-  `year_from` int(11) DEFAULT NULL,
-  `year_to` int(11) DEFAULT NULL,
-  `created_at` datetime DEFAULT CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 -- --------------------------------------------------------
@@ -843,6 +981,27 @@ CREATE TABLE `orders` (
   `deleted_at` datetime DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
+--
+-- A tábla adatainak kiíratása `orders`
+--
+
+INSERT INTO `orders` (`id`, `user_id`, `status`, `created_at`, `is_deleted`, `deleted_at`) VALUES
+(1, 2, 'completed', '2025-12-09 10:32:51', 0, NULL),
+(2, 3, 'completed', '2025-12-09 10:32:51', 0, NULL),
+(3, 4, 'shipped', '2025-12-09 10:32:51', 0, NULL),
+(4, 5, 'processing', '2025-12-09 10:32:51', 0, NULL),
+(5, 6, 'pending', '2025-12-09 10:32:51', 0, NULL),
+(6, 7, 'completed', '2025-12-09 10:32:51', 0, NULL),
+(7, 8, 'cancelled', '2025-12-09 10:32:51', 0, NULL),
+(8, 9, 'completed', '2025-12-09 10:32:51', 0, NULL),
+(9, 10, 'shipped', '2025-12-09 10:32:51', 0, NULL),
+(10, 11, 'processing', '2025-12-09 10:32:51', 0, NULL),
+(11, 12, 'pending', '2025-12-09 10:32:51', 0, NULL),
+(12, 13, 'completed', '2025-12-09 10:32:51', 0, NULL),
+(13, 14, 'shipped', '2025-12-09 10:32:51', 0, NULL),
+(14, 15, 'completed', '2025-12-09 10:32:51', 0, NULL),
+(15, 2, 'processing', '2025-12-09 10:32:51', 0, NULL);
+
 -- --------------------------------------------------------
 
 --
@@ -855,8 +1014,32 @@ CREATE TABLE `order_items` (
   `order_id` int(11) NOT NULL,
   `part_id` int(11) NOT NULL,
   `quantity` int(11) DEFAULT '1',
-  `price` decimal(10,2) DEFAULT NULL
+  `price` decimal(10,2) DEFAULT NULL,
+  `created_at` datetime DEFAULT CURRENT_TIMESTAMP,
+  `is_deleted` tinyint(1) DEFAULT '0',
+  `deleted_at` datetime DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+--
+-- A tábla adatainak kiíratása `order_items`
+--
+
+INSERT INTO `order_items` (`id`, `order_id`, `part_id`, `quantity`, `price`, `created_at`, `is_deleted`, `deleted_at`) VALUES
+(1, 1, 1, 1, '15990.00', '2025-12-09 10:32:51', 0, NULL),
+(2, 1, 6, 2, '2490.00', '2025-12-09 10:32:51', 0, NULL),
+(3, 2, 3, 4, '35990.00', '2025-12-09 10:32:51', 0, NULL),
+(4, 3, 4, 2, '18900.00', '2025-12-09 10:32:51', 0, NULL),
+(5, 4, 5, 1, '28500.00', '2025-12-09 10:32:51', 0, NULL),
+(6, 5, 7, 1, '3990.00', '2025-12-09 10:32:51', 0, NULL),
+(7, 6, 8, 1, '8990.00', '2025-12-09 10:32:51', 0, NULL),
+(8, 7, 9, 1, '45900.00', '2025-12-09 10:32:51', 0, NULL),
+(9, 8, 10, 1, '52900.00', '2025-12-09 10:32:51', 0, NULL),
+(10, 9, 11, 1, '38900.00', '2025-12-09 10:32:51', 0, NULL),
+(11, 10, 12, 1, '78900.00', '2025-12-09 10:32:51', 0, NULL),
+(12, 11, 13, 1, '24900.00', '2025-12-09 10:32:51', 0, NULL),
+(13, 12, 14, 2, '12900.00', '2025-12-09 10:32:51', 0, NULL),
+(14, 13, 15, 3, '4990.00', '2025-12-09 10:32:51', 0, NULL),
+(15, 14, 1, 1, '15990.00', '2025-12-09 10:32:51', 0, NULL);
 
 -- --------------------------------------------------------
 
@@ -896,20 +1079,28 @@ CREATE TABLE `parts` (
   `is_deleted` tinyint(1) DEFAULT '0'
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
--- --------------------------------------------------------
-
 --
--- Tábla szerkezet ehhez a táblához `part_compatibility`
+-- A tábla adatainak kiíratása `parts`
 --
 
-DROP TABLE IF EXISTS `part_compatibility`;
-CREATE TABLE `part_compatibility` (
-  `id` int(11) NOT NULL,
-  `part_id` int(11) NOT NULL,
-  `model_id` int(11) NOT NULL,
-  `engine_type` varchar(50) DEFAULT NULL,
-  `transmission` varchar(50) DEFAULT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+INSERT INTO `parts` (`id`, `manufacturer_id`, `sku`, `name`, `category`, `price`, `stock`, `status`, `is_active`, `created_at`, `updated_at`, `deleted_at`, `is_deleted`) VALUES
+(1, 1, 'BOSCH-FB001', 'Fékbetét készlet', 'Fékrendszer', '12500.00', 45, 'available', 1, '2025-11-21 09:58:46', '2025-11-21 09:58:46', NULL, 0),
+(2, 2, 'DENSO-GY001', 'Gyújtógyertya szett', 'Gyújtás', '8900.00', 120, 'available', 1, '2025-11-21 09:58:46', '2025-11-21 09:58:46', NULL, 0),
+(3, 3, 'CONT-SZ001', 'Szíj készlet', 'Motor', '15600.00', 30, 'available', 1, '2025-11-21 09:58:46', '2025-11-21 09:58:46', NULL, 0),
+(4, 4, 'VALEO-KU001', 'Kuplung készlet', 'Erőátvitel', '45000.00', 15, 'available', 1, '2025-11-21 09:58:46', '2025-11-21 09:58:46', NULL, 0),
+(5, 5, 'MAHLE-OL001', 'Olajszűrő', 'Szűrők', '3200.00', 200, 'available', 1, '2025-11-21 09:58:46', '2025-11-21 09:58:46', NULL, 0),
+(6, 6, 'MANN-LE001', 'Levegőszűrő', 'Szűrők', '4500.00', 150, 'available', 1, '2025-11-21 09:58:46', '2025-11-21 09:58:46', NULL, 0),
+(7, 7, 'NGK-GY002', 'Gyújtógyertya platina', 'Gyújtás', '12000.00', 80, 'available', 1, '2025-11-21 09:58:46', '2025-11-21 09:58:46', NULL, 0),
+(8, 8, 'BREMBO-FT001', 'Féktárcsa pár', 'Fékrendszer', '28000.00', 25, 'available', 1, '2025-11-21 09:58:46', '2025-11-21 09:58:46', NULL, 0),
+(9, 9, 'SACHS-AM001', 'Lengéscsillapító pár', 'Futómű', '65000.00', 10, 'available', 1, '2025-11-21 09:58:46', '2025-11-21 09:58:46', NULL, 0),
+(10, 10, 'SKF-CS001', 'Kerékcsapágy', 'Futómű', '18500.00', 60, 'available', 1, '2025-11-21 09:58:46', '2025-11-21 09:58:46', NULL, 0),
+(11, 11, 'GATES-FO001', 'Fogasszíj készlet', 'Motor', '22000.00', 35, 'available', 1, '2025-11-21 09:58:46', '2025-11-21 09:58:46', NULL, 0),
+(12, 12, 'HELLA-LA001', 'Fényszóró bal', 'Világítás', '35000.00', 20, 'available', 1, '2025-11-21 09:58:46', '2025-11-21 09:58:46', NULL, 0),
+(13, 13, 'CAST-OL002', 'Motorolaj 5W-30 4L', 'Kenőanyagok', '8500.00', 100, 'available', 1, '2025-11-21 09:58:46', '2025-11-21 09:58:46', NULL, 0),
+(14, 14, 'MOBIL-OL003', 'Motorolaj 10W-40 5L', 'Kenőanyagok', '9200.00', 90, 'available', 1, '2025-11-21 09:58:46', '2025-11-21 09:58:46', NULL, 0),
+(15, 15, 'SHELL-OL004', 'Motorolaj 0W-20 4L', 'Kenőanyagok', '11500.00', 75, 'available', 1, '2025-11-21 09:58:46', '2025-11-21 09:58:46', NULL, 0),
+(16, 2, 'tesztcreate', 'tesztcreate', 'tesztcreate', '10000.00', 1, 'elérhető', 1, '2025-12-06 13:49:41', '2025-12-06 13:49:41', NULL, 0),
+(17, 1, 'BRAKE-001', 'Fékbetét', 'Teszt', '15991.00', 10, 'elérhető', 0, '2025-12-06 16:46:51', '2025-12-08 13:18:29', '2025-12-08 13:18:29', 1);
 
 -- --------------------------------------------------------
 
@@ -922,7 +1113,10 @@ CREATE TABLE `part_images` (
   `id` int(11) NOT NULL,
   `part_id` int(11) NOT NULL,
   `url` varchar(255) NOT NULL,
-  `is_primary` tinyint(1) DEFAULT '0'
+  `is_primary` tinyint(1) DEFAULT '0',
+  `created_at` datetime DEFAULT CURRENT_TIMESTAMP,
+  `is_deleted` tinyint(1) DEFAULT '0',
+  `deleted_at` datetime DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 -- --------------------------------------------------------
@@ -937,7 +1131,10 @@ CREATE TABLE `part_variants` (
   `part_id` int(11) NOT NULL,
   `name` varchar(100) DEFAULT NULL,
   `value` varchar(100) DEFAULT NULL,
-  `additional_price` decimal(10,2) DEFAULT '0.00'
+  `additional_price` decimal(10,2) DEFAULT '0.00',
+  `created_at` datetime DEFAULT CURRENT_TIMESTAMP,
+  `is_deleted` tinyint(1) DEFAULT '0',
+  `deleted_at` datetime DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 -- --------------------------------------------------------
@@ -970,33 +1167,31 @@ CREATE TABLE `payments` (
   `method` varchar(50) DEFAULT NULL,
   `status` varchar(20) DEFAULT NULL,
   `paid_at` datetime DEFAULT NULL,
-  `created_at` datetime DEFAULT CURRENT_TIMESTAMP
+  `created_at` datetime DEFAULT CURRENT_TIMESTAMP,
+  `is_deleted` tinyint(1) DEFAULT '0',
+  `deleted_at` datetime DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
--- --------------------------------------------------------
-
 --
--- Tábla szerkezet ehhez a táblához `product_comparisons`
+-- A tábla adatainak kiíratása `payments`
 --
 
-DROP TABLE IF EXISTS `product_comparisons`;
-CREATE TABLE `product_comparisons` (
-  `id` int(11) NOT NULL,
-  `user_id` int(11) NOT NULL,
-  `created_at` datetime DEFAULT CURRENT_TIMESTAMP
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
-
--- --------------------------------------------------------
-
---
--- Tábla szerkezet ehhez a táblához `product_comparison_items`
---
-
-DROP TABLE IF EXISTS `product_comparison_items`;
-CREATE TABLE `product_comparison_items` (
-  `comparison_id` int(11) NOT NULL,
-  `part_id` int(11) NOT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+INSERT INTO `payments` (`id`, `order_id`, `amount`, `method`, `status`, `paid_at`, `created_at`, `is_deleted`, `deleted_at`) VALUES
+(1, 1, '20970.00', 'card', 'completed', '2024-11-01 10:15:00', '2025-12-09 10:32:51', 0, NULL),
+(2, 2, '143960.00', 'bank_transfer', 'completed', '2024-11-02 14:30:00', '2025-12-09 10:32:51', 0, NULL),
+(3, 3, '37800.00', 'card', 'completed', '2024-11-03 09:45:00', '2025-12-09 10:32:51', 0, NULL),
+(4, 4, '28500.00', 'card', 'pending', NULL, '2025-12-09 10:32:51', 0, NULL),
+(5, 5, '3990.00', 'cash', 'pending', NULL, '2025-12-09 10:32:51', 0, NULL),
+(6, 6, '8990.00', 'card', 'completed', '2024-11-06 11:20:00', '2025-12-09 10:32:51', 0, NULL),
+(7, 7, '45900.00', 'bank_transfer', 'failed', NULL, '2025-12-09 10:32:51', 0, NULL),
+(8, 8, '52900.00', 'card', 'completed', '2024-11-08 16:00:00', '2025-12-09 10:32:51', 0, NULL),
+(9, 9, '38900.00', 'card', 'completed', '2024-11-09 13:15:00', '2025-12-09 10:32:51', 0, NULL),
+(10, 10, '78900.00', 'bank_transfer', 'pending', NULL, '2025-12-09 10:32:51', 0, NULL),
+(11, 11, '24900.00', 'card', 'pending', NULL, '2025-12-09 10:32:51', 0, NULL),
+(12, 12, '25800.00', 'cash', 'completed', '2024-11-12 10:30:00', '2025-12-09 10:32:51', 0, NULL),
+(13, 13, '14970.00', 'card', 'completed', '2024-11-13 15:45:00', '2025-12-09 10:32:51', 0, NULL),
+(14, 14, '15990.00', 'card', 'completed', '2024-11-14 12:00:00', '2025-12-09 10:32:51', 0, NULL),
+(15, 15, '20970.00', 'card', 'pending', NULL, '2025-12-09 10:32:51', 0, NULL);
 
 -- --------------------------------------------------------
 
@@ -1010,7 +1205,9 @@ CREATE TABLE `refunds` (
   `payment_id` int(11) NOT NULL,
   `amount` decimal(10,2) DEFAULT NULL,
   `reason` varchar(255) DEFAULT NULL,
-  `refunded_at` datetime DEFAULT CURRENT_TIMESTAMP
+  `refunded_at` datetime DEFAULT CURRENT_TIMESTAMP,
+  `is_deleted` tinyint(1) DEFAULT '0',
+  `deleted_at` datetime DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 -- --------------------------------------------------------
@@ -1031,6 +1228,27 @@ CREATE TABLE `reviews` (
   `deleted_at` datetime DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
+--
+-- A tábla adatainak kiíratása `reviews`
+--
+
+INSERT INTO `reviews` (`id`, `user_id`, `part_id`, `rating`, `comment`, `created_at`, `is_deleted`, `deleted_at`) VALUES
+(1, 2, 1, 5, 'Kiváló minőség, tökéletesen illeszkedik!', '2025-12-09 10:32:51', 0, NULL),
+(2, 3, 3, 4, 'Jó gumi, de kicsit drága.', '2025-12-09 10:32:51', 0, NULL),
+(3, 4, 4, 5, 'Gyors szállítás, remek minőség!', '2025-12-09 10:32:51', 0, NULL),
+(4, 5, 5, 4, 'Nagyon jó lengéscsillapító, ajánlom!', '2025-12-09 10:32:51', 0, NULL),
+(5, 6, 6, 5, 'Pontosan passzol, kiváló ár-érték arány!', '2025-12-09 10:32:51', 0, NULL),
+(6, 7, 7, 3, 'Rendben van, de lehetne jobb.', '2025-12-09 10:32:51', 0, NULL),
+(7, 8, 8, 5, 'Tökéletes, azonnal beszereltem!', '2025-12-09 10:32:51', 0, NULL),
+(8, 9, 9, 4, 'Jó generátor, működik ahogy kell.', '2025-12-09 10:32:51', 0, NULL),
+(9, 10, 10, 5, 'Hibátlan kuplung, profi minőség!', '2025-12-09 10:32:51', 0, NULL),
+(10, 11, 11, 4, 'Szép fényszóró, jól világít.', '2025-12-09 10:32:51', 0, NULL),
+(11, 12, 12, 5, 'Kiváló dugattyú, precíz gyártás!', '2025-12-09 10:32:51', 0, NULL),
+(12, 13, 13, 5, 'Minőségi fogasszíj, ajánlom mindenkinek!', '2025-12-09 10:32:51', 0, NULL),
+(13, 14, 14, 4, 'Jó csapágy, megfelelő áron.', '2025-12-09 10:32:51', 0, NULL),
+(14, 15, 15, 5, 'Tökéletes ékszíj, tartós!', '2025-12-09 10:32:51', 0, NULL),
+(15, 2, 2, 5, 'Újra rendelek innen!', '2025-12-09 10:32:51', 0, NULL);
+
 -- --------------------------------------------------------
 
 --
@@ -1047,6 +1265,27 @@ CREATE TABLE `sessions` (
   `revoked` tinyint(1) DEFAULT '0'
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
+--
+-- A tábla adatainak kiíratása `sessions`
+--
+
+INSERT INTO `sessions` (`id`, `user_id`, `token`, `expires_at`, `created_at`, `revoked`) VALUES
+(1, 1, 'token_admin_12345', '2025-12-16 10:32:51', '2025-12-09 10:32:51', 0),
+(2, 2, 'token_john_67890', '2025-12-16 10:32:51', '2025-12-09 10:32:51', 0),
+(3, 3, 'token_jane_11111', '2025-12-16 10:32:51', '2025-12-09 10:32:51', 0),
+(4, 4, 'token_peter_22222', '2025-12-16 10:32:51', '2025-12-09 10:32:51', 0),
+(5, 5, 'token_anna_33333', '2025-12-16 10:32:51', '2025-12-09 10:32:51', 0),
+(6, 6, 'token_laszlo_44444', '2025-12-16 10:32:51', '2025-12-09 10:32:51', 0),
+(7, 7, 'token_eva_55555', '2025-12-16 10:32:51', '2025-12-09 10:32:51', 0),
+(8, 8, 'token_gabor_66666', '2025-12-16 10:32:51', '2025-12-09 10:32:51', 0),
+(9, 9, 'token_zsuzsanna_77777', '2025-12-16 10:32:51', '2025-12-09 10:32:51', 0),
+(10, 10, 'token_jozsef_88888', '2025-12-16 10:32:51', '2025-12-09 10:32:51', 0),
+(11, 11, 'token_maria_99999', '2025-12-16 10:32:51', '2025-12-09 10:32:51', 0),
+(12, 12, 'token_istvan_00000', '2025-12-16 10:32:51', '2025-12-09 10:32:51', 0),
+(13, 13, 'token_katalin_aaaaa', '2025-12-16 10:32:51', '2025-12-09 10:32:51', 0),
+(14, 14, 'token_sandor_bbbbb', '2025-12-16 10:32:51', '2025-12-09 10:32:51', 0),
+(15, 15, 'token_ildiko_ccccc', '2025-12-16 10:32:51', '2025-12-09 10:32:51', 0);
+
 -- --------------------------------------------------------
 
 --
@@ -1058,8 +1297,32 @@ CREATE TABLE `shipping_methods` (
   `id` int(11) NOT NULL,
   `name` varchar(50) DEFAULT NULL,
   `price` decimal(10,2) DEFAULT NULL,
-  `duration` varchar(50) DEFAULT NULL
+  `duration` varchar(50) DEFAULT NULL,
+  `created_at` datetime DEFAULT CURRENT_TIMESTAMP,
+  `is_deleted` tinyint(1) DEFAULT '0',
+  `deleted_at` datetime DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+--
+-- A tábla adatainak kiíratása `shipping_methods`
+--
+
+INSERT INTO `shipping_methods` (`id`, `name`, `price`, `duration`, `created_at`, `is_deleted`, `deleted_at`) VALUES
+(1, 'Foxpost Automata', '990.00', '1-2 munkanap', '2025-12-09 10:32:51', 0, NULL),
+(2, 'GLS Csomagpont', '1190.00', '2-3 munkanap', '2025-12-09 10:32:51', 0, NULL),
+(3, 'MPL Házhozszállítás', '1490.00', '2-4 munkanap', '2025-12-09 10:32:51', 0, NULL),
+(4, 'DPD Futárszolgálat', '1690.00', '1-2 munkanap', '2025-12-09 10:32:51', 0, NULL),
+(5, 'Magyar Posta Csomag', '1290.00', '3-5 munkanap', '2025-12-09 10:32:51', 0, NULL),
+(6, 'FedEx Express', '2990.00', '1 munkanap', '2025-12-09 10:32:51', 0, NULL),
+(7, 'UPS Standard', '2490.00', '2-3 munkanap', '2025-12-09 10:32:51', 0, NULL),
+(8, 'DHL Express', '3490.00', '1 munkanap', '2025-12-09 10:32:51', 0, NULL),
+(9, 'TNT Economy', '1890.00', '3-4 munkanap', '2025-12-09 10:32:51', 0, NULL),
+(10, 'Sprinter Futár', '1590.00', '1-2 munkanap', '2025-12-09 10:32:51', 0, NULL),
+(11, 'Waberer\'s Logistics', '2190.00', '2-3 munkanap', '2025-12-09 10:32:51', 0, NULL),
+(12, 'Ziegler Futár', '1790.00', '2-4 munkanap', '2025-12-09 10:32:51', 0, NULL),
+(13, 'Trans-Sped Szállítás', '1990.00', '3-5 munkanap', '2025-12-09 10:32:51', 0, NULL),
+(14, 'Cargus Csomag', '1390.00', '2-4 munkanap', '2025-12-09 10:32:51', 0, NULL),
+(15, 'Személyes Átvétel', '0.00', 'Azonnal', '2025-12-09 10:32:51', 0, NULL);
 
 -- --------------------------------------------------------
 
@@ -1074,7 +1337,9 @@ CREATE TABLE `shipping_status` (
   `status` varchar(50) DEFAULT NULL,
   `tracking_no` varchar(50) DEFAULT NULL,
   `created_at` datetime DEFAULT CURRENT_TIMESTAMP,
-  `updated_at` datetime DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+  `updated_at` datetime DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  `is_deleted` tinyint(1) DEFAULT '0',
+  `deleted_at` datetime DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 -- --------------------------------------------------------
@@ -1091,6 +1356,46 @@ CREATE TABLE `stock_logs` (
   `reason` varchar(255) DEFAULT NULL,
   `created_at` datetime DEFAULT CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+-- --------------------------------------------------------
+
+--
+-- Tábla szerkezet ehhez a táblához `trucks`
+--
+
+DROP TABLE IF EXISTS `trucks`;
+CREATE TABLE `trucks` (
+  `id` int(11) NOT NULL,
+  `brand` varchar(100) NOT NULL,
+  `model` varchar(100) NOT NULL,
+  `year_from` int(11) DEFAULT NULL,
+  `year_to` int(11) DEFAULT NULL,
+  `created_at` datetime DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` datetime DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  `is_deleted` tinyint(1) DEFAULT '0',
+  `deleted_at` datetime DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+--
+-- A tábla adatainak kiíratása `trucks`
+--
+
+INSERT INTO `trucks` (`id`, `brand`, `model`, `year_from`, `year_to`, `created_at`, `updated_at`, `is_deleted`, `deleted_at`) VALUES
+(1, 'Mercedes-Benz', 'Actros', 2011, NULL, '2025-12-09 10:32:51', '2025-12-09 10:32:51', 0, NULL),
+(2, 'Mercedes-Benz', 'Atego', 2013, NULL, '2025-12-09 10:32:51', '2025-12-09 10:32:51', 0, NULL),
+(3, 'Volvo', 'FH16', 2012, NULL, '2025-12-09 10:32:51', '2025-12-09 10:32:51', 0, NULL),
+(4, 'Volvo', 'FM', 2010, NULL, '2025-12-09 10:32:51', '2025-12-09 10:32:51', 0, NULL),
+(5, 'Scania', 'R-Series', 2016, NULL, '2025-12-09 10:32:51', '2025-12-09 10:32:51', 0, NULL),
+(6, 'Scania', 'S-Series', 2016, NULL, '2025-12-09 10:32:51', '2025-12-09 10:32:51', 0, NULL),
+(7, 'MAN', 'TGX', 2018, NULL, '2025-12-09 10:32:51', '2025-12-09 10:32:51', 0, NULL),
+(8, 'MAN', 'TGS', 2017, NULL, '2025-12-09 10:32:51', '2025-12-09 10:32:51', 0, NULL),
+(9, 'DAF', 'XF', 2017, NULL, '2025-12-09 10:32:51', '2025-12-09 10:32:51', 0, NULL),
+(10, 'DAF', 'CF', 2016, NULL, '2025-12-09 10:32:51', '2025-12-09 10:32:51', 0, NULL),
+(11, 'Iveco', 'Stralis', 2012, NULL, '2025-12-09 10:32:51', '2025-12-09 10:32:51', 0, NULL),
+(12, 'Iveco', 'Eurocargo', 2015, NULL, '2025-12-09 10:32:51', '2025-12-09 10:32:51', 0, NULL),
+(13, 'Renault', 'T-Series', 2019, NULL, '2025-12-09 10:32:51', '2025-12-09 10:32:51', 0, NULL),
+(14, 'Renault', 'D-Series', 2018, NULL, '2025-12-09 10:32:51', '2025-12-09 10:32:51', 0, NULL),
+(15, 'Freightliner', 'Cascadia', 2020, NULL, '2025-12-09 10:32:51', '2025-12-09 10:32:51', 0, NULL);
 
 -- --------------------------------------------------------
 
@@ -1125,6 +1430,28 @@ CREATE TABLE `users` (
   `registration_token` varchar(255) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
+--
+-- A tábla adatainak kiíratása `users`
+--
+
+INSERT INTO `users` (`id`, `email`, `username`, `password`, `first_name`, `last_name`, `phone`, `is_active`, `role`, `created_at`, `updated_at`, `last_login`, `failed_login_attempts`, `locked_until`, `timezone`, `email_verified`, `phone_verified`, `is_subscribed`, `deleted_at`, `is_deleted`, `auth_secret`, `guid`, `registration_token`) VALUES
+(1, 'kovacs.janos@example.com', 'jkovacs', '$2y$10$abcdefghijklmnopqrstuv', 'János', 'Kovács', '+36301234567', 1, 'user', '2025-11-21 09:58:46', '2025-11-21 09:58:46', NULL, 0, NULL, NULL, 0, 0, 0, NULL, 0, 'secret123', '49f2d816-c6b8-11f0-ac09-6bde17d9fc63', NULL),
+(2, 'nagy.anna@example.com', 'annagy', '$2y$10$abcdefghijklmnopqrstuv', 'Anna', 'Nagy', '+36301234568', 1, 'user', '2025-11-21 09:58:46', '2025-11-21 09:58:46', NULL, 0, NULL, NULL, 0, 0, 0, NULL, 0, 'secret124', '49f3483e-c6b8-11f0-ac09-6bde17d9fc63', NULL),
+(3, 'toth.peter@example.com', 'ptoth', '$2y$10$abcdefghijklmnopqrstuv', 'Péter', 'Tóth', '+36301234569', 1, 'user', '2025-11-21 09:58:46', '2025-11-21 09:58:46', NULL, 0, NULL, NULL, 0, 0, 0, NULL, 0, 'secret125', '49f349e8-c6b8-11f0-ac09-6bde17d9fc63', NULL),
+(4, 'varga.maria@example.com', 'mvarga', '$2y$10$abcdefghijklmnopqrstuv', 'Mária', 'Varga', '+36301234570', 1, 'user', '2025-11-21 09:58:46', '2025-11-21 09:58:46', NULL, 0, NULL, NULL, 0, 0, 0, NULL, 0, 'secret126', '49f34a6e-c6b8-11f0-ac09-6bde17d9fc63', NULL),
+(5, 'horvath.laszlo@example.com', 'lhorvath', '$2y$10$abcdefghijklmnopqrstuv', 'László', 'Horváth', '+36301234571', 1, 'user', '2025-11-21 09:58:46', '2025-11-21 09:58:46', NULL, 0, NULL, NULL, 0, 0, 0, NULL, 0, 'secret127', '49f34b34-c6b8-11f0-ac09-6bde17d9fc63', NULL),
+(6, 'kiss.eva@example.com', 'ekiss', '$2y$10$abcdefghijklmnopqrstuv', 'Éva', 'Kiss', '+36301234572', 1, 'admin', '2025-11-21 09:58:46', '2025-11-21 09:58:46', NULL, 0, NULL, NULL, 0, 0, 0, NULL, 0, 'secret128', '49f34bbb-c6b8-11f0-ac09-6bde17d9fc63', NULL),
+(7, 'szabo.istvan@example.com', 'iszabo', '$2y$10$abcdefghijklmnopqrstuv', 'István', 'Szabó', '+36301234573', 1, 'user', '2025-11-21 09:58:46', '2025-11-21 09:58:46', NULL, 0, NULL, NULL, 0, 0, 0, NULL, 0, 'secret129', '49f34c2d-c6b8-11f0-ac09-6bde17d9fc63', NULL),
+(8, 'molnar.katalin@example.com', 'kmolnar', '$2y$10$abcdefghijklmnopqrstuv', 'Katalin', 'Molnár', '+36301234574', 1, 'user', '2025-11-21 09:58:46', '2025-11-21 09:58:46', NULL, 0, NULL, NULL, 0, 0, 0, NULL, 0, 'secret130', '49f34ca4-c6b8-11f0-ac09-6bde17d9fc63', NULL),
+(9, 'nemeth.gabor@example.com', 'gnemeth', '$2y$10$abcdefghijklmnopqrstuv', 'Gábor', 'Németh', '+36301234575', 1, 'user', '2025-11-21 09:58:46', '2025-11-21 09:58:46', NULL, 0, NULL, NULL, 0, 0, 0, NULL, 0, 'secret131', '49f34d3d-c6b8-11f0-ac09-6bde17d9fc63', NULL),
+(10, 'farkas.zsuzsanna@example.com', 'zfarkas', '$2y$10$abcdefghijklmnopqrstuv', 'Zsuzsanna', 'Farkas', '+36301234576', 1, 'user', '2025-11-21 09:58:46', '2025-11-21 09:58:46', NULL, 0, NULL, NULL, 0, 0, 0, NULL, 0, 'secret132', '49f34de1-c6b8-11f0-ac09-6bde17d9fc63', NULL),
+(11, 'balogh.andras@example.com', 'abalogh', '$2y$10$abcdefghijklmnopqrstuv', 'András', 'Balogh', '+36301234577', 1, 'admin', '2025-11-21 09:58:46', '2025-11-21 09:58:46', NULL, 0, NULL, NULL, 0, 0, 0, NULL, 0, 'secret133', '49f34e41-c6b8-11f0-ac09-6bde17d9fc63', NULL),
+(12, 'papp.eszter@example.com', 'epapp', '$2y$10$abcdefghijklmnopqrstuv', 'Eszter', 'Papp', '+36301234578', 1, 'user', '2025-11-21 09:58:46', '2025-11-21 09:58:46', NULL, 0, NULL, NULL, 0, 0, 0, NULL, 0, 'secret134', '49f34e9e-c6b8-11f0-ac09-6bde17d9fc63', NULL),
+(13, 'takacs.robert@example.com', 'rtakacs', '$2y$10$abcdefghijklmnopqrstuv', 'Róbert', 'Takács', '+36301234579', 1, 'user', '2025-11-21 09:58:46', '2025-11-21 09:58:46', NULL, 0, NULL, NULL, 0, 0, 0, NULL, 0, 'secret135', '49f34f01-c6b8-11f0-ac09-6bde17d9fc63', NULL),
+(14, 'juhasz.ilona@example.com', 'ijuhasz', '$2y$10$abcdefghijklmnopqrstuv', 'Ilona', 'Juhász', '+36301234580', 1, 'user', '2025-11-21 09:58:46', '2025-11-21 09:58:46', NULL, 0, NULL, NULL, 0, 0, 0, NULL, 0, 'secret136', '49f34f59-c6b8-11f0-ac09-6bde17d9fc63', NULL),
+(15, 'lakatos.tamas@example.com', 'tlakatos', '$2y$10$abcdefghijklmnopqrstuv', 'Tamás', 'Lakatos', '+36301234581', 1, 'user', '2025-11-21 09:58:46', '2025-11-21 09:58:46', NULL, 0, NULL, NULL, 0, 0, 0, NULL, 0, 'secret137', '49f34fbd-c6b8-11f0-ac09-6bde17d9fc63', NULL),
+(16, 'demoUserDifferent@gmail.com', 'demoUserDifferent', 'h7RN+REITtSoJ8eydNYDrw==', 'John', 'Doe', '+36121231234', 0, 'user', '2025-11-21 12:26:31', '2025-11-21 12:26:31', NULL, 0, NULL, NULL, 0, 0, 0, NULL, 0, '450234', 'ee055e1c-c6cc-11f0-8cfd-c6ed54d944ca', '87020737-3735-40e9-8484-00f25aa75cdd');
+
 -- --------------------------------------------------------
 
 --
@@ -1140,6 +1467,15 @@ CREATE TABLE `user_logs` (
   `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
+--
+-- A tábla adatainak kiíratása `user_logs`
+--
+
+INSERT INTO `user_logs` (`id`, `user_id`, `action`, `details`, `created_at`) VALUES
+(1, 1, 'vigike', 'bigike', '2025-12-08 11:46:13'),
+(2, 1, 'vigike', 'bigike', '2025-12-08 11:46:13'),
+(3, 1, 'vigike', 'bigike', '2025-12-08 11:46:13');
+
 -- --------------------------------------------------------
 
 --
@@ -1154,35 +1490,31 @@ CREATE TABLE `user_twofa` (
   `twofa_secret` varchar(255) DEFAULT NULL,
   `recovery_codes` varchar(1024) DEFAULT NULL,
   `created_at` datetime DEFAULT CURRENT_TIMESTAMP,
-  `updated_at` datetime DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+  `updated_at` datetime DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  `is_deleted` tinyint(1) DEFAULT '0',
+  `deleted_at` datetime DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
--- --------------------------------------------------------
-
 --
--- Tábla szerkezet ehhez a táblához `vehicle_brands`
+-- A tábla adatainak kiíratása `user_twofa`
 --
 
-DROP TABLE IF EXISTS `vehicle_brands`;
-CREATE TABLE `vehicle_brands` (
-  `id` int(11) NOT NULL,
-  `name` varchar(100) NOT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
-
--- --------------------------------------------------------
-
---
--- Tábla szerkezet ehhez a táblához `vehicle_models`
---
-
-DROP TABLE IF EXISTS `vehicle_models`;
-CREATE TABLE `vehicle_models` (
-  `id` int(11) NOT NULL,
-  `brand_id` int(11) NOT NULL,
-  `name` varchar(100) NOT NULL,
-  `year_from` int(11) DEFAULT NULL,
-  `year_to` int(11) DEFAULT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+INSERT INTO `user_twofa` (`id`, `user_id`, `twofa_enabled`, `twofa_secret`, `recovery_codes`, `created_at`, `updated_at`, `is_deleted`, `deleted_at`) VALUES
+(1, 1, 1, 'JBSWY3DPEHPK3PXP', 'ABC123,DEF456,GHI789', '2025-12-09 10:32:51', '2025-12-09 10:32:51', 0, NULL),
+(2, 2, 0, NULL, NULL, '2025-12-09 10:32:51', '2025-12-09 10:32:51', 0, NULL),
+(3, 3, 1, 'KRSXG5CTMVRXEZLU', 'XYZ987,UVW654,RST321', '2025-12-09 10:32:51', '2025-12-09 10:32:51', 0, NULL),
+(4, 4, 0, NULL, NULL, '2025-12-09 10:32:51', '2025-12-09 10:32:51', 0, NULL),
+(5, 5, 1, 'IFBEGRCFIZDUQSKKJ', 'QWE111,ASD222,ZXC333', '2025-12-09 10:32:51', '2025-12-09 10:32:51', 0, NULL),
+(6, 6, 0, NULL, NULL, '2025-12-09 10:32:51', '2025-12-09 10:32:51', 0, NULL),
+(7, 7, 1, 'MJSWC2LNMVZXI4TF', 'POI444,LKJ555,MNB666', '2025-12-09 10:32:51', '2025-12-09 10:32:51', 0, NULL),
+(8, 8, 0, NULL, NULL, '2025-12-09 10:32:51', '2025-12-09 10:32:51', 0, NULL),
+(9, 9, 1, 'KRSXG5CTMVRXEZLU', 'QAZ777,WSX888,EDC999', '2025-12-09 10:32:51', '2025-12-09 10:32:51', 0, NULL),
+(10, 10, 0, NULL, NULL, '2025-12-09 10:32:51', '2025-12-09 10:32:51', 0, NULL),
+(11, 11, 1, 'IFBEGRCFIZDUQSKKJ', 'RFV000,TGB111,YHN222', '2025-12-09 10:32:51', '2025-12-09 10:32:51', 0, NULL),
+(12, 12, 0, NULL, NULL, '2025-12-09 10:32:51', '2025-12-09 10:32:51', 0, NULL),
+(13, 13, 1, 'MJSWC2LNMVZXI4TF', 'UJM333,IKO444,OLP555', '2025-12-09 10:32:51', '2025-12-09 10:32:51', 0, NULL),
+(14, 14, 0, NULL, NULL, '2025-12-09 10:32:51', '2025-12-09 10:32:51', 0, NULL),
+(15, 15, 1, 'KRSXG5CTMVRXEZLU', 'ZAQ666,XSW777,CDE888', '2025-12-09 10:32:51', '2025-12-09 10:32:51', 0, NULL);
 
 -- --------------------------------------------------------
 
@@ -1200,6 +1532,42 @@ CREATE TABLE `warehouses` (
   `deleted_at` datetime DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
+--
+-- A tábla adatainak kiíratása `warehouses`
+--
+
+INSERT INTO `warehouses` (`id`, `name`, `location`, `created_at`, `is_deleted`, `deleted_at`) VALUES
+(1, 'Budapest Központi Raktár', 'Budapest, Váci út 123', '2025-11-21 09:58:46', 0, NULL),
+(2, 'Debrecen Raktár', 'Debrecen, Piac utca 45', '2025-11-21 09:58:46', 0, NULL),
+(3, 'Szeged Raktár', 'Szeged, Tisza Lajos krt. 67', '2025-11-21 09:58:46', 0, NULL),
+(4, 'Pécs Raktár', 'Pécs, Rákóczi út 89', '2025-11-21 09:58:46', 0, NULL),
+(5, 'Győr Raktár', 'Győr, Baross Gábor út 12', '2025-11-21 09:58:46', 0, NULL),
+(6, 'Miskolc Raktár', 'Miskolc, Szinva utca 34', '2025-11-21 09:58:46', 0, NULL),
+(7, 'Kecskemét Raktár', 'Kecskemét, Kossuth tér 56', '2025-11-21 09:58:46', 0, NULL),
+(8, 'Székesfehérvár Raktár', 'Székesfehérvár, Ady Endre utca 78', '2025-11-21 09:58:46', 0, NULL),
+(9, 'Nyíregyháza Raktár', 'Nyíregyháza, Bethlen Gábor utca 90', '2025-11-21 09:58:46', 0, NULL),
+(10, 'Szombathely Raktár', 'Szombathely, Savaria út 23', '2025-11-21 09:58:46', 0, NULL),
+(11, 'Sopron Raktár', 'Sopron, Várkerület 45', '2025-11-21 09:58:46', 0, NULL),
+(12, 'Eger Raktár', 'Eger, Dobó István tér 67', '2025-11-21 09:58:46', 0, NULL),
+(13, 'Veszprém Raktár', 'Veszprém, Óváros tér 12', '2025-11-21 09:58:46', 0, NULL),
+(14, 'Szolnok Raktár', 'Szolnok, Kossuth Lajos út 34', '2025-11-21 09:58:46', 0, NULL),
+(15, 'Kaposvár Raktár', 'Kaposvár, Fő utca 56', '2025-11-21 09:58:46', 0, NULL),
+(16, 'Központi Raktár', 'Budapest, 1111 Fő utca 1.', '2025-12-09 10:32:51', 0, NULL),
+(17, 'Debreceni Raktár', 'Debrecen, 4000 Kossuth utca 10.', '2025-12-09 10:32:51', 0, NULL),
+(18, 'Szegedi Raktár', 'Szeged, 6720 Tisza utca 5.', '2025-12-09 10:32:51', 0, NULL),
+(19, 'Pécsi Raktár', 'Pécs, 7600 Király utca 8.', '2025-12-09 10:32:51', 0, NULL),
+(20, 'Győri Raktár', 'Győr, 9000 Rákóczi utca 3.', '2025-12-09 10:32:51', 0, NULL),
+(21, 'Miskolci Raktár', 'Miskolc, 3525 Petőfi utca 12.', '2025-12-09 10:32:51', 0, NULL),
+(22, 'Kecskeméti Raktár', 'Kecskemét, 6000 Arany János utca 7.', '2025-12-09 10:32:51', 0, NULL),
+(23, 'Nyíregyházi Raktár', 'Nyíregyháza, 4400 Ady Endre utca 4.', '2025-12-09 10:32:51', 0, NULL),
+(24, 'Székesfehérvári Raktár', 'Székesfehérvár, 8000 Vörösmarty utca 6.', '2025-12-09 10:32:51', 0, NULL),
+(25, 'Szombathelyi Raktár', 'Szombathely, 9700 Rózsa utca 2.', '2025-12-09 10:32:51', 0, NULL),
+(26, 'Egri Raktár', 'Eger, 3300 Dobó István utca 9.', '2025-12-09 10:32:51', 0, NULL),
+(27, 'Zalaegerszegi Raktár', 'Zalaegerszeg, 8900 Bajcsy-Zsilinszky utca 11.', '2025-12-09 10:32:51', 0, NULL),
+(28, 'Soproni Raktár', 'Sopron, 9400 Széchenyi utca 5.', '2025-12-09 10:32:51', 0, NULL),
+(29, 'Veszprémi Raktár', 'Veszprém, 8200 Óvári utca 13.', '2025-12-09 10:32:51', 0, NULL),
+(30, 'Tartalék Raktár', 'Budapest, 1052 Petőfi Sándor utca 20.', '2025-12-09 10:32:51', 0, NULL);
+
 -- --------------------------------------------------------
 
 --
@@ -1212,8 +1580,32 @@ CREATE TABLE `warehouse_stock` (
   `warehouse_id` int(11) NOT NULL,
   `part_id` int(11) NOT NULL,
   `quantity` int(11) DEFAULT NULL,
-  `updated_at` datetime DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+  `created_at` datetime DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` datetime DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  `is_deleted` tinyint(1) DEFAULT '0',
+  `deleted_at` datetime DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+--
+-- A tábla adatainak kiíratása `warehouse_stock`
+--
+
+INSERT INTO `warehouse_stock` (`id`, `warehouse_id`, `part_id`, `quantity`, `created_at`, `updated_at`, `is_deleted`, `deleted_at`) VALUES
+(1, 1, 1, 10, '2025-12-09 10:32:51', '2025-12-09 10:32:51', 0, NULL),
+(2, 1, 2, 8, '2025-12-09 10:32:51', '2025-12-09 10:32:51', 0, NULL),
+(3, 2, 3, 15, '2025-12-09 10:32:51', '2025-12-09 10:32:51', 0, NULL),
+(4, 2, 4, 7, '2025-12-09 10:32:51', '2025-12-09 10:32:51', 0, NULL),
+(5, 3, 5, 5, '2025-12-09 10:32:51', '2025-12-09 10:32:51', 0, NULL),
+(6, 3, 6, 50, '2025-12-09 10:32:51', '2025-12-09 10:32:51', 0, NULL),
+(7, 4, 7, 30, '2025-12-09 10:32:51', '2025-12-09 10:32:51', 0, NULL),
+(8, 4, 8, 25, '2025-12-09 10:32:51', '2025-12-09 10:32:51', 0, NULL),
+(9, 5, 9, 4, '2025-12-09 10:32:51', '2025-12-09 10:32:51', 0, NULL),
+(10, 5, 10, 5, '2025-12-09 10:32:51', '2025-12-09 10:32:51', 0, NULL),
+(11, 6, 11, 3, '2025-12-09 10:32:51', '2025-12-09 10:32:51', 0, NULL),
+(12, 6, 12, 2, '2025-12-09 10:32:51', '2025-12-09 10:32:51', 0, NULL),
+(13, 7, 13, 10, '2025-12-09 10:32:51', '2025-12-09 10:32:51', 0, NULL),
+(14, 7, 14, 15, '2025-12-09 10:32:51', '2025-12-09 10:32:51', 0, NULL),
+(15, 8, 15, 20, '2025-12-09 10:32:51', '2025-12-09 10:32:51', 0, NULL);
 
 --
 -- Indexek a kiírt táblákhoz
@@ -1225,6 +1617,12 @@ CREATE TABLE `warehouse_stock` (
 ALTER TABLE `addresses`
   ADD PRIMARY KEY (`id`),
   ADD KEY `user_id` (`user_id`);
+
+--
+-- A tábla indexei `cars`
+--
+ALTER TABLE `cars`
+  ADD PRIMARY KEY (`id`);
 
 --
 -- A tábla indexei `cart_items`
@@ -1265,18 +1663,17 @@ ALTER TABLE `manufacturers`
   ADD UNIQUE KEY `name` (`name`);
 
 --
+-- A tábla indexei `motors`
+--
+ALTER TABLE `motors`
+  ADD PRIMARY KEY (`id`);
+
+--
 -- A tábla indexei `motor_brands`
 --
 ALTER TABLE `motor_brands`
   ADD PRIMARY KEY (`id`),
   ADD UNIQUE KEY `name` (`name`);
-
---
--- A tábla indexei `motor_models`
---
-ALTER TABLE `motor_models`
-  ADD PRIMARY KEY (`id`),
-  ADD KEY `brand_id` (`brand_id`);
 
 --
 -- A tábla indexei `orders`
@@ -1310,15 +1707,6 @@ ALTER TABLE `parts`
   ADD KEY `category` (`category`);
 
 --
--- A tábla indexei `part_compatibility`
---
-ALTER TABLE `part_compatibility`
-  ADD PRIMARY KEY (`id`),
-  ADD KEY `part_id` (`part_id`),
-  ADD KEY `model_id` (`model_id`),
-  ADD KEY `model_id_2` (`model_id`,`engine_type`);
-
---
 -- A tábla indexei `part_images`
 --
 ALTER TABLE `part_images`
@@ -1347,20 +1735,6 @@ ALTER TABLE `password_resets`
 ALTER TABLE `payments`
   ADD PRIMARY KEY (`id`),
   ADD KEY `order_id` (`order_id`);
-
---
--- A tábla indexei `product_comparisons`
---
-ALTER TABLE `product_comparisons`
-  ADD PRIMARY KEY (`id`),
-  ADD KEY `user_id` (`user_id`);
-
---
--- A tábla indexei `product_comparison_items`
---
-ALTER TABLE `product_comparison_items`
-  ADD PRIMARY KEY (`comparison_id`,`part_id`),
-  ADD KEY `part_id` (`part_id`);
 
 --
 -- A tábla indexei `refunds`
@@ -1407,6 +1781,12 @@ ALTER TABLE `stock_logs`
   ADD KEY `part_id` (`part_id`);
 
 --
+-- A tábla indexei `trucks`
+--
+ALTER TABLE `trucks`
+  ADD PRIMARY KEY (`id`);
+
+--
 -- A tábla indexei `users`
 --
 ALTER TABLE `users`
@@ -1430,20 +1810,6 @@ ALTER TABLE `user_twofa`
   ADD KEY `user_id` (`user_id`);
 
 --
--- A tábla indexei `vehicle_brands`
---
-ALTER TABLE `vehicle_brands`
-  ADD PRIMARY KEY (`id`),
-  ADD UNIQUE KEY `name` (`name`);
-
---
--- A tábla indexei `vehicle_models`
---
-ALTER TABLE `vehicle_models`
-  ADD PRIMARY KEY (`id`),
-  ADD KEY `brand_id` (`brand_id`);
-
---
 -- A tábla indexei `warehouses`
 --
 ALTER TABLE `warehouses`
@@ -1465,13 +1831,19 @@ ALTER TABLE `warehouse_stock`
 -- AUTO_INCREMENT a táblához `addresses`
 --
 ALTER TABLE `addresses`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=23;
+
+--
+-- AUTO_INCREMENT a táblához `cars`
+--
+ALTER TABLE `cars`
   MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
 
 --
 -- AUTO_INCREMENT a táblához `cart_items`
 --
 ALTER TABLE `cart_items`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=16;
 
 --
 -- AUTO_INCREMENT a táblához `email_verifications`
@@ -1489,13 +1861,19 @@ ALTER TABLE `invoices`
 -- AUTO_INCREMENT a táblához `login_logs`
 --
 ALTER TABLE `login_logs`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=16;
 
 --
 -- AUTO_INCREMENT a táblához `manufacturers`
 --
 ALTER TABLE `manufacturers`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=16;
+
+--
+-- AUTO_INCREMENT a táblához `motors`
+--
+ALTER TABLE `motors`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=16;
 
 --
 -- AUTO_INCREMENT a táblához `motor_brands`
@@ -1504,22 +1882,16 @@ ALTER TABLE `motor_brands`
   MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
 
 --
--- AUTO_INCREMENT a táblához `motor_models`
---
-ALTER TABLE `motor_models`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
-
---
 -- AUTO_INCREMENT a táblához `orders`
 --
 ALTER TABLE `orders`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=16;
 
 --
 -- AUTO_INCREMENT a táblához `order_items`
 --
 ALTER TABLE `order_items`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=16;
 
 --
 -- AUTO_INCREMENT a táblához `order_logs`
@@ -1531,13 +1903,7 @@ ALTER TABLE `order_logs`
 -- AUTO_INCREMENT a táblához `parts`
 --
 ALTER TABLE `parts`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
-
---
--- AUTO_INCREMENT a táblához `part_compatibility`
---
-ALTER TABLE `part_compatibility`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=18;
 
 --
 -- AUTO_INCREMENT a táblához `part_images`
@@ -1561,13 +1927,7 @@ ALTER TABLE `password_resets`
 -- AUTO_INCREMENT a táblához `payments`
 --
 ALTER TABLE `payments`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
-
---
--- AUTO_INCREMENT a táblához `product_comparisons`
---
-ALTER TABLE `product_comparisons`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=16;
 
 --
 -- AUTO_INCREMENT a táblához `refunds`
@@ -1579,19 +1939,19 @@ ALTER TABLE `refunds`
 -- AUTO_INCREMENT a táblához `reviews`
 --
 ALTER TABLE `reviews`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=16;
 
 --
 -- AUTO_INCREMENT a táblához `sessions`
 --
 ALTER TABLE `sessions`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=16;
 
 --
 -- AUTO_INCREMENT a táblához `shipping_methods`
 --
 ALTER TABLE `shipping_methods`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=16;
 
 --
 -- AUTO_INCREMENT a táblához `shipping_status`
@@ -1606,46 +1966,40 @@ ALTER TABLE `stock_logs`
   MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
 
 --
+-- AUTO_INCREMENT a táblához `trucks`
+--
+ALTER TABLE `trucks`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=16;
+
+--
 -- AUTO_INCREMENT a táblához `users`
 --
 ALTER TABLE `users`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=17;
 
 --
 -- AUTO_INCREMENT a táblához `user_logs`
 --
 ALTER TABLE `user_logs`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
 
 --
 -- AUTO_INCREMENT a táblához `user_twofa`
 --
 ALTER TABLE `user_twofa`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
-
---
--- AUTO_INCREMENT a táblához `vehicle_brands`
---
-ALTER TABLE `vehicle_brands`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
-
---
--- AUTO_INCREMENT a táblához `vehicle_models`
---
-ALTER TABLE `vehicle_models`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=16;
 
 --
 -- AUTO_INCREMENT a táblához `warehouses`
 --
 ALTER TABLE `warehouses`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=31;
 
 --
 -- AUTO_INCREMENT a táblához `warehouse_stock`
 --
 ALTER TABLE `warehouse_stock`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=16;
 
 --
 -- Megkötések a kiírt táblákhoz
@@ -1683,12 +2037,6 @@ ALTER TABLE `login_logs`
   ADD CONSTRAINT `login_logs_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE;
 
 --
--- Megkötések a táblához `motor_models`
---
-ALTER TABLE `motor_models`
-  ADD CONSTRAINT `motor_models_ibfk_1` FOREIGN KEY (`brand_id`) REFERENCES `motor_brands` (`id`);
-
---
 -- Megkötések a táblához `orders`
 --
 ALTER TABLE `orders`
@@ -1714,13 +2062,6 @@ ALTER TABLE `parts`
   ADD CONSTRAINT `parts_ibfk_1` FOREIGN KEY (`manufacturer_id`) REFERENCES `manufacturers` (`id`);
 
 --
--- Megkötések a táblához `part_compatibility`
---
-ALTER TABLE `part_compatibility`
-  ADD CONSTRAINT `part_compatibility_ibfk_1` FOREIGN KEY (`part_id`) REFERENCES `parts` (`id`) ON DELETE CASCADE,
-  ADD CONSTRAINT `part_compatibility_ibfk_2` FOREIGN KEY (`model_id`) REFERENCES `vehicle_models` (`id`);
-
---
 -- Megkötések a táblához `part_images`
 --
 ALTER TABLE `part_images`
@@ -1743,19 +2084,6 @@ ALTER TABLE `password_resets`
 --
 ALTER TABLE `payments`
   ADD CONSTRAINT `payments_ibfk_1` FOREIGN KEY (`order_id`) REFERENCES `orders` (`id`) ON DELETE CASCADE;
-
---
--- Megkötések a táblához `product_comparisons`
---
-ALTER TABLE `product_comparisons`
-  ADD CONSTRAINT `product_comparisons_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE;
-
---
--- Megkötések a táblához `product_comparison_items`
---
-ALTER TABLE `product_comparison_items`
-  ADD CONSTRAINT `product_comparison_items_ibfk_1` FOREIGN KEY (`comparison_id`) REFERENCES `product_comparisons` (`id`) ON DELETE CASCADE,
-  ADD CONSTRAINT `product_comparison_items_ibfk_2` FOREIGN KEY (`part_id`) REFERENCES `parts` (`id`) ON DELETE CASCADE;
 
 --
 -- Megkötések a táblához `refunds`
@@ -1799,12 +2127,6 @@ ALTER TABLE `user_logs`
 --
 ALTER TABLE `user_twofa`
   ADD CONSTRAINT `user_twofa_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE;
-
---
--- Megkötések a táblához `vehicle_models`
---
-ALTER TABLE `vehicle_models`
-  ADD CONSTRAINT `vehicle_models_ibfk_1` FOREIGN KEY (`brand_id`) REFERENCES `vehicle_brands` (`id`);
 
 --
 -- Megkötések a táblához `warehouse_stock`
