@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Gép: localhost:3306
--- Létrehozás ideje: 2025. Dec 09. 09:44
+-- Létrehozás ideje: 2025. Dec 09. 10:13
 -- Kiszolgáló verziója: 5.7.24
 -- PHP verzió: 8.3.1
 
@@ -956,18 +956,6 @@ INSERT INTO `motors` (`id`, `brand`, `model`, `year_from`, `year_to`, `created_a
 -- --------------------------------------------------------
 
 --
--- Tábla szerkezet ehhez a táblához `motor_brands`
---
-
-DROP TABLE IF EXISTS `motor_brands`;
-CREATE TABLE `motor_brands` (
-  `id` int(11) NOT NULL,
-  `name` varchar(100) NOT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
-
--- --------------------------------------------------------
-
---
 -- Tábla szerkezet ehhez a táblához `orders`
 --
 
@@ -1669,13 +1657,6 @@ ALTER TABLE `motors`
   ADD PRIMARY KEY (`id`);
 
 --
--- A tábla indexei `motor_brands`
---
-ALTER TABLE `motor_brands`
-  ADD PRIMARY KEY (`id`),
-  ADD UNIQUE KEY `name` (`name`);
-
---
 -- A tábla indexei `orders`
 --
 ALTER TABLE `orders`
@@ -1874,12 +1855,6 @@ ALTER TABLE `manufacturers`
 --
 ALTER TABLE `motors`
   MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=16;
-
---
--- AUTO_INCREMENT a táblához `motor_brands`
---
-ALTER TABLE `motor_brands`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
 
 --
 -- AUTO_INCREMENT a táblához `orders`
