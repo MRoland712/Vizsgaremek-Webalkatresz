@@ -86,15 +86,10 @@ public class PartsService {
         // MODEL HÍVÁS
         if (Parts.createParts(createParts)) {  // ← Static metódus hívás!
             toReturn.put("message", "Part Created Successfully");
-            toReturn.put("statusCode", 201);
-            toReturn.put("success", true);
-            return toReturn;
+            return errorAuth.createOKResponse(toReturn);
         } else {
-            JSONObject error = new JSONObject();
-            error.put("message", "Part Creation Failed");
-            error.put("statusCode", 500);
-            error.put("success", false);
-            return error;
+            errors.put("ModelError");
+            return errorAuth.createErrorResponse(errors);
         }
     } // createParts Closer
 
