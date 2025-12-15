@@ -1,9 +1,12 @@
 .mmt-dropdown-wrapper {
-  border: 2px solid #2b2b2b;
+  border: 2px solid none;
   border-radius: 10px;
   padding: 16px;
   display: inline-block;
   box-sizing: border-box;
+  box-shadow: 0px 6px 15px 5px rgba(0, 0, 0, 0.2);
+  -webkit-box-shadow: 0px 6px 15px 5px rgba(0, 0, 0, 0.2);
+  -moz-box-shadow: 0px 6px 15px 5px rgba(0, 0, 0, 0.2);
 }
 
 .mmt-dropdowns {
@@ -78,6 +81,29 @@
 
 .dropdown-select option:disabled {
   color: #999;
+}
+.tooltip {
+  position: relative;
+  display: inline-block;
+  cursor: pointer;
+}
+
+/* Tooltip text */
+.tooltip-text {
+  visibility: hidden; /* Hidden by default */
+  width: 130px;
+  background-color: black;
+  color: #ffffff;
+  text-align: center;
+  padding: 5px 0;
+  border-radius: 6px;
+  position: absolute;
+  z-index: 1; /* Ensure tooltip is displayed above content */
+}
+
+/* Show the tooltip text on hover */
+.tooltip:hover .tooltip-text {
+  visibility: visible;
 }
 
 /* ==========================================

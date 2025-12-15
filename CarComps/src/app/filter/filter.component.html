@@ -1,0 +1,18 @@
+<div class="filter-container">
+  <h3 class="filter-title">ELÉRHETŐ ALKATRÉSZEK</h3>
+  <hr />
+
+  <ul class="filter-list">
+    @for (part of parts; track part.id) {
+    <li class="filter-item">
+      <label [for]="part.id" class="custom-checkbox">
+        <input type="checkbox" [id]="part.id" />
+        <span class="checkmark"></span>
+        {{ part.name }}</label
+      >
+    </li>
+    }
+  </ul>
+  <h3 class="filter-title">MÁRKÁK</h3>
+  <hr />
+</div>

@@ -1,0 +1,10 @@
+<div class="product-grid-container">
+  <h1>X eredményt találtunk a Y keresésre</h1>
+
+  <!-- GRID LAYOUT - 2 kártya egy sorban -->
+  <div class="product-grid">
+    @for (product of products; track $index) {
+    <app-product-card [product]="product"></app-product-card>
+    }
+  </div>
+</div>

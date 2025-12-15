@@ -13,7 +13,7 @@ export function mustContainSpecialCharacters(control: AbstractControl) {
   }
   return { doesNotContainSpecialCharacters: true };
 }
-//Nincs azonos email validator
+//Nincs azonos email validator TODO REGISTER SERVICE API INTEGRÁCIÓ
 export function emailisUnique(control: AbstractControl) {
   if (control.value !== 'test@example.com') {
     return of(null);
