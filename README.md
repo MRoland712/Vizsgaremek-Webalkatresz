@@ -1,1 +1,5 @@
-Work in progress
+CarComps projekt frontend dokumentációja.
+
+
+Webdesign: Figma 
+Keretrendszer: Angular
