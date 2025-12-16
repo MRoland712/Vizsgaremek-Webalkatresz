@@ -166,8 +166,6 @@ public class Parts implements Serializable {
         this.manufacturerId = manufacturerId;
     }
     
-    
-    
 
     public Integer getId() {
         return id;

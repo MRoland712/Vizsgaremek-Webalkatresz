@@ -491,6 +491,50 @@ public class AuthenticationService {
         }
 
     } //Parts Auth Class closer
+    
+    public static class manufacturersAuth {
+
+        public boolean isDataMissing(String data) {
+            return (data == null || data.trim().isEmpty());
+        }
+        public boolean isDataMissing(Manufacturers data) {
+            return (data == null);
+        }
+
+        public boolean isDataMissing(Integer data) {
+            return (data == null);
+        }
+
+        public boolean isDataMissing(ArrayList<Manufacturers> data) {
+            return (data == null || data.isEmpty());
+        }
+
+        public boolean isDataMissing(Boolean data) {
+            return (data == null);
+        }
+
+        public boolean isDataMissing(List<Object[]> data) {
+            return (data == null || data.isEmpty());
+        }
+
+        public boolean isValidId(Integer id) {
+            return id > 0 && id.toString().length() <= 11;
+        }
+
+        public boolean isValidName(String name) {
+            return name.length() <= 50;
+        }
+
+        public boolean isValidCompany(String category) {
+            return category.length() <= 50;
+        }
+        
+        public boolean isManufacturersDeleted(Boolean isDeleted) {
+            return (isDeleted == true);
+        }
+
+
+    } //Manufacturers Auth Class closer
   
     
 }//Auth Service Class closer

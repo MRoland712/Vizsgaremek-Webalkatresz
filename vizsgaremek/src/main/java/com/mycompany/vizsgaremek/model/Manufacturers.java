@@ -5,18 +5,24 @@
 package com.mycompany.vizsgaremek.model;
 
 import java.io.Serializable;
+import java.text.SimpleDateFormat;
 import java.util.Collection;
 import java.util.Date;
 import javax.persistence.Basic;
 import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
+import javax.persistence.EntityManager;
+import javax.persistence.EntityManagerFactory;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.NamedQueries;
 import javax.persistence.NamedQuery;
 import javax.persistence.OneToMany;
+import javax.persistence.ParameterMode;
+import javax.persistence.Persistence;
+import javax.persistence.StoredProcedureQuery;
 import javax.persistence.Table;
 import javax.persistence.Temporal;
 import javax.persistence.TemporalType;
@@ -66,6 +72,9 @@ public class Manufacturers implements Serializable {
     private Date deletedAt;
     @OneToMany(cascade = CascadeType.ALL, mappedBy = "manufacturerId")
     private Collection<Parts> partsCollection;
+
+    static EntityManagerFactory emf = Persistence.createEntityManagerFactory("com.mycompany_vizsgaremek_war_1.0-SNAPSHOTPU");
+    public static SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 
     public Manufacturers() {
     }
@@ -127,6 +136,11 @@ public class Manufacturers implements Serializable {
         this.deletedAt = deletedAt;
     }
 
+    public Manufacturers(String name, String country) {
+        this.name = name;
+        this.country = country;
+    }
+
     @XmlTransient
     public Collection<Parts> getPartsCollection() {
         return partsCollection;
@@ -160,5 +174,28 @@ public class Manufacturers implements Serializable {
     public String toString() {
         return "com.mycompany.vizsgaremek.model.Manufacturers[ id=" + id + " ]";
     }
-    
+
+    public static Boolean createManufacturers(Manufacturers createdManufacturers) {
+        EntityManager em = emf.createEntityManager();
+        try {
+            StoredProcedureQuery spq = em.createStoredProcedureQuery("createManufacturers");
+
+            spq.registerStoredProcedureParameter("p_name", String.class, ParameterMode.IN);
+            spq.registerStoredProcedureParameter("p_country", String.class, ParameterMode.IN);
+
+            spq.setParameter("p_name", createdManufacturers.getName());
+            spq.setParameter("p_country", createdManufacturers.getCountry());
+
+            spq.execute();
+
+            return true;
+
+        } catch (Exception ex) {
+            ex.printStackTrace();
+            return false;
+        } finally {
+            em.close();
+        }
+    }
+
 }
