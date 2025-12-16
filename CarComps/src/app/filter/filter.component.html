@@ -5,7 +5,7 @@
   <ul class="filter-list">
     @for (part of parts; track part.id) {
     <li class="filter-item">
-      <label [for]="part.id" class="custom-checkbox">
+      <label [for]="part.id" class="checkbox-container">
         <input type="checkbox" [id]="part.id" />
         <span class="checkmark"></span>
         {{ part.name }}</label
