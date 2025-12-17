@@ -1,18 +1,33 @@
 <div class="filter-container">
-  <h3 class="filter-title">ELÉRHETŐ ALKATRÉSZEK</h3>
+  <!-- ALKATRÉSZEK -->
+  <h3 class="filter-title">ALKATRÉSZEK</h3>
   <hr />
-
   <ul class="filter-list">
     @for (part of parts; track part.id) {
     <li class="filter-item">
-      <label [for]="part.id" class="checkbox-container">
-        <input type="checkbox" [id]="part.id" />
+      <label [for]="'category-' + part.id" class="checkbox-container">
+        <!--          ↑ Prefix: category- -->
+        <input type="checkbox" [id]="'category-' + part.id" />
         <span class="checkmark"></span>
-        {{ part.name }}</label
-      >
+        {{ part.category }}
+      </label>
     </li>
     }
   </ul>
+
+  <!-- MÁRKÁK -->
   <h3 class="filter-title">MÁRKÁK</h3>
   <hr />
+  <ul class="filter-list">
+    @for (part of parts; track part.id) {
+    <li class="filter-item">
+      <label [for]="'brand-' + part.id" class="checkbox-container">
+        <!--          ↑ Prefix: brand- -->
+        <input type="checkbox" [id]="'brand-' + part.id" />
+        <span class="checkmark"></span>
+        {{ part.name }}
+      </label>
+    </li>
+    }
+  </ul>
 </div>

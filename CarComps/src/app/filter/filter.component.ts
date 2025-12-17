@@ -1,5 +1,6 @@
-import { Component, Input } from '@angular/core';
-import { dummyParts } from '../models/parts.model';
+import { Component, inject, Input, OnInit } from '@angular/core';
+import { dummyParts, PartsModel } from '../models/parts.model';
+import { FilterService } from './filter.service';
 
 @Component({
   selector: 'app-filter',
@@ -8,27 +9,17 @@ import { dummyParts } from '../models/parts.model';
   templateUrl: './filter.component.html',
   styleUrls: ['./filter.component.css'],
 })
-export class Filter {
-  @Input() parts: dummyParts[] = [
-    {
-      id: 1,
-      name: 'Fék',
-    },
-    {
-      id: 2,
-      name: 'Motor',
-    },
-    {
-      id: 3,
-      name: 'Olajszűrő',
-    },
-    {
-      id: 4,
-      name: 'Légszűrő',
-    },
-    {
-      id: 5,
-      name: 'Kuplung',
-    },
-  ];
+export class Filter implements OnInit {
+  filterService = inject(FilterService);
+  parts: PartsModel[] = [];
+  ngOnInit(): void {
+    this.loadPartCategories();
+  }
+  loadPartCategories() {
+    this.filterService.getAllParts().subscribe({
+      next: (response) => {
+        this.parts = response.parts;
+      },
+    });
+  }
 }
