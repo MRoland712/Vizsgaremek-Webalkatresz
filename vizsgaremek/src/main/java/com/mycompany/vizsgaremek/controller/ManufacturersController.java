@@ -14,6 +14,7 @@ import javax.ws.rs.GET;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.PUT;
+import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import org.json.JSONObject;
@@ -79,5 +80,31 @@ public class ManufacturersController {
                 .type(MediaType.APPLICATION_JSON)
                 .build();
 
+    }
+    
+    @GET
+    @Path("getAllManufacturers")
+    @Consumes(MediaType.APPLICATION_JSON)
+    public Response getAllManufacturers() {
+        ManufacturersService ManufacturersService = new ManufacturersService();
+        JSONObject toReturn = ManufacturersService.getAllManufacturers();
+
+        return Response.status(Integer.parseInt(toReturn.get("statusCode").toString()))
+                .entity(toReturn.toString())
+                .type(MediaType.APPLICATION_JSON)
+                .build();
+    }
+    
+    @GET
+    @Path("getManufacturersById")
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response getManufacturersById(@QueryParam("id") Integer id) {
+
+        JSONObject toReturn = layer.getManufacturersById(id);
+
+        return Response.status(Integer.parseInt(toReturn.get("statusCode").toString()))
+                .entity(toReturn.toString())
+                .type(MediaType.APPLICATION_JSON)
+                .build();
     }
 }

@@ -6,8 +6,10 @@ package com.mycompany.vizsgaremek.model;
 
 import java.io.Serializable;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
+import java.util.List;
 import javax.persistence.Basic;
 import javax.persistence.CascadeType;
 import javax.persistence.Column;
@@ -136,9 +138,20 @@ public class Manufacturers implements Serializable {
         this.deletedAt = deletedAt;
     }
 
+    //createManufacturers
     public Manufacturers(String name, String country) {
         this.name = name;
         this.country = country;
+    }
+
+    //getAllManufacturers & getManufacturersById
+    public Manufacturers(Integer id, String name, String country, Date createdAt, Boolean isDeleted, Date deletedAt) {
+        this.id = id;
+        this.name = name;
+        this.country = country;
+        this.createdAt = createdAt;
+        this.isDeleted = isDeleted;
+        this.deletedAt = deletedAt;
     }
 
     @XmlTransient
@@ -193,6 +206,79 @@ public class Manufacturers implements Serializable {
         } catch (Exception ex) {
             ex.printStackTrace();
             return false;
+        } finally {
+            em.close();
+        }
+    }
+
+    public static ArrayList<Manufacturers> getAllManufacturers() {
+        EntityManager em = emf.createEntityManager();
+
+        try {
+            
+            StoredProcedureQuery spq = em.createStoredProcedureQuery("getAllManufacturers");
+            spq.execute();
+
+            
+            List<Object[]> resultList = spq.getResultList();
+
+            ArrayList<Manufacturers> toReturn = new ArrayList();
+
+            for (Object[] record : resultList) {
+
+                Manufacturers m = new Manufacturers(
+                        Integer.valueOf(record[0].toString()), // 1. id
+                        record[1] != null ? record[1].toString() : null, // 2. name
+                        record[2] != null ? record[2].toString() : null, // 3. country
+                        record[3] == null ? null : formatter.parse(record[3].toString()), // 11. createdAt
+                        Boolean.FALSE, // 13. isDeleted
+                        null // 14. deletedAt
+                );
+
+                toReturn.add(m);
+            }
+            return toReturn;
+        } catch (Exception ex) {
+            if (em.getTransaction().isActive()) {
+                em.getTransaction().rollback(); // Ha hiba van, rollback
+            }
+            ex.printStackTrace();
+            return null;
+        } finally {
+            em.clear();
+            em.close();
+        }
+    }
+    
+    public static Manufacturers getManufacturersById(Integer id) {
+        EntityManager em = emf.createEntityManager();
+        try {
+            StoredProcedureQuery spq = em.createStoredProcedureQuery("getManufacturersById");
+            spq.registerStoredProcedureParameter("p_manufacturers_id", Integer.class, ParameterMode.IN);
+            spq.setParameter("p_manufacturers_id", id);
+            spq.execute();
+
+            List<Object[]> resultList = spq.getResultList();
+
+            // Csak EGY rekord van (getById)
+            Object[] record = resultList.get(0);
+
+
+            Manufacturers m = new Manufacturers(
+                        Integer.valueOf(record[0].toString()), // 1. id
+                        record[1] != null ? record[1].toString() : null, // 2. name
+                        record[2] != null ? record[2].toString() : null, // 3. country
+                        record[3] == null ? null : formatter.parse(record[3].toString()), // 11. createdAt
+                        Boolean.FALSE, // 13. isDeleted
+                        null // 14. deletedAt
+               
+            );
+
+            return m;
+
+        } catch (Exception ex) {
+            ex.printStackTrace();
+            return null;
         } finally {
             em.close();
         }

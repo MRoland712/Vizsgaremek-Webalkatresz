@@ -5,6 +5,7 @@
 package com.mycompany.vizsgaremek.service;
 
 import com.mycompany.vizsgaremek.model.Manufacturers;
+import java.util.ArrayList;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
@@ -49,5 +50,78 @@ public class ManufacturersService {
             return error;
         }
     } // createManufacturers Closer
+    
+    public JSONObject getAllManufacturers() {
+        JSONObject toReturn = new JSONObject();
+        JSONArray errors = new JSONArray();
+
+        // MODEL HÍVÁS
+        ArrayList<Manufacturers> modelResult = Manufacturers.getAllManufacturers();
+
+        // VALIDÁCIÓ - If no data in DB
+        if (manufacturersAuth.isDataMissing(modelResult)) {
+            errors.put("ModelException");
+        }
+
+        // If modelexeption
+        if (errorAuth.hasErrors(errors)) {
+            return errorAuth.createErrorResponse(errors, 500);
+        }
+
+        // KONVERZIÓ ArrayList --> JSONArray
+        JSONArray manufacturersArray = new JSONArray();
+
+        for (Manufacturers manufacturer : modelResult) {
+            JSONObject manufacturersObj = new JSONObject();
+            manufacturersObj.put("id", manufacturer.getId());
+            manufacturersObj.put("name", manufacturer.getName());
+            manufacturersObj.put("country", manufacturer.getCountry());
+            manufacturersObj.put("createdAt", manufacturer.getCreatedAt());
+            manufacturersArray.put(manufacturersObj);
+        }
+
+        toReturn.put("success", true);
+        toReturn.put("Manufacturers", manufacturersArray);
+        toReturn.put("count", modelResult.size());
+        toReturn.put("statusCode", 200);
+
+        return toReturn;
+        
+    }//getAllManufacturers close
+    
+    public JSONObject getManufacturersById(Integer id) {
+        JSONObject toReturn = new JSONObject();
+        JSONArray errors = new JSONArray();
+
+        // Validáció - ID hiányzik
+        if (manufacturersAuth.isDataMissing(id)) {
+            errors.put("MissingId");
+        }
+
+        if (errorAuth.hasErrors(errors)) {
+            return errorAuth.createErrorResponse(errors, 400);
+        }
+
+        // MODEL HÍVÁS
+        Manufacturers manufacturer = Manufacturers.getManufacturersById(id);
+
+        // Validáció - Nem található
+        if (manufacturersAuth.isDataMissing(manufacturer)) {
+            errors.put("AddressNotFound");
+            return errorAuth.createErrorResponse(errors, 404);
+        }
+
+        JSONObject manufacturersObj = new JSONObject();
+        manufacturersObj.put("id", manufacturer.getId());
+        manufacturersObj.put("name", manufacturer.getName());
+        manufacturersObj.put("country", manufacturer.getCountry());
+        manufacturersObj.put("createdAt", manufacturer.getCreatedAt());
+
+        toReturn.put("success", true);
+        toReturn.put("Manufacturer", manufacturersObj);
+        toReturn.put("statusCode", 200);
+
+        return toReturn;
+    }//getManufacturersById
     
 }
