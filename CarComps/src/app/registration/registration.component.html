@@ -1,14 +1,15 @@
 <div class="login-page">
+  <!-- FORM - KÖZÉPEN -->
   <form [formGroup]="signupForm" (ngSubmit)="onSignUpSubmit()">
-    <div class="login-container">
-      <div class="form-header">
-        <a routerLink="/">
-          <img src="assets/CarComps_Logo_C_white.png" alt="CarComps Logo" class="logo" />
-        </a>
-        <!--új wallpaper-->
-        <h2>Regisztráció</h2>
-      </div>
+    <!-- HEADER -->
+    <div class="form-header">
+      <img src="assets/CarComps_Logo_C_white.png" alt="CarComps Logo" class="logo" />
+      <h2>Regisztráció</h2>
+    </div>
 
+    <!-- FORM CONTAINER - 2 OSZLOPOS GRID -->
+    <div class="login-container">
+      <!-- BAL OSZLOP: FELHASZNÁLÓNÉV -->
       <div class="username-control">
         <input
           type="text"
@@ -16,56 +17,15 @@
           placeholder="Felhasználónév"
           id="username"
           formControlName="username"
+          [class.invalid]="usernameIsInvalid"
         />
         <label for="username" class="form__label">Felhasználónév</label>
         @if (usernameIsInvalid) {
-        <p class="error-message">
-          Hibás felhasználónév! (3-20 karakter, csak betűk, számok, - és _ használható)
-        </p>
+        <p class="error-message">Hibás felhasználónév! (3-20 karakter)</p>
         }
       </div>
 
-      <div class="firstname-control">
-        <input
-          type="text"
-          class="form__field"
-          placeholder="Vezetéknév"
-          id="firstname"
-          formControlName="firstname"
-        />
-        <label for="firstname" class="form__label">Vezetéknév</label>
-        @if (firstnameIsInvalid) {
-        <p class="error-message">Adja meg a vezetéknevét!</p>
-        }
-      </div>
-      <div class="phone-control">
-        <input
-          type="text"
-          class="form__field"
-          placeholder="Telefonszám"
-          id="phone"
-          formControlName="phone"
-        />
-        <label for="phone" class="form__label">Telefonszám</label>
-        @if (phoneNumberIsInvalid) {
-        <p class="error-message">Adja meg a telefonszámát!</p>
-        }
-      </div>
-
-      <div class="lastname-control">
-        <input
-          type="text"
-          class="form__field"
-          placeholder="Keresztnév"
-          id="lastname"
-          formControlName="lastname"
-        />
-        <label for="lastname" class="form__label">Keresztnév</label>
-        @if (lastnameIsInvalid) {
-        <p class="error-message">Adja meg a keresztnevét!</p>
-        }
-      </div>
-
+      <!-- JOBB OSZLOP: TELEFONSZÁM  TODO TELEFONSZÁM ÁTHELYEZÉS-->
       <div class="email-control">
         <input
           type="email"
@@ -73,6 +33,7 @@
           placeholder="Email"
           id="email"
           formControlName="email"
+          [class.invalid]="emailIsInvalid"
         />
         <label for="email" class="form__label">Email</label>
         @if (emailIsInvalid) {
@@ -80,6 +41,55 @@
         }
       </div>
 
+      <!-- BAL OSZLOP: VEZETÉKNÉV -->
+      <div class="firstname-control">
+        <input
+          type="text"
+          class="form__field"
+          placeholder="Vezetéknév"
+          id="firstname"
+          formControlName="firstname"
+          [class.invalid]="firstnameIsInvalid"
+        />
+        <label for="firstname" class="form__label">Vezetéknév</label>
+        @if (firstnameIsInvalid) {
+        <p class="error-message">Adja meg a vezetéknevét!</p>
+        }
+      </div>
+
+      <!-- JOBB OSZLOP: KERESZTNÉV -->
+      <div class="lastname-control">
+        <input
+          type="text"
+          class="form__field"
+          placeholder="Keresztnév"
+          id="lastname"
+          formControlName="lastname"
+          [class.invalid]="lastnameIsInvalid"
+        />
+        <label for="lastname" class="form__label">Keresztnév</label>
+        @if (lastnameIsInvalid) {
+        <p class="error-message">Adja meg a keresztnevét!</p>
+        }
+      </div>
+
+      <!-- TELJES SZÉLESSÉG: EMAIL -->
+      <div class="phone-control">
+        <input
+          type="text"
+          class="form__field"
+          placeholder="Telefonszám"
+          id="phone"
+          formControlName="phone"
+          [class.invalid]="phoneNumberIsInvalid"
+        />
+        <label for="phone" class="form__label">Telefonszám</label>
+        @if (phoneNumberIsInvalid) {
+        <p class="error-message">Adja meg a telefonszámát!</p>
+        }
+      </div>
+
+      <!-- TELJES SZÉLESSÉG: JELSZÓ -->
       <div class="login-control">
         <input
           type="password"
@@ -87,16 +97,17 @@
           placeholder="Jelszó"
           id="password"
           formControlName="password"
+          [class.invalid]="passwordIsInvalid"
         />
         <label for="password" class="form__label">Jelszó</label>
         @if (passwordIsInvalid) {
         <p class="error-message">
-          Hibás jelszó! (A jelszónak tartalmaznia kell speciális karaktereket, nagybetűt, számokat
-          és nem lehet rövidebb mint 8 karakter!)
+          Hibás jelszó! (Legalább 8 karakter, speciális karakter, nagybetű, szám)
         </p>
         }
       </div>
 
+      <!-- TELJES SZÉLESSÉG: JELSZÓ MEGERŐSÍTÉSE -->
       <div class="login-control">
         <input
           type="password"
@@ -104,6 +115,7 @@
           placeholder="Jelszó megerősítése"
           id="rePassword"
           formControlName="rePassword"
+          [class.invalid]="rePasswordIsInvalid"
         />
         <label for="rePassword" class="form__label">Jelszó megerősítése</label>
         @if (rePasswordIsInvalid) {
@@ -112,7 +124,13 @@
       </div>
     </div>
 
-    <button type="submit" class="button">Fiók létrehozása</button>
-    <p>Van már fiókod?<a routerLink="/login" class="reg-link">Jelentkezz be!</a></p>
+    <!-- SUBMIT BUTTON -->
+    <button type="submit" class="button" [disabled]="signupForm.invalid">Regisztráció</button>
+
+    <!-- LOGIN LINK -->
+    <p>
+      Van már fiókod?
+      <a routerLink="/login" class="reg-link">Jelentkezz be!</a>
+    </p>
   </form>
 </div>

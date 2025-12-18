@@ -46,7 +46,7 @@ export class RegistrationComponent {
       validators: [Validators.email, Validators.required, emailMustHaveDomainValidator],
     }),
     phone: new FormControl('', {
-      validators: [Validators.required, Validators.maxLength(17)],
+      validators: [Validators.required, Validators.maxLength(17), Validators.minLength(7)],
     }),
     password: new FormControl('', {
       validators: [

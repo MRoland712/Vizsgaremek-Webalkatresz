@@ -1,6 +1,7 @@
-import { Component, inject, Input, OnInit } from '@angular/core';
-import { dummyParts, PartsModel } from '../models/parts.model';
-import { FilterService } from './filter.service';
+import { Component, inject, OnInit } from '@angular/core';
+
+import { PartsModel } from '../models/parts.model';
+import { GetallpartsService } from '../services/getallparts.service';
 
 @Component({
   selector: 'app-filter',
@@ -10,7 +11,7 @@ import { FilterService } from './filter.service';
   styleUrls: ['./filter.component.css'],
 })
 export class Filter implements OnInit {
-  filterService = inject(FilterService);
+  filterService = inject(GetallpartsService);
   parts: PartsModel[] = [];
   ngOnInit(): void {
     this.loadPartCategories();
