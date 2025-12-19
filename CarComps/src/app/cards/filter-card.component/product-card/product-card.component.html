@@ -1,15 +1,18 @@
 <div class="product-wrapper">
   <div class="left">
-    <img src="{{ product().image }}" alt="product image" />
+    <img src="" alt="product image" />
   </div>
 
   <div class="right">
     <div class="product-desc">
       <h2>{{ product().name }}</h2>
-      <h3>Article Number: {{ product().articleNumber }}</h3>
-      @for (item of items; track $index) {
-      <!-- termék infók -->
-      }
+      <h3>Article Number: {{ product().sku }}</h3>
+      <!-- Termék részletek kiírása -->
+      <ul>
+        @for (detail of productDetails(); track $index) {
+        <li>{{ detail.label }}: {{ detail.value }}</li>
+        }
+      </ul>
     </div>
 
     <!-- Ár -->
@@ -28,7 +31,6 @@
           <i class="fa-solid fa-angle-up"></i>
         </button>
       </div>
-
       <button type="button" class="add-to-cart-btn" (click)="addToCart()">
         <i class="fa-solid fa-cart-shopping"></i>
       </button>

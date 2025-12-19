@@ -1,5 +1,5 @@
-import { Component, input, OnInit, signal } from '@angular/core';
-import { Product } from '../product-list/product.model';
+import { Component, input, OnInit, signal, computed } from '@angular/core';
+import { PartsModel } from '../../../models/parts.model';
 
 @Component({
   selector: 'app-product-card',
@@ -9,23 +9,17 @@ import { Product } from '../product-list/product.model';
 })
 export class ProductCardComponent {
   // Termék adatok
-  product = input.required<Product>();
-
-  productIMG = '';
-  productName = '';
-  articleNumber = '';
-  items: any[] = []; // Termék infók (ha kell)
-  price = 0;
-
-  // ngOnInit(): void {
-  //   this.productIMG = this.product().image;
-  //   this.productName = this.product().name;
-  //   this.articleNumber = this.product().articleNumber;
-  //   this.price = this.product().price;
-  // }
+  product = input.required<PartsModel>();
 
   // Quantity signal - reactive state
   quantity = signal(0);
+
+  // ✅ Computed property - automatikusan frissül!
+  productDetails = computed(() => [
+    { label: 'Kategória', value: this.product().category },
+    { label: 'Raktárkészlet', value: `${this.product().stock} db` },
+    { label: 'Állapot', value: this.product().isActive ? 'Elérhető' : 'Nem elérhető' },
+  ]);
 
   /**
    * Mennyiség növelése
@@ -48,28 +42,10 @@ export class ProductCardComponent {
    */
   addToCart(): void {
     const currentQty = this.quantity();
-
     if (currentQty === 0) {
-      console.log('⚠️ Mennyiség 0, először válassz mennyiséget!');
-      // Opcionális: Alert vagy notification
       return;
     }
 
-    console.log('🛒 Hozzáadva a kosárhoz:');
-    console.log('   Termék:', this.productName);
-    console.log('   Cikkszám:', this.articleNumber);
-    console.log('   Mennyiség:', currentQty);
-    console.log('   Ár:', this.price * currentQty, 'HUF');
-
-    // TODO: Itt hívd meg a cart service-t
-    // this.cartService.addToCart({
-    //   productName: this.productName,
-    //   articleNumber: this.articleNumber,
-    //   quantity: currentQty,
-    //   price: this.price
-    // });
-
-    // Quantity reset után (opcionális)
-    // this.quantity.set(0);
+    // TODO: Cart service hívás
   }
 }
