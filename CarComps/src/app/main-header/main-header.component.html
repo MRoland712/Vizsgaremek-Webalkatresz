@@ -11,7 +11,11 @@
 
     <!-- Search bar középen -->
     <div class="nav-search">
-      <form class="search-form" (ngSubmit)="onSearchSubmit()">
+      <form
+        class="search-form"
+        [class.has-results]="showDropdown() && searchResults().length > 0"
+        (ngSubmit)="onSearchSubmit()"
+      >
         <i class="fa-solid fa-magnifying-glass search-icon"></i>
         <input
           type="search"
@@ -75,6 +79,17 @@
         </a>
       </li>
     </ul>
+  </div>
+
+  <!-- Vehicle Selector -->
+  <div class="vehicle-selector-container">
+    <div class="vehicle-selector-body">
+      <ul>
+        <li><i class="fa-solid fa-car-side"></i>Személygépjármű</li>
+        <li><i class="fa-solid fa-motorcycle"></i>Motorkerékpár</li>
+        <li><i class="fa-solid fa-truck"></i>Tehergépjármű</li>
+      </ul>
+    </div>
   </div>
 </nav>
 <!-- Navbar -->

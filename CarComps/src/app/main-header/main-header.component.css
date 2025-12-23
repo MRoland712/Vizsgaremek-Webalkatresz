@@ -1,4 +1,7 @@
-/* Main Navbar */
+/* ==========================================
+   MAIN NAVBAR - STICKY HEADER
+   ========================================== */
+
 .main-navbar {
   width: 100%;
   background-color: #2b2b2b;
@@ -6,13 +9,16 @@
   position: sticky;
   top: 0;
   z-index: 1000;
-  padding: 12px 0;
 }
+
+/* ==========================================
+   NAV CONTAINER - Felső rész (Logo, Search, Icons)
+   ========================================== */
 
 .nav-container {
   max-width: 1400px;
   margin: 0 auto;
-  padding: 0 24px;
+  padding: 12px 24px;
   display: grid;
   grid-template-columns: auto 1fr auto;
   align-items: center;
@@ -36,7 +42,10 @@
   transform: scale(1.05);
 }
 
-/* Search bar középen */
+/* ==========================================
+   SEARCH BAR - Fix méret wrapper
+   ========================================== */
+
 .nav-search {
   flex: 1;
   max-width: 600px;
@@ -46,13 +55,24 @@
 
 .search-form {
   position: relative;
-  width: 100%;
+  width: 600px; /* ← Fix szélesség! */
+  background-color: rgba(255, 255, 255, 0.05); /* ← Közös háttér */
+  border: 2px solid rgba(255, 255, 255, 0.1);
+  border-radius: 30px; /* ← Alapból kerek */
+  transition: all 0.3s ease;
+}
+
+/* Ha van dropdown - csak border színe változik */
+.search-form.has-results {
+  border-radius: 30px 30px 0 0; /* ← Alsó lekerekítés eltűnik */
+  border-color: rgba(255, 102, 0, 0.3);
+  background-color: #2b2b2b; /* ← Sötétebb háttér */
 }
 
 .search-icon {
   position: absolute;
   left: 16px;
-  top: 50%;
+  top: 50%; /* ← Középre vertikálisan */
   transform: translateY(-50%);
   color: #fffafa;
   font-size: 16px;
@@ -63,7 +83,7 @@
 .loading-icon {
   position: absolute;
   right: 16px;
-  top: 50%;
+  top: 50%; /* ← Középre vertikálisan */
   transform: translateY(-50%);
   color: #ff6600;
   font-size: 16px;
@@ -71,11 +91,12 @@
 }
 
 .search-input {
-  width: 600px;
-  padding: 12px 48px 12px 48px;
-  border: 2px solid rgba(255, 255, 255, 0.1);
+  width: 100%;
+  height: 48px; /* ← Fix magasság! */
+  padding: 0 48px; /* ← Csak oldalt padding */
+  border: none; /* ← Nincs border! A form-on van! */
   border-radius: 30px;
-  background-color: rgba(255, 255, 255, 0.05);
+  background-color: transparent; /* ← Átlátszó! */
   color: #fffafa;
   font-size: 15px;
   transition: all 0.3s ease;
@@ -87,8 +108,11 @@
 }
 
 .search-input:focus {
-  background-color: rgba(255, 255, 255, 0.1);
+  background-color: transparent; /* ← Átlátszó marad */
+}
 
+/* Ha van dropdown - input alsó lekerekítés eltűnik */
+.search-form.has-results .search-input {
   border-radius: 30px 30px 0 0;
 }
 
@@ -97,16 +121,19 @@
   color: #ff6600;
 }
 
-/* Search dropdown */
+/* ==========================================
+   SEARCH DROPDOWN
+   ========================================== */
+
 .search-dropdown {
-  position: absolute;
-  top: 100%;
+  position: absolute; /* ← Absolute! Kilóg */
+  top: 100%; /* ← Form alatt */
   left: 0;
-  right: 0;
+  width: 100%;
   background-color: #2b2b2b;
-  border: 2px solid rgba(255, 255, 255, 0.1);
+  border: 2px solid rgba(255, 102, 0, 0.3);
   border-top: none;
-  border-radius: 0 0 16px 16px;
+  border-radius: 0 0 30px 30px;
   max-height: 400px;
   overflow-y: auto;
   box-shadow: 0 8px 16px rgba(0, 0, 0, 0.3);
@@ -132,6 +159,7 @@
 
 .search-result-item:last-child {
   border-bottom: none;
+  padding-bottom: 16px; /* ← Extra padding alul az utolsónál */
 }
 
 .search-result-item:hover {
@@ -164,42 +192,45 @@
 
 /* Nincs találat */
 .no-results {
-  padding: 32px 20px;
+  padding: 24px 20px; /* ← Kisebb padding */
   text-align: center;
   color: #999;
 }
 
 .no-results i {
-  font-size: 32px;
-  margin-bottom: 12px;
+  font-size: 24px; /* ← Kisebb ikon */
+  margin-bottom: 8px;
   display: block;
+  color: #666;
 }
 
 .no-results p {
   margin: 0;
-  font-size: 15px;
+  font-size: 14px;
 }
 
-/* Custom scrollbar a dropdown-hoz */
+/* Custom scrollbar */
 .search-dropdown::-webkit-scrollbar {
   width: 8px;
 }
 
 .search-dropdown::-webkit-scrollbar-track {
-  background: rgba(255, 255, 255, 0.05);
-  border-radius: 0 0 16px 0;
+  background: transparent;
 }
 
 .search-dropdown::-webkit-scrollbar-thumb {
-  background: #ff6600;
+  background: rgba(255, 102, 0, 0.5);
   border-radius: 4px;
 }
 
 .search-dropdown::-webkit-scrollbar-thumb:hover {
-  background: #d05604;
+  background: #ff6600;
 }
 
-/* Ikonok jobbra */
+/* ==========================================
+   NAV ICONS - Jobbra
+   ========================================== */
+
 .nav-icons {
   display: flex;
   align-items: center;
@@ -236,21 +267,93 @@
   font-size: 20px;
 }
 
-/* Responsive Design */
+/* ==========================================
+   VEHICLE SELECTOR - Alsó rész
+   ========================================== */
+
+.vehicle-selector-container {
+  width: 100%;
+  background-color: #3f3f3f;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.vehicle-selector-body {
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.vehicle-selector-body ul {
+  list-style: none;
+  padding: 16px 24px;
+  margin: 0;
+  display: flex;
+  gap: 40px;
+  justify-content: center;
+  align-items: center;
+}
+
+.vehicle-selector-body li {
+  color: #fffafa;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  padding: 8px 16px;
+  border-radius: 8px;
+}
+
+.vehicle-selector-body li i {
+  margin-right: 8px;
+  color: #ff6600;
+  transition: transform 0.3s ease;
+}
+
+.vehicle-selector-body li:hover {
+  color: #ff6600;
+  background-color: rgba(255, 102, 0, 0.1);
+}
+
+.vehicle-selector-body li:hover i {
+  transform: scale(1.1);
+}
+
+/* ==========================================
+   RESPONSIVE - TABLET
+   ========================================== */
+
 @media (max-width: 992px) {
   .nav-container {
     gap: 16px;
+    padding: 12px 20px;
+  }
+
+  .nav-logo img {
+    height: 55px;
   }
 
   .nav-search {
     max-width: 400px;
   }
+
+  .vehicle-selector-body ul {
+    gap: 24px;
+    padding: 14px 20px;
+  }
+
+  .vehicle-selector-body li {
+    font-size: 15px;
+  }
 }
+
+/* ==========================================
+   RESPONSIVE - MOBIL
+   ========================================== */
 
 @media (max-width: 768px) {
   .nav-container {
     grid-template-columns: 1fr;
     gap: 12px;
+    padding: 12px 16px;
   }
 
   .nav-logo {
@@ -263,26 +366,46 @@
     max-width: 100%;
   }
 
+  .search-form {
+    width: 100%; /* ← Form 100% */
+  }
+
+  .search-input {
+    width: 100%; /* ← Input 100% */
+  }
+
   .nav-icons {
     grid-row: 1;
     justify-self: end;
     position: absolute;
-    right: 24px;
+    right: 16px;
+  }
+
+  .vehicle-selector-body ul {
+    flex-direction: column;
+    gap: 12px;
+    padding: 12px 16px;
+  }
+
+  .vehicle-selector-body li {
+    width: 100%;
+    text-align: center;
+    font-size: 15px;
   }
 }
 
-@media (max-width: 480px) {
-  .nav-container {
-    padding: 0 16px;
-  }
+/* ==========================================
+   RESPONSIVE - KIS MOBIL
+   ========================================== */
 
+@media (max-width: 480px) {
   .nav-logo img {
-    height: 40px;
+    height: 45px;
   }
 
   .search-input {
     font-size: 14px;
-    padding: 10px 12px 10px 42px;
+    padding: 10px 42px 10px 42px;
   }
 
   .nav-link {
@@ -291,11 +414,19 @@
   }
 
   .nav-link i {
-    font-size: 16px;
+    font-size: 18px;
   }
 
   .nav-icons {
-    gap: 4px;
-    right: 16px;
+    gap: 8px;
+  }
+
+  .vehicle-selector-body li {
+    font-size: 14px;
+    padding: 10px 12px;
+  }
+
+  .vehicle-selector-body li i {
+    font-size: 14px;
   }
 }
