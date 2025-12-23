@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Gép: localhost:3306
--- Létrehozás ideje: 2025. Dec 09. 10:13
+-- Létrehozás ideje: 2025. Dec 23. 19:13
 -- Kiszolgáló verziója: 5.7.24
 -- PHP verzió: 8.3.1
 
@@ -133,6 +133,27 @@ CREATE DEFINER=`root`@`localhost` PROCEDURE `createParts` (IN `p_manufacturer_id
            );
            
          SELECT LAST_INSERT_ID()AS new_parts_id;
+         COMMIT;
+END$$
+
+DROP PROCEDURE IF EXISTS `createPartVariants`$$
+CREATE DEFINER=`root`@`localhost` PROCEDURE `createPartVariants` (IN `partIdIN` INT(11), IN `nameIN` VARCHAR(100), IN `valueIN` TEXT, IN `additionalPriceIN` DOUBLE)   BEGIN
+	START TRANSACTION;
+    INSERT INTO part_variants(
+        part_id,
+        name,
+        value,
+        additional_price,
+        created_at
+        )VALUES(
+            partIdIN,
+            nameIN,
+            valueIN,
+            additionalPriceIN,     
+            NOW()
+           );
+           
+         SELECT LAST_INSERT_ID()AS new_part_variants;
          COMMIT;
 END$$
 
@@ -279,8 +300,8 @@ CREATE DEFINER=`root`@`localhost` PROCEDURE `getAllAddresses` ()   BEGIN
     ORDER BY a.id DESC;
 END$$
 
-DROP PROCEDURE IF EXISTS `getAllManufactureres`$$
-CREATE DEFINER=`root`@`localhost` PROCEDURE `getAllManufactureres` ()   BEGIN
+DROP PROCEDURE IF EXISTS `getAllManufacturers`$$
+CREATE DEFINER=`root`@`localhost` PROCEDURE `getAllManufacturers` ()   BEGIN
 	SELECT
     id,
     name,
@@ -327,6 +348,11 @@ CREATE DEFINER=`root`@`localhost` PROCEDURE `getAllParts` ()   BEGIN
     WHERE is_deleted = 0
     ORDER BY id;
 END$$
+
+DROP PROCEDURE IF EXISTS `getAllPartVariants`$$
+CREATE DEFINER=`root`@`localhost` PROCEDURE `getAllPartVariants` ()   SELECT id, part_id, name, value, additional_price, created_at, is_deleted, deleted_at
+FROM part_variants
+WHERE is_deleted = 0$$
 
 DROP PROCEDURE IF EXISTS `getAllReviews`$$
 CREATE DEFINER=`root`@`localhost` PROCEDURE `getAllReviews` ()   BEGIN
@@ -383,6 +409,14 @@ CREATE DEFINER=`root`@`localhost` PROCEDURE `getOrdersByUserId` (IN `p_user_id` 
      WHERE user_id = p_user_id;
 END$$
 
+DROP PROCEDURE IF EXISTS `getPartsByCategory`$$
+CREATE DEFINER=`root`@`localhost` PROCEDURE `getPartsByCategory` ()   BEGIN
+    SELECT DISTINCT category
+    FROM parts
+    WHERE is_deleted = 0
+    ORDER BY category;
+END$$
+
 DROP PROCEDURE IF EXISTS `getPartsById`$$
 CREATE DEFINER=`root`@`localhost` PROCEDURE `getPartsById` (IN `p_parts_id` INT)   BEGIN
     SELECT 
@@ -420,6 +454,21 @@ CREATE DEFINER=`root`@`localhost` PROCEDURE `getPartsByManufacturerId` (IN `p_ma
     FROM parts
     WHERE manufacturer_id = p_manufacturer_id
     ORDER BY id DESC;
+END$$
+
+DROP PROCEDURE IF EXISTS `getPartVariantsById`$$
+CREATE DEFINER=`root`@`localhost` PROCEDURE `getPartVariantsById` (IN `partVariantsId` INT(11))   BEGIN
+    SELECT 
+        id,
+        part_id,
+        name,
+        value,
+        additional_price,
+        created_at,
+        is_deleted,
+        deleted_at
+    FROM part_variants
+    WHERE id = partVariantsId;
 END$$
 
 DROP PROCEDURE IF EXISTS `getReviewsById`$$
@@ -488,14 +537,15 @@ END$$
 
 DROP PROCEDURE IF EXISTS `getUserByEmail`$$
 CREATE DEFINER=`root`@`localhost` PROCEDURE `getUserByEmail` (IN `p_email` VARCHAR(255))   BEGIN
-  SELECT id, email, username, first_name, last_name, phone, guid, role, is_active, last_login, created_at, updated_at, password, is_deleted, auth_secret, registration_token
+  SELECT id, email, username, first_name, last_name, phone, guid, role, is_active, is_subscribed, last_login, created_at, updated_at, password, is_deleted, auth_secret, registration_token
   FROM users 
   WHERE email = p_email;
 END$$
 
 DROP PROCEDURE IF EXISTS `getUserById`$$
 CREATE DEFINER=`root`@`localhost` PROCEDURE `getUserById` (IN `p_user_id` INT)   BEGIN
- SELECT id, email, username, first_name, last_name, phone, guid, role, is_active, last_login, created_at, updated_at, password, is_deleted, auth_secret, registration_token
+ SELECT id, email, username, first_name, last_name, phone, guid, role, is_active, is_subscribed, 
+ last_login, created_at, updated_at, password, is_deleted, auth_secret, registration_token
   FROM users 
   WHERE id = p_user_id;
 END$$
@@ -503,7 +553,7 @@ END$$
 DROP PROCEDURE IF EXISTS `getUsers`$$
 CREATE DEFINER=`root`@`localhost` PROCEDURE `getUsers` ()   BEGIN
     SELECT id, email, username, first_name, last_name, 
-           phone, guid, role,is_active, last_login, created_at, updated_at, is_deleted
+           phone, guid, role,is_active, last_login, created_at, updated_at, is_deleted, is_subscribed
     FROM users
     WHERE is_deleted = 0
     ORDER BY id;
@@ -542,6 +592,15 @@ CREATE DEFINER=`root`@`localhost` PROCEDURE `softDeleteParts` (IN `p_parts_id` I
         is_deleted = TRUE,
         deleted_at = NOW()
     WHERE id = p_parts_id;
+END$$
+
+DROP PROCEDURE IF EXISTS `softDeletePartVariants`$$
+CREATE DEFINER=`root`@`localhost` PROCEDURE `softDeletePartVariants` (IN `partVaraintsId` INT(11))   BEGIN
+    UPDATE part_variants
+    SET 
+        is_deleted = TRUE,
+        deleted_at = NOW()
+    WHERE id = partVaraintsId;
 END$$
 
 DROP PROCEDURE IF EXISTS `softDeleteReviews`$$
@@ -643,6 +702,19 @@ CREATE DEFINER=`root`@`localhost` PROCEDURE `updateParts` (IN `p_part_id` INT, I
     COMMIT;
 END$$
 
+DROP PROCEDURE IF EXISTS `updatePartVariants`$$
+CREATE DEFINER=`root`@`localhost` PROCEDURE `updatePartVariants` (IN `idIN` INT(11), IN `nameIN` VARCHAR(100), IN `value` TEXT, IN `additionalPriceIN` DOUBLE)   BEGIN
+    UPDATE part_variants
+    SET 
+    	id = idIN,
+        part_id = partIdIN,
+        name = nameIN,
+        `value` = valueIN,
+        additional_price = additionalPriceIN,
+        updated_at = NOW()
+    WHERE id = idIN;
+END$$
+
 DROP PROCEDURE IF EXISTS `updateReviews`$$
 CREATE DEFINER=`root`@`localhost` PROCEDURE `updateReviews` (IN `p_review_id` INT, IN `p_rating` INT, IN `p_comment` TEXT)   BEGIN
     UPDATE reviews
@@ -653,7 +725,7 @@ CREATE DEFINER=`root`@`localhost` PROCEDURE `updateReviews` (IN `p_review_id` IN
 END$$
 
 DROP PROCEDURE IF EXISTS `updateUser`$$
-CREATE DEFINER=`root`@`localhost` PROCEDURE `updateUser` (IN `p_user_id` INT, IN `p_email` VARCHAR(255), IN `p_username` VARCHAR(100), IN `p_first_name` VARCHAR(100), IN `p_last_name` VARCHAR(100), IN `p_phone` VARCHAR(50), IN `p_role` VARCHAR(50), IN `p_is_active` TINYINT, IN `p_password` VARCHAR(255), IN `p_registration_token` VARCHAR(255), IN `p_auth_secret` INT(255))   BEGIN
+CREATE DEFINER=`root`@`localhost` PROCEDURE `updateUser` (IN `p_user_id` INT, IN `p_email` VARCHAR(255), IN `p_username` VARCHAR(100), IN `p_first_name` VARCHAR(100), IN `p_last_name` VARCHAR(100), IN `p_phone` VARCHAR(50), IN `p_role` VARCHAR(50), IN `p_is_active` TINYINT, IN `p_password` VARCHAR(255), IN `p_registration_token` VARCHAR(255), IN `p_auth_secret` INT(255), IN `P_is_subscibed` INT)   BEGIN
   START TRANSACTION;
     UPDATE users
     SET email = p_email,
@@ -663,6 +735,7 @@ CREATE DEFINER=`root`@`localhost` PROCEDURE `updateUser` (IN `p_user_id` INT, IN
         phone = p_phone,
         role = COALESCE(p_role, role),
         is_active = p_is_active,
+        is_subscribed = p_is_subscibed,
         updated_at = NOW(),
         password = p_password,
         registration_token = p_registration_token,  
@@ -910,8 +983,9 @@ INSERT INTO `manufacturers` (`id`, `name`, `country`, `created_at`, `is_deleted`
 (11, 'Gates', 'USA', '2025-11-21 09:58:46', 0, NULL),
 (12, 'Hella', 'Németország', '2025-11-21 09:58:46', 0, NULL),
 (13, 'Castrol', 'Egyesült Királyság', '2025-11-21 09:58:46', 0, NULL),
-(14, 'Mobil', 'USA', '2025-11-21 09:58:46', 0, NULL),
-(15, 'Shell', 'Hollandia', '2025-11-21 09:58:46', 0, NULL);
+(14, 'Bosch GmbH', 'USA', '2025-11-21 09:58:46', 0, NULL),
+(15, 'Shell', 'Hollandia', '2025-11-21 09:58:46', 0, NULL),
+(16, 'createTeszt', 'Magyarország', '2025-12-16 13:46:43', 1, '2025-12-19 14:45:48');
 
 -- --------------------------------------------------------
 
@@ -974,17 +1048,17 @@ CREATE TABLE `orders` (
 --
 
 INSERT INTO `orders` (`id`, `user_id`, `status`, `created_at`, `is_deleted`, `deleted_at`) VALUES
-(1, 2, 'completed', '2025-12-09 10:32:51', 0, NULL),
+(1, 2, 'completed', '2025-12-09 10:32:51', 1, '2025-12-15 22:12:16'),
 (2, 3, 'completed', '2025-12-09 10:32:51', 0, NULL),
 (3, 4, 'shipped', '2025-12-09 10:32:51', 0, NULL),
 (4, 5, 'processing', '2025-12-09 10:32:51', 0, NULL),
-(5, 6, 'pending', '2025-12-09 10:32:51', 0, NULL),
+(5, 6, 'pending', '2025-12-09 10:32:51', 1, '2025-12-15 22:17:54'),
 (6, 7, 'completed', '2025-12-09 10:32:51', 0, NULL),
 (7, 8, 'cancelled', '2025-12-09 10:32:51', 0, NULL),
 (8, 9, 'completed', '2025-12-09 10:32:51', 0, NULL),
 (9, 10, 'shipped', '2025-12-09 10:32:51', 0, NULL),
-(10, 11, 'processing', '2025-12-09 10:32:51', 0, NULL),
-(11, 12, 'pending', '2025-12-09 10:32:51', 0, NULL),
+(10, 11, 'processing', '2025-12-09 10:32:51', 1, '2025-12-15 20:50:24'),
+(11, 12, 'pending', '2025-12-09 10:32:51', 1, '2025-12-15 22:33:42'),
 (12, 13, 'completed', '2025-12-09 10:32:51', 0, NULL),
 (13, 14, 'shipped', '2025-12-09 10:32:51', 0, NULL),
 (14, 15, 'completed', '2025-12-09 10:32:51', 0, NULL),
@@ -1088,7 +1162,8 @@ INSERT INTO `parts` (`id`, `manufacturer_id`, `sku`, `name`, `category`, `price`
 (14, 14, 'MOBIL-OL003', 'Motorolaj 10W-40 5L', 'Kenőanyagok', '9200.00', 90, 'available', 1, '2025-11-21 09:58:46', '2025-11-21 09:58:46', NULL, 0),
 (15, 15, 'SHELL-OL004', 'Motorolaj 0W-20 4L', 'Kenőanyagok', '11500.00', 75, 'available', 1, '2025-11-21 09:58:46', '2025-11-21 09:58:46', NULL, 0),
 (16, 2, 'tesztcreate', 'tesztcreate', 'tesztcreate', '10000.00', 1, 'elérhető', 1, '2025-12-06 13:49:41', '2025-12-06 13:49:41', NULL, 0),
-(17, 1, 'BRAKE-001', 'Fékbetét', 'Teszt', '15991.00', 10, 'elérhető', 0, '2025-12-06 16:46:51', '2025-12-08 13:18:29', '2025-12-08 13:18:29', 1);
+(17, 1, 'BRAKE-001', 'Fékbetét', 'Teszt', '15991.00', 10, 'elérhető', 0, '2025-12-06 16:46:51', '2025-12-08 13:18:29', '2025-12-08 13:18:29', 1),
+(18, 1, 'BRAKE-PAD-001', 'Fékbetét szett', 'Fékrendszer', '15991.00', 25, 'available', 1, '2025-12-15 11:09:49', '2025-12-15 11:09:49', NULL, 0);
 
 -- --------------------------------------------------------
 
@@ -1124,6 +1199,27 @@ CREATE TABLE `part_variants` (
   `is_deleted` tinyint(1) DEFAULT '0',
   `deleted_at` datetime DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+--
+-- A tábla adatainak kiíratása `part_variants`
+--
+
+INSERT INTO `part_variants` (`id`, `part_id`, `name`, `value`, `additional_price`, `created_at`, `is_deleted`, `deleted_at`) VALUES
+(1, 1, 'Anyag', 'Kerámia', '5000.00', '2025-12-16 10:44:53', 0, NULL),
+(2, 1, 'Anyag', 'Fém', '0.00', '2025-12-16 10:44:53', 0, NULL),
+(3, 1, 'Anyag', 'Sport', '8000.00', '2025-12-16 10:44:53', 0, NULL),
+(4, 3, 'Méret', '205/55 R16', '0.00', '2025-12-16 10:44:53', 0, NULL),
+(5, 3, 'Méret', '225/45 R17', '5000.00', '2025-12-16 10:44:53', 0, NULL),
+(6, 3, 'Méret', '235/40 R18', '12000.00', '2025-12-16 10:44:53', 0, NULL),
+(7, 6, 'Garancia', '1 év', '0.00', '2025-12-16 10:44:53', 0, NULL),
+(8, 6, 'Garancia', '2 év', '500.00', '2025-12-16 10:44:53', 0, NULL),
+(9, 6, 'Garancia', '3 év', '1200.00', '2025-12-16 10:44:53', 0, NULL),
+(10, 11, 'Oldal', 'Bal', '0.00', '2025-12-16 10:44:53', 0, NULL),
+(11, 11, 'Oldal', 'Jobb', '0.00', '2025-12-16 10:44:53', 0, NULL),
+(12, 11, 'Színhőmérséklet', '4300K (Meleg fehér)', '0.00', '2025-12-16 10:44:53', 0, NULL),
+(13, 11, 'Színhőmérséklet', '6000K (Hideg fehér)', '3000.00', '2025-12-16 10:44:53', 0, NULL),
+(14, 5, 'Kiszerelés', 'Darab (1 db)', '0.00', '2025-12-16 10:44:53', 0, NULL),
+(15, 5, 'Kiszerelés', 'Pár (2 db)', '28500.00', '2025-12-16 10:44:53', 0, NULL);
 
 -- --------------------------------------------------------
 
@@ -1848,7 +1944,7 @@ ALTER TABLE `login_logs`
 -- AUTO_INCREMENT a táblához `manufacturers`
 --
 ALTER TABLE `manufacturers`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=16;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=17;
 
 --
 -- AUTO_INCREMENT a táblához `motors`
@@ -1878,7 +1974,7 @@ ALTER TABLE `order_logs`
 -- AUTO_INCREMENT a táblához `parts`
 --
 ALTER TABLE `parts`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=18;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=19;
 
 --
 -- AUTO_INCREMENT a táblához `part_images`
@@ -1890,7 +1986,7 @@ ALTER TABLE `part_images`
 -- AUTO_INCREMENT a táblához `part_variants`
 --
 ALTER TABLE `part_variants`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=16;
 
 --
 -- AUTO_INCREMENT a táblához `password_resets`
