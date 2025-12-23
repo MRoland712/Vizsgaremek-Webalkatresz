@@ -153,6 +153,16 @@ public class Manufacturers implements Serializable {
         this.isDeleted = isDeleted;
         this.deletedAt = deletedAt;
     }
+    
+    //updateManufacturers
+
+    public Manufacturers(Integer id, String name, String country, Boolean isDeleted) {
+        this.id = id;
+        this.name = name;
+        this.country = country;
+        this.isDeleted = isDeleted;
+    }
+    
 
     @XmlTransient
     public Collection<Parts> getPartsCollection() {
@@ -280,6 +290,68 @@ public class Manufacturers implements Serializable {
             ex.printStackTrace();
             return null;
         } finally {
+            em.close();
+        }
+    }
+    
+    public static Boolean softDeleteManufacturers(Integer id) {
+        EntityManager em = emf.createEntityManager();
+
+        try {
+            em.getTransaction().begin();
+
+            StoredProcedureQuery spq = em.createStoredProcedureQuery("softDeleteManufacturers");
+            spq.registerStoredProcedureParameter("p_manufacturers_id", Integer.class, ParameterMode.IN);
+            spq.setParameter("p_manufacturers_id", id);
+
+            spq.execute();
+            em.getTransaction().commit();
+
+            return true;
+        } catch (Exception e) {
+            if (em.getTransaction().isActive()) {
+                em.getTransaction().rollback(); // ha hiba van, rollback
+            }
+            return false;
+        } finally {
+            em.clear();
+            em.close();
+        }
+    }
+    
+    
+    //Hiba
+    public static Boolean updateManufacturers(Manufacturers updatedManufacturers) {
+        EntityManager em = emf.createEntityManager();
+
+        try {
+            em.getTransaction().begin();
+            StoredProcedureQuery spq = em.createStoredProcedureQuery("updateManufacturers");
+            
+           
+            spq.registerStoredProcedureParameter("p_manufacturers_id", Integer.class, ParameterMode.IN);
+            spq.registerStoredProcedureParameter("p_name", String.class, ParameterMode.IN);
+            spq.registerStoredProcedureParameter("p_country", String.class, ParameterMode.IN);
+
+            
+            
+            spq.setParameter("p_manufacturers_id", updatedManufacturers.getId());
+            spq.setParameter("p_name", updatedManufacturers.getName());
+            spq.setParameter("p_country", updatedManufacturers.getCountry());
+            spq.execute();
+
+            em.getTransaction().commit();
+
+            return true;
+
+        } catch (Exception ex) {
+            if (em.getTransaction().isActive()) {
+                em.getTransaction().rollback(); // Ha hiba van, rollback
+            }
+            ex.printStackTrace();
+            return false;
+        } finally {
+            em.clear();
             em.close();
         }
     }

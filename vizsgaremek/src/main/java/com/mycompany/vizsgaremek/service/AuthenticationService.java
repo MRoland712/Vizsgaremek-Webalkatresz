@@ -524,9 +524,9 @@ public class AuthenticationService {
         public boolean isValidName(String name) {
             return name.length() <= 50;
         }
-
-        public boolean isValidCompany(String category) {
-            return category.length() <= 50;
+        
+        public boolean isValidCountry(String name) {
+            return name.length() <= 50;
         }
         
         public boolean isManufacturersDeleted(Boolean isDeleted) {

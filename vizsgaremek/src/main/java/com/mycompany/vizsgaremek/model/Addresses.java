@@ -567,7 +567,7 @@ public class Addresses implements Serializable {
             spq.setParameter("p_zip_code", updatedAddress.getZipCode());
             spq.setParameter("p_street", updatedAddress.getStreet());
             spq.setParameter("p_is_default", Boolean.TRUE.equals(updatedAddress.getIsDefault()) ? 1 : 0);
-            spq.setParameter("p_is_deleted", Boolean.TRUE.equals(updatedAddress.getIsDefault()) ? 1 : 0);
+            spq.setParameter("p_is_deleted", Boolean.TRUE.equals(updatedAddress.getIsDeleted()) ? 1 : 0);
 
             spq.execute();
 

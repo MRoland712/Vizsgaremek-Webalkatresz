@@ -70,9 +70,9 @@ public class ManufacturersController {
 
         Manufacturers createdManufacturers = new Manufacturers(
                 bodyObject.has("name") ? bodyObject.getString("name") : null,
-                bodyObject.has("country") ? bodyObject.getString("country"): null
+                bodyObject.has("country") ? bodyObject.getString("country") : null
         );
-        
+
         JSONObject toReturn = layer.createManufacturers(createdManufacturers);
 
         return Response.status(Integer.parseInt(toReturn.get("statusCode").toString()))
@@ -81,7 +81,7 @@ public class ManufacturersController {
                 .build();
 
     }
-    
+
     @GET
     @Path("getAllManufacturers")
     @Consumes(MediaType.APPLICATION_JSON)
@@ -94,7 +94,7 @@ public class ManufacturersController {
                 .type(MediaType.APPLICATION_JSON)
                 .build();
     }
-    
+
     @GET
     @Path("getManufacturersById")
     @Produces(MediaType.APPLICATION_JSON)
@@ -103,6 +103,48 @@ public class ManufacturersController {
         JSONObject toReturn = layer.getManufacturersById(id);
 
         return Response.status(Integer.parseInt(toReturn.get("statusCode").toString()))
+                .entity(toReturn.toString())
+                .type(MediaType.APPLICATION_JSON)
+                .build();
+    }
+
+    @PUT
+    @Path("softDeleteManufacturers")
+    @Consumes(MediaType.APPLICATION_JSON)
+    public Response softDeleteManufacturers(@QueryParam("id") Integer manufacturersId) {
+
+        JSONObject toReturn = layer.softDeleteManufacturers(manufacturersId);
+
+        return Response.status(Integer.parseInt(toReturn.get("statusCode").toString()))
+                .entity(toReturn.toString())
+                .type(MediaType.APPLICATION_JSON)
+                .build();
+    }
+
+    
+    //Hiba
+    @PUT
+    @Path("updateManufacturers")
+    @Consumes(MediaType.APPLICATION_JSON)
+    public Response updateManufacturers(@QueryParam("id") Integer manufacturersId, String body) {
+
+        JSONObject bodyObject = new JSONObject(body);
+
+        Manufacturers updatedManufacturers = new Manufacturers();
+        updatedManufacturers.setId(manufacturersId);  // QueryParam-ból ID
+
+        if (bodyObject.has("name")) {
+            updatedManufacturers.setName(bodyObject.getString("name"));
+        }
+
+        if (bodyObject.has("country")) {
+            updatedManufacturers.setCountry(bodyObject.getString("country"));
+        }
+
+        JSONObject toReturn = layer.updateManufacturers(updatedManufacturers);
+
+        int statusCode = toReturn.getInt("statusCode");
+        return Response.status(statusCode)
                 .entity(toReturn.toString())
                 .type(MediaType.APPLICATION_JSON)
                 .build();
