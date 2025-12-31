@@ -1,3 +1,5 @@
+// src/app/registration/registration.component.ts
+
 import { Component, inject } from '@angular/core';
 import {
   AbstractControl,
@@ -7,7 +9,7 @@ import {
   ValidationErrors,
   Validators,
 } from '@angular/forms';
-import { Router, RouterLink } from '@angular/router';
+import { Router } from '@angular/router'; // ← ÚJ IMPORT
 import {
   mustContainNumbers,
   mustContainSpecialCharacters,
@@ -19,13 +21,13 @@ import {
 
 @Component({
   selector: 'app-reg',
-  imports: [ReactiveFormsModule, RouterLink],
+  imports: [ReactiveFormsModule],
   templateUrl: './registration.component.html',
   styleUrls: ['./registration.component.css'],
 })
 export class RegistrationComponent {
   registerService = inject(RegisterService);
-  private router = inject(Router);
+  private router = inject(Router); // ← ÚJ INJECT
 
   signupForm = new FormGroup({
     firstname: new FormControl('', {
@@ -39,14 +41,14 @@ export class RegistrationComponent {
         Validators.required,
         Validators.minLength(3),
         Validators.maxLength(20),
-        Validators.pattern(/^[a-zA-Z0-9_-]+$/), // csak betűk, számok, aláhúzás és kötőjel
+        Validators.pattern(/^[a-zA-Z0-9_-]+$/),
       ],
     }),
     email: new FormControl('', {
       validators: [Validators.email, Validators.required, emailMustHaveDomainValidator],
     }),
     phone: new FormControl('', {
-      validators: [Validators.required, Validators.maxLength(17), Validators.minLength(7)],
+      validators: [Validators.required, Validators.maxLength(17)],
     }),
     password: new FormControl('', {
       validators: [
@@ -96,17 +98,17 @@ export class RegistrationComponent {
 
   get firstnameIsInvalid() {
     return (
-      this.signupForm.controls.rePassword.touched &&
-      this.signupForm.controls.rePassword.dirty &&
+      this.signupForm.controls.firstname.touched &&
+      this.signupForm.controls.firstname.dirty &&
       this.signupForm.controls.firstname.invalid
     );
   }
 
   get lastnameIsInvalid() {
     return (
-      this.signupForm.controls.rePassword.touched &&
-      this.signupForm.controls.rePassword.dirty &&
-      this.signupForm.controls.firstname.invalid
+      this.signupForm.controls.lastname.touched &&
+      this.signupForm.controls.lastname.dirty &&
+      this.signupForm.controls.lastname.invalid
     );
   }
 
@@ -130,16 +132,20 @@ export class RegistrationComponent {
       repassword: this.signupForm.value.rePassword!,
       phone: this.signupForm.value.phone!,
     };
+
     this.registerService.register(finalRegisterData).subscribe({
       next: (res) => {
-        console.log(res);
+        console.log('Sikeres regisztráció:', res);
         localStorage.setItem('jwt', res.result.JWTToken!);
-        // Sikeres regisztráció után navigálás a főoldalra
-        this.router.navigate(['/']);
+
+        // ==========================================
+        // Sikeres regisztráció után LOGIN-ra irányít
+        // ==========================================
+        this.router.navigate(['/login']);
       },
       error: (err) => {
         console.error('Regisztrációs hiba:', err);
-        // Itt kezelheted a hibákat (pl. toast üzenet)
+        // TODO: Hibakezelés
       },
     });
   }

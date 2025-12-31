@@ -1,17 +1,15 @@
+// src/app/login/login.component.ts
+
 import { Component, DestroyRef, inject, OnInit } from '@angular/core';
-import {
-  FormBuilder,
-  FormControl,
-  FormGroup,
-  ReactiveFormsModule,
-  Validators,
-} from '@angular/forms';
+import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { debounceTime } from 'rxjs';
 import { LoginService } from './login.service';
+import { AuthService } from '../services/auth.service';
 
 let initialEmailValue = '';
 let initialPasswordValue = '';
+
 const savedForm = window.localStorage.getItem('saved-login-form');
 if (savedForm) {
   const loadedForm = JSON.parse(savedForm);
@@ -28,9 +26,9 @@ if (savedForm) {
 export class LoginComponent implements OnInit {
   private destroyRef = inject(DestroyRef);
   private router = inject(Router);
-
   fb = inject(FormBuilder);
   loginService = inject(LoginService);
+  authService = inject(AuthService); // ← AuthService inject
 
   loginForm = this.fb.nonNullable.group({
     email: [initialEmailValue, [Validators.required, Validators.email]],
@@ -43,18 +41,26 @@ export class LoginComponent implements OnInit {
       password: this.loginForm.value.password!,
     };
 
-    console.log(finalLoginData);
+    console.log('Login adatok:', finalLoginData);
 
     this.loginService.login(finalLoginData).subscribe({
       next: (res) => {
-        console.log(res);
+        console.log('Sikeres bejelentkezés:', res);
+
+        // JWT token mentése
         localStorage.setItem('jwt', res.result.JWTToken!);
-        // Sikeres bejelentkezés után navigálás a főoldalra
+
+        // ==========================================
+        // AuthService-nek szólunk hogy bejelentkezett
+        // ==========================================
+        this.authService.setLoggedIn();
+
+        // Sikeres bejelentkezés után navigálás a FŐOLDALRA
         this.router.navigate(['/']);
       },
       error: (err) => {
         console.error('Bejelentkezési hiba:', err);
-        // Itt kezelheted a hibákat (pl. toast üzenet)
+        // TODO: Hibakezelés (pl. toast üzenet)
       },
     });
   }
@@ -68,6 +74,7 @@ export class LoginComponent implements OnInit {
         );
       },
     });
+
     this.destroyRef.onDestroy(() => subscription.unsubscribe());
   }
 

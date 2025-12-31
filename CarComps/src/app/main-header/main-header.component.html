@@ -1,4 +1,4 @@
-<!-- Navbar -->
+<!-- Main Header - Teljes komponens -->
 <nav class="main-navbar">
   <!-- Container wrapper -->
   <div class="nav-container">
@@ -11,11 +11,7 @@
 
     <!-- Search bar középen -->
     <div class="nav-search">
-      <form
-        class="search-form"
-        [class.has-results]="showDropdown() && searchResults().length > 0"
-        (ngSubmit)="onSearchSubmit()"
-      >
+      <form class="search-form" [class.has-results]="showDropdown()" (ngSubmit)="onSearchSubmit()">
         <i class="fa-solid fa-magnifying-glass search-icon"></i>
         <input
           type="search"
@@ -64,32 +60,137 @@
     <!-- Ikonok jobb oldalon -->
     <ul class="nav-icons">
       <li class="nav-item">
-        <a class="nav-link" routerLink="/" title="Raktár">
+        <a class="nav-link" routerLink="/warehouse" title="Raktár">
           <i class="fa-solid fa-warehouse"></i>
         </a>
       </li>
-      <li class="nav-item">
-        <a class="nav-link" routerLink="/" title="Kosár">
+
+      <!-- ==========================================
+           CART HOVER MENU
+           ========================================== -->
+      <li class="nav-item cart-item">
+        <a class="nav-link" routerLink="/cart" title="Kosár">
           <i class="fa-solid fa-cart-shopping"></i>
+          <!-- Badge - termékek száma -->
+          @if (isLoggedIn() && cartItemCount() > 0) {
+          <span class="cart-badge">{{ cartItemCount() }}</span>
+          }
         </a>
+
+        <!-- CART HOVER DROPDOWN -->
+        <div class="cart-dropdown">
+          <!-- 1. NINCS BEJELENTKEZVE -->
+          @if (!isLoggedIn()) {
+          <div class="cart-empty-state">
+            <i class="fa-solid fa-user-lock"></i>
+            <p class="cart-message">Jelentkezz be a kosár használatához</p>
+            <a routerLink="/login" class="cart-login-btn">Bejelentkezés</a>
+          </div>
+          }
+
+          <!-- 2. ÜRES KOSÁR -->
+          @else if (cartItems().length === 0) {
+          <div class="cart-empty-state">
+            <i class="fa-solid fa-cart-shopping"></i>
+            <p class="cart-message">A kosár üres</p>
+            <a routerLink="/" class="cart-browse-btn">Böngészés</a>
+          </div>
+          }
+
+          <!-- 3. VAN TERMÉK A KOSÁRBAN -->
+          @else {
+          <div class="cart-content">
+            <!-- Header -->
+            <div class="cart-header">
+              <h3>Kosár ({{ cartItemCount() }} termék)</h3>
+            </div>
+
+            <!-- Termékek lista -->
+            <div class="cart-items">
+              @for (item of cartItems(); track item.id) {
+              <div class="cart-item-row">
+                <!-- Termék kép -->
+                <div class="cart-item-image">
+                  <img [src]="item.imageUrl || '/assets/placeholder.png'" [alt]="item.name" />
+                </div>
+
+                <!-- Termék info -->
+                <div class="cart-item-info">
+                  <div class="cart-item-name">{{ item.name }}</div>
+                  <div class="cart-item-quantity">{{ item.quantity }} db</div>
+                </div>
+
+                <!-- Ár -->
+                <div class="cart-item-price">
+                  {{ item.price * item.quantity | number : '1.0-0' }} Ft
+                </div>
+
+                <!-- Törlés gomb -->
+                <button
+                  class="cart-item-remove"
+                  (click)="removeFromCart(item.id)"
+                  title="Eltávolítás"
+                >
+                  <i class="fa-solid fa-xmark"></i>
+                </button>
+              </div>
+              }
+            </div>
+
+            <!-- Footer - Összesen + Gombok -->
+            <div class="cart-footer">
+              <div class="cart-total">
+                <span>Összesen:</span>
+                <span class="cart-total-price">{{ cartTotal() | number : '1.0-0' }} Ft</span>
+              </div>
+
+              <div class="cart-actions">
+                <a routerLink="/cart" class="cart-view-btn">Kosár megtekintése</a>
+                <a routerLink="/checkout" class="cart-checkout-btn">Pénztár</a>
+              </div>
+            </div>
+          </div>
+          }
+        </div>
       </li>
+      <!-- CART HOVER MENU VÉGE -->
+
+      <!-- PROFIL IKON -->
       <li class="nav-item">
-        <a class="nav-link" routerLink="/login" title="Bejelentkezés">
+        @if (isLoggedIn()) {
+        <!-- BE van jelentkezve → Profil -->
+        <a class="nav-link" routerLink="/profile" title="Profil">
           <i class="fa-solid fa-user"></i>
         </a>
+        } @else {
+        <!-- NINCS bejelentkezve → REGISZTRÁCIÓ -->
+        <a class="nav-link" routerLink="/registration" title="Regisztráció">
+          <i class="fa-solid fa-user"></i>
+        </a>
+        }
       </li>
     </ul>
   </div>
 
-  <!-- Vehicle Selector -->
+  <!-- ==========================================
+       VEHICLE SELECTOR - Alsó rész
+       ========================================== -->
   <div class="vehicle-selector-container">
     <div class="vehicle-selector-body">
       <ul>
-        <li><i class="fa-solid fa-car-side"></i>Személygépjármű</li>
-        <li><i class="fa-solid fa-motorcycle"></i>Motorkerékpár</li>
-        <li><i class="fa-solid fa-truck"></i>Tehergépjármű</li>
+        <li>
+          <i class="fa-solid fa-car"></i>
+          <span>Személygépjármű</span>
+        </li>
+        <li>
+          <i class="fa-solid fa-motorcycle"></i>
+          <span>Motorkerékpár</span>
+        </li>
+        <li>
+          <i class="fa-solid fa-truck"></i>
+          <span>Tehergépjármű</span>
+        </li>
       </ul>
     </div>
   </div>
 </nav>
-<!-- Navbar -->

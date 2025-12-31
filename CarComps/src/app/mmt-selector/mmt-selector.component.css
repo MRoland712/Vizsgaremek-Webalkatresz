@@ -1,5 +1,5 @@
 .mmt-dropdown-wrapper {
-  border: 2px solid none;
+  border: 2px solid transparent; /* ← 'none' helyett 'transparent' */
   border-radius: 10px;
   padding: 16px;
   display: inline-block;
@@ -10,22 +10,26 @@
 }
 
 .mmt-dropdowns {
-  display: flex; /* Flexbox - egy sorba teszi */
-  gap: 12px; /* Térköz a dropdown-ok között */
-  align-items: flex-end; /* Dropdown-ok alulra igazítása */
+  display: flex;
+  gap: 12px;
+  align-items: flex-end;
 }
 
 .brand-dropdown,
 .model-dropdown,
 .year-dropdown {
   display: flex;
-  flex-direction: column; /* Label felül, select alul */
+  flex-direction: column;
   position: relative;
 }
 
+/* ==========================================
+   DROPDOWN SELECT - Javított igazítás
+   ========================================== */
+
 .dropdown-select {
   text-align: center;
-  padding: 10px 32px 10px 12px; /* Padding jobb oldalon több (chevron icon miatt) */
+  padding: 10px 40px;
   border: 2px solid #2b2b2b;
   border-radius: 8px;
   background-color: #fff;
@@ -33,12 +37,13 @@
   font-size: 16px;
   font-weight: 500;
   cursor: pointer;
-  appearance: none; /* Natív dropdown nyíl elrejtése */
+  appearance: none;
   -webkit-appearance: none;
   -moz-appearance: none;
   outline: none;
   transition: all 0.3s ease;
-  min-width: 250px; /* Minimum szélesség */
+  width: 280px; /* ← FIX szélesség, nem min-width! */
+  max-width: 280px; /* ← Maximum is fix */
 }
 
 .dropdown-select:hover {
@@ -57,16 +62,17 @@
 }
 
 /* ==========================================
-   CHEVRON ICON
+   CHEVRON ICON - VERTIKÁLIS KÖZÉPRE
    ========================================== */
 
 .dropdown-icon {
   position: absolute;
-  right: 12px;
-  bottom: 12px; /* Select belső magasságától függ */
+  right: 16px; /* ← Kicsit közelebb a szélhez */
+  top: 50%; /* ← VERTIKÁLIS KÖZÉPRE */
+  transform: translateY(-50%); /* ← Pontos középre igazítás */
   color: #ff6600;
   font-size: 14px;
-  pointer-events: none; /* Ne legyen kattintható */
+  pointer-events: none;
 }
 
 /* ==========================================
@@ -82,15 +88,19 @@
 .dropdown-select option:disabled {
   color: #999;
 }
+
+/* ==========================================
+   TOOLTIP
+   ========================================== */
+
 .tooltip {
   position: relative;
   display: inline-block;
   cursor: pointer;
 }
 
-/* Tooltip text */
 .tooltip-text {
-  visibility: hidden; /* Hidden by default */
+  visibility: hidden;
   width: 130px;
   background-color: black;
   color: #ffffff;
@@ -98,10 +108,9 @@
   padding: 5px 0;
   border-radius: 6px;
   position: absolute;
-  z-index: 1; /* Ensure tooltip is displayed above content */
+  z-index: 1;
 }
 
-/* Show the tooltip text on hover */
 .tooltip:hover .tooltip-text {
   visibility: visible;
 }
@@ -112,17 +121,17 @@
 
 @media (max-width: 768px) {
   .mmt-dropdowns {
-    flex-direction: column; /* Függőleges elrendezés mobilon */
+    flex-direction: column;
     gap: 16px;
   }
 
   .dropdown-select {
-    min-width: 100%;
-    width: 100%;
+    width: 100%; /* ← Mobil: teljes szélesség */
+    max-width: 100%;
   }
 
   .mmt-dropdown-wrapper {
-    display: block; /* Teljes szélesség mobilon */
+    display: block;
     width: 100%;
   }
 }
@@ -138,11 +147,12 @@
 
   .dropdown-select {
     font-size: 14px;
-    padding: 8px 28px 8px 10px;
+    padding: 8px 32px; /* ← EGYFORMA padding mobilon is */
   }
 
   .dropdown-icon {
-    bottom: 10px;
-    right: 10px;
+    right: 12px;
+    top: 50%; /* ← Középre mobilon is */
+    transform: translateY(-50%);
   }
 }

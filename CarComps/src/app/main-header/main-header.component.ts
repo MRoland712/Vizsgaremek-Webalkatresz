@@ -1,9 +1,21 @@
+// src/app/main-header/main-header.component.ts
+
 import { Component, DestroyRef, inject, signal } from '@angular/core';
 import { FormControl, ReactiveFormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
 import { RouterLink } from '@angular/router';
 import { debounceTime, distinctUntilChanged } from 'rxjs';
-import { SearchResult } from '../main-header/search.service';
+import { SearchResult } from './search.service';
+import { AuthService } from '../services/auth.service';
+
+// Cart item interface
+export interface CartItem {
+  id: number;
+  name: string;
+  price: number;
+  quantity: number;
+  imageUrl?: string;
+}
 
 @Component({
   selector: 'app-main-header',
@@ -13,19 +25,34 @@ import { SearchResult } from '../main-header/search.service';
 })
 export class MainHeaderComponent {
   private destroyRef = inject(DestroyRef);
+  authService = inject(AuthService); // ← AuthService inject
 
   imgSrc = '/assets/CarComps_Logo_BigassC.png';
 
   // Form control a kereséshez
   searchControl = new FormControl('');
 
-  // State management
+  // Search state
   searchResults = signal<SearchResult[]>([]);
   isSearching = signal(false);
   showDropdown = signal(false);
 
+  // ==========================================
+  // CART STATE
+  // ==========================================
+
+  // Bejelentkezve van-e (AuthService-ből)
+  isLoggedIn = this.authService.isLoggedIn;
+
+  // Kosár termékei
+  cartItems = signal<CartItem[]>([]);
+
+  // Számított értékek
+  cartItemCount = signal(0);
+  cartTotal = signal(0);
+
   constructor() {
-    // Debounce a kereséshez - várunk 300ms-et mielőtt API hívást indítunk
+    // Search debounce
     const subscription = this.searchControl.valueChanges
       .pipe(debounceTime(300), distinctUntilChanged())
       .subscribe({
@@ -40,17 +67,61 @@ export class MainHeaderComponent {
       });
 
     this.destroyRef.onDestroy(() => subscription.unsubscribe());
+
+    // Kosár adatok betöltése
+    this.loadCartData();
   }
 
-  // Ez a metódus hívja majd az API-t
+  // ==========================================
+  // CART METHODS
+  // ==========================================
+
+  loadCartData() {
+    // TODO: Cart service-ből töltsd be a kosár tartalmát
+    // Ha BE van jelentkezve, töltsük be a cart-ot
+    if (this.isLoggedIn()) {
+      // TODO: Példa API hívás
+      // this.cartService.getCart().subscribe(items => {
+      //   this.cartItems.set(items);
+      //   this.updateCartCalculations();
+      // });
+
+      // EGYELŐRE ÜRES - nincs mock adat
+      this.cartItems.set([]);
+      this.updateCartCalculations();
+    }
+  }
+
+  updateCartCalculations() {
+    const items = this.cartItems();
+
+    // Termékek száma
+    const totalCount = items.reduce((sum, item) => sum + item.quantity, 0);
+    this.cartItemCount.set(totalCount);
+
+    // Teljes ár
+    const total = items.reduce((sum, item) => sum + item.price * item.quantity, 0);
+    this.cartTotal.set(total);
+  }
+
+  removeFromCart(itemId: number) {
+    const updatedItems = this.cartItems().filter((item) => item.id !== itemId);
+    this.cartItems.set(updatedItems);
+    this.updateCartCalculations();
+
+    // TODO: Cart service API hívás
+    console.log('Termék eltávolítva:', itemId);
+  }
+
+  // ==========================================
+  // SEARCH METHODS
+  // ==========================================
+
   performSearch(searchTerm: string) {
     this.isSearching.set(true);
     this.showDropdown.set(true);
 
-    // TODO: Itt fog majd jönni az API hívás
-    // Például: this.searchService.search(searchTerm).subscribe(...)
-
-    // Jelenleg mock adatokkal dolgozunk (töröld majd az API integrálásakor)
+    // TODO: API hívás
     setTimeout(() => {
       const mockResults: SearchResult[] = [
         { id: 1, name: 'Fékbetét Bosch', category: 'Fékrendszer', price: 8990 },
@@ -64,35 +135,34 @@ export class MainHeaderComponent {
 
       this.searchResults.set(mockResults);
       this.isSearching.set(false);
-    }, 500); // Szimuláljuk a network delay-t
+    }, 500);
   }
 
-  // Eredmény kiválasztása
   selectResult(result: SearchResult) {
     console.log('Kiválasztott termék:', result);
-    // TODO: Navigálás a termék oldalára
-    // Például: this.router.navigate(['/product', result.id]);
-
     this.searchControl.setValue('');
     this.showDropdown.set(false);
   }
 
-  // Dropdown bezárása
   closeDropdown() {
     setTimeout(() => {
       this.showDropdown.set(false);
-    }, 200); // Kis késleltetés, hogy a click event lefusson
+    }, 200);
   }
 
-  // Form submit kezelése
   onSearchSubmit() {
     const searchTerm = this.searchControl.value?.trim();
     if (searchTerm) {
       console.log('Keresés elküldve:', searchTerm);
-      // TODO: Navigálás a keresési eredmények oldalára
-      // Például: this.router.navigate(['/search'], { queryParams: { q: searchTerm } });
-
       this.showDropdown.set(false);
     }
+  }
+
+  // ==========================================
+  // LOGOUT
+  // ==========================================
+
+  logout() {
+    this.authService.logout();
   }
 }
