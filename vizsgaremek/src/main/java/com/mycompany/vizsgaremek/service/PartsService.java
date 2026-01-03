@@ -280,5 +280,32 @@ public class PartsService {
         toReturn.put("Message", "Deleted Parts Succesfully");
         return toReturn;
     }
+    
+    public JSONObject getPartsByCategory() {
+    JSONObject toReturn = new JSONObject();
+    JSONArray errors = new JSONArray();
+    
+    // MODEL HÍVÁS (ArrayList<String>!)
+    ArrayList<String> modelResult = Parts.getPartsByCategory();
+    
+    // VALIDÁCIÓ
+    if (modelResult == null || modelResult.isEmpty()) {
+        errors.put("NoCategoriesFound");
+        return errorAuth.createErrorResponse(errors, 404);
+    }
+    
+    // ArrayList<String> → JSONArray konverzió
+    JSONArray categoryArray = new JSONArray();
+    for (String category : modelResult) {
+        categoryArray.put(category);
+    }
+    
+    toReturn.put("success", true);
+    toReturn.put("categories", categoryArray);
+    toReturn.put("count", modelResult.size());
+    toReturn.put("statusCode", 200);
+    
+    return toReturn;
+}
 
 }

@@ -8,6 +8,7 @@ import com.mycompany.vizsgaremek.model.Users;
 import com.mycompany.vizsgaremek.config.Encrypt;
 import com.mycompany.vizsgaremek.model.Addresses;
 import com.mycompany.vizsgaremek.model.Manufacturers;
+import com.mycompany.vizsgaremek.model.PartVariants;
 import com.mycompany.vizsgaremek.model.Parts;
 import java.util.ArrayList;
 import java.util.List;
@@ -535,6 +536,54 @@ public class AuthenticationService {
 
 
     } //Manufacturers Auth Class closer
+    
+    public static class partvariantsAuth {
+
+        public boolean isDataMissing(String data) {
+            return (data == null || data.trim().isEmpty());
+        }
+        public boolean isDataMissing(PartVariants data) {
+            return (data == null);
+        }
+
+        public boolean isDataMissing(Integer data) {
+            return (data == null);
+        }
+
+        public boolean isDataMissing(ArrayList<PartVariants> data) {
+            return (data == null || data.isEmpty());
+        }
+        
+         public boolean isValidPartsId(Parts parts) {
+            Integer partsId = parts.getId();
+            return partsId > 0 && partsId.toString().length() <= 11;
+        }
+        public boolean isValidPartsId(Integer partsId) {
+            return partsId > 0 && partsId.toString().length() <= 11;
+        }
+
+        public boolean isDataMissing(Boolean data) {
+            return (data == null);
+        }
+
+        public boolean isDataMissing(List<Object[]> data) {
+            return (data == null || data.isEmpty());
+        }
+
+        public boolean isValidId(Integer id) {
+            return id > 0 && id.toString().length() <= 11;
+        }
+
+        public boolean isValidName(String name) {
+            return name.length() <= 50;
+        }
+        
+        public boolean isValidValue(String name) {
+            return name.length() <= 50;
+        }
+       
+
+    } //PartsVariants Auth Class closer
   
     
 }//Auth Service Class closer

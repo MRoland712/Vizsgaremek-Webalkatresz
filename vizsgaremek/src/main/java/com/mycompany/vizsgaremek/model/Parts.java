@@ -118,7 +118,7 @@ public class Parts implements Serializable {
     private Collection<WarehouseStock> warehouseStockCollection;
     @OneToMany(cascade = CascadeType.ALL, mappedBy = "partId")
     private Collection<OrderItems> orderItemsCollection;
-    
+
     static EntityManagerFactory emf = Persistence.createEntityManagerFactory("com.mycompany_vizsgaremek_war_1.0-SNAPSHOTPU");
     public static SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 
@@ -147,9 +147,8 @@ public class Parts implements Serializable {
         this.isActive = isActive;
         this.manufacturerId = manufacturerId;
     }
-    
-    //getAllParts getPartsById
 
+    //getAllParts getPartsById
     public Parts(Integer id, String sku, String name, String category, BigDecimal price, Integer stock, String status, Boolean isActive, Date createdAt, Date updatedAt, Date deletedAt, Boolean isDeleted, Manufacturers manufacturerId) {
         this.id = id;
         this.sku = sku;
@@ -165,7 +164,11 @@ public class Parts implements Serializable {
         this.isDeleted = isDeleted;
         this.manufacturerId = manufacturerId;
     }
-    
+
+    //getPartsByCategory
+    public Parts(String category) {
+        this.category = category;
+    }
 
     public Integer getId() {
         return id;
@@ -358,7 +361,7 @@ public class Parts implements Serializable {
     public String toString() {
         return "com.mycompany.vizsgaremek.model.Parts[ id=" + id + " ]";
     }
-    
+
     public static Boolean createParts(Parts createdParts) {
         EntityManager em = emf.createEntityManager();
         try {
@@ -486,7 +489,7 @@ public class Parts implements Serializable {
             em.close();
         }
     }
-    
+
     public static Parts getPartsByManufacturerId(Integer manufacturerId) {
         EntityManager em = emf.createEntityManager();
         try {
@@ -530,7 +533,7 @@ public class Parts implements Serializable {
             em.close();
         }
     }
-    
+
     public static Boolean softDeleteParts(Integer id) {
         EntityManager em = emf.createEntityManager();
 
@@ -555,5 +558,31 @@ public class Parts implements Serializable {
             em.close();
         }
     }
-    
+
+    public static ArrayList<String> getPartsByCategory() {
+        EntityManager em = emf.createEntityManager();
+        ArrayList<String> toReturn = new ArrayList<>();
+
+        try {
+            StoredProcedureQuery spq = em.createStoredProcedureQuery("getPartsByCategory");
+            spq.execute();
+
+            List<Object> resultList = spq.getResultList();
+
+            for (Object record : resultList) {
+                String category = record != null ? record.toString() : null;
+                toReturn.add(category);
+            }
+
+            return toReturn;
+
+        } catch (Exception ex) {
+            ex.printStackTrace();
+            return null;
+
+        } finally {
+            em.close();
+        }
+    }
+
 }

@@ -142,4 +142,17 @@ public class PartsController {
                 .type(MediaType.APPLICATION_JSON)
                 .build();
     }
+    
+    @GET
+    @Path("getPartsByCategory")
+    @Consumes(MediaType.APPLICATION_JSON)
+    public Response getPartsByCategory() {
+        PartsService partsService = new PartsService();
+        JSONObject toReturn = partsService.getPartsByCategory();
+
+        return Response.status(Integer.parseInt(toReturn.get("statusCode").toString()))
+                .entity(toReturn.toString())
+                .type(MediaType.APPLICATION_JSON)
+                .build();
+    }
 }
