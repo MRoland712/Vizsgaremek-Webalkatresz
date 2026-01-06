@@ -203,7 +203,7 @@ public class PartVariants implements Serializable {
             spq.registerStoredProcedureParameter("partIdIN", Integer.class, ParameterMode.IN);
             spq.registerStoredProcedureParameter("nameIN", String.class, ParameterMode.IN);
             spq.registerStoredProcedureParameter("valueIN", String.class, ParameterMode.IN);
-            spq.registerStoredProcedureParameter("additionalPriceIN", Double.class, ParameterMode.IN);
+            spq.registerStoredProcedureParameter("additionalPriceIN", BigDecimal.class, ParameterMode.IN);
 
             spq.setParameter("partIdIN", createdPartVariants.getPartId().getId());
             spq.setParameter("nameIN", createdPartVariants.getName());
@@ -296,6 +296,31 @@ public class PartVariants implements Serializable {
             ex.printStackTrace();
             return null;
         } finally {
+            em.close();
+        }
+    }
+    
+    public static Boolean softDeletePartVariants(Integer id) {
+        EntityManager em = emf.createEntityManager();
+
+        try {
+            em.getTransaction().begin();
+
+            StoredProcedureQuery spq = em.createStoredProcedureQuery("softDeleteParts");
+            spq.registerStoredProcedureParameter("partVaraintsId", Integer.class, ParameterMode.IN);
+            spq.setParameter("partVaraintsId", id);
+
+            spq.execute();
+            em.getTransaction().commit();
+
+            return true;
+        } catch (Exception e) {
+            if (em.getTransaction().isActive()) {
+                em.getTransaction().rollback(); // ha hiba van, rollback
+            }
+            return false;
+        } finally {
+            em.clear();
             em.close();
         }
     }

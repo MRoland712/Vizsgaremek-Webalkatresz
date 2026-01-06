@@ -39,10 +39,11 @@ public class PartsService {
             errors.put("MissingCategory");
         }
 
-        /*
-        if (partsAuth.isDataMissing(createParts.getPrice())) {  BIGDECIMAL
+        
+        if (partsAuth.isDataMissing(createParts.getPrice())) {  
             errors.put("MissingPrice");
-        }*/
+        }
+        
         if (partsAuth.isDataMissing(createParts.getStock())) {
             errors.put("MissingStock");
         }
@@ -68,9 +69,9 @@ public class PartsService {
         }
 
         //BigDecimal
-        /*if (!partsAuth.isDataMissing(createParts.getPrice()) && !partsAuth.isValidPrice(createParts.getPrice())) {
-            errors.put("InvalidCategory");
-        }*/
+        if (!partsAuth.isDataMissing(createParts.getPrice()) && !partsAuth.isValidPrice(createParts.getPrice())) {
+            errors.put("InvalidPrice");
+        }
         //Integer
         /*if (!partsAuth.isDataMissing(createParts.getStock()) && !partsAuth.isValidStock(createParts.getStock())) {
             errors.put("InvalidCategory");

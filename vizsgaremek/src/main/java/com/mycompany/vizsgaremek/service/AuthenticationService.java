@@ -10,6 +10,7 @@ import com.mycompany.vizsgaremek.model.Addresses;
 import com.mycompany.vizsgaremek.model.Manufacturers;
 import com.mycompany.vizsgaremek.model.PartVariants;
 import com.mycompany.vizsgaremek.model.Parts;
+import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.regex.Pattern;
@@ -434,6 +435,10 @@ public class AuthenticationService {
         public boolean isDataMissing(Parts data) {
             return (data == null);
         }
+        
+        public boolean isDataMissing(BigDecimal data){
+            return (data == null);
+        }
 
         public boolean isDataMissing(List<Object[]> data) {
             return (data == null || data.isEmpty());
@@ -464,8 +469,8 @@ public class AuthenticationService {
         }
         
         //BigDecimal 
-        public boolean isValidPrice(String price) {
-            return price.length() <= 50;
+        public boolean isValidPrice(BigDecimal price) {
+            return price.compareTo(new BigDecimal("0.00")) > 0;
         }
         
         //Integer
@@ -552,6 +557,14 @@ public class AuthenticationService {
 
         public boolean isDataMissing(ArrayList<PartVariants> data) {
             return (data == null || data.isEmpty());
+        }
+        
+        public boolean isDataMissing(BigDecimal data){
+            return (data == null);
+        }
+        
+        public boolean isValidAdditionalPrice(BigDecimal price) {
+            return price.compareTo(new BigDecimal("0.00")) > 0;
         }
         
          public boolean isValidPartsId(Parts parts) {

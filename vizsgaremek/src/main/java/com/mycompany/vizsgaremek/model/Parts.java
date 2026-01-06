@@ -521,7 +521,7 @@ public class Parts implements Serializable {
                     record[10] == null ? null : formatter.parse(record[10].toString()), // 10. updatedAt
                     record[11] == null ? null : formatter.parse(record[11].toString()), // 11. deletedAt
                     Boolean.FALSE, // 12. isDeleted
-                    manufacturer // 13. manufacturerId
+                    manufacturer // 13. manufacturerId 
             );
 
             return p;

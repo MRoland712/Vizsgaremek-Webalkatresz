@@ -10,6 +10,7 @@ import com.mycompany.vizsgaremek.service.PartVariantsService;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.UriInfo;
 import javax.ws.rs.Consumes;
+import javax.ws.rs.DELETE;
 import javax.ws.rs.Produces;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
@@ -58,7 +59,7 @@ public class PartVariantsController {
     public void putJson(String content) {
     }
     
-    /*@POST
+    @POST
     @Path("createPartVariants")
     @Consumes(MediaType.APPLICATION_JSON)
     public Response createPartVaraints(String body) {
@@ -67,21 +68,19 @@ public class PartVariantsController {
 
         Parts part = new Parts();
         part.setId(bodyObject.has("partId") ? bodyObject.getInt("partId") : null);
-
         PartVariants createdPartVariants = new PartVariants(
                 part,
                 bodyObject.has("name") ? bodyObject.getString("name") : null,
                 bodyObject.has("value") ? bodyObject.getString("value") : null,
-                bodyObject.has("additionalPrice") ? new BigDecimal(bodyObject.getString("additionalPrice")) : null
+                bodyObject.has("additionalPrice") ? bodyObject.getBigDecimal("additionalPrice") : null
         );
-
-        JSONObject toReturn = layer.createPartVaraints(createdPartVariants);
+        JSONObject toReturn = layer.createPartVariants(createdPartVariants);
 
         return Response.status(Integer.parseInt(toReturn.get("statusCode").toString()))
                 .entity(toReturn.toString())
                 .type(MediaType.APPLICATION_JSON)
                 .build();
-    }*/
+    }
     
     @GET
     @Path("getAllPartVariants")
@@ -103,6 +102,19 @@ public class PartVariantsController {
         PartVariantsService partsVariantsService = new PartVariantsService();
         
         JSONObject toReturn = partsVariantsService.getPartVariantsById(Id);
+
+        return Response.status(Integer.parseInt(toReturn.get("statusCode").toString()))
+                .entity(toReturn.toString())
+                .type(MediaType.APPLICATION_JSON)
+                .build();
+    }
+    
+    @DELETE
+    @Path("softDeletePartVariants")
+    @Consumes(MediaType.APPLICATION_JSON)
+    public Response softDeletePartVariants(@QueryParam("id") Integer partVariantsId) {
+
+        JSONObject toReturn = layer.softDeletePartVariants(partVariantsId);
 
         return Response.status(Integer.parseInt(toReturn.get("statusCode").toString()))
                 .entity(toReturn.toString())

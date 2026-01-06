@@ -23,8 +23,8 @@ public class PartVariantsService {
         JSONObject toReturn = new JSONObject();
         JSONArray errors = new JSONArray();
 
-        if (partvariantsAuth.isDataMissing(createPartVariants.getId())) {
-            errors.put("MissingPartVariantId");
+        if (partvariantsAuth.isDataMissing(createPartVariants.getPartId().getId())) {
+            errors.put("MissingPartId");
         }
         if (partvariantsAuth.isDataMissing(createPartVariants.getName())) {
             errors.put("MissingName");
@@ -34,10 +34,10 @@ public class PartVariantsService {
             errors.put("MissingValue");
         }
 
-        /*
-        if (partsAuth.isDataMissing(createParts.getPrice())) {  BIGDECIMAL
+        
+        if (partvariantsAuth.isDataMissing(createPartVariants.getAdditionalPrice())) {  
             errors.put("MissingPrice");
-        }*/
+        }
 
         if (!partvariantsAuth.isDataMissing(createPartVariants.getId()) && !partvariantsAuth.isValidPartsId(createPartVariants.getId())) {
             errors.put("InvalidId");
@@ -52,14 +52,14 @@ public class PartVariantsService {
         }
 
         //BigDecimal
-        /*if (!partsAuth.isDataMissing(createParts.getPrice()) && !partsAuth.isValidPrice(createParts.getPrice())) {
-            errors.put("InvalidCategory");
-        }*/
+        if (!partvariantsAuth.isDataMissing(createPartVariants.getAdditionalPrice()) && !partvariantsAuth.isValidAdditionalPrice(createPartVariants.getAdditionalPrice())) {
+            errors.put("InvalidAdditionalPrice");
+        }
         //Integer
         /*if (!partsAuth.isDataMissing(createParts.getStock()) && !partsAuth.isValidStock(createParts.getStock())) {
             errors.put("InvalidCategory");
         }*/
-
+        
         if (errorAuth.hasErrors(errors)) {
             return errorAuth.createErrorResponse(errors, 400);
         }
@@ -67,7 +67,7 @@ public class PartVariantsService {
         // MODEL HÍVÁS
         if (PartVariants.createPartVariants(createPartVariants)) { 
             toReturn.put("message", "PartVariant Created Successfully");
-            toReturn.put("statusCode", 201);
+            toReturn.put("statusCode", 200);
             toReturn.put("success", true);
             return toReturn;
         } else {
@@ -149,5 +149,63 @@ public class PartVariantsService {
 
         return toReturn;
     }//getPartVariantsById
+    
+    public JSONObject softDeletePartVariants(Integer id) {
+        JSONObject toReturn = new JSONObject();
+        JSONArray errors = new JSONArray();
+
+        //If id is Missing
+        if (partvariantsAuth.isDataMissing(id)) {
+            errors.put("MissingId");
+        }
+
+        //If id is Invalid
+        if (!partvariantsAuth.isDataMissing(id) && !partvariantsAuth.isValidId(id)) {  // Csak ha NEM missing!
+            errors.put("InvalidId");
+        }
+
+        //if id is invalid or missing
+        if (errorAuth.hasErrors(errors)) {
+            return errorAuth.createErrorResponse(errors, 400);
+        }
+
+        //get data from spq
+        PartVariants modelResult = PartVariants.getPartVariantsById(id);
+
+        //if spq gives null data
+        if (modelResult == null) {
+            errors.put("PartsNotFound");
+        }
+
+        //if parts not found
+        if (errorAuth.hasErrors(errors)) {
+            return errorAuth.createErrorResponse(errors, 404);
+        }
+
+        if (modelResult.getIsDeleted() == true) {
+            errors.put("PartsIsSoftDeleted");
+        }
+
+        //if parts is soft deleted
+        if (errorAuth.hasErrors(errors)) {
+            return errorAuth.createErrorResponse(errors, 409);
+        }
+
+        Boolean result = PartVariants.softDeletePartVariants(id);
+
+        if (!result) {
+            errors.put("ServerError");
+        }
+
+        //if serverError
+        if (errorAuth.hasErrors(errors)) {
+            return errorAuth.createErrorResponse(errors, 500);
+        }
+
+        toReturn.put("status", "success");
+        toReturn.put("statusCode", 200);
+        toReturn.put("Message", "Deleted Parts Succesfully");
+        return toReturn;
+    }//softDeletePartVariants
 
 }
