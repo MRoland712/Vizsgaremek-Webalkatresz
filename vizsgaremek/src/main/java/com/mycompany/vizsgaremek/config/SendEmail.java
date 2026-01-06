@@ -99,7 +99,7 @@ public class SendEmail {
                 + "<body>"
                 + "<div class=\"email-container\">"
                 + "<div class=\"email-header\">"
-                + "<img src=\"https://i.ibb.co/h1dS9kgd/Car-Comps-Logo-Bigass-C.png\" alt=\"CarComps logó\" />"
+                + "<img src=\"https://raw.githubusercontent.com/MRoland712/Vizsgaremek-Webalkatresz/refs/heads/Backend/K%C3%A9pek/CarComps_Logo_BigassC.png\" alt=\"CarComps logó\" />"
                 + "</div>"
                 + "<div class=\"email-body\">"
                 + "<hr />"
