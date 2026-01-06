@@ -1,5 +1,3 @@
-// src/app/registration/registration.component.ts
-
 import { Component, inject } from '@angular/core';
 import {
   AbstractControl,
@@ -9,7 +7,7 @@ import {
   ValidationErrors,
   Validators,
 } from '@angular/forms';
-import { Router } from '@angular/router'; // ← ÚJ IMPORT
+import { Router, RouterLink } from '@angular/router';
 import {
   mustContainNumbers,
   mustContainSpecialCharacters,
@@ -17,17 +15,18 @@ import {
   emailMustHaveDomainValidator,
   passwordMatchValidator,
   RegisterService,
+  emailisUnique,
 } from './register.service';
 
 @Component({
   selector: 'app-reg',
-  imports: [ReactiveFormsModule],
+  imports: [ReactiveFormsModule, RouterLink],
   templateUrl: './registration.component.html',
   styleUrls: ['./registration.component.css'],
 })
 export class RegistrationComponent {
   registerService = inject(RegisterService);
-  private router = inject(Router); // ← ÚJ INJECT
+  private router = inject(Router);
 
   signupForm = new FormGroup({
     firstname: new FormControl('', {
@@ -45,10 +44,15 @@ export class RegistrationComponent {
       ],
     }),
     email: new FormControl('', {
-      validators: [Validators.email, Validators.required, emailMustHaveDomainValidator],
+      validators: [
+        Validators.email,
+        Validators.required,
+        emailMustHaveDomainValidator,
+        emailisUnique,
+      ],
     }),
     phone: new FormControl('', {
-      validators: [Validators.required, Validators.maxLength(17)],
+      validators: [Validators.required, Validators.maxLength(17), Validators.minLength(7)],
     }),
     password: new FormControl('', {
       validators: [
@@ -138,14 +142,10 @@ export class RegistrationComponent {
         console.log('Sikeres regisztráció:', res);
         localStorage.setItem('jwt', res.result.JWTToken!);
 
-        // ==========================================
-        // Sikeres regisztráció után LOGIN-ra irányít
-        // ==========================================
         this.router.navigate(['/login']);
       },
       error: (err) => {
         console.error('Regisztrációs hiba:', err);
-        // TODO: Hibakezelés
       },
     });
   }

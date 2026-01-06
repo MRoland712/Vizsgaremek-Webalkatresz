@@ -15,7 +15,7 @@ export function mustContainSpecialCharacters(control: AbstractControl) {
 }
 //Nincs azonos email validator TODO REGISTER SERVICE API INTEGRÁCIÓ
 export function emailisUnique(control: AbstractControl) {
-  if (control.value !== 'test@example.com') {
+  if (control.value == 409) {
     return of(null);
   }
   return of({ notUnique: true });
