@@ -24,58 +24,58 @@ public class PartsService {
         JSONArray errors = new JSONArray();
 
         // VALIDÁCIÓK...
-        if (partsAuth.isDataMissing(createParts.getManufacturerId())) {
+        if (AuthenticationService.isDataMissing(createParts.getManufacturerId())) {
             errors.put("MissingManufacturerId");
         }
-        if (partsAuth.isDataMissing(createParts.getSku())) {
+        if (AuthenticationService.isDataMissing(createParts.getSku())) {
             errors.put("MissingSku");
         }
 
-        if (partsAuth.isDataMissing(createParts.getName())) {
+        if (AuthenticationService.isDataMissing(createParts.getName())) {
             errors.put("MissingName");
         }
 
-        if (partsAuth.isDataMissing(createParts.getCategory())) {
+        if (AuthenticationService.isDataMissing(createParts.getCategory())) {
             errors.put("MissingCategory");
         }
 
         /*
-        if (partsAuth.isDataMissing(createParts.getPrice())) {  BIGDECIMAL
+        if (AuthenticationService.isDataMissing(createParts.getPrice())) {  BIGDECIMAL
             errors.put("MissingPrice");
         }*/
-        if (partsAuth.isDataMissing(createParts.getStock())) {
+        if (AuthenticationService.isDataMissing(createParts.getStock())) {
             errors.put("MissingStock");
         }
 
-        if (partsAuth.isDataMissing(createParts.getStatus())) {
+        if (AuthenticationService.isDataMissing(createParts.getStatus())) {
             errors.put("MissingStatus");
         }
 
-        if (!partsAuth.isDataMissing(createParts.getManufacturerId()) && !partsAuth.isValidManufacturerId(createParts.getManufacturerId())) {
+        if (!AuthenticationService.isDataMissing(createParts.getManufacturerId()) && !partsAuth.isValidManufacturerId(createParts.getManufacturerId())) {
             errors.put("InvalidManufacturerId");
         }
 
-        if (!partsAuth.isDataMissing(createParts.getSku()) && !partsAuth.isValidSku(createParts.getSku())) {
+        if (!AuthenticationService.isDataMissing(createParts.getSku()) && !partsAuth.isValidSku(createParts.getSku())) {
             errors.put("InvalidSku");
         }
 
-        if (!partsAuth.isDataMissing(createParts.getName()) && !partsAuth.isValidName(createParts.getName())) {
+        if (!AuthenticationService.isDataMissing(createParts.getName()) && !partsAuth.isValidName(createParts.getName())) {
             errors.put("InvalidName");
         }
 
-        if (!partsAuth.isDataMissing(createParts.getCategory()) && !partsAuth.isValidCategory(createParts.getCategory())) {
+        if (!AuthenticationService.isDataMissing(createParts.getCategory()) && !partsAuth.isValidCategory(createParts.getCategory())) {
             errors.put("InvalidCategory");
         }
 
         //BigDecimal
-        /*if (!partsAuth.isDataMissing(createParts.getPrice()) && !partsAuth.isValidPrice(createParts.getPrice())) {
+        /*if (!AuthenticationService.isDataMissing(createParts.getPrice()) && !partsAuth.isValidPrice(createParts.getPrice())) {
             errors.put("InvalidCategory");
         }*/
         //Integer
-        /*if (!partsAuth.isDataMissing(createParts.getStock()) && !partsAuth.isValidStock(createParts.getStock())) {
+        /*if (!AuthenticationService.isDataMissing(createParts.getStock()) && !partsAuth.isValidStock(createParts.getStock())) {
             errors.put("InvalidCategory");
         }*/
-        if (!partsAuth.isDataMissing(createParts.getStatus()) && !partsAuth.isValidStatus(createParts.getStatus())) {
+        if (!AuthenticationService.isDataMissing(createParts.getStatus()) && !partsAuth.isValidStatus(createParts.getStatus())) {
             errors.put("InvalidStatus");
         }
 
@@ -89,7 +89,7 @@ public class PartsService {
             return errorAuth.createOKResponse(toReturn);
         } else {
             errors.put("ModelError");
-            return errorAuth.createErrorResponse(errors);
+            return errorAuth.createErrorResponse(errors, 500);
         }
     } // createParts Closer
 
@@ -101,7 +101,7 @@ public class PartsService {
         ArrayList<Parts> modelResult = Parts.getAllParts();
 
         // VALIDÁCIÓ - If no data in DB
-        if (partsAuth.isDataMissing(modelResult)) {
+        if (AuthenticationService.isDataMissing(modelResult)) {
             errors.put("ModelException");
         }
 
@@ -142,7 +142,7 @@ public class PartsService {
         JSONObject toReturn = new JSONObject();
         JSONArray errors = new JSONArray();
 
-        if (partsAuth.isDataMissing(id)) {
+        if (AuthenticationService.isDataMissing(id)) {
             errors.put("MissingId");
         }
 
@@ -153,7 +153,7 @@ public class PartsService {
 
         Parts part = Parts.getPartsById(id);
 
-        if (partsAuth.isDataMissing(part)) {
+        if (AuthenticationService.isDataMissing(part)) {
             errors.put("PartsNotFound");
             return errorAuth.createErrorResponse(errors, 404);
         }
@@ -182,7 +182,7 @@ public class PartsService {
         JSONObject toReturn = new JSONObject();
         JSONArray errors = new JSONArray();
 
-        if (partsAuth.isDataMissing(id)) {
+        if (AuthenticationService.isDataMissing(id)) {
             errors.put("MissingId");
         }
 
@@ -193,7 +193,7 @@ public class PartsService {
 
         Parts part = Parts.getPartsById(id);
 
-        if (partsAuth.isDataMissing(part)) {
+        if (AuthenticationService.isDataMissing(part)) {
             errors.put("PartsNotFound");
             return errorAuth.createErrorResponse(errors, 404);
         }
@@ -223,12 +223,12 @@ public class PartsService {
         JSONArray errors = new JSONArray();
 
         //If id is Missing
-        if (partsAuth.isDataMissing(id)) {
+        if (AuthenticationService.isDataMissing(id)) {
             errors.put("MissingId");
         }
 
         //If id is Invalid
-        if (!partsAuth.isDataMissing(id) && !partsAuth.isValidId(id)) {  // Csak ha NEM missing!
+        if (!AuthenticationService.isDataMissing(id) && !partsAuth.isValidId(id)) {  // Csak ha NEM missing!
             errors.put("InvalidId");
         }
 

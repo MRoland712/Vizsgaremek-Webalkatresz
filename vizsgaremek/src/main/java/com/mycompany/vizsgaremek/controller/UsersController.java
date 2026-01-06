@@ -35,12 +35,6 @@ public class UsersController {
     public UsersController() {
     }
 
-    @OPTIONS
-    @Path("{path : .*}")
-    public Response handlePreflightRequest() {
-        return Response.ok().build();  // A CorsFilter automatikusan hozzáadja a header-öket
-    }
-
     @GET
     @Produces(MediaType.APPLICATION_XML)
     public String getXml() {
@@ -138,6 +132,10 @@ public class UsersController {
             return jwtError;
         }
 
+        if (AuthenticationService.isDataMissing(email)) {
+            email = null;
+        }
+        
         JSONObject toReturn = layer.getUserByEmail(email);
 
         return Response.status(Integer.parseInt(toReturn.get("statusCode").toString()))
@@ -202,6 +200,9 @@ public class UsersController {
         }
         if (bodyObject.has("isActive")) {
             updatedUser.setIsActive(bodyObject.getBoolean("isActive"));
+        }
+        if (bodyObject.has("isSubscribed")) {
+            updatedUser.setIsSubscribed(bodyObject.getBoolean("isSubscribed"));
         }
         if (bodyObject.has("password")) {
             updatedUser.setPassword(bodyObject.getString("password"));

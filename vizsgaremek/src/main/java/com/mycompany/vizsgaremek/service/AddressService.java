@@ -35,39 +35,39 @@ public class AddressService {
         JSONArray errors = new JSONArray();
 
         // VALIDÁCIÓK...
-        if (addressAuth.isDataMissing(createAddress.getFirstName())) {
+        if (AuthenticationService.isDataMissing(createAddress.getFirstName())) {
             errors.put("MissingFirstName");
         }
         
-        if (addressAuth.isDataMissing(createAddress.getUserId())) {
+        if (AuthenticationService.isDataMissing(createAddress.getUserId())) {
             errors.put("MissingUserId");
         }
 
-        if (addressAuth.isDataMissing(createAddress.getLastName())) {
+        if (AuthenticationService.isDataMissing(createAddress.getLastName())) {
             errors.put("MissingLastName");
         }
 
-        if (!addressAuth.isDataMissing(createAddress.getFirstName()) && !addressAuth.isValidFirstName(createAddress.getFirstName())) {
+        if (!AuthenticationService.isDataMissing(createAddress.getFirstName()) && !addressAuth.isValidFirstName(createAddress.getFirstName())) {
             errors.put("InvalidFirstName");
         }
 
-        if (!addressAuth.isDataMissing(createAddress.getLastName()) && !addressAuth.isValidLastName(createAddress.getLastName())) {
+        if (!AuthenticationService.isDataMissing(createAddress.getLastName()) && !addressAuth.isValidLastName(createAddress.getLastName())) {
             errors.put("InvalidLastName");
         }
         
-        if (!addressAuth.isDataMissing(createAddress.getCountry()) && !addressAuth.isValidCountry(createAddress.getCountry())) {
+        if (!AuthenticationService.isDataMissing(createAddress.getCountry()) && !addressAuth.isValidCountry(createAddress.getCountry())) {
             errors.put("InvalidCountry");
         }
         
-        if (!addressAuth.isDataMissing(createAddress.getCity()) && !addressAuth.isValidCity(createAddress.getCity())) {
+        if (!AuthenticationService.isDataMissing(createAddress.getCity()) && !addressAuth.isValidCity(createAddress.getCity())) {
             errors.put("InvalidCity");
         }
         
-        if (!addressAuth.isDataMissing(createAddress.getZipCode()) && !addressAuth.isValidZipCode(createAddress.getZipCode())) {
+        if (!AuthenticationService.isDataMissing(createAddress.getZipCode()) && !addressAuth.isValidZipCode(createAddress.getZipCode())) {
             errors.put("InvalidZipCode");
         }
         
-        if (!addressAuth.isDataMissing(createAddress.getUserId()) && !addressAuth.isValidUserId(createAddress.getUserId())) {
+        if (!AuthenticationService.isDataMissing(createAddress.getUserId()) && !addressAuth.isValidUserId(createAddress.getUserId())) {
             errors.put("InvalidUserId");
         }
         
@@ -99,7 +99,7 @@ public class AddressService {
         ArrayList<Addresses> modelResult = Addresses.getAllAddresses();
 
         // VALIDÁCIÓ - If no data in DB
-        if (addressAuth.isDataMissing(modelResult)) {
+        if (AuthenticationService.isDataMissing(modelResult)) {
             errors.put("ModelException");
         }
 
@@ -143,7 +143,7 @@ public class AddressService {
         JSONArray errors = new JSONArray();
 
         // Validáció - ID hiányzik
-        if (addressAuth.isDataMissing(id)) {
+        if (AuthenticationService.isDataMissing(id)) {
             errors.put("MissingId");
         }
 
@@ -155,7 +155,7 @@ public class AddressService {
         Addresses address = Addresses.getAddressById(id);
 
         // Validáció - Nem található
-        if (addressAuth.isDataMissing(address)) {
+        if (AuthenticationService.isDataMissing(address)) {
             errors.put("AddressNotFound");
             return errorAuth.createErrorResponse(errors, 404);
         }
@@ -188,7 +188,7 @@ public class AddressService {
         JSONArray errors = new JSONArray();
 
         // Validáció - ID hiányzik
-        if (addressAuth.isDataMissing(id)) {
+        if (AuthenticationService.isDataMissing(id)) {
             errors.put("MissingId");
         }
 
@@ -200,7 +200,7 @@ public class AddressService {
         Addresses address = Addresses.getAddressById(id);
 
         // Validáció - Nem található
-        if (addressAuth.isDataMissing(address)) {
+        if (AuthenticationService.isDataMissing(address)) {
             errors.put("AddressNotFound");
             return errorAuth.createErrorResponse(errors, 404);
         }
@@ -233,12 +233,12 @@ public class AddressService {
         JSONArray errors = new JSONArray();
 
         //If id is Missing
-        if (addressAuth.isDataMissing(id)) {
+        if (AuthenticationService.isDataMissing(id)) {
             errors.put("MissingId");
         }
 
         //If id is Invalid
-        if (!addressAuth.isDataMissing(id) && !addressAuth.isValidId(id)) {  // Csak ha NEM missing!
+        if (!AuthenticationService.isDataMissing(id) && !addressAuth.isValidId(id)) {  // Csak ha NEM missing!
             errors.put("InvalidId");
         }
 
@@ -293,43 +293,43 @@ public class AddressService {
         JSONArray errors = new JSONArray();
 
         //if no search parameter (id or street or userId) is given
-        if (addressAuth.isDataMissing(updatedAddress.getId())
-                && addressAuth.isDataMissing(updatedAddress.getStreet())
-                && addressAuth.isDataMissing(updatedAddress.getUserId().getId())) {
+        if (AuthenticationService.isDataMissing(updatedAddress.getId())
+                && AuthenticationService.isDataMissing(updatedAddress.getStreet())
+                && AuthenticationService.isDataMissing(updatedAddress.getUserId().getId())) {
             errors.put("MissingSearchParameter");
         }
 
         //if addressId as a search parameter is NOT missing AND IS INVALID
-        if (!addressAuth.isDataMissing(updatedAddress.getId()) && !addressAuth.isValidId(updatedAddress.getId())) {
+        if (!AuthenticationService.isDataMissing(updatedAddress.getId()) && !addressAuth.isValidId(updatedAddress.getId())) {
             errors.put("InvalidId");
         }
 
         //if userid as a search parameter is NOT missing AND IS INVALID
-        if (!addressAuth.isDataMissing(updatedAddress.getUserId()) && !addressAuth.isValidUserId(updatedAddress.getUserId().getId())) {
+        if (!AuthenticationService.isDataMissing(updatedAddress.getUserId()) && !addressAuth.isValidUserId(updatedAddress.getUserId().getId())) {
             errors.put("InvalidUserId");
         }
 
         //if street as a search parameter is NOT missing AND IS INVALID
-        if (!addressAuth.isDataMissing(updatedAddress.getStreet()) && !addressAuth.isValidStreet(updatedAddress.getStreet())) {
+        if (!AuthenticationService.isDataMissing(updatedAddress.getStreet()) && !addressAuth.isValidStreet(updatedAddress.getStreet())) {
             errors.put("InvalidStreet");
         }
 
-        if (!addressAuth.isDataMissing(updatedAddress.getStreet())
-                && addressAuth.isDataMissing(updatedAddress.getId())
-                && addressAuth.isDataMissing(updatedAddress.getUserId().getId())
-                && addressAuth.isDataMissing(updatedAddress.getFirstName())
-                && addressAuth.isDataMissing(updatedAddress.getLastName())
-                && addressAuth.isDataMissing(updatedAddress.getCompany())
-                && addressAuth.isDataMissing(updatedAddress.getTaxNumber())
-                && addressAuth.isDataMissing(updatedAddress.getCountry())
-                && addressAuth.isDataMissing(updatedAddress.getCity())
-                && addressAuth.isDataMissing(updatedAddress.getZipCode())
-                && addressAuth.isDataMissing(updatedAddress.getIsDefault())) {
+        if (!AuthenticationService.isDataMissing(updatedAddress.getStreet())
+                && AuthenticationService.isDataMissing(updatedAddress.getId())
+                && AuthenticationService.isDataMissing(updatedAddress.getUserId().getId())
+                && AuthenticationService.isDataMissing(updatedAddress.getFirstName())
+                && AuthenticationService.isDataMissing(updatedAddress.getLastName())
+                && AuthenticationService.isDataMissing(updatedAddress.getCompany())
+                && AuthenticationService.isDataMissing(updatedAddress.getTaxNumber())
+                && AuthenticationService.isDataMissing(updatedAddress.getCountry())
+                && AuthenticationService.isDataMissing(updatedAddress.getCity())
+                && AuthenticationService.isDataMissing(updatedAddress.getZipCode())
+                && AuthenticationService.isDataMissing(updatedAddress.getIsDefault())) {
             errors.put("InvalidSearchParameter");
         }
 
         //tempComment       //if zipcode as a search parameter is NOT missing AND IS INVALID
-        if (!addressAuth.isDataMissing(updatedAddress.getZipCode()) && !addressAuth.isValidZipCode(updatedAddress.getZipCode())) {
+        if (!AuthenticationService.isDataMissing(updatedAddress.getZipCode()) && !addressAuth.isValidZipCode(updatedAddress.getZipCode())) {
             errors.put("InvalidZipCode");
         }
         //error check if Search Parameters are wrong
@@ -341,10 +341,10 @@ public class AddressService {
         Object searchData = null;
 
         // ID alapján keresés
-        if (!addressAuth.isDataMissing(updatedAddress.getId())) {
+        if (!AuthenticationService.isDataMissing(updatedAddress.getId())) {
             existingAddress = Addresses.getAddressById(updatedAddress.getId());
             searchData = updatedAddress.getId();
-        } else if (!addressAuth.isDataMissing(updatedAddress.getUserId().getId())) {
+        } else if (!AuthenticationService.isDataMissing(updatedAddress.getUserId().getId())) {
             // userId alapján keresés
             existingAddress = Addresses.getAddressByUserId(updatedAddress.getUserId().getId());
             searchData = updatedAddress.getUserId(); // User objektum adása hogy lássa az authservice hogy ez alapján kéne kersni :P
@@ -356,7 +356,7 @@ public class AddressService {
         System.out.println("updateAddress existingAddress: " + existingAddress);
         System.out.println("updateAddress existingAddress: " + existingAddress.getCompany());
         //if Address not found
-        if (addressAuth.isDataMissing(existingAddress)) {
+        if (AuthenticationService.isDataMissing(existingAddress)) {
             errors.put("AddressNotFound");
         }
 
@@ -366,100 +366,100 @@ public class AddressService {
         }
 
         //if Id is NOT missing AND IS VALID
-        if (!addressAuth.isDataMissing(updatedAddress.getId()) && addressAuth.isValidId(updatedAddress.getId())) {
+        if (!AuthenticationService.isDataMissing(updatedAddress.getId()) && addressAuth.isValidId(updatedAddress.getId())) {
             existingAddress.setId(updatedAddress.getId());
         }
 
         //if street is NOT missing AND IS VALID
-        if (!addressAuth.isDataMissing(updatedAddress.getStreet()) && addressAuth.isValidStreet(updatedAddress.getStreet())) {
+        if (!AuthenticationService.isDataMissing(updatedAddress.getStreet()) && addressAuth.isValidStreet(updatedAddress.getStreet())) {
             existingAddress.setStreet(updatedAddress.getStreet());
         }
 
         //if userId is NOT missing AND IS VALID
-        if (!addressAuth.isDataMissing(updatedAddress.getUserId().getId()) && addressAuth.isValidUserId(updatedAddress.getUserId().getId())) {
+        if (!AuthenticationService.isDataMissing(updatedAddress.getUserId().getId()) && addressAuth.isValidUserId(updatedAddress.getUserId().getId())) {
             existingAddress.setUserId(updatedAddress.getUserId()); //ToDo: setUserId Normally!
         }
 
         //if zipCode is NOT missing AND IS VALID
-        if (!addressAuth.isDataMissing(updatedAddress.getZipCode()) && addressAuth.isValidZipCode(updatedAddress.getZipCode())) {
+        if (!AuthenticationService.isDataMissing(updatedAddress.getZipCode()) && addressAuth.isValidZipCode(updatedAddress.getZipCode())) {
             existingAddress.setZipCode(updatedAddress.getZipCode());
         }
 
         //if firstName is NOT missing AND IS VALID
-        if (!addressAuth.isDataMissing(updatedAddress.getFirstName()) && addressAuth.isValidFirstName(updatedAddress.getFirstName())) {
+        if (!AuthenticationService.isDataMissing(updatedAddress.getFirstName()) && addressAuth.isValidFirstName(updatedAddress.getFirstName())) {
             existingAddress.setFirstName(updatedAddress.getFirstName());
         }
 
         //if lastName is NOT missing AND IS VALID
-        if (!addressAuth.isDataMissing(updatedAddress.getLastName()) && addressAuth.isValidLastName(updatedAddress.getLastName())) {
+        if (!AuthenticationService.isDataMissing(updatedAddress.getLastName()) && addressAuth.isValidLastName(updatedAddress.getLastName())) {
             existingAddress.setLastName(updatedAddress.getLastName());
         }
 
         //if company is NOT missing AND IS VALID
-        if (!addressAuth.isDataMissing(updatedAddress.getCompany()) && addressAuth.isValidCompany(updatedAddress.getCompany())) {
+        if (!AuthenticationService.isDataMissing(updatedAddress.getCompany()) && addressAuth.isValidCompany(updatedAddress.getCompany())) {
             existingAddress.setCompany(updatedAddress.getCompany());
         }
 
         //if taxnumber is NOT missing AND IS VALID
-        if (!addressAuth.isDataMissing(updatedAddress.getTaxNumber()) && addressAuth.isValidTaxNumber(updatedAddress.getTaxNumber())) {
+        if (!AuthenticationService.isDataMissing(updatedAddress.getTaxNumber()) && addressAuth.isValidTaxNumber(updatedAddress.getTaxNumber())) {
             existingAddress.setTaxNumber(updatedAddress.getTaxNumber());
         }
 
         //if city is NOT missing AND IS VALID
-        if (!addressAuth.isDataMissing(updatedAddress.getCity()) && addressAuth.isValidCity(updatedAddress.getCity())) {
+        if (!AuthenticationService.isDataMissing(updatedAddress.getCity()) && addressAuth.isValidCity(updatedAddress.getCity())) {
             existingAddress.setCity(updatedAddress.getCity());
         }
         //if country is NOT missing AND IS VALID
-        if (!addressAuth.isDataMissing(updatedAddress.getCountry()) && addressAuth.isValidCountry(updatedAddress.getCountry())) {
+        if (!AuthenticationService.isDataMissing(updatedAddress.getCountry()) && addressAuth.isValidCountry(updatedAddress.getCountry())) {
             existingAddress.setCountry(updatedAddress.getCountry());
         }
         //if isDefault is NOT missing AND IS VALID
-        if (!addressAuth.isDataMissing(updatedAddress.getIsDefault()) && addressAuth.isValidIsDefault(updatedAddress.getIsDefault())) {
+        if (!AuthenticationService.isDataMissing(updatedAddress.getIsDefault()) && addressAuth.isValidIsDefault(updatedAddress.getIsDefault())) {
             existingAddress.setIsDefault(updatedAddress.getIsDefault());
         }
 
         // INVALID DATAS
         //if zipCode is NOT missing AND IS INVALID
-        if (!addressAuth.isDataMissing(updatedAddress.getZipCode()) && !addressAuth.isValidZipCode(updatedAddress.getZipCode())) {
+        if (!AuthenticationService.isDataMissing(updatedAddress.getZipCode()) && !addressAuth.isValidZipCode(updatedAddress.getZipCode())) {
             errors.put("InvalidZipCode");
         }
 
         //if firstName is NOT missing AND IS INVALID
-        if (!addressAuth.isDataMissing(updatedAddress.getFirstName()) && !addressAuth.isValidFirstName(updatedAddress.getFirstName())) {
+        if (!AuthenticationService.isDataMissing(updatedAddress.getFirstName()) && !addressAuth.isValidFirstName(updatedAddress.getFirstName())) {
             errors.put("InvalidFirstName");
         }
 
         //if lastName is NOT missing AND IS INVALID
-        if (!addressAuth.isDataMissing(updatedAddress.getLastName()) && !addressAuth.isValidLastName(updatedAddress.getLastName())) {
+        if (!AuthenticationService.isDataMissing(updatedAddress.getLastName()) && !addressAuth.isValidLastName(updatedAddress.getLastName())) {
             errors.put("InvalidLastName");
         }
 
         //if company is NOT missing AND IS INVALID
-        if (!addressAuth.isDataMissing(updatedAddress.getCompany()) && !addressAuth.isValidCompany(updatedAddress.getCompany())) {
+        if (!AuthenticationService.isDataMissing(updatedAddress.getCompany()) && !addressAuth.isValidCompany(updatedAddress.getCompany())) {
             errors.put("InvalidCompany");
         }
 
         //if taxnumber is NOT missing AND IS INVALID
-        if (!addressAuth.isDataMissing(updatedAddress.getTaxNumber()) && !addressAuth.isValidTaxNumber(updatedAddress.getTaxNumber())) {
+        if (!AuthenticationService.isDataMissing(updatedAddress.getTaxNumber()) && !addressAuth.isValidTaxNumber(updatedAddress.getTaxNumber())) {
             errors.put("InvalidTaxNumber");
         }
 
         //if city is NOT missing AND IS INVALID
-        if (!addressAuth.isDataMissing(updatedAddress.getCity()) && !addressAuth.isValidCity(updatedAddress.getCity())) {
+        if (!AuthenticationService.isDataMissing(updatedAddress.getCity()) && !addressAuth.isValidCity(updatedAddress.getCity())) {
             errors.put("InvalidCity");
         }
         //if country is NOT missing AND IS INVALID
-        if (!addressAuth.isDataMissing(updatedAddress.getCountry()) && !addressAuth.isValidCountry(updatedAddress.getCountry())) {
+        if (!AuthenticationService.isDataMissing(updatedAddress.getCountry()) && !addressAuth.isValidCountry(updatedAddress.getCountry())) {
             errors.put("InvalidCountry");
         }
         //if isDefault is NOT missing AND IS INVALID
-        if (!addressAuth.isDataMissing(updatedAddress.getIsDefault()) && !addressAuth.isValidIsDefault(updatedAddress.getIsDefault())) {
+        if (!AuthenticationService.isDataMissing(updatedAddress.getIsDefault()) && !addressAuth.isValidIsDefault(updatedAddress.getIsDefault())) {
             errors.put("InvalidIsDefault");
         }
 
         
         // check this 
-        if (addressAuth.isDataMissing(existingAddress)) {
+        if (AuthenticationService.isDataMissing(existingAddress)) {
             errors.put("AddressNotFound");
             return errorAuth.createErrorResponse(errors, 404);
         }
@@ -494,20 +494,20 @@ public class AddressService {
 
         // VALIDÁCIÓK KERESÉSI PARAMÉTEREK 
         // Ha nincs SEMMILYEN keresési paraméter (id VAGY userId)
-        if (addressAuth.isDataMissing(updatedAddress.getId())
-                && addressAuth.isDataMissing(updatedAddress.getUserId())) {
+        if (AuthenticationService.isDataMissing(updatedAddress.getId())
+                && AuthenticationService.isDataMissing(updatedAddress.getUserId())) {
             errors.put("MissingSearchParameter");
         }
 
         // Ha addressId mint keresési paraméter NEM hiányzik ÉS ÉRVÉNYTELEN
-        if (!addressAuth.isDataMissing(updatedAddress.getId())
+        if (!AuthenticationService.isDataMissing(updatedAddress.getId())
                 && !addressAuth.isValidId(updatedAddress.getId())) {
             errors.put("InvalidId");
         }
 
         // Ha userId mint keresési paraméter NEM hiányzik ÉS ÉRVÉNYTELEN
-        if (!addressAuth.isDataMissing(updatedAddress.getUserId())
-                && !addressAuth.isDataMissing(updatedAddress.getUserId().getId())
+        if (!AuthenticationService.isDataMissing(updatedAddress.getUserId())
+                && !AuthenticationService.isDataMissing(updatedAddress.getUserId().getId())
                 && !addressAuth.isValidUserId(updatedAddress.getUserId().getId())) {
             errors.put("InvalidUserId");
         }
@@ -521,24 +521,24 @@ public class AddressService {
         Addresses existingAddress = null;
 
         // ID alapján keresés
-        if (!addressAuth.isDataMissing(updatedAddress.getId())) {
+        if (!AuthenticationService.isDataMissing(updatedAddress.getId())) {
             existingAddress = Addresses.getAddressById(updatedAddress.getId());
 
-        } else if (!addressAuth.isDataMissing(updatedAddress.getUserId())
-                && !addressAuth.isDataMissing(updatedAddress.getUserId().getId())) {
+        } else if (!AuthenticationService.isDataMissing(updatedAddress.getUserId())
+                && !AuthenticationService.isDataMissing(updatedAddress.getUserId().getId())) {
             // userId alapján keresés
             existingAddress = Addresses.getAddressByUserId(updatedAddress.getUserId().getId());
         }
 
         // Ha nem található a cím
-        if (addressAuth.isDataMissing(existingAddress)) {
+        if (AuthenticationService.isDataMissing(existingAddress)) {
             errors.put("AddressNotFound");
             return errorAuth.createErrorResponse(errors, 404);
         }
 
         //  MEZŐK MÓDOSÍTÁSA (csak a megadottak!)
         // firstName - CSAK ha meg van adva!
-        if (!addressAuth.isDataMissing(updatedAddress.getFirstName())) {
+        if (!AuthenticationService.isDataMissing(updatedAddress.getFirstName())) {
             if (addressAuth.isValidFirstName(updatedAddress.getFirstName())) {
                 existingAddress.setFirstName(updatedAddress.getFirstName());
             } else {
@@ -547,7 +547,7 @@ public class AddressService {
         }
 
         // lastName CSAK ha meg van adva!
-        if (!addressAuth.isDataMissing(updatedAddress.getLastName())) {
+        if (!AuthenticationService.isDataMissing(updatedAddress.getLastName())) {
             if (addressAuth.isValidLastName(updatedAddress.getLastName())) {
                 existingAddress.setLastName(updatedAddress.getLastName());
             } else {
@@ -556,7 +556,7 @@ public class AddressService {
         }
 
         // company CSAK ha meg van adva!
-        if (!addressAuth.isDataMissing(updatedAddress.getCompany())) {
+        if (!AuthenticationService.isDataMissing(updatedAddress.getCompany())) {
             if (addressAuth.isValidCompany(updatedAddress.getCompany())) {
                 existingAddress.setCompany(updatedAddress.getCompany());
             } else {
@@ -565,7 +565,7 @@ public class AddressService {
         }
 
         // taxNumber CSAK ha meg van adva!
-        if (!addressAuth.isDataMissing(updatedAddress.getTaxNumber())) {
+        if (!AuthenticationService.isDataMissing(updatedAddress.getTaxNumber())) {
             if (addressAuth.isValidTaxNumber(updatedAddress.getTaxNumber())) {
                 existingAddress.setTaxNumber(updatedAddress.getTaxNumber());
             } else {
@@ -574,7 +574,7 @@ public class AddressService {
         }
 
         // country CSAK ha meg van adva!
-        if (!addressAuth.isDataMissing(updatedAddress.getCountry())) {
+        if (!AuthenticationService.isDataMissing(updatedAddress.getCountry())) {
             if (addressAuth.isValidCountry(updatedAddress.getCountry())) {
                 existingAddress.setCountry(updatedAddress.getCountry());
             } else {
@@ -583,7 +583,7 @@ public class AddressService {
         }
 
         // city CSAK ha meg van adva!
-        if (!addressAuth.isDataMissing(updatedAddress.getCity())) {
+        if (!AuthenticationService.isDataMissing(updatedAddress.getCity())) {
             if (addressAuth.isValidCity(updatedAddress.getCity())) {
                 existingAddress.setCity(updatedAddress.getCity());
             } else {
@@ -592,7 +592,7 @@ public class AddressService {
         }
 
         // zipCode CSAK ha meg van adva!
-        if (!addressAuth.isDataMissing(updatedAddress.getZipCode())) {
+        if (!AuthenticationService.isDataMissing(updatedAddress.getZipCode())) {
             if (addressAuth.isValidZipCode(updatedAddress.getZipCode())) {
                 existingAddress.setZipCode(updatedAddress.getZipCode());
             } else {
@@ -601,7 +601,7 @@ public class AddressService {
         }
 
         // street CSAK ha meg van adva!
-        if (!addressAuth.isDataMissing(updatedAddress.getStreet())) {
+        if (!AuthenticationService.isDataMissing(updatedAddress.getStreet())) {
             if (addressAuth.isValidStreet(updatedAddress.getStreet())) {
                 existingAddress.setStreet(updatedAddress.getStreet());
             } else {
@@ -610,7 +610,7 @@ public class AddressService {
         }
 
         // isDefault CSAK ha meg van adva!
-        if (!addressAuth.isDataMissing(updatedAddress.getIsDefault())) {
+        if (!AuthenticationService.isDataMissing(updatedAddress.getIsDefault())) {
             if (addressAuth.isValidIsDefault(updatedAddress.getIsDefault())) {
                 existingAddress.setIsDefault(updatedAddress.getIsDefault());
             } else {

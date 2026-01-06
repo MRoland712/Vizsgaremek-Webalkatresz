@@ -1,203 +1,135 @@
-/*
- * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
- * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
- */
 package com.mycompany.vizsgaremek.service;
 
 import com.mycompany.vizsgaremek.config.Encrypt;
-import com.mycompany.vizsgaremek.model.*;
+import com.mycompany.vizsgaremek.model.Manufacturers;
+import com.mycompany.vizsgaremek.model.Users;
 import java.util.ArrayList;
-import java.util.List;
+import java.util.Collection;
 import java.util.regex.Pattern;
-import javax.mail.Address;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
-/**
- *
- * @author ddori
- */
 public class AuthenticationService {
 
     public static boolean isDataMissing(String data) {
-        return (data == null || data.trim().isEmpty());
+        return data == null || data.trim().isEmpty();
     }
 
     public static boolean isDataMissing(Integer data) {
-        return (data == null);
+        return data == null;
     }
 
     public static boolean isDataMissing(Boolean data) {
-        return (data == null);
+        return data == null;
     }
 
-    public static boolean isDataMissing(Users data) {
-        return (data == null);
-    }
-    
-    public static boolean isDataMissing(UserLogs data) {
-        return (data == null);
+    public static boolean isDataMissing(Object data) {
+        return data == null;
     }
 
-    public static boolean isDataMissing(List<Object[]> data) {
-        return (data == null || data.isEmpty());
+    public static <T> boolean isDataMissing(ArrayList<T> data) {
+        return data == null || data.isEmpty();
     }
 
-    public static boolean isDataMissing(Address data) {
-        return (data == null);
+    public static <T> boolean isDataMissing(Collection<T> data) {
+        return data == null || data.isEmpty();
     }
-
-    public static boolean isDataMissing(JSONObject data) {
-        return (data == null || data.isEmpty());
-    }
-
-    public static boolean isDataMissing(ArrayList<Users> data) {
-        return (data == null || data.isEmpty());
-    }
-
-    public static class errorAuth {
-
-        /**
-         * Checks if given JSONArray has data and returns a Boolean
-         *
-         * @param errors The JSONArray that needs to be checked
-         * @return Boolean true or false based on if the errors JSONArray has
-         * data
-         */
-        public static boolean hasErrors(JSONArray errors) {
-            return errors.length() > 0;
-        }
-
-        /**
-         * Creates an JSONObject error response with the given JSONArray errors
-         * and status code
-         *
-         * @param errors The JSONArray that contains the errors
-         *
-         * @param statusCode An integer value with a given status code, see
-         * common error codes: 400 - Bad request (validation error / client
-         * sends wrong data) 401 - Unauthorised (Authentication error ex: Wrong
-         * password entered) 404 - Missing (ex:Couldnt find user with given
-         * data) 409 - Conflict (something is the same as in db ex: Email is
-         * same as in DB) 500 - Internal Server Error (Missing required data in
-         * DB ex: isDeleted == null)
-         *
-         * @return a JSONObject with the errors array, a status of "failed" and
-         * the given status code in this format: { "errors": [#errors#],
-         * "status": "failed", "statusCode": #Given status code# }
-         *
-         */
-        public static JSONObject createErrorResponse(JSONArray errors, int statusCode) {
-            JSONObject response = new JSONObject();
-            response.put("errors", errors);
-            response.put("status", "failed");
-            response.put("statusCode", statusCode);
-            return response;
-        }
-
-        /**
-         * Creates an JSONObject OK response with the given JSONObject result
-         * data
-         *
-         * @param result The JSONObject that contains the result data
-         *
-         * @return a JSONObject with the result JSONObject as a "result" a
-         * status of "success" and a "statusCode" of 200 in this format {
-         * "result": [ { #result data# } ], "status": "success", "statusCode":
-         * 200 }
-         */
-        public static JSONObject createOKResponse(JSONObject result) {
-            JSONObject response = new JSONObject();
-            response.put("result", result);
-            response.put("status", "success");
-            response.put("statusCode", 200);
-            return response;
-        }
-
-        /**
-         * Creates an OK response
-         *
-         * @return a JSONObject with a status of "success" and a "statusCode" of
-         * 200 in this format
-         *
-         * { "status": "success", "statusCode": 200 }
-         */
-        public static JSONObject createOKResponse() {
-            JSONObject response = new JSONObject();
-            response.put("status", "success");
-            response.put("statusCode", 200);
-            return response;
-        }
-
-    }//Class closer
 
     public static class userAuth {
 
-        private static final Pattern EMAIL_PATTERN
-                = Pattern.compile("^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}$");
+        private static final String EMAIL_REGEX = "^[a-zA-Z0-9_+&*-]+(?:\\.[a-zA-Z0-9_+&*-]+)*@(?:[a-zA-Z0-9-]+\\.)+[a-zA-Z]{2,7}$";
+        private static final Pattern EMAIL_PATTERN = Pattern.compile(EMAIL_REGEX);
 
-        // Legalább 8 karakter, tartalmaz nagybetűt, számot és speciális karaktert
-        private static final Pattern PASSWORD_PATTERN
-                = Pattern.compile("^(?=.*[A-Z])(?=.*\\d)(?=.*[^A-Za-z0-9]).{8,}$");
+        private static final String PHONE_REGEX = "^[+]?[(]?[0-9]{1,4}[)]?[-\\s\\.]?[(]?[0-9]{1,4}[)]?[-\\s\\.]?[0-9]{1,9}$";
+        private static final Pattern PHONE_PATTERN = Pattern.compile(PHONE_REGEX);
 
-        //ToDO: add a try catch for each isValid method 💀💀 vagy megnezni azt hogy object instanceog <x>
         public boolean isValidId(Integer id) {
-            return id > 0 && id.toString().length() <= 11;
+            return id != null && id > 0;
         }
 
         public boolean isValidEmail(String email) {
-            return EMAIL_PATTERN.matcher(email).matches();
+            if (email == null || email.trim().isEmpty()) {
+                return false;
+            }
+            return email.length() <= 50 && EMAIL_PATTERN.matcher(email.trim()).matches();
+        }
+
+        public boolean isValidUsername(String username) {
+            if (username == null) {
+                return false;
+            }
+            return username.length() >= 3 && username.length() <= 30
+                    && username.matches("^[a-zA-Z0-9_]+$");
         }
 
         public boolean isValidPassword(String password) {
-            return PASSWORD_PATTERN.matcher(password).matches();
-        }
-
-        //ToDo: is username in db? 
-        public boolean isValidUsername(String username) {
-            return username.length() <= 30 && username.length() >= 3;
+            if (password == null) {
+                return false;
+            }
+            return password.length() >= 8 && password.length() <= 255
+                    && password.matches(".*[a-zA-Z].*")
+                    && password.matches(".*[0-9].*");
         }
 
         public boolean isValidFirstName(String firstName) {
-            return firstName.length() <= 50;
+            if (firstName == null) {
+                return false;
+            }
+            return firstName.length() >= 2 && firstName.length() <= 50
+                    && firstName.matches("^[a-zA-ZàáâäãåąčćęèéêëėįìíîïłńòóôöõøùúûüųūÿýżźñçčšžÀÁÂÄÃÅĄĆČĖĘÈÉÊËÌÍÎÏĮŁŃÒÓÔÖÕØÙÚÛÜŲŪŸÝŻŹÑßÇŒÆČŠŽ∂ð ,.'-]+$");
         }
 
         public boolean isValidLastName(String lastName) {
-            return lastName.length() <= 50;
+            if (lastName == null) {
+                return false;
+            }
+            return lastName.length() >= 2 && lastName.length() <= 50
+                    && lastName.matches("^[a-zA-ZàáâäãåąčćęèéêëėįìíîïłńòóôöõøùúûüųūÿýżźñçčšžÀÁÂÄÃÅĄĆČĖĘÈÉÊËÌÍÎÏĮŁŃÒÓÔÖÕØÙÚÛÜŲŪŸÝŻŹÑßÇŒÆČŠŽ∂ð ,.'-]+$");
         }
 
         public boolean isValidPhone(String phone) {
-            return phone.length() <= 50;
+            if (phone == null || phone.trim().isEmpty()) {
+                return false;
+            }
+            return phone.length() <= 50 && PHONE_PATTERN.matcher(phone.trim()).matches();
         }
 
         public boolean isValidRole(String role) {
-            return role.length() <= 20;
+            if (role == null) {
+                return false;
+            }
+            return role.length() <= 20 && (role.equals("user") || role.equals("admin"));
         }
 
         public boolean isValidIsActive(Boolean isActive) {
-            return isActive instanceof Boolean;
+            return isActive != null;
+        }
+        
+        public boolean isValidIsSubscribed(Boolean isSubbed) {
+            return isSubbed != null;
         }
 
         public boolean isValidAuthSecret(String authSecret) {
-            try {
-                return authSecret.length() <= 255;
-            } catch (Exception ex) {
-                ex.printStackTrace();
+            if (authSecret == null) {
                 return false;
             }
+            return authSecret.length() >= 16 && authSecret.length() <= 255;
         }
 
-        public boolean isValidRegistrationToken(String regToken) {
-            try {
-                return regToken.length() <= 255;
-            } catch (Exception ex) {
-                ex.printStackTrace();
+        public boolean isValidRegistrationToken(String registrationToken) {
+            if (registrationToken == null) {
                 return false;
             }
+            return registrationToken.length() >= 32 && registrationToken.length() <= 255;
         }
 
-        public boolean isUserDeleted(Boolean isDeleted) {
-            return (isDeleted == true);
+        public boolean allOtherFieldsMissing(Users user) {
+            return isDataMissing(user.getUsername())
+                    && isDataMissing(user.getFirstName())
+                    && isDataMissing(user.getLastName())
+                    && isDataMissing(user.getPhone())
+                    && isDataMissing(user.getPassword())
+                    && isDataMissing(user.getRole());
         }
 
         /**
@@ -244,8 +176,8 @@ public class AuthenticationService {
             }
             try {
                 //debug:
-                System.out.println("isPasswordSame:");
-                System.out.println(userdata.getPassword() + " == " + Encrypt.encrypt(password) + " (" + password + ")");
+                //System.out.println("isPasswordSame:");
+                //System.out.println(userdata.getPassword() + " == " + Encrypt.encrypt(password) + " (" + password + ")");
                 return userdata.getPassword().equals(Encrypt.encrypt(password));
             } catch (Exception e) {
                 e.printStackTrace();
@@ -327,60 +259,260 @@ public class AuthenticationService {
             return false;
         }
 
-    } //User Auth Class closer
+        public boolean isUserDeleted(Boolean isDeleted) {
+            return (isDeleted == true);
+        }
+    }//userAuth closer
 
     public static class addressAuth {
 
-        //ToDO: add a try catch for each isValid method 💀💀 vagy megnezni azt hogy object instanceog <x>
         public boolean isValidId(Integer id) {
-            return id > 0 && id.toString().length() <= 11;
+            return id != null && id > 0;
         }
-        //ToDo: is username in db? 
+
+        public boolean isValidUserId(Integer userId) {
+            return userId != null && userId > 0 && userId.toString().length() <= 11;
+        }
+
+        public boolean isValidUserId(Users userId) {
+            return true; //ToDo: Figure out a Validation for this shit
+        }
 
         public boolean isValidFirstName(String firstName) {
-            return firstName.length() <= 50;
+            if (firstName == null || firstName.trim().isEmpty()) {
+                return true;
+            }
+            return firstName.length() <= 50
+                    && firstName.matches("^[a-zA-ZàáâäãåąčćęèéêëėįìíîïłńòóôöõøùúûüųūÿýżźñçčšžÀÁÂÄÃÅĄĆČĖĘÈÉÊËÌÍÎÏĮŁŃÒÓÔÖÕØÙÚÛÜŲŪŸÝŻŹÑßÇŒÆČŠŽ∂ð ,.'-]+$");
         }
 
         public boolean isValidLastName(String lastName) {
-            return lastName.length() <= 50;
+            if (lastName == null || lastName.trim().isEmpty()) {
+                return true;
+            }
+            return lastName.length() <= 50
+                    && lastName.matches("^[a-zA-ZàáâäãåąčćęèéêëėįìíîïłńòóôöõøùúûüųūÿýżźñçčšžÀÁÂÄÃÅĄĆČĖĘÈÉÊËÌÍÎÏĮŁŃÒÓÔÖÕØÙÚÛÜŲŪŸÝŻŹÑßÇŒÆČŠŽ∂ð ,.'-]+$");
         }
 
         public boolean isValidCompany(String company) {
+            if (company == null || company.trim().isEmpty()) {
+                return true;
+            }
             return company.length() <= 50;
         }
 
         public boolean isValidTaxNumber(String taxNumber) {
-            return taxNumber.length() <= 50;
+            if (taxNumber == null || taxNumber.trim().isEmpty()) {
+                return true;
+            }
+            return taxNumber.length() <= 50
+                    && taxNumber.matches("^[0-9-]+$");
         }
 
-        // rá kell nézi erre pontosan 
+        public boolean isValidCountry(String country) {
+            if (country == null) {
+                return false;
+            }
+            return country.length() >= 2 && country.length() <= 50
+                    && country.matches("^[a-zA-ZàáâäãåąčćęèéêëėįìíîïłńòóôöõøùúûüųūÿýżźñçčšžÀÁÂÄÃÅĄĆČĖĘÈÉÊËÌÍÎÏĮŁŃÒÓÔÖÕØÙÚÛÜŲŪŸÝŻŹÑßÇŒÆČŠŽ∂ð ,.'-]+$");
+        }
+
+        public boolean isValidCity(String city) {
+            if (city == null) {
+                return false;
+            }
+            return city.length() >= 2 && city.length() <= 50
+                    && city.matches("^[a-zA-Z0-9àáâäãåąčćęèéêëėįìíîïłńòóôöõøùúûüųūÿýżźñçčšžÀÁÂÄÃÅĄĆČĖĘÈÉÊËÌÍÎÏĮŁŃÒÓÔÖÕØÙÚÛÜŲŪŸÝŻŹÑßÇŒÆČŠŽ∂ð ,.'-]+$");
+        }
+
+        public boolean isValidZipCode(String zipCode) {
+            if (zipCode == null) {
+                return false;
+            }
+            return zipCode.length() >= 3 && zipCode.length() <= 20
+                    && zipCode.matches("^[0-9A-Z -]+$");
+        }
+
+        public boolean isValidStreet(String street) {
+            if (street == null) {
+                return false;
+            }
+            return street.length() >= 3 && street.length() <= 100;
+        }
+
         public boolean isValidIsDefault(Boolean isDefault) {
-            return isDefault instanceof Boolean;
+            return isDefault != null;
+        }
+    }//addressAuth closer
+
+    public static class partsAuth {
+
+        public boolean isValidId(Integer id) {
+            return id != null && id > 0;
         }
 
-        public boolean isAddressDeleted(Boolean isDeleted) {
-            return (isDeleted == true);
+        public boolean isValidManufacturerId(Integer manufacturerId) {
+            return manufacturerId != null && manufacturerId > 0;
         }
 
-    } //Address Auth Class closer
+        public boolean isValidManufacturerId(Manufacturers manufacturerId) {
+            return true; //ToDo: figure out a validation for this shit
+        }
+
+        public boolean isValidSku(String sku) {
+            if (sku == null) {
+                return false;
+            }
+            return sku.length() >= 3 && sku.length() <= 100;
+        }
+
+        public boolean isValidName(String name) {
+            if (name == null) {
+                return false;
+            }
+            return name.length() >= 2 && name.length() <= 255;
+        }
+
+        public boolean isValidCategory(String category) {
+            if (category == null) {
+                return false;
+            }
+            return category.length() >= 2 && category.length() <= 100;
+        }
+
+        public boolean isValidStatus(String status) {
+            if (status == null) {
+                return false;
+            }
+            return status.length() <= 20 && (status.equals("Raktáron") || status.equals("Nincs raktáron") || status.equals("Nem elérhető"));
+        }
+
+        public boolean isValidIsActive(Boolean isActive) {
+            return isActive != null;
+        }
+
+        public boolean isValidStock(Integer stock) {
+            return stock != null && stock >= 0;
+        }
+    }//PartsAuth closer
 
     public static class userLogsAuth {
 
         public boolean isValidId(Integer id) {
-            return (id > 0 && id.toString().length() > 11);
+            return id != null && id > 0;
         }
 
         public boolean isValidUserId(Integer userId) {
-            return (userId > 0 && userId.toString().length() > 11);
+            return userId != null && userId > 0;
         }
 
         public boolean isValidAction(String action) {
-            return (action.length() > 255);
+            if (action == null) {
+                return false;
+            }
+            return action.length() >= 3 && action.length() <= 255;
         }
 
-        public boolean isValidDetail(String detail) {
-            return true; // ToDo: kitalálni ennek valami validationt
+        public boolean isValidDetail(String details) {
+            if (details == null || details.trim().isEmpty()) {
+                return true;
+            }
+            return details.length() <= 5000;
         }
-    }//User Logs Auth Class closer
-}//Auth Service Class closer
+    }//userLogs closer
 
+    public static class errorAuth {
+
+        /**
+         * Checks if given JSONArray has data and returns a Boolean
+         *
+         * @param errors The JSONArray that needs to be checked
+         * @return Boolean true or false based on if the errors JSONArray has
+         * data
+         */
+        public static boolean hasErrors(JSONArray errors) {
+            return errors.length() > 0;
+        }
+
+        /**
+         * Creates an JSONObject error response with the given JSONArray errors
+         * and status code
+         *
+         * @param errors The JSONArray that contains the errors
+         *
+         * @param statusCode An integer value with a given status code, see
+         * common error codes: 400 - Bad request (validation error / client
+         * sends wrong data) 401 - Unauthorised (Authentication error ex: Wrong
+         * password entered) 404 - Missing (ex:Couldnt find user with given
+         * data) 409 - Conflict (something is the same as in db ex: Email is
+         * same as in DB) 500 - Internal Server Error (Missing required data in
+         * DB ex: isDeleted == null)
+         *
+         * @return a JSONObject with the errors array, a status of "failed" and
+         * the given status code in this format: { "errors": [#errors#],
+         * "status": "failed", "statusCode": #Given status code# }
+         *
+         */
+        public static JSONObject createErrorResponse(JSONArray errors, int statusCode) {
+            JSONObject response = new JSONObject();
+            response.put("errors", errors);
+            response.put("status", "failed");
+            response.put("statusCode", statusCode);
+            return response;
+        }
+
+        /**
+         * Creates an JSONObject OK response with the given JSONObject result
+         * data
+         *
+         * @param result The JSONObject that contains the result data
+         *
+         * @return a JSONObject with the result JSONObject as a "result" a
+         * status of "success" and a "statusCode" of 200 in this format {
+         * "result": [ { #result data# } ], "status": "success", "statusCode":
+         * 200 }
+         */
+        public static JSONObject createOKResponse(JSONObject result) {
+            JSONObject response = new JSONObject();
+            response.put("result", result);
+            response.put("status", "success");
+            response.put("statusCode", 200);
+            return response;
+        }
+        
+        /**
+         * Creates an JSONObject OK response with the given JSONArray result
+         * data
+         *
+         * @param result The JSONArray that contains the result datas
+         *
+         * @return a JSONObject with the result JSONObject as a "result" a
+         * status of "success" and a "statusCode" of 200 in this format {
+         * "result": [ { #result data# } ], "status": "success", "statusCode":
+         * 200 }
+         */
+        public static JSONObject createOKResponse(JSONArray result) {
+            JSONObject response = new JSONObject();
+            response.put("result", result);
+            response.put("status", "success");
+            response.put("statusCode", 200);
+            return response;
+        }
+
+        /**
+         * Creates an OK response
+         *
+         * @return a JSONObject with a status of "success" and a "statusCode" of
+         * 200 in this format
+         *
+         * { "status": "success", "statusCode": 200 }
+         */
+        public static JSONObject createOKResponse() {
+            JSONObject response = new JSONObject();
+            response.put("status", "success");
+            response.put("statusCode", 200);
+            return response;
+        }
+
+    }//errorAuth closer
+}//AuthenticationService class closer

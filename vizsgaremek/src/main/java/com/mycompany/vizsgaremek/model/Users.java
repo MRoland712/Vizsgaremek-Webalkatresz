@@ -210,7 +210,8 @@ public class Users implements Serializable {
             Date lastLogin,
             Date createdAt,
             Date updatedAt,
-            Boolean isDeleted) {
+            Boolean isDeleted,
+            Boolean isSubscribed) {
         this.id = id;
         this.email = email;
         this.username = username;
@@ -224,6 +225,7 @@ public class Users implements Serializable {
         this.lastLogin = lastLogin;
         this.guid = guid;
         this.isDeleted = isDeleted;
+        this.isSubscribed = isSubscribed;
     }
 
     //getUserById && getUserByEmail
@@ -237,6 +239,7 @@ public class Users implements Serializable {
             String guid,
             String role,
             Boolean isActive,
+            Boolean isSubscribed,
             Date lastLogin,
             Date createdAt,
             Date updatedAt,
@@ -260,6 +263,7 @@ public class Users implements Serializable {
         this.authSecret = authSecret;
         this.guid = guid;
         this.registrationToken = registrationToken;
+        this.isSubscribed = isSubscribed;
     }
 
     public Integer getId() {
@@ -545,7 +549,8 @@ public class Users implements Serializable {
                         record[9] == null ? null : formatter.parse(record[9].toString()), // last_login
                         record[10] == null ? null : formatter.parse(record[10].toString()), // created_at
                         record[11] == null ? null : formatter.parse(record[11].toString()), // updated_at
-                        Boolean.valueOf(record[12].toString()) // is deleted
+                        Boolean.valueOf(record[12].toString()), // is_deleted
+                        Boolean.valueOf(record[13].toString()) // is_subscibed
                 );
                 toReturn.add(u);
 
@@ -593,13 +598,14 @@ public class Users implements Serializable {
                         record[6].toString(),// guid
                         record[7].toString(),// role
                         Boolean.valueOf(record[8].toString()),// isActive
-                        record[9] == null ? null : formatter.parse(record[9].toString()),// lastLogin
-                        record[10] == null ? null : formatter.parse(record[10].toString()),// createdAt
-                        record[11] == null ? null : formatter.parse(record[11].toString()),// updatedAt
-                        record[12].toString(),// password
-                        Boolean.valueOf(record[13].toString()),// isDeleted
-                        record[14].toString(),// authSecret
-                        record[15].toString()// registrationToken
+                        Boolean.valueOf(record[9].toString()), // isSubscibed
+                        record[10] == null ? null : formatter.parse(record[10].toString()),// lastLogin
+                        record[11] == null ? null : formatter.parse(record[11].toString()),// createdAt
+                        record[12] == null ? null : formatter.parse(record[12].toString()),// updatedAt
+                        record[13].toString(),// password
+                        Boolean.valueOf(record[14].toString()),// isDeleted
+                        record[15].toString(),// authSecret
+                        record[16].toString()// registrationToken
                 );
                 toReturn = u;
             }
@@ -633,7 +639,6 @@ public class Users implements Serializable {
             }
 
             Users toReturn = new Users();
-
             for (Object[] record : resultList) {
                 Users u = new Users(
                         Integer.valueOf(record[0].toString()),// id
@@ -645,13 +650,15 @@ public class Users implements Serializable {
                         record[6].toString(),// guid
                         record[7].toString(),// role
                         Boolean.valueOf(record[8].toString()),// isActive
-                        record[9] == null ? null : formatter.parse(record[9].toString()),// lastLogin
-                        record[10] == null ? null : formatter.parse(record[10].toString()),// createdAt
-                        record[11] == null ? null : formatter.parse(record[11].toString()),// updatedAt
-                        record[12].toString(),// password
-                        Boolean.valueOf(record[13].toString()),// isDeleted
-                        record[14].toString(),// authSecret
-                        record[15].toString()// registrationToken
+                        Boolean.valueOf(record[9].toString()), // isSubscibed
+                        record[10] == null ? null : formatter.parse(record[10].toString()),// lastLogin
+                        record[11] == null ? null : formatter.parse(record[11].toString()),// createdAt
+                        record[12] == null ? null : formatter.parse(record[12].toString()),// updatedAt
+                        record[13].toString(),// password
+                        Boolean.valueOf(record[14].toString()),// isDeleted
+                        record[15].toString(),// authSecret
+                        record[16].toString()// registrationToken
+
                 );
                 toReturn = u;
             }
@@ -712,6 +719,7 @@ public class Users implements Serializable {
             spq.registerStoredProcedureParameter("p_password", String.class, ParameterMode.IN);
             spq.registerStoredProcedureParameter("p_registration_token", String.class, ParameterMode.IN);
             spq.registerStoredProcedureParameter("p_auth_secret", String.class, ParameterMode.IN);
+            spq.registerStoredProcedureParameter("p_is_subscribed", Boolean.class, ParameterMode.IN);
 
             spq.setParameter("p_user_id", updatedUser.getId());
             spq.setParameter("p_email", updatedUser.getEmail());
@@ -724,6 +732,7 @@ public class Users implements Serializable {
             spq.setParameter("p_password", updatedUser.getPassword());
             spq.setParameter("p_registration_token", updatedUser.getRegistrationToken());
             spq.setParameter("p_auth_secret", updatedUser.getAuthSecret());
+            spq.setParameter("p_is_subscribed", updatedUser.getIsSubscribed());
 
             spq.execute();
 

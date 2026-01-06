@@ -11,6 +11,7 @@ import org.json.JSONArray;
 import org.json.JSONObject;
 import com.mycompany.vizsgaremek.config.Encrypt;
 import com.mycompany.vizsgaremek.config.JwtUtil;
+import com.mycompany.vizsgaremek.service.AuthenticationService;
 import java.util.Random;
 import java.util.UUID;
 
@@ -211,12 +212,12 @@ public class UsersService {
             actualUserObject.put("createdAt", actualUser.getCreatedAt() == null ? null : actualUser.getCreatedAt().toString());
             actualUserObject.put("updatedAt", actualUser.getUpdatedAt() == null ? null : actualUser.getUpdatedAt().toString());
             actualUserObject.put("isDeleted", actualUser.getIsDeleted());
+            actualUserObject.put("isSubscribed", actualUser.getIsSubscribed());
 
             result.put(actualUserObject);
         }
 
-        toReturn.put("result", result);
-        return errorAuth.createOKResponse(toReturn);
+        return errorAuth.createOKResponse(result);
 
     }
 
@@ -262,6 +263,7 @@ public class UsersService {
         result.put("lastName", modelResult.getLastName());
         result.put("phone", modelResult.getPhone());
         result.put("isActive", modelResult.getIsActive());
+        result.put("isSubscribed", modelResult.getIsSubscribed());
         result.put("role", modelResult.getRole());
         result.put("createdAt", modelResult.getCreatedAt() == null ? "" : modelResult.getCreatedAt().toString());
         result.put("updateAt", modelResult.getUpdatedAt() == null ? "" : modelResult.getUpdatedAt().toString());
@@ -270,11 +272,7 @@ public class UsersService {
         result.put("authSecret", modelResult.getAuthSecret());
         result.put("registrationToken", modelResult.getRegistrationToken());
 
-        toReturn.put("result", result);
-        toReturn.put("status", "success");
-        toReturn.put("statusCode", 200);
-        return toReturn;
-
+        return errorAuth.createOKResponse(result);
     }
 
     public JSONObject getUserByEmail(String email) {
@@ -298,7 +296,7 @@ public class UsersService {
 
         //get data from spq
         Users modelResult = Users.getUserByEmail(email);
-        System.out.println("getUserByEmail Modelresult " + modelResult);
+
         //if spq gives null data
         if (AuthenticationService.isDataMissing(modelResult)) {
             errors.put("UserNotFound");
@@ -319,6 +317,7 @@ public class UsersService {
         result.put("lastName", modelResult.getLastName());
         result.put("phone", modelResult.getPhone());
         result.put("isActive", modelResult.getIsActive());
+        result.put("isSubscribed", modelResult.getIsSubscribed());
         result.put("role", modelResult.getRole());
         result.put("createdAt", modelResult.getCreatedAt() == null ? "" : modelResult.getCreatedAt().toString());
         result.put("updateAt", modelResult.getUpdatedAt() == null ? "" : modelResult.getUpdatedAt().toString());
@@ -327,8 +326,7 @@ public class UsersService {
         result.put("authSecret", modelResult.getAuthSecret());
         result.put("registrationToken", modelResult.getRegistrationToken());
 
-        toReturn.put("result", result);
-        return errorAuth.createOKResponse(toReturn);
+        return errorAuth.createOKResponse(result);
 
     }
 
@@ -421,7 +419,8 @@ public class UsersService {
                 && AuthenticationService.isDataMissing(updatedUser.getIsActive())
                 && AuthenticationService.isDataMissing(updatedUser.getPassword())
                 && AuthenticationService.isDataMissing(updatedUser.getAuthSecret())
-                && AuthenticationService.isDataMissing(updatedUser.getRegistrationToken())) {
+                && AuthenticationService.isDataMissing(updatedUser.getRegistrationToken())
+                && AuthenticationService.isDataMissing(updatedUser.getIsSubscribed())) {
 
             errors.put("InvalidSearchParameter");
         }
@@ -516,6 +515,12 @@ public class UsersService {
             existingUser.setRegistrationToken(updatedUser.getRegistrationToken());
             updatedDatas.add("registration token");
         }
+        
+        //if isSubscribed is NOT missing AND IS VALID
+        if (!AuthenticationService.isDataMissing(updatedUser.getIsSubscribed()) && userAuth.isValidIsSubscribed(updatedUser.getIsSubscribed())) {
+            existingUser.setIsSubscribed(updatedUser.getIsSubscribed());
+            updatedDatas.add("is subscribed");
+        }
 
         //if username is NOT missing AND is NOT VALID
         if (!AuthenticationService.isDataMissing(updatedUser.getUsername()) && !userAuth.isValidUsername(updatedUser.getUsername())) {
@@ -540,6 +545,11 @@ public class UsersService {
         //if isActive is NOT missing AND is NOT VALID
         if (!AuthenticationService.isDataMissing(updatedUser.getIsActive()) && !userAuth.isValidIsActive(updatedUser.getIsActive())) {
             errors.put("InvalidIsActive");
+        }
+        
+        //if isSubscribed is NOT missing AND is NOT VALID
+        if (!AuthenticationService.isDataMissing(updatedUser.getIsSubscribed()) && !userAuth.isValidIsSubscribed(updatedUser.getIsSubscribed())) {
+            errors.put("InvalidIsSubscribed");
         }
 
         //if authSecret is NOT missing AND is NOT VALID
