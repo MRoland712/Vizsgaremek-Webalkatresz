@@ -681,9 +681,11 @@ public class UsersService {
         if (errorAuth.hasErrors(errors)) {
             return errorAuth.createErrorResponse(errors, 401);
         }
-
+        System.err.println("FUT");
         //get data from spq
         Boolean modelResult = Users.loginUser(userData);
+        
+        System.err.println("FUT TOVA");
 
         //if spq gives null data
         if (AuthenticationService.isDataMissing(modelResult)) {

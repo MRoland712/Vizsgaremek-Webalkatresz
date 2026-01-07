@@ -13,17 +13,21 @@ import java.util.Date;
  */
 public class OTPVerifyer {
 
-    private static final long OTP_VALIDITY = 10 * 60 * 1000;
+    private static final long OTP_VALIDITY = 10 * 60 * 1000; // 10perc
     
     public static boolean verifyOTP(Users userData, Integer otpCodeInp) {
         
         System.out.println("verifyOTP: "+ userData.getAuthSecret() + " | " + otpCodeInp);
         
-        if (!otpCodeInp.equals(userData.getAuthSecret())) {
+        if (otpCodeInp.equals(userData.getAuthSecret())) {
             return false;
         }
 
         Date otpGeneratedAt = userData.getLastLogin(); // Timestamp vagy Date
+        
+        if (otpGeneratedAt == null) {
+            otpGeneratedAt = userData.getUpdatedAt(); // failsafe ha a LastLogin null
+        }
         
         Date now = new Date();
 

@@ -754,25 +754,18 @@ public class Users implements Serializable {
 
     public static Boolean loginUser(Users userData) {
         EntityManager em = emf.createEntityManager();
-        EntityTransaction tr = em.getTransaction();
         try {
-            tr.begin();
 
             StoredProcedureQuery spq = em.createStoredProcedureQuery("user_login");
 
             spq.registerStoredProcedureParameter("p_email", String.class, ParameterMode.IN);
 
-            spq.setParameter("P_email", userData.getEmail());
+            spq.setParameter("p_email", userData.getEmail());
 
             spq.execute();
 
-            tr.commit();
-
             return true;
         } catch (Exception ex) {
-            if (tr.isActive()) {
-                tr.rollback();
-            }
             ex.printStackTrace();
             return false;
         } finally {

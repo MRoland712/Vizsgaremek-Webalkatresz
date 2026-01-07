@@ -2,9 +2,12 @@ com\mycompany\vizsgaremek\config\SendEmail$1.class
 com\mycompany\vizsgaremek\config\JwtUtil.class
 com\mycompany\vizsgaremek\controller\SendEmailController.class
 com\mycompany\vizsgaremek\model\Payments.class
+com\mycompany\vizsgaremek\model\Cars.class
+com\mycompany\vizsgaremek\service\PartsService.class
 com\mycompany\vizsgaremek\service\AuthenticationService.class
 com\mycompany\vizsgaremek\model\Warehouses.class
 com\mycompany\vizsgaremek\model\LoginLogs.class
+com\mycompany\vizsgaremek\model\Motors.class
 com\mycompany\vizsgaremek\model\PartVariants.class
 com\mycompany\vizsgaremek\model\Sessions.class
 com\mycompany\vizsgaremek\model\Users.class
@@ -23,6 +26,7 @@ com\mycompany\vizsgaremek\config\SendEmail.class
 com\mycompany\vizsgaremek\service\AuthenticationService$userLogsAuth.class
 com\mycompany\vizsgaremek\config\KvFetcher.class
 com\mycompany\vizsgaremek\config\CorsFilter.class
+com\mycompany\vizsgaremek\controller\PartsController.class
 com\mycompany\vizsgaremek\controller\UserLogsController.class
 com\mycompany\vizsgaremek\model\CartItems.class
 com\mycompany\vizsgaremek\service\UserLogsService.class
@@ -30,6 +34,7 @@ com\mycompany\vizsgaremek\model\UserTwofa.class
 com\mycompany\vizsgaremek\model\Reviews.class
 com\mycompany\vizsgaremek\model\ShippingMethods.class
 com\mycompany\vizsgaremek\service\AuthenticationService$userAuth.class
+com\mycompany\vizsgaremek\model\Trucks.class
 com\mycompany\vizsgaremek\service\UsersService.class
 com\mycompany\vizsgaremek\config\base64Converters.class
 com\mycompany\vizsgaremek\model\Refunds.class
@@ -42,6 +47,7 @@ com\mycompany\vizsgaremek\model\OrderItems.class
 com\mycompany\vizsgaremek\config\OTPVerifyer.class
 com\mycompany\vizsgaremek\model\OrderLogs.class
 com\mycompany\vizsgaremek\controller\UsersController.class
+com\mycompany\vizsgaremek\service\AuthenticationService$partsAuth.class
 com\mycompany\vizsgaremek\controller\OTPController.class
 com\mycompany\vizsgaremek\config\Encrypt.class
 com\mycompany\vizsgaremek\model\Addresses.class
