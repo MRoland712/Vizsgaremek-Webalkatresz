@@ -26,7 +26,7 @@ import org.json.JSONObject;
  *
  * @author neblg
  */
-@Path("PartVariants")
+@Path("partVariants")
 public class PartVariantsController {
 
     @Context
@@ -98,7 +98,7 @@ public class PartVariantsController {
     @GET
     @Path("getPartVariantsById")
     @Consumes(MediaType.APPLICATION_JSON)
-    public Response getPartsById(@QueryParam("id") Integer Id) {
+    public Response getPartVariantsById(@QueryParam("id") Integer Id) {
         PartVariantsService partsVariantsService = new PartVariantsService();
         
         JSONObject toReturn = partsVariantsService.getPartVariantsById(Id);
@@ -121,4 +121,73 @@ public class PartVariantsController {
                 .type(MediaType.APPLICATION_JSON)
                 .build();
     }
+    
+    @PUT
+    @Path("updatePartVariants")
+    @Consumes(MediaType.APPLICATION_JSON)
+    public Response updatePartVariants(
+            @QueryParam("id") Integer partVariantsId,
+            String body) {
+
+        JSONObject bodyObject = new JSONObject(body);
+
+        PartVariants updatedPartVariants = new PartVariants();
+
+        if (partVariantsId != null) {
+            updatedPartVariants.setId(partVariantsId);
+        }
+
+
+        if (bodyObject.has("name")) {
+            updatedPartVariants.setName(bodyObject.getString("name"));
+        }
+
+        if (bodyObject.has("value")) {
+            updatedPartVariants.setValue(bodyObject.getString("value"));
+        }
+
+        if (bodyObject.has("additionalPrice")) {
+            updatedPartVariants.setAdditionalPrice(bodyObject.getBigDecimal("additionalPrice"));
+        }
+        
+        if (bodyObject.has("isDeleted")) {
+            updatedPartVariants.setIsDeleted(bodyObject.getBoolean("isDeleted"));
+        }
+
+        JSONObject toReturn = layer.updatePartVariants(updatedPartVariants);
+
+        return Response.status(Integer.parseInt(toReturn.get("statusCode").toString()))
+                .entity(toReturn.toString())
+                .type(MediaType.APPLICATION_JSON)
+                .build();
+    }
+    
+    @GET
+    @Path("getPartVariantsByName")
+    @Consumes(MediaType.APPLICATION_JSON)
+    public Response getPartVariantsByName(@QueryParam("name") String name) {
+        PartVariantsService partsVariantsService = new PartVariantsService();
+        
+        JSONObject toReturn = partsVariantsService.getPartVariantsByName(name);
+
+        return Response.status(Integer.parseInt(toReturn.get("statusCode").toString()))
+                .entity(toReturn.toString())
+                .type(MediaType.APPLICATION_JSON)
+                .build();
+    }
+    
+    @GET
+    @Path("getPartVariantsByValue")
+    @Consumes(MediaType.APPLICATION_JSON)
+    public Response getPartVariantsByValue(@QueryParam("value") String value) {
+        PartVariantsService partsVariantsService = new PartVariantsService();
+        
+        JSONObject toReturn = partsVariantsService.getPartVariantsByValue(value);
+
+        return Response.status(Integer.parseInt(toReturn.get("statusCode").toString()))
+                .entity(toReturn.toString())
+                .type(MediaType.APPLICATION_JSON)
+                .build();
+    }
+    
 }

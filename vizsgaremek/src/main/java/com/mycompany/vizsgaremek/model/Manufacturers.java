@@ -320,7 +320,6 @@ public class Manufacturers implements Serializable {
     }
     
     
-    //Hiba
     public static Boolean updateManufacturers(Manufacturers updatedManufacturers) {
         EntityManager em = emf.createEntityManager();
 

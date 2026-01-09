@@ -163,7 +163,6 @@ public class Addresses implements Serializable {
     }
     
     //updateAddress
-
     public Addresses(Integer id, Users userId,  String firstName, String lastName, String company, String taxNumber, String country, String city, String zipCode, String street, Boolean isDefault, Boolean isDeleted) {
         this.id = id;
         this.userId = userId;

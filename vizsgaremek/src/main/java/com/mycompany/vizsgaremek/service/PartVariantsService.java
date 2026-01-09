@@ -15,10 +15,10 @@ import org.json.JSONObject;
  * @author neblg
  */
 public class PartVariantsService {
-    
+
     private final AuthenticationService.partvariantsAuth partvariantsAuth = new AuthenticationService.partvariantsAuth();
     private final AuthenticationService.errorAuth errorAuth = new AuthenticationService.errorAuth();
-    
+
     public JSONObject createPartVariants(PartVariants createPartVariants) {
         JSONObject toReturn = new JSONObject();
         JSONArray errors = new JSONArray();
@@ -34,8 +34,7 @@ public class PartVariantsService {
             errors.put("MissingValue");
         }
 
-        
-        if (partvariantsAuth.isDataMissing(createPartVariants.getAdditionalPrice())) {  
+        if (partvariantsAuth.isDataMissing(createPartVariants.getAdditionalPrice())) {
             errors.put("MissingPrice");
         }
 
@@ -59,13 +58,13 @@ public class PartVariantsService {
         /*if (!partsAuth.isDataMissing(createParts.getStock()) && !partsAuth.isValidStock(createParts.getStock())) {
             errors.put("InvalidCategory");
         }*/
-        
+
         if (errorAuth.hasErrors(errors)) {
             return errorAuth.createErrorResponse(errors, 400);
         }
 
         // MODEL HÍVÁS
-        if (PartVariants.createPartVariants(createPartVariants)) { 
+        if (PartVariants.createPartVariants(createPartVariants)) {
             toReturn.put("message", "PartVariant Created Successfully");
             toReturn.put("statusCode", 200);
             toReturn.put("success", true);
@@ -78,7 +77,7 @@ public class PartVariantsService {
             return error;
         }
     } // createParts Closer
-    
+
     public JSONObject getAllPartVariants() {
         JSONObject toReturn = new JSONObject();
         JSONArray errors = new JSONArray();
@@ -114,7 +113,7 @@ public class PartVariantsService {
 
         return toReturn;
     }//getAllPartVariants
-    
+
     public JSONObject getPartVariantsById(Integer id) {
         JSONObject toReturn = new JSONObject();
         JSONArray errors = new JSONArray();
@@ -144,12 +143,12 @@ public class PartVariantsService {
         partVariantObj.put("createdAt", partvariant.getCreatedAt());
 
         toReturn.put("success", true);
-        toReturn.put("parts", partVariantObj);
+        toReturn.put("partsVariants", partVariantObj);
         toReturn.put("statusCode", 200);
 
         return toReturn;
     }//getPartVariantsById
-    
+
     public JSONObject softDeletePartVariants(Integer id) {
         JSONObject toReturn = new JSONObject();
         JSONArray errors = new JSONArray();
@@ -174,7 +173,7 @@ public class PartVariantsService {
 
         //if spq gives null data
         if (modelResult == null) {
-            errors.put("PartsNotFound");
+            errors.put("PartVariantsNotFound");
         }
 
         //if parts not found
@@ -183,7 +182,7 @@ public class PartVariantsService {
         }
 
         if (modelResult.getIsDeleted() == true) {
-            errors.put("PartsIsSoftDeleted");
+            errors.put("PartVariantIsSoftDeleted");
         }
 
         //if parts is soft deleted
@@ -204,8 +203,181 @@ public class PartVariantsService {
 
         toReturn.put("status", "success");
         toReturn.put("statusCode", 200);
-        toReturn.put("Message", "Deleted Parts Succesfully");
+        toReturn.put("Message", "Deleted partVariants Succesfully");
         return toReturn;
     }//softDeletePartVariants
+
+    public JSONObject updatePartVariants(PartVariants updatedPartVariants) {
+        JSONObject toReturn = new JSONObject();
+        JSONArray errors = new JSONArray();
+
+        // VALIDÁCIÓK KERESÉSI PARAMÉTEREK 
+        // Ha nincs SEMMILYEN keresési paraméter (id)
+        if (partvariantsAuth.isDataMissing(updatedPartVariants.getId())){
+            errors.put("MissingSearchParameter");
+        }
+
+        // Ha partVariantsId mint keresési paraméter NEM hiányzik ÉS ÉRVÉNYTELEN
+        if (!partvariantsAuth.isDataMissing(updatedPartVariants.getId())
+                && !partvariantsAuth.isValidId(updatedPartVariants.getId())) {
+            errors.put("InvalidId");
+        }
+
+        // Hiba ellenőrzés - keresési paraméterek
+        if (errorAuth.hasErrors(errors)) {
+            return errorAuth.createErrorResponse(errors, 400);
+        }
+
+        // CÍM LEKÉRDEZÉSE 
+        PartVariants existingPartVariants = null;
+
+        // ID alapján keresés
+        if (!partvariantsAuth.isDataMissing(updatedPartVariants.getId())) {
+            existingPartVariants = PartVariants.getPartVariantsById(updatedPartVariants.getId());
+
+        }
+
+        // Ha nem található a cím
+        if (partvariantsAuth.isDataMissing(existingPartVariants)) {
+            errors.put("PartsNotFound");
+            return errorAuth.createErrorResponse(errors, 404);
+        }
+
+        //  MEZŐK MÓDOSÍTÁSA (csak a megadottak!)
+        // name - CSAK ha meg van adva!
+        if (!partvariantsAuth.isDataMissing(updatedPartVariants.getName())) {
+            if (partvariantsAuth.isValidName(updatedPartVariants.getName())) {
+                existingPartVariants.setName(updatedPartVariants.getName());
+            } else {
+                errors.put("InvalidName");
+            }
+        }
+
+        // value CSAK ha meg van adva!
+        if (!partvariantsAuth.isDataMissing(updatedPartVariants.getValue())) {
+            if (partvariantsAuth.isValidValue(updatedPartVariants.getValue())) {
+                existingPartVariants.setValue(updatedPartVariants.getValue());
+            } else {
+                errors.put("InvalidValue");
+            }
+        }
+
+        // additionalPrice CSAK ha meg van adva!
+        if (!partvariantsAuth.isDataMissing(updatedPartVariants.getAdditionalPrice())) {
+            if (partvariantsAuth.isValidAdditionalPrice(updatedPartVariants.getAdditionalPrice())) {
+                existingPartVariants.setAdditionalPrice(updatedPartVariants.getAdditionalPrice());
+            } else {
+                errors.put("InvalidAdditionalPrice");
+            }
+        }
+
+        /*
+        // isDeleted CSAK ha meg van adva!
+        if (!partsAuth.isDataMissing(updatedParts.getIsDeleted())) {
+            if (partsAuth.isValidIsDeleted(updatedParts.getIsDeleted())) {
+                existingParts.setIsDeleted(updatedParts.getIsDeleted());
+            } else {
+                errors.put("InvalidIsDefault");
+            }
+        }*/
+        // Hiba ellenőrzés validációk
+        if (errorAuth.hasErrors(errors)) {
+            return errorAuth.createErrorResponse(errors, 400);
+        }
+
+        // ADATBÁZIS UPDATE 
+        try {
+            Boolean result = PartVariants.updatePartVariants(existingPartVariants);
+
+            if (!result) {
+                errors.put("ServerError");
+            }
+
+        } catch (Exception ex) {
+            errors.put("DatabaseError");
+            ex.printStackTrace();
+        }
+
+        if (errorAuth.hasErrors(errors)) {
+            return errorAuth.createErrorResponse(errors, 500);
+        }
+
+        // SIKERES VÁLASZ 
+        toReturn.put("success", true);
+        toReturn.put("message", "PartVariants updated successfully");
+        toReturn.put("statusCode", 200);
+
+        return toReturn;
+    }//updateParts
+    
+    public JSONObject getPartVariantsByName(String name) {
+        JSONObject toReturn = new JSONObject();
+        JSONArray errors = new JSONArray();
+
+        if (partvariantsAuth.isDataMissing(name)) {
+            errors.put("MissingName");
+        }
+
+        // If modelexeption
+        if (errorAuth.hasErrors(errors)) {
+            return errorAuth.createErrorResponse(errors, 400);
+        }
+
+        PartVariants partvariant = PartVariants.getPartVariantsByName(name);
+
+        if (partvariantsAuth.isDataMissing(partvariant)) {
+            errors.put("PartVariantsNotFound");
+            return errorAuth.createErrorResponse(errors, 404);
+        }
+
+        JSONObject partVariantObj = new JSONObject();
+        partVariantObj.put("id", partvariant.getId());
+        partVariantObj.put("partId", partvariant.getPartId().getId());
+        partVariantObj.put("name", partvariant.getName());
+        partVariantObj.put("value", partvariant.getValue());
+        partVariantObj.put("additionalPrice", partvariant.getAdditionalPrice());
+        partVariantObj.put("createdAt", partvariant.getCreatedAt());
+
+        toReturn.put("success", true);
+        toReturn.put("partsVariants", partVariantObj);
+        toReturn.put("statusCode", 200);
+
+        return toReturn;
+    }//getPartVariantsByName
+    
+    public JSONObject getPartVariantsByValue(String value) {
+        JSONObject toReturn = new JSONObject();
+        JSONArray errors = new JSONArray();
+
+        if (partvariantsAuth.isDataMissing(value)) {
+            errors.put("MissingValue");
+        }
+
+        // If modelexeption
+        if (errorAuth.hasErrors(errors)) {
+            return errorAuth.createErrorResponse(errors, 400);
+        }
+
+        PartVariants partvariant = PartVariants.getPartVariantsByValue(value);
+
+        if (partvariantsAuth.isDataMissing(partvariant)) {
+            errors.put("PartVariantsNotFound");
+            return errorAuth.createErrorResponse(errors, 404);
+        }
+
+        JSONObject partVariantObj = new JSONObject();
+        partVariantObj.put("id", partvariant.getId());
+        partVariantObj.put("partId", partvariant.getPartId().getId());
+        partVariantObj.put("name", partvariant.getName());
+        partVariantObj.put("value", partvariant.getValue());
+        partVariantObj.put("additionalPrice", partvariant.getAdditionalPrice());
+        partVariantObj.put("createdAt", partvariant.getCreatedAt());
+
+        toReturn.put("success", true);
+        toReturn.put("partsVariants", partVariantObj);
+        toReturn.put("statusCode", 200);
+
+        return toReturn;
+    }//getPartVariantsByValue
 
 }

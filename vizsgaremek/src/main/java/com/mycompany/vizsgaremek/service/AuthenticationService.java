@@ -474,14 +474,13 @@ public class AuthenticationService {
         }
         
         //Integer
-        public boolean isValidStock(String stock){
-            return stock.length() <= 50;
+        public boolean isValidStock(Integer stock){
+            return stock > 0 && stock.toString().length() <= 11;
         }
         
         public boolean isValidStatus(String status){
             return status.length() <= 50;
         }
-        
         
         // we will have to talk about this
         public boolean isValidActive(Boolean isActive) {

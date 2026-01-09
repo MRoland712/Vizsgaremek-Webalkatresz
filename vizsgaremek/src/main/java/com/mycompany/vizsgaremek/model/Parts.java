@@ -169,7 +169,22 @@ public class Parts implements Serializable {
     public Parts(String category) {
         this.category = category;
     }
-
+    
+    //updateParts
+    public Parts(Integer id, String sku, String name, String category, BigDecimal price, Integer stock, String status, Boolean isActive, Date updatedAt, Manufacturers manufacturerId) {
+        this.id = id;
+        this.sku = sku;
+        this.name = name;
+        this.category = category;
+        this.price = price;
+        this.stock = stock;
+        this.status = status;
+        this.isActive = isActive;
+        this.updatedAt = updatedAt;
+        this.manufacturerId = manufacturerId;
+    }
+    
+    
     public Integer getId() {
         return id;
     }
@@ -463,7 +478,7 @@ public class Parts implements Serializable {
             Manufacturers manufacturer = new Manufacturers();
             manufacturer.setId(Integer.valueOf(record[1].toString()));
 
-            // Addresses objektum létrehozása
+            // Parts objektum létrehozása
             Parts p = new Parts(
                     Integer.valueOf(record[0].toString()), // 1. id
                     record[2] != null ? record[2].toString() : null, // 2. sku
@@ -507,7 +522,7 @@ public class Parts implements Serializable {
             Manufacturers manufacturer = new Manufacturers();
             manufacturer.setId(Integer.valueOf(record[1].toString()));
 
-            // Addresses objektum létrehozása
+            // Parts objektum létrehozása
             Parts p = new Parts(
                     Integer.valueOf(record[0].toString()), // 1. id
                     record[2] != null ? record[2].toString() : null, // 2. sku
@@ -580,6 +595,99 @@ public class Parts implements Serializable {
             ex.printStackTrace();
             return null;
 
+        } finally {
+            em.close();
+        }
+    }
+    
+    public static Boolean updateParts(Parts updatedParts) {
+        EntityManager em = emf.createEntityManager();
+
+        try {
+            em.getTransaction().begin();
+            StoredProcedureQuery spq = em.createStoredProcedureQuery("updateParts");
+            
+            //Integer id, String sku, String name, String category, BigDecimal price, Integer stock, String status, Boolean isActive, Boolean isDeleted
+            
+            spq.registerStoredProcedureParameter("p_parts_id", Integer.class, ParameterMode.IN);
+            spq.registerStoredProcedureParameter("p_manufacturers_id", Integer.class, ParameterMode.IN);
+            spq.registerStoredProcedureParameter("p_sku", String.class, ParameterMode.IN);
+            spq.registerStoredProcedureParameter("p_name", String.class, ParameterMode.IN);
+            spq.registerStoredProcedureParameter("p_category", String.class, ParameterMode.IN);
+            spq.registerStoredProcedureParameter("p_price", BigDecimal.class, ParameterMode.IN);
+            spq.registerStoredProcedureParameter("p_stock", Integer.class, ParameterMode.IN);
+            spq.registerStoredProcedureParameter("p_status", String.class, ParameterMode.IN);
+            spq.registerStoredProcedureParameter("p_is_active", Integer.class, ParameterMode.IN);
+            spq.registerStoredProcedureParameter("p_is_deleted", Integer.class, ParameterMode.IN);
+            
+            spq.setParameter("p_parts_id", updatedParts.getId());
+            spq.setParameter("p_manufacturers_id", updatedParts.getManufacturerId().getId());
+            spq.setParameter("p_sku", updatedParts.getSku());
+            spq.setParameter("p_name", updatedParts.getName());
+            spq.setParameter("p_category", updatedParts.getCategory());
+            spq.setParameter("p_price", updatedParts.getPrice());
+            spq.setParameter("p_stock", updatedParts.getStock());
+            spq.setParameter("p_status", updatedParts.getStatus());
+            spq.setParameter("p_is_active", Boolean.TRUE.equals(updatedParts.getIsActive()) ? 1 : 0);
+            spq.setParameter("p_is_deleted", Boolean.TRUE.equals(updatedParts.getIsDeleted()) ? 1 : 0);
+
+            spq.execute();
+
+            em.getTransaction().commit();
+
+            return true;
+
+        } catch (Exception ex) {
+            if (em.getTransaction().isActive()) {
+                em.getTransaction().rollback(); // Ha hiba van, rollback
+            }
+            ex.printStackTrace();
+            return false;
+        } finally {
+            em.clear();
+            em.close();
+        }
+    }
+    
+    public static Parts getPartsBySku(String sku) {
+        EntityManager em = emf.createEntityManager();
+        try {
+            StoredProcedureQuery spq = em.createStoredProcedureQuery("getPartsBySku");
+            spq.registerStoredProcedureParameter("p_sku", String.class, ParameterMode.IN);
+            spq.setParameter("p_sku", sku);
+            spq.execute();
+
+            List<Object[]> resultList = spq.getResultList();
+
+            // Csak EGY rekord van (getBySku)
+            Object[] record = resultList.get(0);
+
+            // Manufactuer objektum létrehozása
+            Manufacturers manufacturer = new Manufacturers();
+            manufacturer.setId(Integer.valueOf(record[1].toString()));
+
+            // Parts objektum létrehozása
+            Parts p = new Parts(
+                    Integer.valueOf(record[0].toString()), // 1. id
+                    record[2] != null ? record[2].toString() : null, // 2. sku
+                    record[3] != null ? record[3].toString() : null, // 3. name
+                    record[4] != null ? record[4].toString() : null, // 4. category 
+                    record[5] != null ? new BigDecimal(record[5].toString()) : null, // 5. price 
+                    record[6] != null ? Integer.valueOf(record[6].toString()) : null, // 6. stock 
+                    record[7] != null ? record[7].toString() : null, // 7. status
+                    Boolean.valueOf(record[8].toString()), // 8. isActive
+                    record[9] == null ? null : formatter.parse(record[9].toString()), // 9. createdAt
+                    record[10] == null ? null : formatter.parse(record[10].toString()), // 10. updatedAt
+                    record[11] == null ? null : formatter.parse(record[11].toString()), // 11. deletedAt
+                    Boolean.FALSE, // 12. isDeleted
+                    manufacturer // 13. manufacturerId
+            );
+
+            return p;
+
+        } catch (Exception ex) {
+            ex.printStackTrace();
+            return null;
         } finally {
             em.close();
         }

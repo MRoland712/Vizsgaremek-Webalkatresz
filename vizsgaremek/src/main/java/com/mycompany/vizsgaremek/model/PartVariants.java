@@ -306,7 +306,7 @@ public class PartVariants implements Serializable {
         try {
             em.getTransaction().begin();
 
-            StoredProcedureQuery spq = em.createStoredProcedureQuery("softDeleteParts");
+            StoredProcedureQuery spq = em.createStoredProcedureQuery("softDeletePartVariants");
             spq.registerStoredProcedureParameter("partVaraintsId", Integer.class, ParameterMode.IN);
             spq.setParameter("partVaraintsId", id);
 
@@ -321,6 +321,117 @@ public class PartVariants implements Serializable {
             return false;
         } finally {
             em.clear();
+            em.close();
+        }
+    }
+    
+    public static Boolean updatePartVariants (PartVariants updatedPartVariants) {
+        EntityManager em = emf.createEntityManager();
+
+        try {
+            em.getTransaction().begin();
+            StoredProcedureQuery spq = em.createStoredProcedureQuery("updatePartVariants");
+            
+            spq.registerStoredProcedureParameter("idIN", Integer.class, ParameterMode.IN);
+            spq.registerStoredProcedureParameter("partIdIN", Integer.class, ParameterMode.IN);
+            spq.registerStoredProcedureParameter("nameIN", String.class, ParameterMode.IN);
+            spq.registerStoredProcedureParameter("valueIN", String.class, ParameterMode.IN);
+            spq.registerStoredProcedureParameter("additionalPriceIN", BigDecimal.class, ParameterMode.IN);
+            spq.registerStoredProcedureParameter("isDeletedIN", Integer.class, ParameterMode.IN);
+
+            spq.setParameter("idIN", updatedPartVariants.getId());
+            spq.setParameter("partIdIN", updatedPartVariants.getPartId().getId());
+            spq.setParameter("nameIN", updatedPartVariants.getName());
+            spq.setParameter("valueIN", updatedPartVariants.getValue());
+            spq.setParameter("additionalPriceIN", updatedPartVariants.getAdditionalPrice());
+            spq.setParameter("isDeletedIN", Boolean.TRUE.equals(updatedPartVariants.getIsDeleted()) ? 1 : 0);
+
+            spq.execute();
+
+            em.getTransaction().commit();
+
+            return true;
+
+        } catch (Exception ex) {
+            if (em.getTransaction().isActive()) {
+                em.getTransaction().rollback(); // Ha hiba van, rollback
+            }
+            ex.printStackTrace();
+            return false;
+        } finally {
+            em.clear();
+            em.close();
+        }
+    }
+    
+    public static PartVariants getPartVariantsByName(String name) {
+        EntityManager em = emf.createEntityManager();
+        try {
+            StoredProcedureQuery spq = em.createStoredProcedureQuery("getPartVariantsByName");
+            spq.registerStoredProcedureParameter("partVariantsName", String.class, ParameterMode.IN);
+            spq.setParameter("partVariantsName", name);
+            spq.execute();
+
+            List<Object[]> resultList = spq.getResultList();
+
+            Object[] record = resultList.get(0);
+
+            Parts part = new Parts();
+            part.setId(Integer.valueOf(record[1].toString()));
+
+            PartVariants pv = new PartVariants(
+                    Integer.valueOf(record[0].toString()), // 1. id
+                    record[2] != null ? record[2].toString() : null, // 2. name
+                    record[3] != null ? record[3].toString() : null, // 3. value
+                    record[4] != null ? new BigDecimal(record[4].toString()) : null, // 4. additionalPrice 
+                    record[5] == null ? null : formatter.parse(record[5].toString()), //  createdAt
+                    Boolean.valueOf(record[6].toString()),
+                    record[7] == null ? null : formatter.parse(record[6].toString()), //  deletedAt
+                    part //  partId
+            );
+
+            return pv;
+
+        } catch (Exception ex) {
+            ex.printStackTrace();
+            return null;
+        } finally {
+            em.close();
+        }
+    }
+    
+    public static PartVariants getPartVariantsByValue(String value) {
+        EntityManager em = emf.createEntityManager();
+        try {
+            StoredProcedureQuery spq = em.createStoredProcedureQuery("getPartVariantsByValue");
+            spq.registerStoredProcedureParameter("partVariantsValue", String.class, ParameterMode.IN);
+            spq.setParameter("partVariantsValue", value);
+            spq.execute();
+
+            List<Object[]> resultList = spq.getResultList();
+
+            Object[] record = resultList.get(0);
+
+            Parts part = new Parts();
+            part.setId(Integer.valueOf(record[1].toString()));
+
+            PartVariants pv = new PartVariants(
+                    Integer.valueOf(record[0].toString()), // 1. id
+                    record[2] != null ? record[2].toString() : null, // 2. name
+                    record[3] != null ? record[3].toString() : null, // 3. value
+                    record[4] != null ? new BigDecimal(record[4].toString()) : null, // 4. additionalPrice 
+                    record[5] == null ? null : formatter.parse(record[5].toString()), //  createdAt
+                    Boolean.valueOf(record[6].toString()),
+                    record[7] == null ? null : formatter.parse(record[6].toString()), //  deletedAt
+                    part //  partId
+            );
+
+            return pv;
+
+        } catch (Exception ex) {
+            ex.printStackTrace();
+            return null;
+        } finally {
             em.close();
         }
     }

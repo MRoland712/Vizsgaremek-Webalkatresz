@@ -39,11 +39,10 @@ public class PartsService {
             errors.put("MissingCategory");
         }
 
-        
-        if (partsAuth.isDataMissing(createParts.getPrice())) {  
+        if (partsAuth.isDataMissing(createParts.getPrice())) {
             errors.put("MissingPrice");
         }
-        
+
         if (partsAuth.isDataMissing(createParts.getStock())) {
             errors.put("MissingStock");
         }
@@ -183,7 +182,7 @@ public class PartsService {
 
         return toReturn;
     }//getPartsById
-    
+
     public JSONObject getPartsByManufacturerId(Integer id) {
         JSONObject toReturn = new JSONObject();
         JSONArray errors = new JSONArray();
@@ -223,7 +222,7 @@ public class PartsService {
 
         return toReturn;
     }//getPartsByManufacturerId
-    
+
     public JSONObject softDeleteParts(Integer id) {
         JSONObject toReturn = new JSONObject();
         JSONArray errors = new JSONArray();
@@ -281,32 +280,214 @@ public class PartsService {
         toReturn.put("Message", "Deleted Parts Succesfully");
         return toReturn;
     }
-    
+
     public JSONObject getPartsByCategory() {
-    JSONObject toReturn = new JSONObject();
-    JSONArray errors = new JSONArray();
+        JSONObject toReturn = new JSONObject();
+        JSONArray errors = new JSONArray();
+
+        // MODEL HÍVÁS (ArrayList<String>!)
+        ArrayList<String> modelResult = Parts.getPartsByCategory();
+
+        // VALIDÁCIÓ
+        if (modelResult == null || modelResult.isEmpty()) {
+            errors.put("NoCategoriesFound");
+            return errorAuth.createErrorResponse(errors, 404);
+        }
+
+        // ArrayList<String> → JSONArray konverzió
+        JSONArray categoryArray = new JSONArray();
+        for (String category : modelResult) {
+            categoryArray.put(category);
+        }
+
+        toReturn.put("success", true);
+        toReturn.put("categories", categoryArray);
+        toReturn.put("count", modelResult.size());
+        toReturn.put("statusCode", 200);
+
+        return toReturn;
+    }//softDelete
     
-    // MODEL HÍVÁS (ArrayList<String>!)
-    ArrayList<String> modelResult = Parts.getPartsByCategory();
+    public JSONObject updateParts(Parts updatedParts) {
+        JSONObject toReturn = new JSONObject();
+        JSONArray errors = new JSONArray();
+
+        // VALIDÁCIÓK KERESÉSI PARAMÉTEREK 
+        // Ha nincs SEMMILYEN keresési paraméter (id VAGY userId)
+        if (partsAuth.isDataMissing(updatedParts.getId())
+                && partsAuth.isDataMissing(updatedParts.getSku())) {
+            errors.put("MissingSearchParameter");
+        }
+
+        // Ha partsId mint keresési paraméter NEM hiányzik ÉS ÉRVÉNYTELEN
+        if (!partsAuth.isDataMissing(updatedParts.getId())
+                && !partsAuth.isValidId(updatedParts.getId())) {
+            errors.put("InvalidId");
+        }
+
+        // Ha sku mint keresési paraméter NEM hiányzik ÉS ÉRVÉNYTELEN
+        if (!partsAuth.isDataMissing(updatedParts.getSku())
+                && !partsAuth.isDataMissing(updatedParts.getSku())
+                && !partsAuth.isValidSku(updatedParts.getSku())) {
+            errors.put("InvalidSku");
+        }
+
+        // Hiba ellenőrzés - keresési paraméterek
+        if (errorAuth.hasErrors(errors)) {
+            return errorAuth.createErrorResponse(errors, 400);
+        }
+
+        // CÍM LEKÉRDEZÉSE 
+        Parts existingParts = null;
+
+        // ID alapján keresés
+        if (!partsAuth.isDataMissing(updatedParts.getId())) {
+            existingParts = Parts.getPartsById(updatedParts.getId());
+
+        } else if (!partsAuth.isDataMissing(updatedParts.getSku())
+                && !partsAuth.isDataMissing(updatedParts.getSku())) {
+            // Sku alapján keresés
+            existingParts = Parts.getPartsBySku(updatedParts.getSku());
+        }
+
+        // Ha nem található a cím
+        if (partsAuth.isDataMissing(existingParts)) {
+            errors.put("PartsNotFound");
+            return errorAuth.createErrorResponse(errors, 404);
+        }
+
+        //  MEZŐK MÓDOSÍTÁSA (csak a megadottak!)
+        // name - CSAK ha meg van adva!
+        if (!partsAuth.isDataMissing(updatedParts.getName())) {
+            if (partsAuth.isValidName(updatedParts.getName())) {
+                existingParts.setName(updatedParts.getName());
+            } else {
+                errors.put("InvalidName");
+            }
+        }
+
+        // category CSAK ha meg van adva!
+        if (!partsAuth.isDataMissing(updatedParts.getCategory())) {
+            if (partsAuth.isValidCategory(updatedParts.getCategory())) {
+                existingParts.setCategory(updatedParts.getCategory());
+            } else {
+                errors.put("InvalidCategory");
+            }
+        }
+
+        // price CSAK ha meg van adva!
+        if (!partsAuth.isDataMissing(updatedParts.getPrice())) {
+            if (partsAuth.isValidPrice(updatedParts.getPrice())) {
+                existingParts.setPrice(updatedParts.getPrice());
+            } else {
+                errors.put("InvalidPrice");
+            }
+        }
+
+        // stock CSAK ha meg van adva!
+        if (!partsAuth.isDataMissing(updatedParts.getStock())) {
+            if (partsAuth.isValidStock(updatedParts.getStock())) {
+                existingParts.setStock(updatedParts.getStock());
+            } else {
+                errors.put("InvalidStock");
+            }
+        }
+
+        // status CSAK ha meg van adva!
+        if (!partsAuth.isDataMissing(updatedParts.getStatus())) {
+            if (partsAuth.isValidStatus(updatedParts.getStatus())) {
+                existingParts.setStatus(updatedParts.getStatus());
+            } else {
+                errors.put("InvalidStatus");
+            }
+        }
+
+        // isActive CSAK ha meg van adva!
+        /*if (!partsAuth.isDataMissing(updatedParts.getIsActive())) {
+            if (partsAuth.isValidIsActive(updatedParts.getIsActive())) {
+                existingParts.setIsActive(updatedParts.getIsActive());
+            } else {
+                errors.put("InvalidIsActive");
+            }
+        }
+        
+        // isDeleted CSAK ha meg van adva!
+        if (!partsAuth.isDataMissing(updatedParts.getIsDeleted())) {
+            if (partsAuth.isValidIsDeleted(updatedParts.getIsDeleted())) {
+                existingParts.setIsDeleted(updatedParts.getIsDeleted());
+            } else {
+                errors.put("InvalidIsDefault");
+            }
+        }*/
+
+        // Hiba ellenőrzés validációk
+        if (errorAuth.hasErrors(errors)) {
+            return errorAuth.createErrorResponse(errors, 400);
+        }
+
+        // ADATBÁZIS UPDATE 
+        try {
+            Boolean result = Parts.updateParts(existingParts);
+
+            if (!result) {
+                errors.put("ServerError");
+            }
+
+        } catch (Exception ex) {
+            errors.put("DatabaseError");
+            ex.printStackTrace();
+        }
+
+        if (errorAuth.hasErrors(errors)) {
+            return errorAuth.createErrorResponse(errors, 500);
+        }
+
+        // SIKERES VÁLASZ 
+        toReturn.put("success", true);
+        toReturn.put("message", "Parts updated successfully");
+        toReturn.put("statusCode", 200);
+
+        return toReturn;
+    }//updateParts
     
-    // VALIDÁCIÓ
-    if (modelResult == null || modelResult.isEmpty()) {
-        errors.put("NoCategoriesFound");
-        return errorAuth.createErrorResponse(errors, 404);
-    }
-    
-    // ArrayList<String> → JSONArray konverzió
-    JSONArray categoryArray = new JSONArray();
-    for (String category : modelResult) {
-        categoryArray.put(category);
-    }
-    
-    toReturn.put("success", true);
-    toReturn.put("categories", categoryArray);
-    toReturn.put("count", modelResult.size());
-    toReturn.put("statusCode", 200);
-    
-    return toReturn;
-}
+    public JSONObject getPartsBySku(String sku) {
+        JSONObject toReturn = new JSONObject();
+        JSONArray errors = new JSONArray();
+
+        if (partsAuth.isDataMissing(sku)) {
+            errors.put("MissingSku");
+        }
+
+        // If modelexeption
+        if (errorAuth.hasErrors(errors)) {
+            return errorAuth.createErrorResponse(errors, 400);
+        }
+
+        Parts part = Parts.getPartsBySku(sku);
+
+        if (partsAuth.isDataMissing(part)) {
+            errors.put("PartsNotFound");
+            return errorAuth.createErrorResponse(errors, 404);
+        }
+
+        JSONObject partObj = new JSONObject();
+        partObj.put("id", part.getId());
+        partObj.put("manufacturerId", part.getManufacturerId().getId());
+        partObj.put("sku", part.getSku());
+        partObj.put("name", part.getName());
+        partObj.put("category", part.getCategory());
+        partObj.put("price", part.getPrice());
+        partObj.put("stock", part.getStock());
+        partObj.put("status", part.getStatus());
+        partObj.put("isActive", part.getIsActive());
+        partObj.put("createdAt", part.getCreatedAt());
+        partObj.put("updatedAt", part.getUpdatedAt());
+
+        toReturn.put("success", true);
+        toReturn.put("parts", partObj);
+        toReturn.put("statusCode", 200);
+
+        return toReturn;
+    }//getPartsBySku
 
 }
