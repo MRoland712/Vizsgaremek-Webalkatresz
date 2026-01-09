@@ -64,14 +64,59 @@ public class SendEmailController {
     @Path("sendPromotion")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    public Response sendPromotionEmail(String body) {
+    public Response sendPromotionEmailToSubscribedUsersController(String body) {
         JSONObject bodyObject = new JSONObject(body);
         JSONArray errors = new JSONArray();
 
-        String messageContent = bodyObject.has("message") ? bodyObject.getString("message") : null;
+        String promotionImageLink = bodyObject.has("promotionImageLink") ? bodyObject.getString("promotionImageLink") : null;
+        String bodyText = bodyObject.has("bodyText") ? bodyObject.getString("bodyText") : null;
+        String code = bodyObject.has("promotionCode") ? bodyObject.getString("promotionCode") : null;
+        String expirationDate = bodyObject.has("expirationDate") ? bodyObject.getString("expirationDate") : null;
 
-        if (messageContent == null || messageContent.trim().isEmpty()) {
-            errors.put("MissingMessage");
+        if (promotionImageLink == null || promotionImageLink.trim().isEmpty()) {
+            errors.put("MissingPromotionImageLink");
+
+            JSONObject errorResponse = new JSONObject();
+            errorResponse.put("errors", errors);
+            errorResponse.put("status", "failed");
+            errorResponse.put("statusCode", 400);
+
+            return Response.status(400)
+                    .entity(errorResponse.toString())
+                    .type(MediaType.APPLICATION_JSON)
+                    .build();
+        }
+
+        if (bodyText == null || bodyText.trim().isEmpty()) {
+            errors.put("MissingBodyText");
+
+            JSONObject errorResponse = new JSONObject();
+            errorResponse.put("errors", errors);
+            errorResponse.put("status", "failed");
+            errorResponse.put("statusCode", 400);
+
+            return Response.status(400)
+                    .entity(errorResponse.toString())
+                    .type(MediaType.APPLICATION_JSON)
+                    .build();
+        }
+
+        if (code == null || code.trim().isEmpty()) {
+            errors.put("MissingPromotionCode");
+
+            JSONObject errorResponse = new JSONObject();
+            errorResponse.put("errors", errors);
+            errorResponse.put("status", "failed");
+            errorResponse.put("statusCode", 400);
+
+            return Response.status(400)
+                    .entity(errorResponse.toString())
+                    .type(MediaType.APPLICATION_JSON)
+                    .build();
+        }
+
+        if (expirationDate == null || expirationDate.trim().isEmpty()) {
+            errors.put("MissingExpirationDate");
 
             JSONObject errorResponse = new JSONObject();
             errorResponse.put("errors", errors);
@@ -85,7 +130,7 @@ public class SendEmailController {
         }
 
         try {
-            SendEmail.sendPromotionEmailToSubscribedUsers(messageContent);
+            SendEmail.sendPromotionEmailToSubscribedUsers(promotionImageLink, bodyText, code, expirationDate);
 
             JSONObject successResponse = new JSONObject();
             successResponse.put("status", "success");
@@ -111,7 +156,7 @@ public class SendEmailController {
                     .build();
         }
     }
-    
+
     @POST
     @Path("sendOTP")
     @Consumes(MediaType.APPLICATION_JSON)
@@ -120,7 +165,7 @@ public class SendEmailController {
         JSONArray errors = new JSONArray();
 
         Users userdata = Users.getUserByEmail(email);
-        System.out.println("sendOTPEmailAndSetAuthSecretController: "+ email + " | " + userdata);
+        System.out.println("sendOTPEmailAndSetAuthSecretController: " + email + " | " + userdata);
         if (userdata == null) {
             errors.put("UserNotFound");
 
@@ -134,14 +179,14 @@ public class SendEmailController {
                     .type(MediaType.APPLICATION_JSON)
                     .build();
         }
-        
+
         try {
             SendEmail.sendOTPEmailAndSetAuthSecret(email, userdata);
 
             JSONObject successResponse = new JSONObject();
             successResponse.put("status", "success");
             successResponse.put("statusCode", 200);
-            successResponse.put("message", "OTP email sent successfully to "+ email);
+            successResponse.put("message", "OTP email sent successfully to " + email);
 
             return Response.status(200)
                     .entity(successResponse.toString())
@@ -163,4 +208,132 @@ public class SendEmailController {
         }
     }
 
+    @POST
+    @Path("sendCustomerSupport")
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response sendCustomerSupportEmailController(String body) {
+        JSONObject bodyObject = new JSONObject(body);
+        JSONArray errors = new JSONArray();
+
+        /*String recipientEmail,
+            String emailSubject,
+            String customerName,
+            String emailMessage,
+            String inReplyToMessageId*/
+        String recipientEmail = bodyObject.has("recipientEmail") ? bodyObject.getString("recipientEmail") : null;
+        String emailSubject = bodyObject.has("emailSubject") ? bodyObject.getString("emailSubject") : null;
+        String customerName = bodyObject.has("customerName") ? bodyObject.getString("customerName") : null;
+        String emailMessage = bodyObject.has("emailMessage") ? bodyObject.getString("emailMessage") : null;
+        String inReplyToMessageId = bodyObject.has("inReplyToMessageId") ? bodyObject.getString("inReplyToMessageId") : null;
+
+        if (recipientEmail == null || promotionImageLink.trim().isEmpty()) {
+            errors.put("MissingRecipientEmail");
+
+            JSONObject errorResponse = new JSONObject();
+            errorResponse.put("errors", errors);
+            errorResponse.put("status", "failed");
+            errorResponse.put("statusCode", 400);
+
+            return Response.status(400)
+                    .entity(errorResponse.toString())
+                    .type(MediaType.APPLICATION_JSON)
+                    .build();
+        }
+
+        if (emailSubject == null || emailSubject.trim().isEmpty()) {
+            errors.put("MissingEmailSubject");
+
+            JSONObject errorResponse = new JSONObject();
+            errorResponse.put("errors", errors);
+            errorResponse.put("status", "failed");
+            errorResponse.put("statusCode", 400);
+
+            return Response.status(400)
+                    .entity(errorResponse.toString())
+                    .type(MediaType.APPLICATION_JSON)
+                    .build();
+        }
+
+        if (code == null || code.trim().isEmpty()) {
+            errors.put("MissingPromotionCode");
+
+            JSONObject errorResponse = new JSONObject();
+            errorResponse.put("errors", errors);
+            errorResponse.put("status", "failed");
+            errorResponse.put("statusCode", 400);
+
+            return Response.status(400)
+                    .entity(errorResponse.toString())
+                    .type(MediaType.APPLICATION_JSON)
+                    .build();
+        }
+
+        if (customerName == null || customerName.trim().isEmpty()) {
+            errors.put("MissingCustomerName");
+
+            JSONObject errorResponse = new JSONObject();
+            errorResponse.put("errors", errors);
+            errorResponse.put("status", "failed");
+            errorResponse.put("statusCode", 400);
+
+            return Response.status(400)
+                    .entity(errorResponse.toString())
+                    .type(MediaType.APPLICATION_JSON)
+                    .build();
+        }
+
+        //ToDo: check if inReplyToMessage inputted id exists
+        try {
+            SendEmail.sendCustomerSupportEmail(recipientEmail, emailSubject, customerName, emailMessage, inReplyToMessageId);
+
+            JSONObject successResponse = new JSONObject();
+            successResponse.put("status", "success");
+            successResponse.put("statusCode", 200);
+            successResponse.put("message", "Customer Support email sent successfully to: " + recipientEmail);
+
+            return Response.status(200)
+                    .entity(successResponse.toString())
+                    .type(MediaType.APPLICATION_JSON)
+                    .build();
+
+        } catch (Exception ex) {
+            ex.printStackTrace();
+
+            JSONObject errorResponse = new JSONObject();
+            errorResponse.put("status", "error");
+            errorResponse.put("statusCode", 500);
+            errorResponse.put("message", "Failed to send email to " + recipientEmail + " : " + ex.getMessage());
+
+            return Response.status(500)
+                    .entity(errorResponse.toString())
+                    .type(MediaType.APPLICATION_JSON)
+                    .build();
+        }
+    }
+
+    @POST
+    @Path("getMessageIds")
+    @Consumes(MediaType.APPLICATION_JSON)
+    public Response getMessageIdsController(String body) {
+        JSONObject bodyObject = new JSONObject(body);
+        JSONArray errors = new JSONArray();
+
+        try {
+            SendEmail.getMessageIds();
+            
+            JSONObject successResponse = new JSONObject();
+            successResponse.put("status", "success");
+            successResponse.put("statusCode", 200);
+            successResponse.put("message", "Customer Support email sent successfully to: " + recipientEmail);
+            
+            return Response.status(200)
+                    .entity(successResponse.toString())
+                    .type(MediaType.APPLICATION_JSON)
+                    .build();
+        } catch (Exception ex) {
+
+        }
+
+    }
 }

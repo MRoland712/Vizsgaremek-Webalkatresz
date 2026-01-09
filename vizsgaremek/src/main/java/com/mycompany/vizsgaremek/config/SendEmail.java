@@ -17,6 +17,8 @@ import javax.mail.internet.MimeMessage;
 import com.mycompany.vizsgaremek.model.Users;
 import java.util.ArrayList;
 import java.util.List;
+import javax.mail.Store;
+import javax.mail.Folder;
 
 /**
  *
@@ -38,7 +40,7 @@ public class SendEmail {
      */
     public static void sendOTPEmailAndSetAuthSecret(String recipientEmail, Users userdata) throws MessagingException {
 
-// Configure SMTP properties
+        // Configure SMTP properties
         Properties props = new Properties();
         props.put("mail.smtp.auth", "true");
         props.put("mail.smtp.starttls.enable", "true");
@@ -157,7 +159,7 @@ public class SendEmail {
      * @param messageContent The HTML message content to send
      * @throws MessagingException if email sending fails
      */
-    public static void sendPromotionEmailToSubscribedUsers(String messageContent) throws MessagingException {
+    public static void sendPromotionEmailToSubscribedUsers(String promotionImageLink, String bodyText, String code, String expirationDate) throws MessagingException {
 
         // Get all users
         ArrayList<Users> allUsers = Users.getUsers();
@@ -212,136 +214,54 @@ public class SendEmail {
         // Create HTML content
         String htmlContent = "<!DOCTYPE html>"
                 + "<html lang=\"en\">"
-                + "  <head>"
-                + "    <meta charset=\"UTF-8\" />"
-                + "    <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\" />"
-                + "    <title>Promociós Email</title>"
-                + "  </head>"
-                + "  <style>"
-                + "    * {"
-                + "      margin: 0;"
-                + "      padding: 0;"
-                + "      box-sizing: border-box;"
-                + "    }"
-                + "    body {"
-                + "      background: #111;"
-                + "      padding: 20px;"
-                + "      font-family: system-ui, -apple-system, \"Segoe UI\", Roboto,"
-                + "        \"Helvetica Neue\", Arial, sans-serif;"
-                + "    }"
-                + "    .email-container {"
-                + "      border-radius: 10px;"
-                + "      max-width: 600px;"
-                + "      width: 100%;"
-                + "      margin: 20px auto;"
-                + "      background-color: #2b2b2b;"
-                + "      color: #fffafa;"
-                + "      text-align: center;"
-                + "      overflow: hidden;"
-                + "    }"
-                + "    .email-header,"
-                + "    .email-footer {"
-                + "      padding: 16px;"
-                + "    }"
-                + "    .email-header img {"
-                + "      width: 300px;"
-                + "      display: block;"
-                + "      margin: auto;"
-                + "    }"
-                + "    .email-body {"
-                + "      padding: 0 24px 24px;"
-                + "      text-align: left;"
-                + "    }"
-                + "    hr {"
-                + "      border: none;"
-                + "      height: 1px;"
-                + "      background: rgba(255, 255, 255, 0.06);"
-                + "      margin: 20px 0;"
-                + "    }"
-                + "    h2 {"
-                + "      margin: 18px 0;"
-                + "      color: #fffafa;"
-                + "      font-size: 20px;"
-                + "      text-align: left;"
-                + "    }"
-                + "    p {"
-                + "      margin: 0 0 16px;"
-                + "      font-size: 16px;"
-                + "      line-height: 1.6;"
-                + "      color: #eaeaea;"
-                + "    }"
-                + "    .auth-container {"
-                + "      display: flex;"
-                + "      justify-content: center;"
-                + "      margin: 20px 0;"
-                + "    }"
-                + "    .code {"
-                + "      display: inline-block;"
-                + "      font-family: \"Courier New\", Courier, monospace;"
-                + "      font-size: 22px;"
-                + "      font-weight: 700;"
-                + "      padding: 12px 28px;"
-                + "      border-radius: 6px;"
-                + "      background: #fffafa;"
-                + "      color: #ff6600;"
-                + "      letter-spacing: 0.25em;"
-                + "      min-width: 160px;"
-                + "      text-align: center;"
-                + "    }"
-                + "    .email-footer p {"
-                + "      color: #bfbfbf;"
-                + "      font-size: 12px;"
-                + "      margin: 0;"
-                + "      text-align: center;"
-                + "    }"
-                + "    .email-footer a {"
-                + "      color: #9fc5ff;"
-                + "      text-decoration: none;"
-                + "    }"
-                + "    .promotion-pic {"
-                + "      width: 100%;"
-                + "      border-radius: 8px;"
-                + "      margin: 20px 0;"
-                + "    }"
-                + "  </style>"
-                + "  <body>"
-                + "    <div class=\"email-container\">"
-                + "      <div class=\"email-header\">"
-                + "        <img"
-                + "          src=\"https://raw.githubusercontent.com/MRoland712/Vizsgaremek-Webalkatresz/refs/heads/Backend/K%C3%A9pek/CarComps_Logo_BigassC.png\""
-                + "          alt=\"CarComps logó\""
-                + "        />"
-                + "      </div>"
-                + "      <div class=\"email-body\">"
-                + "        <hr />"
-                + "        <img"
-                + "          class=\"promotion-pic\""
-                + "          src=\"asd\"
-                + "          alt=\"Promócióról kép\""
-                + "        />"
-                + "        <h2>Kedves Ügyfelünk!</h2>"
-                + "        <p>#KUPON LEÍRÁS</p>"
-                + "        <div class=\"auth-container\">"
-                + "          <div class=\"code\"><span id=\"number\">#PROMÓCIÓS KÓD</span></div>"
-                + "        </div>"
-                + "        <p>#KÓD LEJÁRATI IDEJE</p>"
-                + "      </div>"
-                + "      <hr />"
-                + "      <div class=\"email-footer\">"
-                + "        <p>Erre az emailra küldtük: #EMAIL</p>"
-                + "        <p>"
-                + "          Ez egy automatikus üzenet, kérjük, ne válaszolj rá.<br />"
-                + "          © 2025 CarComps – Minden jog fenntartva.<br />"
-                + "          Székhely: 7621 Pécs, Fő utca 12.<br />"
-                + "          <a href=\"https://carcomps.hu/adatvedelem\">Adatvédelmi nyilatkozat</a>"
-                + "          |"
-                + "          <a href=\"https://carcomps.hu/aszf\">Felhasználási feltételek</a>"
-                + "          |"
-                + "          <a href=\"\">Leszeretnék iratkozni a hírlevélről</a>"
-                + "        </p>"
-                + "      </div>"
-                + "    </div>"
-                + "  </body>"
+                + "<head>"
+                + "<meta charset=\"UTF-8\" />"
+                + "<meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\" />"
+                + "<title>Promociós Email</title>"
+                + "<style>"
+                + "* { margin: 0; padding: 0; box-sizing: border-box; }"
+                + "body { background: #111; padding: 20px; font-family: system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; }"
+                + ".email-container { border-radius: 10px; max-width: 600px; width: 100%; margin: 20px auto; background-color: #2b2b2b; color: #fffafa; text-align: center; overflow: hidden; }"
+                + ".email-header, .email-footer { padding: 16px; }"
+                + ".email-header img { width: 300px; display: block; margin: auto; }"
+                + ".email-body { padding: 0 24px 24px; text-align: left; }"
+                + "hr { border: none; height: 1px; background: rgba(255, 255, 255, 0.06); margin: 20px 0; }"
+                + "h2 { margin: 18px 0; color: #fffafa; font-size: 20px; text-align: left; }"
+                + "p { margin: 0 0 16px; font-size: 16px; line-height: 1.6; color: #eaeaea; }"
+                + ".auth-container { display: flex; justify-content: center; margin: 20px 0; }"
+                + ".code { display: inline-block; font-family: 'Courier New', Courier, monospace; font-size: 22px; font-weight: 700; padding: 12px 28px; border-radius: 6px; background: #fffafa; color: #ff6600; letter-spacing: 0.25em; min-width: 160px; text-align: center; }"
+                + ".email-footer p { color: #bfbfbf; font-size: 12px; margin: 0; text-align: center; }"
+                + ".email-footer a { color: #9fc5ff; text-decoration: none; }"
+                + ".promotion-pic { width: 100%; border-radius: 8px; margin: 20px 0; }"
+                + "</style>"
+                + "</head>"
+                + "<body>"
+                + "<div class=\"email-container\">"
+                + "<div class=\"email-header\">"
+                + "<img src=\"https://raw.githubusercontent.com/MRoland712/Vizsgaremek-Webalkatresz/refs/heads/Backend/K%C3%A9pek/CarComps_Logo_BigassC.png\" alt=\"CarComps logó\" />"
+                + "</div>"
+                + "<div class=\"email-body\">"
+                + "<hr />"
+                + "<img class=\"promotion-pic\" src=\"" + promotionImageLink + "\" alt=\"Promócióról kép\" />"
+                + "<h2>Kedves Ügyfelünk!</h2>"
+                + "<p>" + bodyText + "</p>"
+                + "<div class=\"auth-container\">"
+                + "<div class=\"code\"><span id=\"number\">" + code + "</span></div>"
+                + "</div>"
+                + "<p>Lejárati dátum: " + expirationDate + "</p>"
+                + "</div>"
+                + "<hr />"
+                + "<div class=\"email-footer\">"
+                + "<p>Ez egy automatikus üzenet, kérjük, ne válaszolj rá.<br />"
+                + "© 2025 CarComps – Minden jog fenntartva.<br />"
+                + "Székhely: 7621 Pécs, Fő utca 12.<br />"
+                + "<a href=\"https://carcomps.hu/adatvedelem\">Adatvédelmi nyilatkozat</a> | "
+                + "<a href=\"https://carcomps.hu/aszf\">Felhasználási feltételek</a> | "
+                + "<a href=\"https://api.carcomps.hu/webresources/user/leiratkozas\">Leiratkozás a hírlevélről</a>"
+                + "</p>"
+                + "</div>"
+                + "</div>"
+                + "</body>"
                 + "</html>";
 
         message.setContent(htmlContent, "text/html; charset=utf-8");
@@ -358,8 +278,8 @@ public class SendEmail {
 
                 // Create new message for this batch
                 MimeMessage batchMessage = new MimeMessage(session);
-                batchMessage.setFrom(new InternetAddress("Promotion@Carcomps.hu"));
-                batchMessage.setSubject("Promotion from CarComps");
+                batchMessage.setFrom(new InternetAddress("promotion@carcomps.hu"));
+                batchMessage.setSubject("Carcomps Akció!");
                 batchMessage.setContent(htmlContent, "text/html; charset=utf-8");
 
                 // Add all batch emails as BCC (recipients won't see each other)
@@ -386,6 +306,163 @@ public class SendEmail {
             }
         }
 
-        System.out.println("✅ Promotion Email Campaign Complete! Total sent: " + totalSent);
+        System.out.println("Promotion Email Campaign Complete! Total sent: " + totalSent);
+    }
+
+    /**
+     * Send an email to a customer with alias of "ugyfelszolgalat@carcomps.hu"
+     *
+     * @param recipientEmail Customer's email / who to send the email to
+     * @param emailSubject Subject of the email
+     * @param customerName Customer's name
+     * @param emailMessage Message body
+     * @param inReplyToMessageId (Optional) Original message ID to reply to
+     * @throws MessagingException if email sending fails
+     */
+    public static void sendCustomerSupportEmail(
+            String recipientEmail,
+            String emailSubject,
+            String customerName,
+            String emailMessage,
+            String inReplyToMessageId
+    ) throws MessagingException {
+
+        // Configure SMTP properties
+        Properties props = new Properties();
+        props.put("mail.smtp.auth", "true");
+        props.put("mail.smtp.starttls.enable", "true");
+        props.put("mail.smtp.host", "smtp.gmail.com");
+        props.put("mail.smtp.port", "587");
+
+        // Create session with authentication
+        Session session = Session.getInstance(props, new Authenticator() {
+            @Override
+            protected PasswordAuthentication getPasswordAuthentication() {
+                return new PasswordAuthentication(
+                        KvFetcher.getDataFromKV("SMTPEmail"),
+                        base64Converters.base64Converter(KvFetcher.getDataFromKV("SMTPPsw"))
+                );
+            }
+        });
+
+        // Create email message
+        MimeMessage message = new MimeMessage(session);
+
+        // Set the "From" header to your alias
+        message.setFrom(new InternetAddress("ugyfelszolgalat@carcomps.hu"));
+
+        // Set recipient
+        message.setRecipients(Message.RecipientType.TO, InternetAddress.parse(recipientEmail));
+
+        // ⭐ Set Reply-To header (így a válasz ide megy) ⭐
+        message.setReplyTo(InternetAddress.parse("ugyfelszolgalat@carcomps.hu"));
+
+        // ⭐ Ha egy korábbi emailre válaszolunk ⭐
+        if (inReplyToMessageId != null && !inReplyToMessageId.isEmpty()) {
+            message.setHeader("In-Reply-To", inReplyToMessageId);
+            message.setHeader("References", inReplyToMessageId);
+            message.setSubject("Re: " + emailSubject);  // "Re:" prefix
+        } else {
+            message.setSubject(emailSubject);
+        }
+
+        // Create HTML content
+        String htmlContent = "<!DOCTYPE html>"
+                + "<html lang=\"en\">"
+                + "<head>"
+                + "<meta charset=\"UTF-8\" />"
+                + "<meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\" />"
+                + "<title>Ügyfélszolgálat Email</title>"
+                + "<style>"
+                + "* { margin: 0; padding: 0; box-sizing: border-box; }"
+                + "body { background: #111; padding: 20px; font-family: system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; }"
+                + ".email-container { border-radius: 10px; max-width: 600px; width: 100%; margin: 20px auto; background-color: #2b2b2b; color: #FFFAFA; text-align: center; overflow: hidden; }"
+                + ".email-header, .email-footer { padding: 16px; }"
+                + ".email-header img { width: 300px; display: block; margin: auto; }"
+                + ".email-body { padding: 0 24px 24px; text-align: left; }"
+                + "hr { border: none; height: 1px; background: rgba(255, 255, 255, 0.06); margin: 20px 0; }"
+                + "h2 { margin: 18px 0; color: #fffafa; font-size: 20px; text-align: left; }"
+                + "p { margin: 0 0 16px; font-size: 16px; line-height: 1.6; color: #eaeaea; }"
+                + ".email-footer p { color: #bfbfbf; font-size: 12px; margin: 0; text-align: center; }"
+                + ".email-footer a { color: #9fc5ff; text-decoration: none; }"
+                + "</style>"
+                + "</head>"
+                + "<body>"
+                + "<div class=\"email-container\">"
+                + "<div class=\"email-header\">"
+                + "<img src=\"https://raw.githubusercontent.com/MRoland712/Vizsgaremek-Webalkatresz/refs/heads/Backend/K%C3%A9pek/CarComps_Logo_BigassC.png\" alt=\"CarComps logó\" />"
+                + "</div>"
+                + "<div class=\"email-body\">"
+                + "<hr />"
+                + "<h2>Kedves " + customerName + "!</h2>"
+                + "<p>" + emailMessage + "</p>"
+                + "<p>Üdvözlettel: CarComps csapata</p>"
+                + "</div>"
+                + "<hr />"
+                + "<div class=\"email-footer\">"
+                + "<p>Erre az emailra küldtük: " + recipientEmail + "</p>"
+                + "<p>© 2025 CarComps – Minden jog fenntartva.<br />"
+                + "Székhely: 7621 Pécs, Fő utca 12.<br />"
+                + "<a href=\"https://carcomps.hu/adatvedelem\">Adatvédelmi nyilatkozat</a> | "
+                + "<a href=\"https://carcomps.hu/aszf\">Felhasználási feltételek</a>"
+                + "</p>"
+                + "</div>"
+                + "</div>"
+                + "</body>"
+                + "</html>";
+
+        message.setContent(htmlContent, "text/html; charset=utf-8");
+
+        // Send the email
+        Transport.send(message);
+
+        System.out.println("Email Sent to: " + recipientEmail);
+    }
+
+    public static String getMessageIds() throws MessagingException {
+        // IMAP properties
+        Properties props = new Properties();
+        props.put("mail.store.protocol", "imaps");
+        props.put("mail.imap.host", "imap.gmail.com");
+        props.put("mail.imap.port", "993");
+        props.put("mail.imap.ssl.enable", "true");
+
+        // Connect to mailbox
+        Session session = Session.getInstance(props);
+        Store store = session.getStore("imaps");
+        store.connect(
+                "imap.gmail.com",
+                KvFetcher.getDataFromKV("SMTPEmail"),
+                base64Converters.base64Converter(KvFetcher.getDataFromKV("SMTPPsw"))
+        );
+
+        // Open INBOX
+        Folder inbox = store.getFolder("INBOX");
+        inbox.open(Folder.READ_ONLY);
+
+        // Get messages
+        Message[] messages = inbox.getMessages();
+
+        
+        //ToDO: get all message ids
+        if (messages.length > 0) {
+            Message lastMessage = messages[messages.length - 1];
+
+            // ⭐ Message-ID kinyerése ⭐
+            String messageId = lastMessage.getHeader("Message-ID")[0];
+
+            System.out.println("Message-ID: " + messageId);
+            System.out.println("From: " + lastMessage.getFrom()[0]);
+            System.out.println("Subject: " + lastMessage.getSubject());
+
+            inbox.close(false);
+            store.close();
+
+            return messageId;
+        }
+
+        inbox.close(false);
+        store.close();
+        return null;
     }
 }
