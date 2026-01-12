@@ -33,10 +33,10 @@
           placeholder="Email"
           id="email"
           formControlName="email"
-          [class.invalid]="emailIsInvalid"
+          [class.invalid]="emailIsInvalid || emailAlreadyExists()"
         />
         <label for="email" class="form__label">Email</label>
-        @if (emailIsInvalid) {
+        @if (emailIsInvalid || emailAlreadyExists()) {
         <p class="error-message">Hibás email cím</p>
         }
       </div>

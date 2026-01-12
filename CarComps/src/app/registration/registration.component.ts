@@ -1,13 +1,7 @@
-import { Component, inject } from '@angular/core';
-import {
-  AbstractControl,
-  FormControl,
-  FormGroup,
-  ReactiveFormsModule,
-  ValidationErrors,
-  Validators,
-} from '@angular/forms';
+import { Component, inject, signal } from '@angular/core';
+import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
+import { HttpErrorResponse } from '@angular/common/http';
 import {
   mustContainNumbers,
   mustContainSpecialCharacters,
@@ -15,8 +9,8 @@ import {
   emailMustHaveDomainValidator,
   passwordMatchValidator,
   RegisterService,
-  emailisUnique,
 } from './register.service';
+import { RegisterErrorResponse } from './register.model';
 
 @Component({
   selector: 'app-reg',
@@ -27,6 +21,11 @@ import {
 export class RegistrationComponent {
   registerService = inject(RegisterService);
   private router = inject(Router);
+
+  // ==========================================
+  // EMAIL ALREADY EXISTS SIGNAL
+  // ==========================================
+  emailAlreadyExists = signal(false);
 
   signupForm = new FormGroup({
     firstname: new FormControl('', {
@@ -44,12 +43,7 @@ export class RegistrationComponent {
       ],
     }),
     email: new FormControl('', {
-      validators: [
-        Validators.email,
-        Validators.required,
-        emailMustHaveDomainValidator,
-        emailisUnique,
-      ],
+      validators: [Validators.email, Validators.required, emailMustHaveDomainValidator],
     }),
     phone: new FormControl('', {
       validators: [Validators.required, Validators.maxLength(17), Validators.minLength(7)],
@@ -67,6 +61,20 @@ export class RegistrationComponent {
       validators: [Validators.required, passwordMatchValidator],
     }),
   });
+
+  constructor() {
+    // ==========================================
+    // EMAIL VÁLTOZÁSKOR RESET
+    // ==========================================
+    this.signupForm.controls.email.valueChanges.subscribe(() => {
+      // Ha user módosítja az email-t, töröljük a hibát
+      this.emailAlreadyExists.set(false);
+    });
+  }
+
+  // ==========================================
+  // VALIDATION GETTERS
+  // ==========================================
 
   get usernameIsInvalid() {
     return (
@@ -126,7 +134,16 @@ export class RegistrationComponent {
 
   isLoading() {}
 
+  // ==========================================
+  // SUBMIT - 409 HIBAKEZELÉS
+  // ==========================================
+
   onSignUpSubmit() {
+    // ==========================================
+    // RESET email hiba submit előtt
+    // ==========================================
+    this.emailAlreadyExists.set(false);
+
     const finalRegisterData = {
       firstName: this.signupForm.value.firstname!,
       lastName: this.signupForm.value.lastname!,
@@ -137,15 +154,30 @@ export class RegistrationComponent {
       phone: this.signupForm.value.phone!,
     };
 
+    console.log('📤 Regisztráció...');
+
     this.registerService.register(finalRegisterData).subscribe({
       next: (res) => {
-        console.log('Sikeres regisztráció:', res);
+        console.log('✅ Sikeres regisztráció');
         localStorage.setItem('jwt', res.result.JWTToken!);
 
+        // Login-ra irányít
         this.router.navigate(['/login']);
       },
-      error: (err) => {
-        console.error('Regisztrációs hiba:', err);
+      error: (err: HttpErrorResponse) => {
+        console.error('❌ Regisztráció hiba:', err);
+
+        // ==========================================
+        // 409 = Email már létezik
+        // ==========================================
+        if (err.status === 409) {
+          const errorResponse = err.error as RegisterErrorResponse;
+
+          if (errorResponse.errors?.includes('EmailIsSameAsDB')) {
+            console.log('Email már használatban van!');
+            this.emailAlreadyExists.set(true); // ← Hiba megjelenítése
+          }
+        }
       },
     });
   }

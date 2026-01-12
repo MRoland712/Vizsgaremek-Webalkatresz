@@ -156,18 +156,64 @@
       <!-- CART HOVER MENU VÉGE -->
 
       <!-- PROFIL IKON -->
-      <li class="nav-item">
-        @if (isLoggedIn()) {
-        <!-- BE van jelentkezve → Profil -->
-        <a class="nav-link" routerLink="/profile" title="Profil">
+      <!-- USER ICON - Hover Menu -->
+      <li class="nav-item user-item">
+        <a
+          class="nav-link"
+          [routerLink]="isLoggedIn() ? '/profile' : '/registration'"
+          title="Profil"
+        >
           <i class="fa-solid fa-user"></i>
         </a>
-        } @else {
-        <!-- NINCS bejelentkezve → REGISZTRÁCIÓ -->
-        <a class="nav-link" routerLink="/registration" title="Regisztráció">
-          <i class="fa-solid fa-user"></i>
-        </a>
-        }
+
+        <!-- USER HOVER DROPDOWN -->
+        <div class="user-dropdown">
+          <!-- NINCS BEJELENTKEZVE -->
+          @if (!isLoggedIn()) {
+          <div class="user-not-logged-in">
+            <i class="fa-solid fa-user-circle"></i>
+            <h3>Üdvözlünk!</h3>
+            <p class="user-message">Jelentkezz be vagy regisztrálj</p>
+
+            <div class="user-actions">
+              <a routerLink="/login" class="user-login-btn">Bejelentkezés</a>
+              <a routerLink="/registration" class="user-register-btn">Regisztráció</a>
+            </div>
+          </div>
+          }
+
+          <!-- BE VAN JELENTKEZVE -->
+          @else {
+          <div class="user-logged-in">
+            <div class="user-header">
+              <i class="fa-solid fa-user-check"></i>
+              <div class="user-info">
+                <h3>Sanci</h3>
+                <p class="user-email">sanci@example.com</p>
+              </div>
+            </div>
+
+            <div class="user-menu">
+              <a routerLink="/profile" class="user-menu-item">
+                <i class="fa-solid fa-user"></i>
+                <span>Profilom</span>
+              </a>
+              <a routerLink="/orders" class="user-menu-item">
+                <i class="fa-solid fa-box"></i>
+                <span>Rendeléseim</span>
+              </a>
+              <a routerLink="/settings" class="user-menu-item">
+                <i class="fa-solid fa-gear"></i>
+                <span>Beállítások</span>
+              </a>
+              <button (click)="logout()" class="user-menu-item logout-btn">
+                <i class="fa-solid fa-right-from-bracket"></i>
+                <span>Kijelentkezés</span>
+              </button>
+            </div>
+          </div>
+          }
+        </div>
       </li>
     </ul>
   </div>

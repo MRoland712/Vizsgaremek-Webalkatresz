@@ -163,6 +163,9 @@ export class MainHeaderComponent {
   // ==========================================
 
   logout() {
+    // AuthService logout hívása
     this.authService.logout();
+
+    console.log('✅ Kijelentkezés sikeres');
   }
 }

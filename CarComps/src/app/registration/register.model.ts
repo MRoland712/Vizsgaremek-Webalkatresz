@@ -14,3 +14,8 @@ export interface RegisterResponse {
   status: string;
   statusCode: number;
 }
+export interface RegisterErrorResponse {
+  errors: string[];
+  status: string;
+  statusCode: number;
+}
