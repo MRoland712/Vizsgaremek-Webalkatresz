@@ -145,7 +145,7 @@ public class PartsController {
     }
     
     @GET
-    @Path("getPartsByCategory")
+    @Path("getPartsCategory")
     @Consumes(MediaType.APPLICATION_JSON)
     public Response getPartsByCategory() {
         PartsService partsService = new PartsService();

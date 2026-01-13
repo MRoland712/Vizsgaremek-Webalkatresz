@@ -111,7 +111,7 @@ public class UsersController {
             return jwtError;
         }
 
-        if (AuthenticationService.isDataMissing(id)) {
+        if (userAuth.isDataMissing(id)) {
             id = null;
         }
 
@@ -132,7 +132,7 @@ public class UsersController {
             return jwtError;
         }
 
-        if (AuthenticationService.isDataMissing(email)) {
+        if (userAuth.isDataMissing(email)) {
             email = null;
         }
         

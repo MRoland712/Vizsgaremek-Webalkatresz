@@ -4,8 +4,6 @@
  */
 package com.mycompany.vizsgaremek.config;
 
-import com.sun.mail.gimap.GmailFolder;
-import com.sun.mail.gimap.GmailStore;
 import java.util.Properties;
 import java.util.Random;
 import javax.mail.Authenticator;

@@ -65,6 +65,23 @@ public class AuthenticationService {
         }
 
         /**
+         * Creates an JSONArray OK response with the given JSONArray result data
+         *
+         * @param result The JSONArray that contains the result data
+         *
+         * @return a JSONArray with the result JSONArray as a "result" a status
+         * of "success" and a "statusCode" of 200 in this format { "result": [ {
+         * #result data# } ], "status": "success", "statusCode": 200 }
+         */
+        public static JSONObject createOKResponse(JSONArray result) {
+            JSONObject response = new JSONObject();
+            response.put("result", result);
+            response.put("status", "success");
+            response.put("statusCode", 200);
+            return response;
+        }
+
+        /**
          * Creates an JSONObject OK response with the given JSONObject result
          * data
          *
@@ -99,6 +116,13 @@ public class AuthenticationService {
         }
 
     }//Class closer
+
+    public static class JWTAuth {
+
+        public boolean isDataMissing(String data) {
+            return data.trim().isEmpty() || data == null;
+        }
+    }
 
     public static class userAuth {
 
@@ -189,6 +213,10 @@ public class AuthenticationService {
             }
         }
 
+        public boolean isValidIsSubscribed(Boolean isSubscribed) {
+            return true; //ToDo: create Authentication for a boolean :O
+        }
+
         public boolean isUserDeleted(Boolean isDeleted) {
             return (isDeleted == true);
         }
@@ -237,8 +265,8 @@ public class AuthenticationService {
             }
             try {
                 //debug:
-                System.out.println("isPasswordSame:");
-                System.out.println(userdata.getPassword() + " == " + Encrypt.encrypt(password) + " (" + password + ")");
+                /*System.out.println("isPasswordSame:");
+                System.out.println(userdata.getPassword() + " == " + Encrypt.encrypt(password) + " (" + password + ")");*/
                 return userdata.getPassword().equals(Encrypt.encrypt(password));
             } catch (Exception e) {
                 e.printStackTrace();
@@ -328,6 +356,7 @@ public class AuthenticationService {
         public boolean isDataMissing(String data) {
             return (data == null || data.trim().isEmpty());
         }
+
         public boolean isDataMissing(Users data) {
             return (data == null);
         }
@@ -355,11 +384,12 @@ public class AuthenticationService {
         public boolean isValidId(Integer id) {
             return id > 0 && id.toString().length() <= 11;
         }
-        
+
         public boolean isValidUserId(Users user) {
             Integer userId = user.getId();
             return userId > 0 && userId.toString().length() <= 11;
         }
+
         public boolean isValidUserId(Integer userId) {
             return userId > 0 && userId.toString().length() <= 11;
         }
@@ -379,20 +409,20 @@ public class AuthenticationService {
         public boolean isValidTaxNumber(String taxNumber) {
             return taxNumber.length() <= 50;
         }
-        
-        public boolean isValidZipCode(String zipCode){
+
+        public boolean isValidZipCode(String zipCode) {
             return zipCode.length() <= 50;
         }
-        
-        public boolean isValidStreet(String street){
+
+        public boolean isValidStreet(String street) {
             return street.length() <= 50;
         }
-        
-        public boolean isValidCity(String city){
+
+        public boolean isValidCity(String city) {
             return city.length() <= 50;
         }
-        
-        public boolean isValidCountry (String country){
+
+        public boolean isValidCountry(String country) {
             return country.length() <= 50;
         }
 
@@ -409,13 +439,55 @@ public class AuthenticationService {
         }
 
     } //Address Auth Class closer
-    
+
+    public static class userLogsAuth {
+
+        public boolean isDataMissing(Integer data) {
+            return data == null;
+        }
+
+        public boolean isDataMissing(String data) {
+            return data == null || data.trim().isEmpty();
+        }
+
+        public boolean isDataMissing(Boolean data) {
+            return data == null;
+        }
+        
+        public boolean isDataMissing(JSONObject data) {
+            return data.isEmpty() || data == null;
+        }
+
+        public boolean isValidId(Integer id) {
+            return id != null && id > 0;
+        }
+
+        public boolean isValidUserId(Integer userId) {
+            return userId != null && userId > 0;
+        }
+
+        public boolean isValidAction(String action) {
+            if (action == null) {
+                return false;
+            }
+            return action.length() >= 3 && action.length() <= 255;
+        }
+
+        public boolean isValidDetail(String details) {
+            if (details == null || details.trim().isEmpty()) {
+                return true;
+            }
+            return details.length() <= 5000;
+        }
+    }//userLogs closer
+
     //Parts
     public static class partsAuth {
 
         public boolean isDataMissing(String data) {
             return (data == null || data.trim().isEmpty());
         }
+
         public boolean isDataMissing(Manufacturers data) {
             return (data == null);
         }
@@ -435,8 +507,8 @@ public class AuthenticationService {
         public boolean isDataMissing(Parts data) {
             return (data == null);
         }
-        
-        public boolean isDataMissing(BigDecimal data){
+
+        public boolean isDataMissing(BigDecimal data) {
             return (data == null);
         }
 
@@ -447,11 +519,12 @@ public class AuthenticationService {
         public boolean isValidId(Integer id) {
             return id > 0 && id.toString().length() <= 11;
         }
-        
+
         public boolean isValidManufacturerId(Manufacturers manufacturer) {
             Integer manufacturerId = manufacturer.getId();
             return manufacturerId > 0 && manufacturerId.toString().length() <= 11;
         }
+
         public boolean isValidManufacturerId(Integer manufacturerId) {
             return manufacturerId > 0 && manufacturerId.toString().length() <= 11;
         }
@@ -467,21 +540,21 @@ public class AuthenticationService {
         public boolean isValidCategory(String category) {
             return category.length() <= 50;
         }
-        
+
         //BigDecimal 
         public boolean isValidPrice(BigDecimal price) {
             return price.compareTo(new BigDecimal("0.00")) > 0;
         }
-        
+
         //Integer
-        public boolean isValidStock(Integer stock){
+        public boolean isValidStock(Integer stock) {
             return stock > 0 && stock.toString().length() <= 11;
         }
-        
-        public boolean isValidStatus(String status){
+
+        public boolean isValidStatus(String status) {
             return status.length() <= 50;
         }
-        
+
         // we will have to talk about this
         public boolean isValidActive(Boolean isActive) {
             return isActive instanceof Boolean;
@@ -496,12 +569,13 @@ public class AuthenticationService {
         }
 
     } //Parts Auth Class closer
-    
+
     public static class manufacturersAuth {
 
         public boolean isDataMissing(String data) {
             return (data == null || data.trim().isEmpty());
         }
+
         public boolean isDataMissing(Manufacturers data) {
             return (data == null);
         }
@@ -529,23 +603,23 @@ public class AuthenticationService {
         public boolean isValidName(String name) {
             return name.length() <= 50;
         }
-        
+
         public boolean isValidCountry(String name) {
             return name.length() <= 50;
         }
-        
+
         public boolean isManufacturersDeleted(Boolean isDeleted) {
             return (isDeleted == true);
         }
 
-
     } //Manufacturers Auth Class closer
-    
+
     public static class partvariantsAuth {
 
         public boolean isDataMissing(String data) {
             return (data == null || data.trim().isEmpty());
         }
+
         public boolean isDataMissing(PartVariants data) {
             return (data == null);
         }
@@ -557,19 +631,20 @@ public class AuthenticationService {
         public boolean isDataMissing(ArrayList<PartVariants> data) {
             return (data == null || data.isEmpty());
         }
-        
-        public boolean isDataMissing(BigDecimal data){
+
+        public boolean isDataMissing(BigDecimal data) {
             return (data == null);
         }
-        
+
         public boolean isValidAdditionalPrice(BigDecimal price) {
             return price.compareTo(new BigDecimal("0.00")) > 0;
         }
-        
-         public boolean isValidPartsId(Parts parts) {
+
+        public boolean isValidPartsId(Parts parts) {
             Integer partsId = parts.getId();
             return partsId > 0 && partsId.toString().length() <= 11;
         }
+
         public boolean isValidPartsId(Integer partsId) {
             return partsId > 0 && partsId.toString().length() <= 11;
         }
@@ -589,14 +664,12 @@ public class AuthenticationService {
         public boolean isValidName(String name) {
             return name.length() <= 50;
         }
-        
+
         public boolean isValidValue(String name) {
             return name.length() <= 50;
         }
-       
 
     } //PartsVariants Auth Class closer
-  
-    
+
 }//Auth Service Class closer
 

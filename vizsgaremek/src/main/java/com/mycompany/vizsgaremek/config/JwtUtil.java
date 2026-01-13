@@ -26,6 +26,8 @@ public class JwtUtil {
 
     // Token validity: 24 hours 24 * 60 * 60 * 1000
     private static final long TOKEN_VALIDITY = 24 * 60 * 60 * 1000;
+    
+    private static final AuthenticationService.JWTAuth JWTAuth = new AuthenticationService.JWTAuth();
 
     /**
      * Get signing key from SECRET_KEY string
@@ -186,7 +188,7 @@ public class JwtUtil {
     public Response validateJwtAndReturnError(String jwtToken) {
         JSONArray errors = new JSONArray();
 
-        if (AuthenticationService.isDataMissing(jwtToken)) {
+        if (JWTAuth.isDataMissing(jwtToken)) {
             errors.put("MissingToken");
             return Response.status(401)
                     .entity(errorAuth.createErrorResponse(errors, 401).toString())

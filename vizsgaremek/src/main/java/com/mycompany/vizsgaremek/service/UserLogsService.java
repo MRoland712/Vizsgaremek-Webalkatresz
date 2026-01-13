@@ -15,6 +15,7 @@ import org.json.JSONObject;
  */
 public class UserLogsService {
 
+     
     private final AuthenticationService.userLogsAuth userLogsAuth = new AuthenticationService.userLogsAuth();
     private final AuthenticationService.errorAuth errorAuth = new AuthenticationService.errorAuth();
 
@@ -22,23 +23,23 @@ public class UserLogsService {
         JSONObject toReturn = new JSONObject();
         JSONArray errors = new JSONArray();
 
-        if (AuthenticationService.isDataMissing(userId)) {
+        if (userLogsAuth.isDataMissing(userId)) {
             errors.put("MissingUserId");
         }
-        if (AuthenticationService.isDataMissing(createdUserLog.getAction())) {
+        if (userLogsAuth.isDataMissing(createdUserLog.getAction())) {
             errors.put("MissingAction");
         }
-        if (AuthenticationService.isDataMissing(createdUserLog.getDetails())) {
+        if (userLogsAuth.isDataMissing(createdUserLog.getDetails())) {
             toReturn.put("message", "Details Is Missing");
         }
 
-        if (!AuthenticationService.isDataMissing(userId) && !userLogsAuth.isValidUserId(userId)) {
+        if (!userLogsAuth.isDataMissing(userId) && !userLogsAuth.isValidUserId(userId)) {
             errors.put("InvalidId");
         }
-        if (!AuthenticationService.isDataMissing(createdUserLog.getAction()) && !userLogsAuth.isValidAction(createdUserLog.getAction())) {
+        if (!userLogsAuth.isDataMissing(createdUserLog.getAction()) && !userLogsAuth.isValidAction(createdUserLog.getAction())) {
             errors.put("InvalidAction");
         }
-        if (!AuthenticationService.isDataMissing(createdUserLog.getDetails()) && !userLogsAuth.isValidDetail(createdUserLog.getDetails())) {
+        if (!userLogsAuth.isDataMissing(createdUserLog.getDetails()) && !userLogsAuth.isValidDetail(createdUserLog.getDetails())) {
             errors.put("InvalidDetails");
         }
 
@@ -48,7 +49,7 @@ public class UserLogsService {
 
         Boolean result = UserLogs.createUserLogs(createdUserLog, userId);
 
-        if (AuthenticationService.isDataMissing(result)) {
+        if (userLogsAuth.isDataMissing(result)) {
             errors.put("ModelError");
         }
 
@@ -56,13 +57,15 @@ public class UserLogsService {
             return errorAuth.createErrorResponse(errors, 500);
         }
 
-        if (!AuthenticationService.isDataMissing(toReturn)) {
+        if (!userLogsAuth.isDataMissing(toReturn)) {
             return errorAuth.createOKResponse(toReturn);
         } else {
             return errorAuth.createOKResponse();
         }
     }
 
+    
+    //ToDo: THis shit :[
     /*public JSONObject updateUserLogs(UserLogs updatedUserLogs, Integer id, Integer userId) {
         JSONObject toReturn = new JSONObject();
         JSONArray errors = new JSONArray();
