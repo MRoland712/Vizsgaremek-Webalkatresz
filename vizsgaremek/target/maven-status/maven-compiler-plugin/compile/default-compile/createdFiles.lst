@@ -37,6 +37,7 @@ com\mycompany\vizsgaremek\service\AuthenticationService$userAuth.class
 com\mycompany\vizsgaremek\model\Trucks.class
 com\mycompany\vizsgaremek\service\UsersService.class
 com\mycompany\vizsgaremek\config\base64Converters.class
+com\mycompany\vizsgaremek\model\EmailInfo.class
 com\mycompany\vizsgaremek\model\Refunds.class
 com\mycompany\vizsgaremek\model\UserLogs.class
 com\mycompany\vizsgaremek\model\PasswordResets.class
@@ -53,3 +54,4 @@ com\mycompany\vizsgaremek\config\Encrypt.class
 com\mycompany\vizsgaremek\model\Addresses.class
 com\mycompany\vizsgaremek\model\ShippingStatus.class
 com\mycompany\vizsgaremek\service\AddressService.class
+com\mycompany\vizsgaremek\config\SendEmail$3.class

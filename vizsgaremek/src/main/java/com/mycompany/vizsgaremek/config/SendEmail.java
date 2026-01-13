@@ -4,6 +4,8 @@
  */
 package com.mycompany.vizsgaremek.config;
 
+import com.sun.mail.gimap.GmailFolder;
+import com.sun.mail.gimap.GmailStore;
 import java.util.Properties;
 import java.util.Random;
 import javax.mail.Authenticator;
@@ -14,11 +16,19 @@ import javax.mail.Session;
 import javax.mail.Transport;
 import javax.mail.internet.InternetAddress;
 import javax.mail.internet.MimeMessage;
+import javax.mail.internet.MimeMultipart;
 import com.mycompany.vizsgaremek.model.Users;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import javax.mail.Store;
 import javax.mail.Folder;
+import com.mycompany.vizsgaremek.model.EmailInfo;
+import java.io.IOException;
+import javax.mail.BodyPart;
+import javax.mail.Flags;
+import javax.mail.search.SearchTerm;
+import javax.mail.search.MessageIDTerm;
 
 /**
  *
@@ -419,7 +429,7 @@ public class SendEmail {
         System.out.println("Email Sent to: " + recipientEmail);
     }
 
-    public static String getMessageIds() throws MessagingException {
+    public static List<EmailInfo> getMessages() throws MessagingException {
         // IMAP properties
         Properties props = new Properties();
         props.put("mail.store.protocol", "imaps");
@@ -443,26 +453,179 @@ public class SendEmail {
         // Get messages
         Message[] messages = inbox.getMessages();
 
-        
-        //ToDO: get all message ids
+        List<EmailInfo> emailList = new ArrayList<>();
+
+        // ⭐ Végigmegyünk MINDEN message-en ⭐
         if (messages.length > 0) {
-            Message lastMessage = messages[messages.length - 1];
+            for (int i = 0; i < messages.length; i++) {
+                try {
+                    Message message = messages[i];
 
-            // ⭐ Message-ID kinyerése ⭐
-            String messageId = lastMessage.getHeader("Message-ID")[0];
+                    // ⭐ Message-ID kinyerése ⭐
+                    String[] messageIdHeaders = message.getHeader("Message-ID");
+                    String messageId = (messageIdHeaders != null && messageIdHeaders.length > 0)
+                            ? messageIdHeaders[0]
+                            : null;
 
-            System.out.println("Message-ID: " + messageId);
-            System.out.println("From: " + lastMessage.getFrom()[0]);
-            System.out.println("Subject: " + lastMessage.getSubject());
+                    // From
+                    String from = (message.getFrom() != null && message.getFrom().length > 0)
+                            ? message.getFrom()[0].toString()
+                            : "Unknown";
 
-            inbox.close(false);
-            store.close();
+                    // Subject
+                    String subject = message.getSubject() != null
+                            ? message.getSubject()
+                            : "(No Subject)";
 
-            return messageId;
+                    // Date
+                    Date receivedDate = message.getReceivedDate();
+
+                    // Body content
+                    String bodyContent = getTextFromMessage(message);
+
+                    // ⭐ EmailInfo objektum létrehozása ⭐
+                    EmailInfo emailInfo = new EmailInfo();
+                    emailInfo.setMessageId(messageId);
+                    emailInfo.setFrom(from);
+                    emailInfo.setSubject(subject);
+                    emailInfo.setReceivedDate(receivedDate);
+                    emailInfo.setBodyContent(bodyContent);
+
+                    emailList.add(emailInfo);
+
+                } catch (Exception ex) {
+                    System.err.println("Error processing message #" + (i + 1) + ": " + ex.getMessage());
+                    ex.printStackTrace();
+                }
+            }
+        } else {
+            System.out.println("No messages found in INBOX");
         }
 
         inbox.close(false);
         store.close();
-        return null;
+
+        return emailList;
+    }
+
+    private static String getTextFromMessage(Message message) throws MessagingException, IOException {
+        String result = "";
+        if (message.isMimeType("text/plain")) {
+            result = message.getContent().toString();
+        } else if (message.isMimeType("text/html")) {
+            result = message.getContent().toString();
+        } else if (message.isMimeType("multipart/*")) {
+            MimeMultipart mimeMultipart = (MimeMultipart) message.getContent();
+            result = getTextFromMimeMultipart(mimeMultipart);
+        }
+        return result;
+    }
+
+    private static String getTextFromMimeMultipart(MimeMultipart mimeMultipart) throws MessagingException, IOException {
+        StringBuilder result = new StringBuilder();
+        int count = mimeMultipart.getCount();
+        for (int i = 0; i < count; i++) {
+            BodyPart bodyPart = mimeMultipart.getBodyPart(i);
+            if (bodyPart.isMimeType("text/plain")) {
+                result.append(bodyPart.getContent());
+                break;
+            } else if (bodyPart.isMimeType("text/html")) {
+                String html = (String) bodyPart.getContent();
+                result.append(html);
+            } else if (bodyPart.getContent() instanceof MimeMultipart) {
+                result.append(getTextFromMimeMultipart((MimeMultipart) bodyPart.getContent()));
+            }
+        }
+        return result.toString();
+    }
+
+    /**
+     * Archive email by Message-ID (moves to "All Mail" folder, removes from
+     * Inbox)
+     *
+     * @param messageId The Message-ID header of the email to archive
+     * @return true if successful, false otherwise
+     */
+    /**
+     * Archive email by Message-ID (moves to "All Mail" folder, removes from
+     * Inbox)
+     *
+     * @param messageId The Message-ID header of the email to archive
+     * @return true if successful, false otherwise
+     */
+    public static boolean archiveEmailByMessageId(String messageId) {
+        if (messageId == null || messageId.isBlank()) {
+            return false;
+        }
+
+        System.out.println("Searching for Message-ID: " + messageId);
+
+        try {
+            Properties props = new Properties();
+            props.put("mail.store.protocol", "imaps");
+            props.put("mail.imap.host", "imap.gmail.com");
+            props.put("mail.imap.port", "993");
+            props.put("mail.imap.ssl.enable", "true");
+
+            Session session = Session.getInstance(props);
+            Store store = session.getStore("imaps");
+            store.connect(
+                    "imap.gmail.com",
+                    KvFetcher.getDataFromKV("SMTPEmail"),
+                    base64Converters.base64Converter(KvFetcher.getDataFromKV("SMTPPsw"))
+            );
+
+            // 🔹 INBOX-ban keresünk
+            Folder inbox = store.getFolder("INBOX");
+            inbox.open(Folder.READ_WRITE);
+
+            Message[] messages = inbox.getMessages();
+            Message target = null;
+
+            System.out.println("Searching through " + messages.length + " messages in INBOX...");
+
+            for (Message msg : messages) {
+                String[] headers = msg.getHeader("Message-ID");
+                if (headers != null && headers.length > 0) {
+                    String msgId = headers[0].trim();
+
+                    // DEBUG
+                    System.out.println("   Comparing: [" + msgId + "] vs [" + messageId + "]");
+
+                    if (msgId.equals(messageId)) {
+                        target = msg;
+                        System.out.println("FOUND!");
+                        break;
+                    }
+                }
+            }
+
+            if (target == null) {
+                System.out.println("No message found with Message-ID: " + messageId);
+                inbox.close(false);
+                store.close();
+                return false;
+            }
+
+            // ⭐ Gmail archiválás = DELETED flag + expunge ⭐
+            // Ez eltávolítja az INBOX-ból, de megmarad az "All Mail"-ben
+            target.setFlag(Flags.Flag.DELETED, true);
+
+            System.out.println("Email archived successfully!");
+            System.out.println("   Message-ID: " + messageId);
+            System.out.println("   Subject: " + target.getSubject());
+            System.out.println("   From: " + (target.getFrom() != null && target.getFrom().length > 0
+                    ? target.getFrom()[0] : "Unknown"));
+
+            inbox.close(true);  // ⭐ true = expunge (apply DELETED flag)
+            store.close();
+
+            return true;
+
+        } catch (Exception ex) {
+            System.err.println("Error archiving email: " + ex.getMessage());
+            ex.printStackTrace();
+            return false;
+        }
     }
 }
