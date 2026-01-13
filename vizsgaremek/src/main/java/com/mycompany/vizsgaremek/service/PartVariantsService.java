@@ -213,7 +213,7 @@ public class PartVariantsService {
 
         // VALIDÁCIÓK KERESÉSI PARAMÉTEREK 
         // Ha nincs SEMMILYEN keresési paraméter (id)
-        if (partvariantsAuth.isDataMissing(updatedPartVariants.getId())){
+        if (partvariantsAuth.isDataMissing(updatedPartVariants.getId())) {
             errors.put("MissingSearchParameter");
         }
 
@@ -309,72 +309,96 @@ public class PartVariantsService {
 
         return toReturn;
     }//updateParts
-    
+
     public JSONObject getPartVariantsByName(String name) {
         JSONObject toReturn = new JSONObject();
         JSONArray errors = new JSONArray();
 
+        // VALIDÁCIÓ - name
         if (partvariantsAuth.isDataMissing(name)) {
             errors.put("MissingName");
         }
 
-        // If modelexeption
+        // Hiba ellenőrzés
         if (errorAuth.hasErrors(errors)) {
             return errorAuth.createErrorResponse(errors, 400);
         }
 
-        PartVariants partvariant = PartVariants.getPartVariantsByName(name);
+        
+        ArrayList<PartVariants> modelResult = PartVariants.getPartVariantsByName(name);
 
-        if (partvariantsAuth.isDataMissing(partvariant)) {
+        // VALIDÁCIÓ - üres lista
+        if (modelResult == null || modelResult.isEmpty()) {
             errors.put("PartVariantsNotFound");
             return errorAuth.createErrorResponse(errors, 404);
         }
 
-        JSONObject partVariantObj = new JSONObject();
-        partVariantObj.put("id", partvariant.getId());
-        partVariantObj.put("partId", partvariant.getPartId().getId());
-        partVariantObj.put("name", partvariant.getName());
-        partVariantObj.put("value", partvariant.getValue());
-        partVariantObj.put("additionalPrice", partvariant.getAdditionalPrice());
-        partVariantObj.put("createdAt", partvariant.getCreatedAt());
+        // ArrayList 
+        JSONArray partVariantsArray = new JSONArray();
+        for (PartVariants pv : modelResult) {
+            JSONObject partVariantObj = new JSONObject();
+            partVariantObj.put("id", pv.getId());
+            partVariantObj.put("partId", pv.getPartId().getId());
+            partVariantObj.put("name", pv.getName());
+            partVariantObj.put("value", pv.getValue());
+            partVariantObj.put("additionalPrice", pv.getAdditionalPrice());
+            partVariantObj.put("createdAt", pv.getCreatedAt());
+            partVariantObj.put("isDeleted", pv.getIsDeleted());
+            partVariantObj.put("deletedAt", pv.getDeletedAt());
+
+            partVariantsArray.put(partVariantObj);
+        }
 
         toReturn.put("success", true);
-        toReturn.put("partsVariants", partVariantObj);
+        toReturn.put("partVariants", partVariantsArray);
+        toReturn.put("count", modelResult.size()); 
         toReturn.put("statusCode", 200);
 
         return toReturn;
-    }//getPartVariantsByName
-    
+    }
+
     public JSONObject getPartVariantsByValue(String value) {
         JSONObject toReturn = new JSONObject();
         JSONArray errors = new JSONArray();
 
+        // VALIDÁCIÓ  value
         if (partvariantsAuth.isDataMissing(value)) {
             errors.put("MissingValue");
         }
 
-        // If modelexeption
+        // Hiba ellenőrzés
         if (errorAuth.hasErrors(errors)) {
             return errorAuth.createErrorResponse(errors, 400);
         }
 
-        PartVariants partvariant = PartVariants.getPartVariantsByValue(value);
+        
+        ArrayList<PartVariants> modelResult = PartVariants.getPartVariantsByValue(value);
 
-        if (partvariantsAuth.isDataMissing(partvariant)) {
+        // VALIDÁCIÓ üres lista
+        if (modelResult == null || modelResult.isEmpty()) {
             errors.put("PartVariantsNotFound");
             return errorAuth.createErrorResponse(errors, 404);
         }
 
-        JSONObject partVariantObj = new JSONObject();
-        partVariantObj.put("id", partvariant.getId());
-        partVariantObj.put("partId", partvariant.getPartId().getId());
-        partVariantObj.put("name", partvariant.getName());
-        partVariantObj.put("value", partvariant.getValue());
-        partVariantObj.put("additionalPrice", partvariant.getAdditionalPrice());
-        partVariantObj.put("createdAt", partvariant.getCreatedAt());
+        // ArrayList 
+        JSONArray partVariantsArray = new JSONArray();
+        for (PartVariants pv : modelResult) {
+            JSONObject partVariantObj = new JSONObject();
+            partVariantObj.put("id", pv.getId());
+            partVariantObj.put("partId", pv.getPartId().getId());
+            partVariantObj.put("name", pv.getName());
+            partVariantObj.put("value", pv.getValue());
+            partVariantObj.put("additionalPrice", pv.getAdditionalPrice());
+            partVariantObj.put("createdAt", pv.getCreatedAt());
+            partVariantObj.put("isDeleted", pv.getIsDeleted());
+            partVariantObj.put("deletedAt", pv.getDeletedAt());
+
+            partVariantsArray.put(partVariantObj);
+        }
 
         toReturn.put("success", true);
-        toReturn.put("partsVariants", partVariantObj);
+        toReturn.put("partVariants", partVariantsArray);
+        toReturn.put("count", modelResult.size()); 
         toReturn.put("statusCode", 200);
 
         return toReturn;

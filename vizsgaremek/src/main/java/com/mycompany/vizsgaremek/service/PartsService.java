@@ -281,12 +281,12 @@ public class PartsService {
         return toReturn;
     }
 
-    public JSONObject getPartsByCategory() {
+    public JSONObject getPartsCategory() {
         JSONObject toReturn = new JSONObject();
         JSONArray errors = new JSONArray();
 
         // MODEL HÍVÁS (ArrayList<String>!)
-        ArrayList<String> modelResult = Parts.getPartsByCategory();
+        ArrayList<String> modelResult = Parts.getPartsCategory();
 
         // VALIDÁCIÓ
         if (modelResult == null || modelResult.isEmpty()) {

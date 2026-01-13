@@ -299,7 +299,7 @@ public class PartVariants implements Serializable {
             em.close();
         }
     }
-    
+
     public static Boolean softDeletePartVariants(Integer id) {
         EntityManager em = emf.createEntityManager();
 
@@ -324,14 +324,14 @@ public class PartVariants implements Serializable {
             em.close();
         }
     }
-    
-    public static Boolean updatePartVariants (PartVariants updatedPartVariants) {
+
+    public static Boolean updatePartVariants(PartVariants updatedPartVariants) {
         EntityManager em = emf.createEntityManager();
 
         try {
             em.getTransaction().begin();
             StoredProcedureQuery spq = em.createStoredProcedureQuery("updatePartVariants");
-            
+
             spq.registerStoredProcedureParameter("idIN", Integer.class, ParameterMode.IN);
             spq.registerStoredProcedureParameter("partIdIN", Integer.class, ParameterMode.IN);
             spq.registerStoredProcedureParameter("nameIN", String.class, ParameterMode.IN);
@@ -363,74 +363,94 @@ public class PartVariants implements Serializable {
             em.close();
         }
     }
-    
-    public static PartVariants getPartVariantsByName(String name) {
+
+    public static ArrayList<PartVariants> getPartVariantsByName(String name) {
         EntityManager em = emf.createEntityManager();
+        ArrayList<PartVariants> toReturn = new ArrayList<>();
+
         try {
             StoredProcedureQuery spq = em.createStoredProcedureQuery("getPartVariantsByName");
+
             spq.registerStoredProcedureParameter("partVariantsName", String.class, ParameterMode.IN);
             spq.setParameter("partVariantsName", name);
+
             spq.execute();
 
             List<Object[]> resultList = spq.getResultList();
 
-            Object[] record = resultList.get(0);
+            
+            for (Object[] record : resultList) {
+                // Parts objektum
+                Parts part = new Parts();
+                part.setId(Integer.valueOf(record[1].toString()));
 
-            Parts part = new Parts();
-            part.setId(Integer.valueOf(record[1].toString()));
+                // PartVariants objektum
+                PartVariants pv = new PartVariants(
+                        Integer.valueOf(record[0].toString()), // 1. id
+                        record[2] != null ? record[2].toString() : null, // 2. name
+                        record[3] != null ? record[3].toString() : null, // 3. value
+                        record[4] != null ? new BigDecimal(record[4].toString()) : null, // 4. additional_price
+                        record[5] == null ? null : formatter.parse(record[5].toString()), // 5. created_at
+                        Boolean.valueOf(record[6].toString()), // 6. is_deleted
+                        record[7] == null ? null : formatter.parse(record[7].toString()), // 7. deleted_at (JAVÍTVA! volt: record[6])
+                        part // 8. partId
+                );
 
-            PartVariants pv = new PartVariants(
-                    Integer.valueOf(record[0].toString()), // 1. id
-                    record[2] != null ? record[2].toString() : null, // 2. name
-                    record[3] != null ? record[3].toString() : null, // 3. value
-                    record[4] != null ? new BigDecimal(record[4].toString()) : null, // 4. additionalPrice 
-                    record[5] == null ? null : formatter.parse(record[5].toString()), //  createdAt
-                    Boolean.valueOf(record[6].toString()),
-                    record[7] == null ? null : formatter.parse(record[6].toString()), //  deletedAt
-                    part //  partId
-            );
+                toReturn.add(pv);  // ← Hozzáadjuk a listához!
+            }
 
-            return pv;
+            return toReturn;
 
         } catch (Exception ex) {
             ex.printStackTrace();
             return null;
+
         } finally {
             em.close();
         }
     }
-    
-    public static PartVariants getPartVariantsByValue(String value) {
+
+    public static ArrayList<PartVariants> getPartVariantsByValue(String value) {
         EntityManager em = emf.createEntityManager();
+        ArrayList<PartVariants> toReturn = new ArrayList<>();
+
         try {
             StoredProcedureQuery spq = em.createStoredProcedureQuery("getPartVariantsByValue");
+
             spq.registerStoredProcedureParameter("partVariantsValue", String.class, ParameterMode.IN);
             spq.setParameter("partVariantsValue", value);
+
             spq.execute();
 
             List<Object[]> resultList = spq.getResultList();
 
-            Object[] record = resultList.get(0);
+            
+            for (Object[] record : resultList) {
+                // Parts objektum
+                Parts part = new Parts();
+                part.setId(Integer.valueOf(record[1].toString()));
 
-            Parts part = new Parts();
-            part.setId(Integer.valueOf(record[1].toString()));
+                // PartVariants objektum
+                PartVariants pv = new PartVariants(
+                        Integer.valueOf(record[0].toString()), // 1. id
+                        record[2] != null ? record[2].toString() : null, // 2. name
+                        record[3] != null ? record[3].toString() : null, // 3. value
+                        record[4] != null ? new BigDecimal(record[4].toString()) : null, // 4. additional_price
+                        record[5] == null ? null : formatter.parse(record[5].toString()), // 5. created_at
+                        Boolean.valueOf(record[6].toString()), // 6. is_deleted
+                        record[7] == null ? null : formatter.parse(record[7].toString()), // 7. deleted_at
+                        part // 8. partId
+                );
 
-            PartVariants pv = new PartVariants(
-                    Integer.valueOf(record[0].toString()), // 1. id
-                    record[2] != null ? record[2].toString() : null, // 2. name
-                    record[3] != null ? record[3].toString() : null, // 3. value
-                    record[4] != null ? new BigDecimal(record[4].toString()) : null, // 4. additionalPrice 
-                    record[5] == null ? null : formatter.parse(record[5].toString()), //  createdAt
-                    Boolean.valueOf(record[6].toString()),
-                    record[7] == null ? null : formatter.parse(record[6].toString()), //  deletedAt
-                    part //  partId
-            );
+                toReturn.add(pv);  
+            }
 
-            return pv;
+            return toReturn;
 
         } catch (Exception ex) {
             ex.printStackTrace();
             return null;
+
         } finally {
             em.close();
         }
