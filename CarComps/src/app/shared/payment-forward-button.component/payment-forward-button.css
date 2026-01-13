@@ -1,0 +1,10 @@
+.payment-forward {
+  background-color: #ff6600;
+}
+.payment-forward:hover {
+  background: linear-gradient(to right, #ff6600 0%, #d05604 50%);
+}
+.payment-forward-container {
+  border: solid 1px transparent;
+  border-radius: 30px;
+}

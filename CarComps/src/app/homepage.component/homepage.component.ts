@@ -5,6 +5,7 @@ import { MmtContainerComponent } from '../mmt-container/mmt-container.component'
 import { Filter } from '../filter/filter.component';
 import { ProductListComponent } from '../cards/filter-card.component/product-list/product-list.component';
 import { CategoryCardComponent } from '../cards/filter-card.component/filter-card.component';
+import { PaymentForwardButtonComponent } from '../shared/payment-forward-button.component/payment-forward-button.component';
 
 @Component({
   selector: 'app-homepage',
@@ -15,6 +16,7 @@ import { CategoryCardComponent } from '../cards/filter-card.component/filter-car
     Filter,
     ProductListComponent,
     CategoryCardComponent,
+    PaymentForwardButtonComponent,
   ],
   templateUrl: './homepage.component.html',
   styleUrl: './homepage.component.css',
