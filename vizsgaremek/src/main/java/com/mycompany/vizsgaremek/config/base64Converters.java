@@ -17,4 +17,8 @@ public class base64Converters {
             String convertedString = new String(b64InByte, StandardCharsets.UTF_8);
             return convertedString;
     }
+    public static void main(String[] args) {
+        String text = "<base64TextHere>";
+        System.out.println(text + " got converted to " + base64Converter(text));
+    }
 }

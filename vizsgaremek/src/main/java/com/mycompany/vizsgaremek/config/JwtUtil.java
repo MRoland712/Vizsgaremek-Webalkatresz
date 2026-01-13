@@ -1,5 +1,6 @@
 package com.mycompany.vizsgaremek.config;
 
+import com.mycompany.vizsgaremek.service.AuthenticationService;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
@@ -9,6 +10,9 @@ import java.security.Key;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
+import org.json.JSONArray;
 
 /**
  * JWT Token Utility Compatible with JJWT 0.11.x and Java 17
@@ -20,8 +24,10 @@ public class JwtUtil {
     // Secret key for signing JWT tokens (minimum 32 characters for HS256!)
     private static final String SECRET_KEY = base64Converters.base64Converter(KvFetcher.getDataFromKV("JWTSecretKey"));
 
-    // Token validity: 24 hours
+    // Token validity: 24 hours 24 * 60 * 60 * 1000
     private static final long TOKEN_VALIDITY = 24 * 60 * 60 * 1000;
+    
+    private static final AuthenticationService.JWTAuth JWTAuth = new AuthenticationService.JWTAuth();
 
     /**
      * Get signing key from SECRET_KEY string
@@ -177,7 +183,40 @@ public class JwtUtil {
                 .parseClaimsJws(token)
                 .getBody();
     }
+    
+    AuthenticationService.errorAuth errorAuth = new AuthenticationService.errorAuth();
+    public Response validateJwtAndReturnError(String jwtToken) {
+        JSONArray errors = new JSONArray();
 
+        if (JWTAuth.isDataMissing(jwtToken)) {
+            errors.put("MissingToken");
+            return Response.status(401)
+                    .entity(errorAuth.createErrorResponse(errors, 401).toString())
+                    .type(MediaType.APPLICATION_JSON)
+                    .build();
+        }
+
+        Boolean validJwt = validateToken(jwtToken);
+        Boolean expiredToken = isTokenExpired(jwtToken);
+
+        if (expiredToken) {
+            errors.put("TokenExpired");
+            return Response.status(401)
+                    .entity(errorAuth.createErrorResponse(errors, 401).toString())
+                    .type(MediaType.APPLICATION_JSON)
+                    .build();
+        }
+
+        if (validJwt == false) {
+            errors.put("InvalidToken");
+            return Response.status(401)
+                    .entity(errorAuth.createErrorResponse(errors, 401).toString())
+                    .type(MediaType.APPLICATION_JSON)
+                    .build();
+        }
+
+        return null; // Token valid
+    }
     /**
      * Example usage
      */

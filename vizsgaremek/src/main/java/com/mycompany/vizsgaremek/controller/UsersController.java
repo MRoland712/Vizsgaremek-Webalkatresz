@@ -1,7 +1,3 @@
-/*
- * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
- * Click nbfs://nbhost/SystemFileSystem/Templates/WebServices/GenericResource.java to edit this template
- */
 package com.mycompany.vizsgaremek.controller;
 
 import com.mycompany.vizsgaremek.config.JwtUtil;
@@ -12,22 +8,19 @@ import javax.ws.rs.core.Context;
 import javax.ws.rs.core.UriInfo;
 import javax.ws.rs.Produces;
 import javax.ws.rs.Consumes;
+import javax.ws.rs.DELETE;
 import javax.ws.rs.GET;
 import javax.ws.rs.HeaderParam;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.PUT;
+import javax.ws.rs.OPTIONS;
 import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import org.json.JSONObject;
+import org.json.JSONArray;
 
-/**
- * REST Web Service
- *
- * @author ddori
- * @co-author neblg
- */
 @Path("user")
 public class UsersController {
 
@@ -36,42 +29,42 @@ public class UsersController {
 
     private UsersService layer = new UsersService();
     private final AuthenticationService.userAuth userAuth = new AuthenticationService.userAuth();
+    private final AuthenticationService.errorAuth errorAuth = new AuthenticationService.errorAuth();
     private final JwtUtil jwt = new JwtUtil();
 
-    /**
-     * Creates a new instance of UsersController
-     */
     public UsersController() {
     }
 
-    /**
-     * Retrieves representation of an instance of
-     * com.mycompany.vizsgaremek.controller.UsersController
-     *
-     * @return an instance of java.lang.String
-     */
     @GET
     @Produces(MediaType.APPLICATION_XML)
     public String getXml() {
-        //TODO return proper representation object
         throw new UnsupportedOperationException();
     }
 
-    /**
-     * PUT method for updating or creating an instance of UsersController
-     *
-     * @param content representation for the resource
-     */
     @PUT
     @Consumes(MediaType.APPLICATION_XML)
     public void putXml(String content) {
+    }
+
+    @GET
+    @Path("validateJWT")
+    @Consumes(MediaType.APPLICATION_JSON)
+    public Response validateJWTEndpoint(@HeaderParam("token") String jwtToken) {
+        Response jwtError = jwt.validateJwtAndReturnError(jwtToken);
+        if (jwtError != null) {
+            return jwtError;
+        }
+
+        return Response.status(200)
+                .entity(errorAuth.createOKResponse().toString())
+                .type(MediaType.APPLICATION_JSON)
+                .build();
     }
 
     @POST
     @Path("createUser")
     @Consumes(MediaType.APPLICATION_JSON)
     public Response createUser(String body) {
-
         JSONObject bodyObject = new JSONObject(body);
 
         Users createdUser = new Users(
@@ -90,100 +83,82 @@ public class UsersController {
                 .entity(toReturn.toString())
                 .type(MediaType.APPLICATION_JSON)
                 .build();
-
     }
 
     @GET
     @Path("getUsers")
     @Consumes(MediaType.APPLICATION_JSON)
     public Response getUsers(@HeaderParam("token") String jwtToken) {
-        Boolean validJwt = jwt.validateToken(jwtToken);
-        if (userAuth.isDataMissing(jwtToken)) {
-            //ha nincs megadva a token
-            return Response.status(401).entity("missingToken").type(MediaType.APPLICATION_JSON).build();
-        } else if (validJwt == null) {
-            //lejárt jwt
-            return Response.status(401).entity("tokenExpired").type(MediaType.APPLICATION_JSON).build();
-        } else if (validJwt == false) {
-            //invalid jwt
-            return Response.status(401).entity("invalidToken").type(MediaType.APPLICATION_JSON).build();
-        } else {
-            JSONObject toReturn = layer.getUsers();
-            return Response.status(Integer.parseInt(toReturn.get("statusCode").toString()))
-                    .entity(toReturn.toString())
-                    .type(MediaType.APPLICATION_JSON)
-                    .build();
+        Response jwtError = jwt.validateJwtAndReturnError(jwtToken);
+        if (jwtError != null) {
+            return jwtError;
         }
+
+        JSONObject toReturn = layer.getUsers();
+
+        return Response.status(Integer.parseInt(toReturn.get("statusCode").toString()))
+                .entity(toReturn.toString())
+                .type(MediaType.APPLICATION_JSON)
+                .build();
     }
 
     @GET
     @Path("getUserById")
     @Consumes(MediaType.APPLICATION_JSON)
     public Response getUserById(@QueryParam("id") Integer id, @HeaderParam("token") String jwtToken) {
-        Boolean validJwt = jwt.validateToken(jwtToken);
-
-        if (userAuth.isDataMissing(jwtToken)) {
-            //ha nincs megadva a token
-            return Response.status(401).entity("missingToken").type(MediaType.APPLICATION_JSON).build();
-        } else if (validJwt == null) {
-            //lejárt jwt
-            return Response.status(401).entity("tokenExpired").type(MediaType.APPLICATION_JSON).build();
-        } else if (validJwt == false) {
-            //invalid jwt
-            return Response.status(401).entity("invalidToken").type(MediaType.APPLICATION_JSON).build();
-        } else {
-            if (userAuth.isDataMissing(id)) {
-                id = null;
-            }
-            JSONObject toReturn = layer.getUserById(id);
-            return Response.status(Integer.parseInt(toReturn.get("statusCode").toString())).entity(toReturn.toString()).type(MediaType.APPLICATION_JSON).build();
+        Response jwtError = jwt.validateJwtAndReturnError(jwtToken);
+        if (jwtError != null) {
+            return jwtError;
         }
+
+        if (userAuth.isDataMissing(id)) {
+            id = null;
+        }
+
+        JSONObject toReturn = layer.getUserById(id);
+
+        return Response.status(Integer.parseInt(toReturn.get("statusCode").toString()))
+                .entity(toReturn.toString())
+                .type(MediaType.APPLICATION_JSON)
+                .build();
     }
 
     @GET
     @Path("getUserByEmail")
     @Consumes(MediaType.APPLICATION_JSON)
     public Response getUserByEmail(@QueryParam("email") String email, @HeaderParam("token") String jwtToken) {
-        Boolean validJwt = jwt.validateToken(jwtToken);
-
-        if (userAuth.isDataMissing(jwtToken)) {
-            //ha nincs megadva a token
-            return Response.status(401).entity("missingToken").type(MediaType.APPLICATION_JSON).build();
-        } else if (validJwt == null) {
-            //lejárt jwt
-            return Response.status(401).entity("tokenExpired").type(MediaType.APPLICATION_JSON).build();
-        } else if (validJwt == false) {
-            //invalid jwt
-            return Response.status(401).entity("invalidToken").type(MediaType.APPLICATION_JSON).build();
-        } else {
-            JSONObject toReturn = layer.getUserByEmail(email);
-            return Response.status(Integer.parseInt(toReturn.get("statusCode").toString())).entity(toReturn.toString()).type(MediaType.APPLICATION_JSON).build();
+        Response jwtError = jwt.validateJwtAndReturnError(jwtToken);
+        if (jwtError != null) {
+            return jwtError;
         }
+
+        if (userAuth.isDataMissing(email)) {
+            email = null;
+        }
+        
+        JSONObject toReturn = layer.getUserByEmail(email);
+
+        return Response.status(Integer.parseInt(toReturn.get("statusCode").toString()))
+                .entity(toReturn.toString())
+                .type(MediaType.APPLICATION_JSON)
+                .build();
     }
 
-    @PUT
+    @DELETE
     @Path("softDeleteUser")
     @Consumes(MediaType.APPLICATION_JSON)
     public Response softDeleteUser(@QueryParam("id") Integer userId, @HeaderParam("token") String jwtToken) {
-        Boolean validJwt = jwt.validateToken(jwtToken);
-
-        if (userAuth.isDataMissing(jwtToken)) {
-            //ha nincs megadva a token
-            return Response.status(401).entity("missingToken").type(MediaType.APPLICATION_JSON).build();
-        } else if (validJwt == null) {
-            //lejárt jwt
-            return Response.status(401).entity("tokenExpired").type(MediaType.APPLICATION_JSON).build();
-        } else if (validJwt == false) {
-            //invalid jwt
-            return Response.status(401).entity("invalidToken").type(MediaType.APPLICATION_JSON).build();
-        } else {
-            JSONObject toReturn = layer.softDeleteUser(userId);
-
-            return Response.status(Integer.parseInt(toReturn.get("statusCode").toString()))
-                    .entity(toReturn.toString())
-                    .type(MediaType.APPLICATION_JSON)
-                    .build();
+        Response jwtError = jwt.validateJwtAndReturnError(jwtToken);
+        if (jwtError != null) {
+            return jwtError;
         }
+
+        JSONObject toReturn = layer.softDeleteUser(userId);
+
+        return Response.status(Integer.parseInt(toReturn.get("statusCode").toString()))
+                .entity(toReturn.toString())
+                .type(MediaType.APPLICATION_JSON)
+                .build();
     }
 
     @PUT
@@ -193,73 +168,58 @@ public class UsersController {
             @QueryParam("id") Integer userId,
             @QueryParam("email") String email,
             String body) {
-        Boolean validJwt = jwt.validateToken(jwtToken);
 
-        if (userAuth.isDataMissing(jwtToken)) {
-            //ha nincs megadva a token
-            return Response.status(401).entity("missingToken").type(MediaType.APPLICATION_JSON).build();
-        } else if (validJwt == null) {
-            //lejárt jwt
-            return Response.status(401).entity("tokenExpired").type(MediaType.APPLICATION_JSON).build();
-        } else if (validJwt == false) {
-            //invalid jwt
-            return Response.status(401).entity("invalidToken").type(MediaType.APPLICATION_JSON).build();
-        } else {
-            JSONObject bodyObject = new JSONObject(body);
-
-            Users updatedUser = new Users();
-
-            if (userId != null) {
-                updatedUser.setId(userId);
-            }
-
-            if (email != null) {
-                updatedUser.setEmail(email);
-            }
-
-            if (bodyObject.has("email") && email == null) {
-                updatedUser.setEmail(bodyObject.getString("email"));
-            }
-
-            if (bodyObject.has("username")) {
-                updatedUser.setUsername(bodyObject.getString("username"));
-            }
-
-            if (bodyObject.has("firstName")) {
-                updatedUser.setFirstName(bodyObject.getString("firstName"));
-            }
-
-            if (bodyObject.has("lastName")) {
-                updatedUser.setLastName(bodyObject.getString("lastName"));
-            }
-
-            if (bodyObject.has("phone")) {
-                updatedUser.setPhone(bodyObject.getString("phone"));
-            }
-
-            if (bodyObject.has("isActive")) {
-                updatedUser.setIsActive(bodyObject.getBoolean("isActive"));
-            }
-
-            if (bodyObject.has("password")) {
-                updatedUser.setPassword(bodyObject.getString("password"));
-            }
-
-            if (bodyObject.has("authSecret")) {
-                updatedUser.setAuthSecret(bodyObject.getString("authSecret"));
-            }
-
-            if (bodyObject.has("registrationToken")) {
-                updatedUser.setRegistrationToken(bodyObject.getString("registrationToken"));
-            }
-
-            JSONObject toReturn = layer.updateUser(updatedUser);
-
-            return Response.status(Integer.parseInt(toReturn.get("statusCode").toString()))
-                    .entity(toReturn.toString())
-                    .type(MediaType.APPLICATION_JSON)
-                    .build();
+        Response jwtError = jwt.validateJwtAndReturnError(jwtToken);
+        if (jwtError != null) {
+            return jwtError;
         }
+
+        JSONObject bodyObject = new JSONObject(body);
+        Users updatedUser = new Users();
+
+        if (userId != null) {
+            updatedUser.setId(userId);
+        }
+        if (email != null) {
+            updatedUser.setEmail(email);
+        }
+        if (bodyObject.has("email") && email == null) {
+            updatedUser.setEmail(bodyObject.getString("email"));
+        }
+        if (bodyObject.has("username")) {
+            updatedUser.setUsername(bodyObject.getString("username"));
+        }
+        if (bodyObject.has("firstName")) {
+            updatedUser.setFirstName(bodyObject.getString("firstName"));
+        }
+        if (bodyObject.has("lastName")) {
+            updatedUser.setLastName(bodyObject.getString("lastName"));
+        }
+        if (bodyObject.has("phone")) {
+            updatedUser.setPhone(bodyObject.getString("phone"));
+        }
+        if (bodyObject.has("isActive")) {
+            updatedUser.setIsActive(bodyObject.getBoolean("isActive"));
+        }
+        if (bodyObject.has("isSubscribed")) {
+            updatedUser.setIsSubscribed(bodyObject.getBoolean("isSubscribed"));
+        }
+        if (bodyObject.has("password")) {
+            updatedUser.setPassword(bodyObject.getString("password"));
+        }
+        if (bodyObject.has("authSecret")) {
+            updatedUser.setAuthSecret(bodyObject.getString("authSecret"));
+        }
+        if (bodyObject.has("registrationToken")) {
+            updatedUser.setRegistrationToken(bodyObject.getString("registrationToken"));
+        }
+
+        JSONObject toReturn = layer.updateUser(updatedUser);
+
+        return Response.status(Integer.parseInt(toReturn.get("statusCode").toString()))
+                .entity(toReturn.toString())
+                .type(MediaType.APPLICATION_JSON)
+                .build();
     }
 
     @PUT
@@ -280,4 +240,4 @@ public class UsersController {
                 .type(MediaType.APPLICATION_JSON)
                 .build();
     }
-} //CLASS CLOSER DONT DELETE
+}

@@ -314,7 +314,6 @@ public class PartVariantsService {
         JSONObject toReturn = new JSONObject();
         JSONArray errors = new JSONArray();
 
-        // VALIDÁCIÓ - name
         if (partvariantsAuth.isDataMissing(name)) {
             errors.put("MissingName");
         }
@@ -324,10 +323,8 @@ public class PartVariantsService {
             return errorAuth.createErrorResponse(errors, 400);
         }
 
-        
         ArrayList<PartVariants> modelResult = PartVariants.getPartVariantsByName(name);
 
-        // VALIDÁCIÓ - üres lista
         if (modelResult == null || modelResult.isEmpty()) {
             errors.put("PartVariantsNotFound");
             return errorAuth.createErrorResponse(errors, 404);
@@ -351,7 +348,7 @@ public class PartVariantsService {
 
         toReturn.put("success", true);
         toReturn.put("partVariants", partVariantsArray);
-        toReturn.put("count", modelResult.size()); 
+        toReturn.put("count", modelResult.size());
         toReturn.put("statusCode", 200);
 
         return toReturn;
@@ -371,7 +368,6 @@ public class PartVariantsService {
             return errorAuth.createErrorResponse(errors, 400);
         }
 
-        
         ArrayList<PartVariants> modelResult = PartVariants.getPartVariantsByValue(value);
 
         // VALIDÁCIÓ üres lista
@@ -398,7 +394,7 @@ public class PartVariantsService {
 
         toReturn.put("success", true);
         toReturn.put("partVariants", partVariantsArray);
-        toReturn.put("count", modelResult.size()); 
+        toReturn.put("count", modelResult.size());
         toReturn.put("statusCode", 200);
 
         return toReturn;

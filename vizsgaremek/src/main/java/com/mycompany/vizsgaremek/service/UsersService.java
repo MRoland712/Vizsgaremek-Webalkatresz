@@ -5,11 +5,13 @@
 package com.mycompany.vizsgaremek.service;
 
 import com.mycompany.vizsgaremek.model.Users;
+import com.mycompany.vizsgaremek.model.UserLogs;
 import java.util.ArrayList;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import com.mycompany.vizsgaremek.config.Encrypt;
 import com.mycompany.vizsgaremek.config.JwtUtil;
+import com.mycompany.vizsgaremek.service.AuthenticationService;
 import java.util.Random;
 import java.util.UUID;
 
@@ -129,29 +131,46 @@ public class UsersService {
             // set Password to Encrypted version of entered password
             String encryptedPassword = Encrypt.encrypt(createdUser.getPassword());
             createdUser.setPassword(encryptedPassword);
-
-            //Create OTP
-            Random random = new Random();
-            createdUser.setAuthSecret(
-                    Integer.toString(random.nextInt(900000) + 100000)
-            );
-
-            //set role to null for default creation of user
-            createdUser.setRole(null);
-
-            String token = UUID.randomUUID().toString();
-            createdUser.setRegistrationToken(token);
-
-            Boolean modelResult = Users.createUser(createdUser);
-
-            if (!modelResult) {
-                errors.put("ModelError");
-            }
-
         } catch (Exception e) {
             e.printStackTrace();
             errors.put("InternalServerError");
             return errorAuth.createErrorResponse(errors, 500);
+        }
+
+        //Create OTP
+        Random random = new Random();
+        createdUser.setAuthSecret(
+                Integer.toString(random.nextInt(900000) + 100000)
+        );
+
+        //set role to null for default creation of user
+        createdUser.setRole(null);
+
+        String token = UUID.randomUUID().toString();
+        createdUser.setRegistrationToken(token);
+
+        Boolean modelResult = Users.createUser(createdUser);
+
+        if (!modelResult) {
+            errors.put("ModelError");
+        }
+
+        if (errorAuth.hasErrors(errors)) {
+            return errorAuth.createErrorResponse(errors, 500);
+        }
+
+        UserLogs createdUserLog = new UserLogs();
+        createdUserLog.setAction("createUser");
+        createdUserLog.setDetails("User " + createdUser.getUsername() + " registered.");
+
+        Boolean userLog = UserLogs.createUserLogs(createdUserLog, Users.getUserByEmail(createdUser.getEmail()).getId());
+
+        if (!userLog) {
+            errors.put("UserLogError");
+        }
+
+        if (errorAuth.hasErrors(errors)) {
+            toReturn.put("message", "Failed To Log User Action");
         }
 
         toReturn.put("JWTToken", JwtUtil.generateToken(createdUser.getId(), createdUser.getEmail(), createdUser.getRole(), createdUser.getUsername()));
@@ -193,14 +212,12 @@ public class UsersService {
             actualUserObject.put("createdAt", actualUser.getCreatedAt() == null ? null : actualUser.getCreatedAt().toString());
             actualUserObject.put("updatedAt", actualUser.getUpdatedAt() == null ? null : actualUser.getUpdatedAt().toString());
             actualUserObject.put("isDeleted", actualUser.getIsDeleted());
+            actualUserObject.put("isSubscribed", actualUser.getIsSubscribed());
 
             result.put(actualUserObject);
         }
 
-        toReturn.put("result", result);
-        toReturn.put("status", "success");
-        toReturn.put("statusCode", 200);
-        return toReturn;
+        return errorAuth.createOKResponse(result);
 
     }
 
@@ -234,33 +251,29 @@ public class UsersService {
         //error check if user not found
         if (errorAuth.hasErrors(errors)) {
             return errorAuth.createErrorResponse(errors, 404);
-        } else {
-            JSONObject result = new JSONObject();
-
-            result.put("id", modelResult.getId());
-            result.put("guid", modelResult.getGuid());
-            result.put("email", modelResult.getEmail());
-            result.put("username", modelResult.getUsername());
-            result.put("password", modelResult.getPassword());
-            result.put("firstName", modelResult.getFirstName());
-            result.put("lastName", modelResult.getLastName());
-            result.put("phone", modelResult.getPhone());
-            result.put("isActive", modelResult.getIsActive());
-            result.put("role", modelResult.getRole());
-            result.put("createdAt", modelResult.getCreatedAt() == null ? "" : modelResult.getCreatedAt().toString());
-            result.put("updateAt", modelResult.getUpdatedAt() == null ? "" : modelResult.getUpdatedAt().toString());
-            result.put("lastLogin", modelResult.getLastLogin() == null ? "" : modelResult.getLastLogin().toString());
-            result.put("isDeleted", modelResult.getIsDeleted());
-            result.put("authSecret", modelResult.getAuthSecret());
-            result.put("registrationToken", modelResult.getRegistrationToken());
-
-            toReturn.put("result", result);
-            toReturn.put("status", "success");
-            toReturn.put("statusCode", 200);
-            return toReturn;
         }
+        JSONObject result = new JSONObject();
+
+        result.put("id", modelResult.getId());
+        result.put("guid", modelResult.getGuid());
+        result.put("email", modelResult.getEmail());
+        result.put("username", modelResult.getUsername());
+        result.put("password", modelResult.getPassword());
+        result.put("firstName", modelResult.getFirstName());
+        result.put("lastName", modelResult.getLastName());
+        result.put("phone", modelResult.getPhone());
+        result.put("isActive", modelResult.getIsActive());
+        result.put("isSubscribed", modelResult.getIsSubscribed());
+        result.put("role", modelResult.getRole());
+        result.put("createdAt", modelResult.getCreatedAt() == null ? "" : modelResult.getCreatedAt().toString());
+        result.put("updateAt", modelResult.getUpdatedAt() == null ? "" : modelResult.getUpdatedAt().toString());
+        result.put("lastLogin", modelResult.getLastLogin() == null ? "" : modelResult.getLastLogin().toString());
+        result.put("isDeleted", modelResult.getIsDeleted());
+        result.put("authSecret", modelResult.getAuthSecret());
+        result.put("registrationToken", modelResult.getRegistrationToken());
+
+        return errorAuth.createOKResponse(result);
     }
-//ToDo: checkolni hogy kell-e break a kód közben (úgy mint a updateUser-ben error check)
 
     public JSONObject getUserByEmail(String email) {
         JSONObject toReturn = new JSONObject();
@@ -283,37 +296,38 @@ public class UsersService {
 
         //get data from spq
         Users modelResult = Users.getUserByEmail(email);
-        System.out.println("getUserByEmail Modelresult " + modelResult);
+
         //if spq gives null data
-        if (modelResult == null) {
+        if (userAuth.isDataMissing(modelResult)) {
             errors.put("UserNotFound");
         }
 
         //if user is not found
         if (errorAuth.hasErrors(errors)) {
             return errorAuth.createErrorResponse(errors, 404);
-        } else {
-            JSONObject result = new JSONObject();
-
-            result.put("id", modelResult.getId());
-            result.put("guid", modelResult.getGuid());
-            result.put("email", modelResult.getEmail());
-            result.put("username", modelResult.getUsername());
-            result.put("password", modelResult.getPassword());
-            result.put("firstName", modelResult.getFirstName());
-            result.put("lastName", modelResult.getLastName());
-            result.put("phone", modelResult.getPhone());
-            result.put("isActive", modelResult.getIsActive());
-            result.put("role", modelResult.getRole());
-            result.put("createdAt", modelResult.getCreatedAt() == null ? "" : modelResult.getCreatedAt().toString());
-            result.put("updateAt", modelResult.getUpdatedAt() == null ? "" : modelResult.getUpdatedAt().toString());
-            result.put("lastLogin", modelResult.getLastLogin() == null ? "" : modelResult.getLastLogin().toString());
-            result.put("isDeleted", modelResult.getIsDeleted());
-            result.put("authSecret", modelResult.getAuthSecret());
-            result.put("registrationToken", modelResult.getRegistrationToken());
-
-            return errorAuth.createOKResponse(result);
         }
+        JSONObject result = new JSONObject();
+
+        result.put("id", modelResult.getId());
+        result.put("guid", modelResult.getGuid());
+        result.put("email", modelResult.getEmail());
+        result.put("username", modelResult.getUsername());
+        result.put("password", modelResult.getPassword());
+        result.put("firstName", modelResult.getFirstName());
+        result.put("lastName", modelResult.getLastName());
+        result.put("phone", modelResult.getPhone());
+        result.put("isActive", modelResult.getIsActive());
+        result.put("isSubscribed", modelResult.getIsSubscribed());
+        result.put("role", modelResult.getRole());
+        result.put("createdAt", modelResult.getCreatedAt() == null ? "" : modelResult.getCreatedAt().toString());
+        result.put("updateAt", modelResult.getUpdatedAt() == null ? "" : modelResult.getUpdatedAt().toString());
+        result.put("lastLogin", modelResult.getLastLogin() == null ? "" : modelResult.getLastLogin().toString());
+        result.put("isDeleted", modelResult.getIsDeleted());
+        result.put("authSecret", modelResult.getAuthSecret());
+        result.put("registrationToken", modelResult.getRegistrationToken());
+
+        return errorAuth.createOKResponse(result);
+
     }
 
     public JSONObject softDeleteUser(Integer id) {
@@ -321,7 +335,7 @@ public class UsersService {
         JSONArray errors = new JSONArray();
 
         //If id is Missing
-        if (!userAuth.isDataMissing(id)) {
+        if (userAuth.isDataMissing(id)) {
             errors.put("MissingId");
         }
 
@@ -339,7 +353,7 @@ public class UsersService {
         Users modelResult = Users.getUserById(id);
 
         //if spq gives null data
-        if (modelResult == null) {
+        if (userAuth.isDataMissing(modelResult)) {
             errors.put("UserNotFound");
         }
 
@@ -358,7 +372,7 @@ public class UsersService {
         }
 
         Boolean result = Users.softDeleteUser(id);
-
+        System.out.println("softDeleteUser result:"+ result);
         if (!result) {
             errors.put("ServerError");
         }
@@ -368,10 +382,22 @@ public class UsersService {
             return errorAuth.createErrorResponse(errors, 500);
         }
 
-        toReturn.put("status", "success");
-        toReturn.put("statusCode", 200);
-        toReturn.put("Message", "Deleted User Succesfully");
-        return toReturn;
+        UserLogs createdUserLog = new UserLogs();
+        createdUserLog.setAction("softDeleteUser");
+        createdUserLog.setDetails("User " + modelResult.getUsername() + " Has deleted their account. ");
+
+        Boolean userLog = UserLogs.createUserLogs(createdUserLog, modelResult.getId());
+
+        if (!userLog) {
+            errors.put("UserLogError");
+        }
+
+        if (errorAuth.hasErrors(errors)) {
+            toReturn.put("warning", "Failed To Log User Action");
+            return errorAuth.createOKResponse(toReturn);
+        }
+        
+        return errorAuth.createOKResponse();
     }
 
     public JSONObject updateUser(Users updatedUser) {
@@ -393,7 +419,8 @@ public class UsersService {
                 && userAuth.isDataMissing(updatedUser.getIsActive())
                 && userAuth.isDataMissing(updatedUser.getPassword())
                 && userAuth.isDataMissing(updatedUser.getAuthSecret())
-                && userAuth.isDataMissing(updatedUser.getRegistrationToken())) {
+                && userAuth.isDataMissing(updatedUser.getRegistrationToken())
+                && userAuth.isDataMissing(updatedUser.getIsSubscribed())) {
 
             errors.put("InvalidSearchParameter");
         }
@@ -435,44 +462,64 @@ public class UsersService {
             return errorAuth.createErrorResponse(errors, 404);
         }
 
+        ArrayList<String> updatedDatas = new ArrayList<String>();
+
         //if email is NOT missing AND IS VALID
         if (!userAuth.isDataMissing(updatedUser.getEmail()) && userAuth.isValidEmail(updatedUser.getEmail())) {
             existingUser.setEmail(updatedUser.getEmail());
+            if (searchData != updatedUser.getEmail()) {
+                updatedDatas.add("email");
+            }
         }
+
+        String oldUsername = existingUser.getUsername();;
 
         //if username is NOT missing AND IS VALID
         if (!userAuth.isDataMissing(updatedUser.getUsername()) && userAuth.isValidUsername(updatedUser.getUsername())) {
             existingUser.setUsername(updatedUser.getUsername());
+            updatedDatas.add("username");
         }
 
         //if firstName is NOT missing AND IS VALID
         if (!userAuth.isDataMissing(updatedUser.getFirstName()) && userAuth.isValidFirstName(updatedUser.getFirstName())) {
             existingUser.setFirstName(updatedUser.getFirstName());
+            updatedDatas.add("first name");
         }
 
         //if lastName is NOT missing AND IS VALID
         if (!userAuth.isDataMissing(updatedUser.getLastName()) && userAuth.isValidFirstName(updatedUser.getLastName())) {
             existingUser.setLastName(updatedUser.getLastName());
+            updatedDatas.add("last name");
         }
 
         //if phone is NOT missing AND IS VALID
         if (!userAuth.isDataMissing(updatedUser.getPhone()) && userAuth.isValidPhone(updatedUser.getPhone())) {
             existingUser.setPhone(updatedUser.getPhone());
+            updatedDatas.add("phone");
         }
 
         //if isActive is NOT missing AND IS VALID
         if (!userAuth.isDataMissing(updatedUser.getIsActive()) && userAuth.isValidIsActive(updatedUser.getIsActive())) {
             existingUser.setIsActive(updatedUser.getIsActive());
+            updatedDatas.add("is active");
         }
 
         //if authSecret is NOT missing AND IS VALID
         if (!userAuth.isDataMissing(updatedUser.getAuthSecret()) && userAuth.isValidAuthSecret(updatedUser.getAuthSecret())) {
             existingUser.setAuthSecret(updatedUser.getAuthSecret());
+            updatedDatas.add("auth secret");
         }
 
         //if registrationToken is NOT missing AND IS VALID
         if (!userAuth.isDataMissing(updatedUser.getRegistrationToken()) && userAuth.isValidRegistrationToken(updatedUser.getRegistrationToken())) {
             existingUser.setRegistrationToken(updatedUser.getRegistrationToken());
+            updatedDatas.add("registration token");
+        }
+        
+        //if isSubscribed is NOT missing AND IS VALID
+        if (!userAuth.isDataMissing(updatedUser.getIsSubscribed()) && userAuth.isValidIsSubscribed(updatedUser.getIsSubscribed())) {
+            existingUser.setIsSubscribed(updatedUser.getIsSubscribed());
+            updatedDatas.add("is subscribed");
         }
 
         //if username is NOT missing AND is NOT VALID
@@ -498,6 +545,11 @@ public class UsersService {
         //if isActive is NOT missing AND is NOT VALID
         if (!userAuth.isDataMissing(updatedUser.getIsActive()) && !userAuth.isValidIsActive(updatedUser.getIsActive())) {
             errors.put("InvalidIsActive");
+        }
+        
+        //if isSubscribed is NOT missing AND is NOT VALID
+        if (!userAuth.isDataMissing(updatedUser.getIsSubscribed()) && !userAuth.isValidIsSubscribed(updatedUser.getIsSubscribed())) {
+            errors.put("InvalidIsSubscribed");
         }
 
         //if authSecret is NOT missing AND is NOT VALID
@@ -552,6 +604,20 @@ public class UsersService {
         //error check if there is server error
         if (errorAuth.hasErrors(errors)) {
             return errorAuth.createErrorResponse(errors, 500);
+        }
+
+        UserLogs createdUserLog = new UserLogs();
+        createdUserLog.setAction("updateUser");
+        createdUserLog.setDetails("User " + oldUsername + " Updated the following data(s): " + updatedDatas.toString());
+
+        Boolean userLog = UserLogs.createUserLogs(createdUserLog, existingUser.getId());
+
+        if (!userLog) {
+            errors.put("UserLogError");
+        }
+
+        if (errorAuth.hasErrors(errors)) {
+            toReturn.put("warning", "Failed To Log User Action");
         }
 
         return errorAuth.createOKResponse();
@@ -615,9 +681,11 @@ public class UsersService {
         if (errorAuth.hasErrors(errors)) {
             return errorAuth.createErrorResponse(errors, 401);
         }
-
+        System.err.println("FUT");
         //get data from spq
         Boolean modelResult = Users.loginUser(userData);
+        
+        System.err.println("FUT TOVA");
 
         //if spq gives null data
         if (userAuth.isDataMissing(modelResult)) {
@@ -629,10 +697,24 @@ public class UsersService {
             return errorAuth.createErrorResponse(errors, 500);
         }
 
+        UserLogs createdUserLog = new UserLogs();
+        createdUserLog.setAction("loginUser");
+        createdUserLog.setDetails("User " + userData.getUsername() + " logged in.");
+
+        Boolean userLog = UserLogs.createUserLogs(createdUserLog, userData.getId());
+
+        if (!userLog) {
+            errors.put("UserLogError");
+        }
+
+        if (errorAuth.hasErrors(errors)) {
+            toReturn.put("message", "Failed To Log User Action");
+        }
+
         toReturn.put("JWTToken", JwtUtil.generateToken(userData.getId(), userData.getEmail(), userData.getRole(), userData.getUsername()));
-        toReturn.put("Message", "Logged in User Successfully");
+        toReturn.put("message", "Logged in User Successfully");
         if (userData.getIsActive() == false) {
-            toReturn.put("Message", "User Is Not Activated");
+            toReturn.put("message", "User Is Not Activated");
         }
         return errorAuth.createOKResponse(toReturn);
     }

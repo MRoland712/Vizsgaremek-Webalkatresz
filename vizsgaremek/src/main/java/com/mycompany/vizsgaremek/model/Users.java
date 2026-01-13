@@ -4,7 +4,6 @@
  */
 package com.mycompany.vizsgaremek.model;
 
-import com.mycompany.vizsgaremek.service.AuthenticationService;
 import java.io.Serializable;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -32,7 +31,9 @@ import javax.persistence.Temporal;
 import javax.persistence.TemporalType;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
+import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.XmlTransient;
+import com.mycompany.vizsgaremek.service.AuthenticationService;
 
 /**
  *
@@ -40,7 +41,7 @@ import javax.xml.bind.annotation.XmlTransient;
  */
 @Entity
 @Table(name = "users")
-//@XmlRootElement
+@XmlRootElement
 @NamedQueries({
     @NamedQuery(name = "Users.findAll", query = "SELECT u FROM Users u"),
     @NamedQuery(name = "Users.findById", query = "SELECT u FROM Users u WHERE u.id = :id"),
@@ -154,7 +155,7 @@ public class Users implements Serializable {
     @Column(name = "registration_token")
     private String registrationToken;
     @OneToMany(cascade = CascadeType.ALL, mappedBy = "userId")
-    private Collection<Addresses> addressesCollection;
+    private Collection<UserLogs> userLogsCollection;
 
     static EntityManagerFactory emf = Persistence.createEntityManagerFactory("com.mycompany_vizsgaremek_war_1.0-SNAPSHOTPU");
     public static SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
@@ -162,7 +163,7 @@ public class Users implements Serializable {
 
     public Users() {
     }
-    
+
     //loginUser
     public Users(String email, String password) {
         this.email = email;
@@ -209,7 +210,8 @@ public class Users implements Serializable {
             Date lastLogin,
             Date createdAt,
             Date updatedAt,
-            Boolean isDeleted) {
+            Boolean isDeleted,
+            Boolean isSubscribed) {
         this.id = id;
         this.email = email;
         this.username = username;
@@ -223,6 +225,7 @@ public class Users implements Serializable {
         this.lastLogin = lastLogin;
         this.guid = guid;
         this.isDeleted = isDeleted;
+        this.isSubscribed = isSubscribed;
     }
 
     //getUserById && getUserByEmail
@@ -236,6 +239,7 @@ public class Users implements Serializable {
             String guid,
             String role,
             Boolean isActive,
+            Boolean isSubscribed,
             Date lastLogin,
             Date createdAt,
             Date updatedAt,
@@ -259,6 +263,7 @@ public class Users implements Serializable {
         this.authSecret = authSecret;
         this.guid = guid;
         this.registrationToken = registrationToken;
+        this.isSubscribed = isSubscribed;
     }
 
     public Integer getId() {
@@ -446,12 +451,12 @@ public class Users implements Serializable {
     }
 
     @XmlTransient
-    public Collection<Addresses> getAddressesCollection() {
-        return addressesCollection;
+    public Collection<UserLogs> getUserLogsCollection() {
+        return userLogsCollection;
     }
 
-    public void setAddressesCollection(Collection<Addresses> addressesCollection) {
-        this.addressesCollection = addressesCollection;
+    public void setUserLogsCollection(Collection<UserLogs> userLogsCollection) {
+        this.userLogsCollection = userLogsCollection;
     }
 
     @Override
@@ -544,7 +549,8 @@ public class Users implements Serializable {
                         record[9] == null ? null : formatter.parse(record[9].toString()), // last_login
                         record[10] == null ? null : formatter.parse(record[10].toString()), // created_at
                         record[11] == null ? null : formatter.parse(record[11].toString()), // updated_at
-                        Boolean.valueOf(record[12].toString()) // is deleted
+                        Boolean.valueOf(record[12].toString()), // is_deleted
+                        Boolean.valueOf(record[13].toString()) // is_subscibed
                 );
                 toReturn.add(u);
 
@@ -592,13 +598,14 @@ public class Users implements Serializable {
                         record[6].toString(),// guid
                         record[7].toString(),// role
                         Boolean.valueOf(record[8].toString()),// isActive
-                        record[9] == null ? null : formatter.parse(record[9].toString()),// lastLogin
-                        record[10] == null ? null : formatter.parse(record[10].toString()),// createdAt
-                        record[11] == null ? null : formatter.parse(record[11].toString()),// updatedAt
-                        record[12].toString(),// password
-                        Boolean.valueOf(record[13].toString()),// isDeleted
-                        record[14].toString(),// authSecret
-                        record[15].toString()// registrationToken
+                        Boolean.valueOf(record[9].toString()), // isSubscibed
+                        record[10] == null ? null : formatter.parse(record[10].toString()),// lastLogin
+                        record[11] == null ? null : formatter.parse(record[11].toString()),// createdAt
+                        record[12] == null ? null : formatter.parse(record[12].toString()),// updatedAt
+                        record[13].toString(),// password
+                        Boolean.valueOf(record[14].toString()),// isDeleted
+                        record[15].toString(),// authSecret
+                        record[16].toString()// registrationToken
                 );
                 toReturn = u;
             }
@@ -632,7 +639,6 @@ public class Users implements Serializable {
             }
 
             Users toReturn = new Users();
-
             for (Object[] record : resultList) {
                 Users u = new Users(
                         Integer.valueOf(record[0].toString()),// id
@@ -644,13 +650,15 @@ public class Users implements Serializable {
                         record[6].toString(),// guid
                         record[7].toString(),// role
                         Boolean.valueOf(record[8].toString()),// isActive
-                        record[9] == null ? null : formatter.parse(record[9].toString()),// lastLogin
-                        record[10] == null ? null : formatter.parse(record[10].toString()),// createdAt
-                        record[11] == null ? null : formatter.parse(record[11].toString()),// updatedAt
-                        record[12].toString(),// password
-                        Boolean.valueOf(record[13].toString()),// isDeleted
-                        record[14].toString(),// authSecret
-                        record[15].toString()// registrationToken
+                        Boolean.valueOf(record[9].toString()), // isSubscibed
+                        record[10] == null ? null : formatter.parse(record[10].toString()),// lastLogin
+                        record[11] == null ? null : formatter.parse(record[11].toString()),// createdAt
+                        record[12] == null ? null : formatter.parse(record[12].toString()),// updatedAt
+                        record[13].toString(),// password
+                        Boolean.valueOf(record[14].toString()),// isDeleted
+                        record[15].toString(),// authSecret
+                        record[16].toString()// registrationToken
+
                 );
                 toReturn = u;
             }
@@ -672,7 +680,7 @@ public class Users implements Serializable {
         try {
             em.getTransaction().begin();
 
-            StoredProcedureQuery spq = em.createNamedStoredProcedureQuery("softDeleteUser");
+            StoredProcedureQuery spq = em.createStoredProcedureQuery("softDeleteUser");
             spq.registerStoredProcedureParameter("p_user_id", Integer.class, ParameterMode.IN);
             spq.setParameter("p_user_id", id);
 
@@ -685,6 +693,7 @@ public class Users implements Serializable {
             if (em.getTransaction().isActive()) {
                 em.getTransaction().rollback(); // ha hiba van, rollback
             }
+            System.err.println(e);
             return false;
         } finally {
             em.clear();
@@ -710,6 +719,7 @@ public class Users implements Serializable {
             spq.registerStoredProcedureParameter("p_password", String.class, ParameterMode.IN);
             spq.registerStoredProcedureParameter("p_registration_token", String.class, ParameterMode.IN);
             spq.registerStoredProcedureParameter("p_auth_secret", String.class, ParameterMode.IN);
+            spq.registerStoredProcedureParameter("p_is_subscribed", Boolean.class, ParameterMode.IN);
 
             spq.setParameter("p_user_id", updatedUser.getId());
             spq.setParameter("p_email", updatedUser.getEmail());
@@ -722,6 +732,7 @@ public class Users implements Serializable {
             spq.setParameter("p_password", updatedUser.getPassword());
             spq.setParameter("p_registration_token", updatedUser.getRegistrationToken());
             spq.setParameter("p_auth_secret", updatedUser.getAuthSecret());
+            spq.setParameter("p_is_subscribed", updatedUser.getIsSubscribed());
 
             spq.execute();
 
@@ -743,25 +754,18 @@ public class Users implements Serializable {
 
     public static Boolean loginUser(Users userData) {
         EntityManager em = emf.createEntityManager();
-        EntityTransaction tr = em.getTransaction();
         try {
-            tr.begin();
 
             StoredProcedureQuery spq = em.createStoredProcedureQuery("user_login");
 
             spq.registerStoredProcedureParameter("p_email", String.class, ParameterMode.IN);
 
-            spq.setParameter("P_email", userData.getEmail());
+            spq.setParameter("p_email", userData.getEmail());
 
             spq.execute();
 
-            tr.commit();
-
             return true;
         } catch (Exception ex) {
-            if (tr.isActive()) {
-                tr.rollback();
-            }
             ex.printStackTrace();
             return false;
         } finally {
