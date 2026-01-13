@@ -5,18 +5,26 @@
 package com.mycompany.vizsgaremek.model;
 
 import java.io.Serializable;
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
+import java.util.List;
 import javax.persistence.Basic;
 import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
+import javax.persistence.EntityManager;
+import javax.persistence.EntityManagerFactory;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.NamedQueries;
 import javax.persistence.NamedQuery;
 import javax.persistence.OneToMany;
+import javax.persistence.ParameterMode;
+import javax.persistence.Persistence;
+import javax.persistence.StoredProcedureQuery;
 import javax.persistence.Table;
 import javax.persistence.Temporal;
 import javax.persistence.TemporalType;
@@ -66,6 +74,9 @@ public class Manufacturers implements Serializable {
     private Date deletedAt;
     @OneToMany(cascade = CascadeType.ALL, mappedBy = "manufacturerId")
     private Collection<Parts> partsCollection;
+
+    static EntityManagerFactory emf = Persistence.createEntityManagerFactory("com.mycompany_vizsgaremek_war_1.0-SNAPSHOTPU");
+    public static SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 
     public Manufacturers() {
     }
@@ -127,6 +138,32 @@ public class Manufacturers implements Serializable {
         this.deletedAt = deletedAt;
     }
 
+    //createManufacturers
+    public Manufacturers(String name, String country) {
+        this.name = name;
+        this.country = country;
+    }
+
+    //getAllManufacturers & getManufacturersById
+    public Manufacturers(Integer id, String name, String country, Date createdAt, Boolean isDeleted, Date deletedAt) {
+        this.id = id;
+        this.name = name;
+        this.country = country;
+        this.createdAt = createdAt;
+        this.isDeleted = isDeleted;
+        this.deletedAt = deletedAt;
+    }
+    
+    //updateManufacturers
+
+    public Manufacturers(Integer id, String name, String country, Boolean isDeleted) {
+        this.id = id;
+        this.name = name;
+        this.country = country;
+        this.isDeleted = isDeleted;
+    }
+    
+
     @XmlTransient
     public Collection<Parts> getPartsCollection() {
         return partsCollection;
@@ -160,5 +197,162 @@ public class Manufacturers implements Serializable {
     public String toString() {
         return "com.mycompany.vizsgaremek.model.Manufacturers[ id=" + id + " ]";
     }
+
+    public static Boolean createManufacturers(Manufacturers createdManufacturers) {
+        EntityManager em = emf.createEntityManager();
+        try {
+            StoredProcedureQuery spq = em.createStoredProcedureQuery("createManufacturers");
+
+            spq.registerStoredProcedureParameter("p_name", String.class, ParameterMode.IN);
+            spq.registerStoredProcedureParameter("p_country", String.class, ParameterMode.IN);
+
+            spq.setParameter("p_name", createdManufacturers.getName());
+            spq.setParameter("p_country", createdManufacturers.getCountry());
+
+            spq.execute();
+
+            return true;
+
+        } catch (Exception ex) {
+            ex.printStackTrace();
+            return false;
+        } finally {
+            em.close();
+        }
+    }
+
+    public static ArrayList<Manufacturers> getAllManufacturers() {
+        EntityManager em = emf.createEntityManager();
+
+        try {
+            
+            StoredProcedureQuery spq = em.createStoredProcedureQuery("getAllManufacturers");
+            spq.execute();
+
+            
+            List<Object[]> resultList = spq.getResultList();
+
+            ArrayList<Manufacturers> toReturn = new ArrayList();
+
+            for (Object[] record : resultList) {
+
+                Manufacturers m = new Manufacturers(
+                        Integer.valueOf(record[0].toString()), // 1. id
+                        record[1] != null ? record[1].toString() : null, // 2. name
+                        record[2] != null ? record[2].toString() : null, // 3. country
+                        record[3] == null ? null : formatter.parse(record[3].toString()), // 11. createdAt
+                        Boolean.FALSE, // 13. isDeleted
+                        null // 14. deletedAt
+                );
+
+                toReturn.add(m);
+            }
+            return toReturn;
+        } catch (Exception ex) {
+            if (em.getTransaction().isActive()) {
+                em.getTransaction().rollback(); // Ha hiba van, rollback
+            }
+            ex.printStackTrace();
+            return null;
+        } finally {
+            em.clear();
+            em.close();
+        }
+    }
     
+    public static Manufacturers getManufacturersById(Integer id) {
+        EntityManager em = emf.createEntityManager();
+        try {
+            StoredProcedureQuery spq = em.createStoredProcedureQuery("getManufacturersById");
+            spq.registerStoredProcedureParameter("p_manufacturers_id", Integer.class, ParameterMode.IN);
+            spq.setParameter("p_manufacturers_id", id);
+            spq.execute();
+
+            List<Object[]> resultList = spq.getResultList();
+
+            // Csak EGY rekord van (getById)
+            Object[] record = resultList.get(0);
+
+
+            Manufacturers m = new Manufacturers(
+                        Integer.valueOf(record[0].toString()), // 1. id
+                        record[1] != null ? record[1].toString() : null, // 2. name
+                        record[2] != null ? record[2].toString() : null, // 3. country
+                        record[3] == null ? null : formatter.parse(record[3].toString()), // 11. createdAt
+                        Boolean.FALSE, // 13. isDeleted
+                        null // 14. deletedAt
+               
+            );
+
+            return m;
+
+        } catch (Exception ex) {
+            ex.printStackTrace();
+            return null;
+        } finally {
+            em.close();
+        }
+    }
+    
+    public static Boolean softDeleteManufacturers(Integer id) {
+        EntityManager em = emf.createEntityManager();
+
+        try {
+            em.getTransaction().begin();
+
+            StoredProcedureQuery spq = em.createStoredProcedureQuery("softDeleteManufacturers");
+            spq.registerStoredProcedureParameter("p_manufacturers_id", Integer.class, ParameterMode.IN);
+            spq.setParameter("p_manufacturers_id", id);
+
+            spq.execute();
+            em.getTransaction().commit();
+
+            return true;
+        } catch (Exception e) {
+            if (em.getTransaction().isActive()) {
+                em.getTransaction().rollback(); // ha hiba van, rollback
+            }
+            return false;
+        } finally {
+            em.clear();
+            em.close();
+        }
+    }
+    
+    
+    public static Boolean updateManufacturers(Manufacturers updatedManufacturers) {
+        EntityManager em = emf.createEntityManager();
+
+        try {
+            em.getTransaction().begin();
+            StoredProcedureQuery spq = em.createStoredProcedureQuery("updateManufacturers");
+            
+           
+            spq.registerStoredProcedureParameter("p_manufacturers_id", Integer.class, ParameterMode.IN);
+            spq.registerStoredProcedureParameter("p_name", String.class, ParameterMode.IN);
+            spq.registerStoredProcedureParameter("p_country", String.class, ParameterMode.IN);
+
+            
+            
+            spq.setParameter("p_manufacturers_id", updatedManufacturers.getId());
+            spq.setParameter("p_name", updatedManufacturers.getName());
+            spq.setParameter("p_country", updatedManufacturers.getCountry());
+            spq.execute();
+
+            em.getTransaction().commit();
+
+            return true;
+
+        } catch (Exception ex) {
+            if (em.getTransaction().isActive()) {
+                em.getTransaction().rollback(); // Ha hiba van, rollback
+            }
+            ex.printStackTrace();
+            return false;
+        } finally {
+            em.clear();
+            em.close();
+        }
+    }
+
 }

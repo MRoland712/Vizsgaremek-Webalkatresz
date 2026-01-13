@@ -163,7 +163,6 @@ public class Addresses implements Serializable {
     }
     
     //updateAddress
-
     public Addresses(Integer id, Users userId,  String firstName, String lastName, String company, String taxNumber, String country, String city, String zipCode, String street, Boolean isDefault, Boolean isDeleted) {
         this.id = id;
         this.userId = userId;
@@ -567,7 +566,7 @@ public class Addresses implements Serializable {
             spq.setParameter("p_zip_code", updatedAddress.getZipCode());
             spq.setParameter("p_street", updatedAddress.getStreet());
             spq.setParameter("p_is_default", Boolean.TRUE.equals(updatedAddress.getIsDefault()) ? 1 : 0);
-            spq.setParameter("p_is_deleted", Boolean.TRUE.equals(updatedAddress.getIsDefault()) ? 1 : 0);
+            spq.setParameter("p_is_deleted", Boolean.TRUE.equals(updatedAddress.getIsDeleted()) ? 1 : 0);
 
             spq.execute();
 
