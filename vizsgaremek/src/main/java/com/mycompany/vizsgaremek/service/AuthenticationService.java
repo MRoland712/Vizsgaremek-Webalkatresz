@@ -10,6 +10,7 @@ import com.mycompany.vizsgaremek.model.Addresses;
 import com.mycompany.vizsgaremek.model.Manufacturers;
 import com.mycompany.vizsgaremek.model.PartVariants;
 import com.mycompany.vizsgaremek.model.Parts;
+import io.jsonwebtoken.Claims;
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
@@ -63,7 +64,7 @@ public class AuthenticationService {
             response.put("statusCode", statusCode);
             return response;
         }
-
+        
         /**
          * Creates an JSONArray OK response with the given JSONArray result data
          *
@@ -93,6 +94,25 @@ public class AuthenticationService {
          * 200 }
          */
         public static JSONObject createOKResponse(JSONObject result) {
+            JSONObject response = new JSONObject();
+            response.put("result", result);
+            response.put("status", "success");
+            response.put("statusCode", 200);
+            return response;
+        }
+        
+        /**
+         * Creates an JSONObject OK response with the given JSONObject result
+         * data
+         *
+         * @param result The JSONObject that contains the result data
+         *
+         * @return a JSONObject with the result JSONObject as a "result" a
+         * status of "success" and a "statusCode" of 200 in this format {
+         * "result": [ { #result data# } ], "status": "success", "statusCode":
+         * 200 }
+         */
+        public static JSONObject createOKResponse(Claims result) {
             JSONObject response = new JSONObject();
             response.put("result", result);
             response.put("status", "success");

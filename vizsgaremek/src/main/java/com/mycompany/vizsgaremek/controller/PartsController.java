@@ -57,10 +57,10 @@ public class PartsController {
      *
      * @param content representation for the resource
      */
-    @PUT
+    /*@PUT
     @Consumes(MediaType.APPLICATION_JSON)
     public void putJson(String content) {
-    }
+    }*/
 
     @POST
     @Path("createParts")

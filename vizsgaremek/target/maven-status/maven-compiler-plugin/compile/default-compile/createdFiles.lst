@@ -29,6 +29,7 @@ com\mycompany\vizsgaremek\service\ManufacturersService.class
 com\mycompany\vizsgaremek\service\AuthenticationService$userLogsAuth.class
 com\mycompany\vizsgaremek\config\KvFetcher.class
 com\mycompany\vizsgaremek\config\CorsFilter.class
+com\mycompany\vizsgaremek\controller\JWTController.class
 com\mycompany\vizsgaremek\controller\PartsController.class
 com\mycompany\vizsgaremek\controller\UserLogsController.class
 com\mycompany\vizsgaremek\model\CartItems.class

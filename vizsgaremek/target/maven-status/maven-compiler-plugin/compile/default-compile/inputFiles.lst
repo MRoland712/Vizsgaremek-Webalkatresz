@@ -6,8 +6,10 @@ M:\Projektek\vizsgaremekes cuccok\Vizsgaremek-projekt\vizsgaremek\src\main\java\
 M:\Projektek\vizsgaremekes cuccok\Vizsgaremek-projekt\vizsgaremek\src\main\java\com\mycompany\vizsgaremek\model\Invoices.java
 M:\Projektek\vizsgaremekes cuccok\Vizsgaremek-projekt\vizsgaremek\src\main\java\com\mycompany\vizsgaremek\controller\UserLogsController.java
 M:\Projektek\vizsgaremekes cuccok\Vizsgaremek-projekt\vizsgaremek\src\main\java\com\mycompany\vizsgaremek\config\CorsFilter.java
+M:\Projektek\vizsgaremekes cuccok\Vizsgaremek-projekt\vizsgaremek\src\main\java\com\mycompany\vizsgaremek\controller\PartVariantsController.java
 M:\Projektek\vizsgaremekes cuccok\Vizsgaremek-projekt\vizsgaremek\src\main\java\com\mycompany\vizsgaremek\model\Manufacturers.java
 M:\Projektek\vizsgaremekes cuccok\Vizsgaremek-projekt\vizsgaremek\src\main\java\com\mycompany\vizsgaremek\model\OrderLogs.java
+M:\Projektek\vizsgaremekes cuccok\Vizsgaremek-projekt\vizsgaremek\src\main\java\com\mycompany\vizsgaremek\service\ManufacturersService.java
 M:\Projektek\vizsgaremekes cuccok\Vizsgaremek-projekt\vizsgaremek\src\main\java\com\mycompany\vizsgaremek\controller\AddressesController.java
 M:\Projektek\vizsgaremekes cuccok\Vizsgaremek-projekt\vizsgaremek\src\main\java\com\mycompany\vizsgaremek\config\JwtUtil.java
 M:\Projektek\vizsgaremekes cuccok\Vizsgaremek-projekt\vizsgaremek\src\main\java\com\mycompany\vizsgaremek\model\ShippingStatus.java
@@ -15,6 +17,7 @@ M:\Projektek\vizsgaremekes cuccok\Vizsgaremek-projekt\vizsgaremek\src\main\java\
 M:\Projektek\vizsgaremekes cuccok\Vizsgaremek-projekt\vizsgaremek\src\main\java\com\mycompany\vizsgaremek\config\base64Converters.java
 M:\Projektek\vizsgaremekes cuccok\Vizsgaremek-projekt\vizsgaremek\src\main\java\com\mycompany\vizsgaremek\model\OrderItems.java
 M:\Projektek\vizsgaremekes cuccok\Vizsgaremek-projekt\vizsgaremek\src\main\java\com\mycompany\vizsgaremek\model\Cars.java
+M:\Projektek\vizsgaremekes cuccok\Vizsgaremek-projekt\vizsgaremek\src\main\java\com\mycompany\vizsgaremek\controller\JWTController.java
 M:\Projektek\vizsgaremekes cuccok\Vizsgaremek-projekt\vizsgaremek\src\main\java\com\mycompany\vizsgaremek\model\Reviews.java
 M:\Projektek\vizsgaremekes cuccok\Vizsgaremek-projekt\vizsgaremek\src\main\java\com\mycompany\vizsgaremek\model\CartItems.java
 M:\Projektek\vizsgaremekes cuccok\Vizsgaremek-projekt\vizsgaremek\src\main\java\com\mycompany\vizsgaremek\model\EmailVerifications.java
@@ -32,12 +35,15 @@ M:\Projektek\vizsgaremekes cuccok\Vizsgaremek-projekt\vizsgaremek\src\main\java\
 M:\Projektek\vizsgaremekes cuccok\Vizsgaremek-projekt\vizsgaremek\src\main\java\com\mycompany\vizsgaremek\service\AddressService.java
 M:\Projektek\vizsgaremekes cuccok\Vizsgaremek-projekt\vizsgaremek\src\main\java\com\mycompany\vizsgaremek\model\EmailInfo.java
 M:\Projektek\vizsgaremekes cuccok\Vizsgaremek-projekt\vizsgaremek\src\main\java\com\mycompany\vizsgaremek\model\PasswordResets.java
+M:\Projektek\vizsgaremekes cuccok\Vizsgaremek-projekt\vizsgaremek\src\main\java\com\mycompany\vizsgaremek\model\ArrayList.java
 M:\Projektek\vizsgaremekes cuccok\Vizsgaremek-projekt\vizsgaremek\src\main\java\com\mycompany\vizsgaremek\service\AuthenticationService.java
 M:\Projektek\vizsgaremekes cuccok\Vizsgaremek-projekt\vizsgaremek\src\main\java\com\mycompany\vizsgaremek\model\Warehouses.java
 M:\Projektek\vizsgaremekes cuccok\Vizsgaremek-projekt\vizsgaremek\src\main\java\com\mycompany\vizsgaremek\service\UserLogsService.java
 M:\Projektek\vizsgaremekes cuccok\Vizsgaremek-projekt\vizsgaremek\src\main\java\com\mycompany\vizsgaremek\model\Users.java
 M:\Projektek\vizsgaremekes cuccok\Vizsgaremek-projekt\vizsgaremek\src\main\java\com\mycompany\vizsgaremek\service\UsersService.java
+M:\Projektek\vizsgaremekes cuccok\Vizsgaremek-projekt\vizsgaremek\src\main\java\com\mycompany\vizsgaremek\service\PartVariantsService.java
 M:\Projektek\vizsgaremekes cuccok\Vizsgaremek-projekt\vizsgaremek\src\main\java\com\mycompany\vizsgaremek\model\Payments.java
+M:\Projektek\vizsgaremekes cuccok\Vizsgaremek-projekt\vizsgaremek\src\main\java\com\mycompany\vizsgaremek\controller\ManufacturersController.java
 M:\Projektek\vizsgaremekes cuccok\Vizsgaremek-projekt\vizsgaremek\src\main\java\com\mycompany\vizsgaremek\model\Trucks.java
 M:\Projektek\vizsgaremekes cuccok\Vizsgaremek-projekt\vizsgaremek\src\main\java\com\mycompany\vizsgaremek\model\PartVariants.java
 M:\Projektek\vizsgaremekes cuccok\Vizsgaremek-projekt\vizsgaremek\src\main\java\com\mycompany\vizsgaremek\model\ShippingMethods.java

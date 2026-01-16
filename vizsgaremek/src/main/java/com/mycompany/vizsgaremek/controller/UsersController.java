@@ -46,21 +46,6 @@ public class UsersController {
     public void putXml(String content) {
     }
 
-    @GET
-    @Path("validateJWT")
-    @Consumes(MediaType.APPLICATION_JSON)
-    public Response validateJWTEndpoint(@HeaderParam("token") String jwtToken) {
-        Response jwtError = jwt.validateJwtAndReturnError(jwtToken);
-        if (jwtError != null) {
-            return jwtError;
-        }
-
-        return Response.status(200)
-                .entity(errorAuth.createOKResponse().toString())
-                .type(MediaType.APPLICATION_JSON)
-                .build();
-    }
-
     @POST
     @Path("createUser")
     @Consumes(MediaType.APPLICATION_JSON)

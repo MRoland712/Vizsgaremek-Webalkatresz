@@ -58,10 +58,10 @@ public class SendEmailController {
      *
      * @param content representation for the resource
      */
-    @PUT
+    /*@PUT
     @Consumes(MediaType.APPLICATION_XML)
     public void putXml(String content) {
-    }
+    }*/
 
     @POST
     @Path("sendPromotion")
