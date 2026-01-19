@@ -17,6 +17,7 @@ com\mycompany\vizsgaremek\service\AuthenticationService$errorAuth.class
 com\mycompany\vizsgaremek\model\Manufacturers.class
 com\mycompany\vizsgaremek\model\PartImages.class
 com\mycompany\vizsgaremek\controller\ManufacturersController.class
+com\mycompany\vizsgaremek\controller\PartImageController.class
 com\mycompany\vizsgaremek\model\Invoices.class
 com\mycompany\vizsgaremek\service\AuthenticationService$addressAuth.class
 com\mycompany\vizsgaremek\config\SendEmail$2.class
@@ -33,6 +34,7 @@ com\mycompany\vizsgaremek\controller\PartsController.class
 com\mycompany\vizsgaremek\controller\UserLogsController.class
 com\mycompany\vizsgaremek\model\CartItems.class
 com\mycompany\vizsgaremek\service\UserLogsService.class
+com\mycompany\vizsgaremek\model\PartImage.class
 com\mycompany\vizsgaremek\model\UserTwofa.class
 com\mycompany\vizsgaremek\model\Reviews.class
 com\mycompany\vizsgaremek\model\ShippingMethods.class
@@ -51,6 +53,7 @@ com\mycompany\vizsgaremek\controller\ApplicationConfig.class
 com\mycompany\vizsgaremek\model\ArrayList.class
 com\mycompany\vizsgaremek\model\EmailVerifications.class
 com\mycompany\vizsgaremek\model\OrderItems.class
+com\mycompany\vizsgaremek\service\ImageUploadService.class
 com\mycompany\vizsgaremek\config\OTPVerifyer.class
 com\mycompany\vizsgaremek\controller\PartVariantsController.class
 com\mycompany\vizsgaremek\model\OrderLogs.class

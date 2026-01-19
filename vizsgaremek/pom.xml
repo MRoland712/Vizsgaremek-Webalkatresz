@@ -64,6 +64,22 @@
             <artifactId>javax.mail</artifactId>
             <version>1.6.2</version>
         </dependency>
+        
+        <!-- Multipart file upload támogatás -->
+        <dependency>
+            <groupId>org.jboss.resteasy</groupId>
+            <artifactId>resteasy-multipart-provider</artifactId>
+            <version>4.7.5.Final</version>
+            <scope>provided</scope>
+        </dependency>
+    
+        <!-- JSON feldolgozás -->
+        <dependency>
+            <groupId>org.json</groupId>
+            <artifactId>json</artifactId>
+            <version>20231013</version>
+        </dependency>
+        
     </dependencies>
 
     <build>
