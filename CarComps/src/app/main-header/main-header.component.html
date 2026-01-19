@@ -24,45 +24,96 @@
 
         <!-- Loading spinner -->
         @if (isSearching()) {
-        <i class="fa-solid fa-spinner fa-spin loading-icon"></i>
+          <i class="fa-solid fa-spinner fa-spin loading-icon"></i>
         }
 
         <!-- Search results dropdown -->
         @if (showDropdown() && searchResults().length > 0) {
-        <div class="search-dropdown">
-          <ul class="search-results">
-            @for (result of searchResults(); track result.id) {
-            <li class="search-result-item" (mousedown)="selectResult(result)">
-              <div class="result-info">
-                <div class="result-name">{{ result.name }}</div>
-                <div class="result-category">{{ result.category }}</div>
-              </div>
-              <div class="result-price">{{ result.price | number : '1.0-0' }} Ft</div>
-            </li>
-            }
-          </ul>
-        </div>
+          <div class="search-dropdown">
+            <ul class="search-results">
+              @for (result of searchResults(); track result.id) {
+                <li class="search-result-item" (mousedown)="selectResult(result)">
+                  <div class="result-info">
+                    <div class="result-name">{{ result.name }}</div>
+                    <div class="result-category">{{ result.category }}</div>
+                  </div>
+                  <div class="result-price">{{ result.price | number: '1.0-0' }} Ft</div>
+                </li>
+              }
+            </ul>
+          </div>
         }
 
         <!-- Nincs találat üzenet -->
-        @if (showDropdown() && !isSearching() && searchResults().length === 0 && searchControl.value
-        && searchControl.value.trim().length > 0) {
-        <div class="search-dropdown">
-          <div class="no-results">
-            <i class="fa-solid fa-circle-exclamation"></i>
-            <p>Nincs találat</p>
+        @if (
+          showDropdown() &&
+          !isSearching() &&
+          searchResults().length === 0 &&
+          searchControl.value &&
+          searchControl.value.trim().length > 0
+        ) {
+          <div class="search-dropdown">
+            <div class="no-results">
+              <i class="fa-solid fa-circle-exclamation"></i>
+              <p>Nincs találat</p>
+            </div>
           </div>
-        </div>
         }
       </form>
     </div>
 
     <!-- Ikonok jobb oldalon -->
     <ul class="nav-icons">
-      <li class="nav-item">
-        <a class="nav-link" routerLink="/warehouse" title="Raktár">
+      <!-- GARAGE/WAREHOUSE ICON - Hover Menu -->
+      <li class="nav-item garage-item">
+        <a
+          class="nav-link"
+          [routerLink]="isLoggedIn() ? '/profile/garage' : '/registration'"
+          title="Garázs"
+        >
           <i class="fa-solid fa-warehouse"></i>
         </a>
+
+        <!-- GARAGE HOVER DROPDOWN -->
+        <div class="garage-dropdown">
+          <!-- NINCS BEJELENTKEZVE -->
+          @if (!isLoggedIn()) {
+            <div class="garage-not-logged-in">
+              <i class="fa-solid fa-lock"></i>
+              <h3>Garázs</h3>
+              <p class="garage-message">Jelentkezz be a garázs eléréséhez</p>
+
+              <a routerLink="/login" class="garage-login-btn">Bejelentkezés</a>
+            </div>
+          }
+
+          <!-- BE VAN JELENTKEZVE -->
+          @else {
+            <div class="garage-logged-in">
+              <div class="garage-header">
+                <i class="fa-solid fa-warehouse"></i>
+                <div class="garage-info">
+                  <h3>Garázsom</h3>
+                  <p class="garage-subtitle">Autóim kezelése</p>
+                </div>
+              </div>
+
+              <div class="garage-actions">
+                <!-- Autó hozzáadása gomb - POPUP -->
+                <button (click)="openAddCarDialog()" class="garage-add-btn">
+                  <i class="fa-solid fa-plus"></i>
+                  <span>Autó hozzáadása</span>
+                </button>
+
+                <!-- Garázs megtekintése -->
+                <a routerLink="/profile/garage" class="garage-view-btn">
+                  <i class="fa-solid fa-car"></i>
+                  <span>Garázsom megtekintése</span>
+                </a>
+              </div>
+            </div>
+          }
+        </div>
       </li>
 
       <!-- ==========================================
@@ -73,7 +124,7 @@
           <i class="fa-solid fa-cart-shopping"></i>
           <!-- Badge - termékek száma -->
           @if (isLoggedIn() && cartItemCount() > 0) {
-          <span class="cart-badge">{{ cartItemCount() }}</span>
+            <span class="cart-badge">{{ cartItemCount() }}</span>
           }
         </a>
 
@@ -81,75 +132,75 @@
         <div class="cart-dropdown">
           <!-- 1. NINCS BEJELENTKEZVE -->
           @if (!isLoggedIn()) {
-          <div class="cart-empty-state">
-            <i class="fa-solid fa-user-lock"></i>
-            <p class="cart-message">Jelentkezz be a kosár használatához</p>
-            <a routerLink="/login" class="cart-login-btn">Bejelentkezés</a>
-          </div>
+            <div class="cart-empty-state">
+              <i class="fa-solid fa-user-lock"></i>
+              <p class="cart-message">Jelentkezz be a kosár használatához</p>
+              <a routerLink="/login" class="cart-login-btn">Bejelentkezés</a>
+            </div>
           }
 
           <!-- 2. ÜRES KOSÁR -->
           @else if (cartItems().length === 0) {
-          <div class="cart-empty-state">
-            <i class="fa-solid fa-cart-shopping"></i>
-            <p class="cart-message">A kosár üres</p>
-            <a routerLink="/" class="cart-browse-btn">Böngészés</a>
-          </div>
+            <div class="cart-empty-state">
+              <i class="fa-solid fa-cart-shopping"></i>
+              <p class="cart-message">A kosár üres</p>
+              <a routerLink="/" class="cart-browse-btn">Böngészés</a>
+            </div>
           }
 
           <!-- 3. VAN TERMÉK A KOSÁRBAN -->
           @else {
-          <div class="cart-content">
-            <!-- Header -->
-            <div class="cart-header">
-              <h3>Kosár ({{ cartItemCount() }} termék)</h3>
-            </div>
-
-            <!-- Termékek lista -->
-            <div class="cart-items">
-              @for (item of cartItems(); track item.id) {
-              <div class="cart-item-row">
-                <!-- Termék kép -->
-                <div class="cart-item-image">
-                  <img [src]="item.imageUrl || '/assets/placeholder.png'" [alt]="item.name" />
-                </div>
-
-                <!-- Termék info -->
-                <div class="cart-item-info">
-                  <div class="cart-item-name">{{ item.name }}</div>
-                  <div class="cart-item-quantity">{{ item.quantity }} db</div>
-                </div>
-
-                <!-- Ár -->
-                <div class="cart-item-price">
-                  {{ item.price * item.quantity | number : '1.0-0' }} Ft
-                </div>
-
-                <!-- Törlés gomb -->
-                <button
-                  class="cart-item-remove"
-                  (click)="removeFromCart(item.id)"
-                  title="Eltávolítás"
-                >
-                  <i class="fa-solid fa-xmark"></i>
-                </button>
-              </div>
-              }
-            </div>
-
-            <!-- Footer - Összesen + Gombok -->
-            <div class="cart-footer">
-              <div class="cart-total">
-                <span>Összesen:</span>
-                <span class="cart-total-price">{{ cartTotal() | number : '1.0-0' }} Ft</span>
+            <div class="cart-content">
+              <!-- Header -->
+              <div class="cart-header">
+                <h3>Kosár ({{ cartItemCount() }} termék)</h3>
               </div>
 
-              <div class="cart-actions">
-                <a routerLink="/cart" class="cart-view-btn">Kosár megtekintése</a>
-                <a routerLink="/checkout" class="cart-checkout-btn">Pénztár</a>
+              <!-- Termékek lista -->
+              <div class="cart-items">
+                @for (item of cartItems(); track item.id) {
+                  <div class="cart-item-row">
+                    <!-- Termék kép -->
+                    <div class="cart-item-image">
+                      <img [src]="item.imageUrl || '/assets/placeholder.png'" [alt]="item.name" />
+                    </div>
+
+                    <!-- Termék info -->
+                    <div class="cart-item-info">
+                      <div class="cart-item-name">{{ item.name }}</div>
+                      <div class="cart-item-quantity">{{ item.quantity }} db</div>
+                    </div>
+
+                    <!-- Ár -->
+                    <div class="cart-item-price">
+                      {{ item.price * item.quantity | number: '1.0-0' }} Ft
+                    </div>
+
+                    <!-- Törlés gomb -->
+                    <button
+                      class="cart-item-remove"
+                      (click)="removeFromCart(item.id)"
+                      title="Eltávolítás"
+                    >
+                      <i class="fa-solid fa-xmark"></i>
+                    </button>
+                  </div>
+                }
+              </div>
+
+              <!-- Footer - Összesen + Gombok -->
+              <div class="cart-footer">
+                <div class="cart-total">
+                  <span>Összesen:</span>
+                  <span class="cart-total-price">{{ cartTotal() | number: '1.0-0' }} Ft</span>
+                </div>
+
+                <div class="cart-actions">
+                  <a routerLink="/cart" class="cart-view-btn">Kosár megtekintése</a>
+                  <a routerLink="/checkout" class="cart-checkout-btn">Pénztár</a>
+                </div>
               </div>
             </div>
-          </div>
           }
         </div>
       </li>
@@ -170,48 +221,48 @@
         <div class="user-dropdown">
           <!-- NINCS BEJELENTKEZVE -->
           @if (!isLoggedIn()) {
-          <div class="user-not-logged-in">
-            <i class="fa-solid fa-user-circle"></i>
-            <h3>Üdvözlünk!</h3>
-            <p class="user-message">Jelentkezz be vagy regisztrálj</p>
+            <div class="user-not-logged-in">
+              <i class="fa-solid fa-user-circle"></i>
+              <h3>Üdvözlünk!</h3>
+              <p class="user-message">Jelentkezz be vagy regisztrálj</p>
 
-            <div class="user-actions">
-              <a routerLink="/login" class="user-login-btn">Bejelentkezés</a>
-              <a routerLink="/registration" class="user-register-btn">Regisztráció</a>
+              <div class="user-actions">
+                <a routerLink="/login" class="user-login-btn">Bejelentkezés</a>
+                <a routerLink="/registration" class="user-register-btn">Regisztráció</a>
+              </div>
             </div>
-          </div>
           }
 
           <!-- BE VAN JELENTKEZVE -->
           @else {
-          <div class="user-logged-in">
-            <div class="user-header">
-              <i class="fa-solid fa-user-check"></i>
-              <div class="user-info">
-                <h3>Sanci</h3>
-                <p class="user-email">sanci@example.com</p>
+            <div class="user-logged-in">
+              <div class="user-header">
+                <i class="fa-solid fa-user-check"></i>
+                <div class="user-info">
+                  <h3>Sanci</h3>
+                  <p class="user-email">sanci@example.com</p>
+                </div>
+              </div>
+
+              <div class="user-menu">
+                <a routerLink="/profile" class="user-menu-item">
+                  <i class="fa-solid fa-user"></i>
+                  <span>Profilom</span>
+                </a>
+                <a routerLink="/orders" class="user-menu-item">
+                  <i class="fa-solid fa-box"></i>
+                  <span>Rendeléseim</span>
+                </a>
+                <a routerLink="/settings" class="user-menu-item">
+                  <i class="fa-solid fa-gear"></i>
+                  <span>Beállítások</span>
+                </a>
+                <button (click)="logout()" class="user-menu-item logout-btn">
+                  <i class="fa-solid fa-right-from-bracket"></i>
+                  <span>Kijelentkezés</span>
+                </button>
               </div>
             </div>
-
-            <div class="user-menu">
-              <a routerLink="/profile" class="user-menu-item">
-                <i class="fa-solid fa-user"></i>
-                <span>Profilom</span>
-              </a>
-              <a routerLink="/orders" class="user-menu-item">
-                <i class="fa-solid fa-box"></i>
-                <span>Rendeléseim</span>
-              </a>
-              <a routerLink="/settings" class="user-menu-item">
-                <i class="fa-solid fa-gear"></i>
-                <span>Beállítások</span>
-              </a>
-              <button (click)="logout()" class="user-menu-item logout-btn">
-                <i class="fa-solid fa-right-from-bracket"></i>
-                <span>Kijelentkezés</span>
-              </button>
-            </div>
-          </div>
           }
         </div>
       </li>
