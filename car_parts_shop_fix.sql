@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Gép: localhost:3306
--- Létrehozás ideje: 2026. Jan 09. 17:05
+-- Létrehozás ideje: 2026. Jan 19. 10:06
 -- Kiszolgáló verziója: 5.7.24
 -- PHP verzió: 8.3.1
 
@@ -27,6 +27,47 @@ DELIMITER $$
 --
 -- Eljárások
 --
+DROP PROCEDURE IF EXISTS `admin_login`$$
+CREATE DEFINER=`root`@`localhost` PROCEDURE `admin_login` (IN `emailIN` VARCHAR(255))   BEGIN
+
+    -- Update last login
+    UPDATE users 
+    SET last_login = NOW(),
+        updated_at = NOW()
+    WHERE email = emailIN
+        AND role = 'admin'
+        AND is_deleted = 0;
+    
+    SELECT 
+        id, 
+        email, 
+        username, 
+        first_name, 
+        last_name, 
+        phone, 
+        guid, 
+        role, 
+        is_active, 
+        password, 
+        registration_token,
+        auth_secret
+    FROM users
+    WHERE email = emailIN
+        AND role = 'admin'
+        AND is_deleted = 0;
+END$$
+
+DROP PROCEDURE IF EXISTS `checkUserTwoFaEnabled`$$
+CREATE DEFINER=`root`@`localhost` PROCEDURE `checkUserTwoFaEnabled` (IN `user_IdIN` INT(11))   BEGIN
+    SELECT 
+        twofa_enabled,
+        twofa_secret
+    FROM user_twofa
+    WHERE user_id = user_IdIN
+        AND is_deleted = 0
+        AND twofa_enabled = 1;
+END$$
+
 DROP PROCEDURE IF EXISTS `createAddress`$$
 CREATE DEFINER=`root`@`localhost` PROCEDURE `createAddress` (IN `p_user_id` INT, IN `p_first_name` VARCHAR(50), IN `p_last_name` VARCHAR(50), IN `p_company` VARCHAR(50), IN `p_tax_number` VARCHAR(50), IN `p_country` VARCHAR(50), IN `p_city` VARCHAR(50), IN `p_zip_code` VARCHAR(20), IN `p_street` VARCHAR(100), IN `p_is_default` TINYINT)   BEGIN
     START TRANSACTION;
@@ -105,6 +146,25 @@ CREATE DEFINER=`root`@`localhost` PROCEDURE `createOrders` (IN `p_user_id` INT) 
    COMMIT;
 END$$
 
+DROP PROCEDURE IF EXISTS `createPartImages`$$
+CREATE DEFINER=`root`@`localhost` PROCEDURE `createPartImages` (IN `partIdIN` INT(11), IN `urlIN` VARCHAR(255), IN `isPrimaryIN` TINYINT)   BEGIN
+	START TRANSACTION;
+    INSERT INTO part_images(
+        part_id,
+        url,
+        is_primary,
+        created_at
+        )VALUES(
+            partIdIN,
+            urlIN,
+            isPrimaryIN,
+            NOW()
+           );
+           
+         SELECT LAST_INSERT_ID()AS new_partImages_id;
+         COMMIT;
+END$$
+
 DROP PROCEDURE IF EXISTS `createParts`$$
 CREATE DEFINER=`root`@`localhost` PROCEDURE `createParts` (IN `p_manufacturer_id` INT, IN `p_sku` VARCHAR(255), IN `p_name` VARCHAR(100), IN `p_category` VARCHAR(100), IN `p_price` DECIMAL(10.2), IN `p_stock` INT, IN `p_status` VARCHAR(50), IN `p_is_active` TINYINT)   BEGIN
 	START TRANSACTION;
@@ -158,7 +218,7 @@ CREATE DEFINER=`root`@`localhost` PROCEDURE `createPartVariants` (IN `partIdIN` 
 END$$
 
 DROP PROCEDURE IF EXISTS `createReviews`$$
-CREATE DEFINER=`root`@`localhost` PROCEDURE `createReviews` (IN `p_user_id` INT, IN `p_part_id` INT, IN `p_rating` INT, IN `p_comment` TEXT)   BEGIN
+CREATE DEFINER=`root`@`localhost` PROCEDURE `createReviews` (IN `useridIN` INT(11), IN `partidIN` INT(11), IN `ratingIN` INT(11), IN `commentIN` TEXT)   BEGIN
 
 INSERT INTO reviews(
     user_id,
@@ -169,10 +229,10 @@ INSERT INTO reviews(
     is_deleted,
     deleted_at
     )VALUES(
-        p_user_id,
-        p_part_id,
-        p_rating,
-        p_comment,
+        userIdIN,
+        partIdIN,
+        ratingIN,
+        commentIN,
         NOW(),
         0,
         NULL
@@ -235,6 +295,35 @@ CREATE DEFINER=`root`@`localhost` PROCEDURE `createUserLogs` (IN `p_user_id` INT
     );
 END$$
 
+DROP PROCEDURE IF EXISTS `createUserTwoFa`$$
+CREATE DEFINER=`root`@`localhost` PROCEDURE `createUserTwoFa` (IN `user_idIN` INT(11), IN `twofa_enabledIN` TINYINT, IN `twofa_secretIN` VARCHAR(255), IN `recovery_codesIN` VARCHAR(1024))   BEGIN
+    START TRANSACTION;
+    
+    INSERT INTO user_twofa (
+        user_id,
+        twofa_enabled,
+        twofa_secret,
+        recovery_codes,
+        created_at,
+        updated_at,
+        is_deleted,
+        deleted_at
+    ) VALUES (
+        user_idIN,
+        COALESCE(twofa_enabledIN, 0),
+        twofa_secretIN,
+        recovery_codesIN,
+        NOW(),
+        NOW(),
+        0,
+        NULL
+    );
+    
+    SELECT LAST_INSERT_ID() AS new_twofa_id;
+    
+    COMMIT;
+END$$
+
 DROP PROCEDURE IF EXISTS `getAddressById`$$
 CREATE DEFINER=`root`@`localhost` PROCEDURE `getAddressById` (IN `p_address_id` INT)   BEGIN
     SELECT 
@@ -277,6 +366,32 @@ CREATE DEFINER=`root`@`localhost` PROCEDURE `getAddressesByUserId` (IN `p_user_i
     WHERE a.user_id = p_user_id
         AND a.is_deleted = 0
     ORDER BY a.is_default DESC, a.id DESC;
+END$$
+
+DROP PROCEDURE IF EXISTS `getAdminByEmail`$$
+CREATE DEFINER=`root`@`localhost` PROCEDURE `getAdminByEmail` (IN `emailIN` VARCHAR(255))   BEGIN
+    SELECT 
+        id, 
+        email, 
+        username, 
+        first_name, 
+        last_name, 
+        phone, 
+        guid, 
+        role, 
+        is_active, 
+        is_subscribed, 
+        last_login, 
+        created_at, 
+        updated_at, 
+        password, 
+        is_deleted, 
+        auth_secret, 
+        registration_token
+    FROM users 
+    WHERE email = emailIN 
+        AND role = 'admin'
+        AND is_deleted = 0;
 END$$
 
 DROP PROCEDURE IF EXISTS `getAllAddresses`$$
@@ -328,6 +443,21 @@ CREATE DEFINER=`root`@`localhost` PROCEDURE `getAllOrders` ()   BEGIN
      ORDER BY id;
 END$$
 
+DROP PROCEDURE IF EXISTS `getAllPartImages`$$
+CREATE DEFINER=`root`@`localhost` PROCEDURE `getAllPartImages` ()   BEGIN
+	SELECT
+    	id,
+        part_id,
+        url,
+        is_primary,
+        created_at,
+        is_deleted,
+        deleted_at
+     FROM part_images
+     WHERE is_deleted = 0
+     ORDER BY id;
+END$$
+
 DROP PROCEDURE IF EXISTS `getAllParts`$$
 CREATE DEFINER=`root`@`localhost` PROCEDURE `getAllParts` ()   BEGIN
 	SELECT
@@ -370,6 +500,23 @@ CREATE DEFINER=`root`@`localhost` PROCEDURE `getAllReviews` ()   BEGIN
      ORDER BY id;
 END$$
 
+DROP PROCEDURE IF EXISTS `getAllUserTwoFa`$$
+CREATE DEFINER=`root`@`localhost` PROCEDURE `getAllUserTwoFa` ()   BEGIN
+    SELECT 
+        id,
+        user_id,
+        twofa_enabled,
+        twofa_secret,
+        recovery_codes,
+        created_at,
+        updated_at,
+        is_deleted,
+        deleted_at
+    FROM user_twofa
+    WHERE is_deleted = 0
+    ORDER BY id DESC;
+END$$
+
 DROP PROCEDURE IF EXISTS `getManufacturersById`$$
 CREATE DEFINER=`root`@`localhost` PROCEDURE `getManufacturersById` (IN `p_manufacturers_id` INT)   BEGIN
     SELECT 
@@ -409,12 +556,32 @@ CREATE DEFINER=`root`@`localhost` PROCEDURE `getOrdersByUserId` (IN `p_user_id` 
      WHERE user_id = p_user_id;
 END$$
 
-DROP PROCEDURE IF EXISTS `getPartsByCategory`$$
-CREATE DEFINER=`root`@`localhost` PROCEDURE `getPartsByCategory` ()   BEGIN
-    SELECT DISTINCT category
-    FROM parts
-    WHERE is_deleted = 0
-    ORDER BY category;
+DROP PROCEDURE IF EXISTS `getPartImagesById`$$
+CREATE DEFINER=`root`@`localhost` PROCEDURE `getPartImagesById` (IN `partImages_id` INT(11))   BEGIN
+	SELECT
+    	id,
+        part_id,
+        url,
+        is_primary,
+        created_at,
+        is_deleted,
+        deleted_at
+     FROM part_images
+     WHERE id = partImages_id;
+END$$
+
+DROP PROCEDURE IF EXISTS `getPartImagesByUrl`$$
+CREATE DEFINER=`root`@`localhost` PROCEDURE `getPartImagesByUrl` (IN `partImages_url` VARCHAR(255))   BEGIN
+	SELECT
+    	id,
+        part_id,
+        url,
+        is_primary,
+        created_at,
+        is_deleted,
+        deleted_at
+     FROM part_images
+     WHERE id = partImages_url;
 END$$
 
 DROP PROCEDURE IF EXISTS `getPartsById`$$
@@ -476,6 +643,14 @@ CREATE DEFINER=`root`@`localhost` PROCEDURE `getPartsBySku` (IN `p_sku` VARCHAR(
     ORDER BY id DESC;
 END$$
 
+DROP PROCEDURE IF EXISTS `getPartsCategory`$$
+CREATE DEFINER=`root`@`localhost` PROCEDURE `getPartsCategory` ()   BEGIN
+    SELECT DISTINCT category
+    FROM parts
+    WHERE is_deleted = 0
+    ORDER BY category;
+END$$
+
 DROP PROCEDURE IF EXISTS `getPartVariantsById`$$
 CREATE DEFINER=`root`@`localhost` PROCEDURE `getPartVariantsById` (IN `partVariantsId` INT(11))   BEGIN
     SELECT 
@@ -522,7 +697,7 @@ CREATE DEFINER=`root`@`localhost` PROCEDURE `getPartVariantsByValue` (IN `partVa
 END$$
 
 DROP PROCEDURE IF EXISTS `getReviewsById`$$
-CREATE DEFINER=`root`@`localhost` PROCEDURE `getReviewsById` (IN `p_review_id` INT)   BEGIN
+CREATE DEFINER=`root`@`localhost` PROCEDURE `getReviewsById` (IN `review_id` INT)   BEGIN
 	SELECT
     	id,
         user_id,
@@ -533,11 +708,11 @@ CREATE DEFINER=`root`@`localhost` PROCEDURE `getReviewsById` (IN `p_review_id` I
         is_deleted,
         deleted_at
      FROM reviews
-     WHERE id = p_review_id;
+     WHERE id = review_id;
 END$$
 
 DROP PROCEDURE IF EXISTS `getReviewsByPartId`$$
-CREATE DEFINER=`root`@`localhost` PROCEDURE `getReviewsByPartId` (IN `p_part_id` INT)   BEGIN
+CREATE DEFINER=`root`@`localhost` PROCEDURE `getReviewsByPartId` (IN `art_IdIN` INT)   BEGIN
     SELECT 
         id,
         user_id,
@@ -548,13 +723,13 @@ CREATE DEFINER=`root`@`localhost` PROCEDURE `getReviewsByPartId` (IN `p_part_id`
         is_deleted,
         deleted_at
     FROM reviews
-    WHERE part_id = p_part_id
+    WHERE part_id = part_IdIN
         AND is_deleted = 0
     ORDER BY created_at DESC;
 END$$
 
 DROP PROCEDURE IF EXISTS `getReviewsByRating`$$
-CREATE DEFINER=`root`@`localhost` PROCEDURE `getReviewsByRating` (IN `p_rating` INT)   BEGIN
+CREATE DEFINER=`root`@`localhost` PROCEDURE `getReviewsByRating` (IN `ratingIN` INT)   BEGIN
     SELECT 
         id,
         user_id,
@@ -563,13 +738,13 @@ CREATE DEFINER=`root`@`localhost` PROCEDURE `getReviewsByRating` (IN `p_rating` 
         comment,
         created_at
     FROM reviews
-    WHERE rating = p_rating
+    WHERE rating = ratingIN
         AND is_deleted = 0
     ORDER BY created_at DESC;
 END$$
 
 DROP PROCEDURE IF EXISTS `getReviewsByUserId`$$
-CREATE DEFINER=`root`@`localhost` PROCEDURE `getReviewsByUserId` (IN `p_user_id` INT)   BEGIN
+CREATE DEFINER=`root`@`localhost` PROCEDURE `getReviewsByUserId` (IN `userIdIN` INT)   BEGIN
     SELECT 
         id,
         user_id,
@@ -580,7 +755,7 @@ CREATE DEFINER=`root`@`localhost` PROCEDURE `getReviewsByUserId` (IN `p_user_id`
         is_deleted,
         deleted_at
     FROM reviews
-    WHERE user_id = p_user_id
+    WHERE user_id = userIdIN
         AND is_deleted = 0
     ORDER BY created_at DESC;
 END$$
@@ -609,6 +784,39 @@ CREATE DEFINER=`root`@`localhost` PROCEDURE `getUsers` ()   BEGIN
     ORDER BY id;
 END$$
 
+DROP PROCEDURE IF EXISTS `getUserTwoFaById`$$
+CREATE DEFINER=`root`@`localhost` PROCEDURE `getUserTwoFaById` (IN `idIN` INT(11))   BEGIN
+    SELECT 
+        id,
+        user_id,
+        twofa_enabled,
+        twofa_secret,
+        recovery_codes,
+        created_at,
+        updated_at,
+        is_deleted,
+        deleted_at
+    FROM user_twofa
+    WHERE id = idIN;
+END$$
+
+DROP PROCEDURE IF EXISTS `getUserTwoFaByUserId`$$
+CREATE DEFINER=`root`@`localhost` PROCEDURE `getUserTwoFaByUserId` (IN `user_idIN` INT(11))   BEGIN
+    SELECT 
+        id,
+        user_id,
+        twofa_enabled,
+        twofa_secret,
+        recovery_codes,
+        created_at,
+        updated_at,
+        is_deleted,
+        deleted_at
+    FROM user_twofa
+    WHERE user_id = user_idIN
+        AND is_deleted = 0;
+END$$
+
 DROP PROCEDURE IF EXISTS `softDeleteAddress`$$
 CREATE DEFINER=`root`@`localhost` PROCEDURE `softDeleteAddress` (IN `p_address_id` INT)   BEGIN
     UPDATE addresses
@@ -635,6 +843,15 @@ CREATE DEFINER=`root`@`localhost` PROCEDURE `softDeleteOrders` (IN `p_orders_id`
     WHERE id = p_orders_id;
 END$$
 
+DROP PROCEDURE IF EXISTS `softDeletePartImages`$$
+CREATE DEFINER=`root`@`localhost` PROCEDURE `softDeletePartImages` (IN `partImages_IdIN` INT(11))   BEGIN
+    UPDATE part_images
+    SET 
+        is_deleted = 1,
+        deleted_at = NOW()
+    WHERE id = partImages_IdIN;
+END$$
+
 DROP PROCEDURE IF EXISTS `softDeleteParts`$$
 CREATE DEFINER=`root`@`localhost` PROCEDURE `softDeleteParts` (IN `p_parts_id` INT)   BEGIN
     UPDATE parts
@@ -654,12 +871,12 @@ CREATE DEFINER=`root`@`localhost` PROCEDURE `softDeletePartVariants` (IN `partVa
 END$$
 
 DROP PROCEDURE IF EXISTS `softDeleteReviews`$$
-CREATE DEFINER=`root`@`localhost` PROCEDURE `softDeleteReviews` (IN `p_review_id` INT)   BEGIN
+CREATE DEFINER=`root`@`localhost` PROCEDURE `softDeleteReviews` (IN `review_IdIN` INT(11))   BEGIN
     UPDATE reviews
     SET 
         is_deleted = 1,
         deleted_at = NOW()
-    WHERE id = p_review_id;
+    WHERE id = review_IdIN;
 END$$
 
 DROP PROCEDURE IF EXISTS `softDeleteUser`$$
@@ -685,8 +902,17 @@ CREATE DEFINER=`root`@`localhost` PROCEDURE `softDeleteUserAndAddresses` (IN `p_
     WHERE user_id = p_user_id;
 END$$
 
+DROP PROCEDURE IF EXISTS `softDeleteUserTwoFa`$$
+CREATE DEFINER=`root`@`localhost` PROCEDURE `softDeleteUserTwoFa` (IN `twofa_idIN` INT(11))   BEGIN
+    UPDATE user_twofa
+    SET 
+        is_deleted = 1,
+        deleted_at = NOW()
+    WHERE id = twofa_idIN;
+END$$
+
 DROP PROCEDURE IF EXISTS `updateAddress`$$
-CREATE DEFINER=`root`@`localhost` PROCEDURE `updateAddress` (IN `p_address_id` INT, IN `p_first_name` VARCHAR(50), IN `p_last_name` VARCHAR(50), IN `p_company` VARCHAR(50), IN `p_tax_number` VARCHAR(50), IN `p_country` VARCHAR(50), IN `p_city` VARCHAR(50), IN `p_zip_code` VARCHAR(20), IN `p_street` VARCHAR(100), IN `p_is_default` TINYINT)   BEGIN
+CREATE DEFINER=`root`@`localhost` PROCEDURE `updateAddress` (IN `p_address_id` INT(11), IN `p_user_id` INT(11), IN `p_first_name` VARCHAR(50), IN `p_last_name` VARCHAR(50), IN `p_company` VARCHAR(50), IN `p_tax_number` VARCHAR(50), IN `p_country` VARCHAR(50), IN `p_city` VARCHAR(50), IN `p_zip_code` VARCHAR(20), IN `p_street` VARCHAR(100), IN `p_is_default` TINYINT, IN `p_is_deleted` TINYINT)   BEGIN
     DECLARE v_user_id INT;
     
     START TRANSACTION;
@@ -695,7 +921,6 @@ CREATE DEFINER=`root`@`localhost` PROCEDURE `updateAddress` (IN `p_address_id` I
     FROM addresses 
     WHERE id = p_address_id;
 
-    -- Ha ez lesz az alapértelmezett cím akkor a többi címet ne legyen alapértelmezett
     IF p_is_default = 1 THEN
         UPDATE addresses 
         SET is_default = 0 
@@ -714,6 +939,7 @@ CREATE DEFINER=`root`@`localhost` PROCEDURE `updateAddress` (IN `p_address_id` I
         zip_code = p_zip_code,
         street = p_street,
         is_default = p_is_default,
+        is_deleted = p_is_deleted,
         updated_at = NOW()
     WHERE id = p_address_id;
 
@@ -728,6 +954,16 @@ CREATE DEFINER=`root`@`localhost` PROCEDURE `updateManufacturers` (IN `p_manufac
         country = p_country
     WHERE id = p_manufacturers_id;
   COMMIT;
+END$$
+
+DROP PROCEDURE IF EXISTS `updatePartImages`$$
+CREATE DEFINER=`root`@`localhost` PROCEDURE `updatePartImages` (IN `partImages_IdIN` INT(11), IN `urlIN` VARCHAR(255), IN `isPrimaryIN` TINYINT, IN `isDeletedIN` TINYINT)   BEGIN
+    UPDATE part_images
+    SET 
+        url = urlIN,
+        is_primary = isPrimaryIN,
+        is_deleted = isDeletedIN
+    WHERE id = partImages_IdIN;
 END$$
 
 DROP PROCEDURE IF EXISTS `updateParts`$$
@@ -765,12 +1001,13 @@ CREATE DEFINER=`root`@`localhost` PROCEDURE `updatePartVariants` (IN `idIN` INT(
 END$$
 
 DROP PROCEDURE IF EXISTS `updateReviews`$$
-CREATE DEFINER=`root`@`localhost` PROCEDURE `updateReviews` (IN `p_review_id` INT, IN `p_rating` INT, IN `p_comment` TEXT)   BEGIN
+CREATE DEFINER=`root`@`localhost` PROCEDURE `updateReviews` (IN `review_id` INT, IN `ratingIN` INT, IN `commentIN` TEXT)   BEGIN
     UPDATE reviews
     SET 
-        rating = p_rating,
-        comment = p_comment
-    WHERE id = p_review_id;
+        rating = ratingIN,
+        comment = commentIN,
+        is_deleted = isDeletedIN
+    WHERE id = review_id;
 END$$
 
 DROP PROCEDURE IF EXISTS `updateUser`$$
@@ -802,6 +1039,22 @@ CREATE DEFINER=`root`@`localhost` PROCEDURE `updateUserLogs` (IN `p_user_id` INT
         created_at = NOW()
     WHERE user_id = p_user_id
     ORDER BY created_at DESC;
+END$$
+
+DROP PROCEDURE IF EXISTS `updateUserTwoFa`$$
+CREATE DEFINER=`root`@`localhost` PROCEDURE `updateUserTwoFa` (IN `idIN` INT(11), IN `user_IdIN` INT(11), IN `twofa_enabledIN` TINYINT, IN `twofa_secretIN` VARCHAR(255), IN `recovery_codesIN` VARCHAR(1024))   BEGIN
+    START TRANSACTION;
+    
+    UPDATE user_twofa
+    SET 
+        user_id = user_IdIN,
+        twofa_enabled = twofa_enabledIN,
+        twofa_secret = twofa_secretIN,
+        recovery_codes = recovery_codesIN,
+        updated_at = NOW()
+    WHERE id = idIN;
+    
+    COMMIT;
 END$$
 
 DROP PROCEDURE IF EXISTS `user_login`$$
