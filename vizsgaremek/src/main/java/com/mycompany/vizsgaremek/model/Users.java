@@ -773,6 +773,28 @@ public class Users implements Serializable {
             em.close();
         }
     }
+    
+    public static Boolean loginAdmin(Users userData) {
+        EntityManager em = emf.createEntityManager();
+        try {
+
+            StoredProcedureQuery spq = em.createStoredProcedureQuery("user_login");
+
+            spq.registerStoredProcedureParameter("p_email", String.class, ParameterMode.IN);
+
+            spq.setParameter("p_email", userData.getEmail());
+
+            spq.execute();
+
+            return true;
+        } catch (Exception ex) {
+            ex.printStackTrace();
+            return false;
+        } finally {
+            em.clear();
+            em.close();
+        }
+    }
 
     @XmlTransient
     public Collection<CartItems> getCartItemsCollection() {

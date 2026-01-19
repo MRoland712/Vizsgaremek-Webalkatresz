@@ -102,17 +102,34 @@ public class AuthenticationService {
         }
         
         /**
-         * Creates an JSONObject OK response with the given JSONObject result
+         * Creates an JSONObject OK response with the given Claims result
          * data
          *
-         * @param result The JSONObject that contains the result data
+         * @param result The Claims object that contains the result data
          *
-         * @return a JSONObject with the result JSONObject as a "result" a
+         * @return a JSONObject with the result Claims as "result", a
+         * status of "success" and a "statusCode" of 200
+         */
+        public static JSONObject createOKResponse(Claims result) {
+            JSONObject response = new JSONObject();
+            response.put("result", result);
+            response.put("status", "success");
+            response.put("statusCode", 200);
+            return response;
+        }
+        
+        /**
+         * Creates an JSONObject OK response with the given String result
+         * data
+         *
+         * @param result The String that contains the result data
+         *
+         * @return a JSONObject with the result String as "result", a
          * status of "success" and a "statusCode" of 200 in this format {
          * "result": [ { #result data# } ], "status": "success", "statusCode":
          * 200 }
          */
-        public static JSONObject createOKResponse(Claims result) {
+        public static JSONObject createOKResponse(String result) {
             JSONObject response = new JSONObject();
             response.put("result", result);
             response.put("status", "success");

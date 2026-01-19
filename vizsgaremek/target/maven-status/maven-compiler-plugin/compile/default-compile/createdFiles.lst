@@ -30,10 +30,12 @@ com\mycompany\vizsgaremek\service\AuthenticationService$userLogsAuth.class
 com\mycompany\vizsgaremek\config\KvFetcher.class
 com\mycompany\vizsgaremek\config\CorsFilter.class
 com\mycompany\vizsgaremek\controller\JWTController.class
+com\mycompany\vizsgaremek\config\createInvoicePDF.class
 com\mycompany\vizsgaremek\controller\PartsController.class
 com\mycompany\vizsgaremek\controller\UserLogsController.class
 com\mycompany\vizsgaremek\model\CartItems.class
 com\mycompany\vizsgaremek\service\UserLogsService.class
+com\mycompany\vizsgaremek\controller\TFAController.class
 com\mycompany\vizsgaremek\model\UserTwofa.class
 com\mycompany\vizsgaremek\model\Reviews.class
 com\mycompany\vizsgaremek\model\ShippingMethods.class
@@ -49,7 +51,6 @@ com\mycompany\vizsgaremek\service\AuthenticationService$JWTAuth.class
 com\mycompany\vizsgaremek\model\PasswordResets.class
 com\mycompany\vizsgaremek\model\StockLogs.class
 com\mycompany\vizsgaremek\controller\ApplicationConfig.class
-com\mycompany\vizsgaremek\model\ArrayList.class
 com\mycompany\vizsgaremek\model\EmailVerifications.class
 com\mycompany\vizsgaremek\model\OrderItems.class
 com\mycompany\vizsgaremek\config\OTPVerifyer.class
