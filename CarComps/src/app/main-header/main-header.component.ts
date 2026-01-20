@@ -25,7 +25,7 @@ export interface CartItem {
 })
 export class MainHeaderComponent {
   private destroyRef = inject(DestroyRef);
-  authService = inject(AuthService); // ← AuthService inject
+  authService = inject(AuthService);
 
   imgSrc = '/assets/CarComps_Logo_BigassC.png';
 
@@ -38,16 +38,18 @@ export class MainHeaderComponent {
   showDropdown = signal(false);
 
   // ==========================================
+  // AUTH STATE - AuthService-ből
+  // ==========================================
+
+  isLoggedIn = this.authService.isLoggedIn; // readonly signal
+  userName = this.authService.userName; // ⭐ Ez kell!
+  userEmail = this.authService.userEmail;
+
+  // ==========================================
   // CART STATE
   // ==========================================
 
-  // Bejelentkezve van-e (AuthService-ből)
-  isLoggedIn = this.authService.isLoggedIn;
-
-  // Kosár termékei
   cartItems = signal<CartItem[]>([]);
-
-  // Számított értékek
   cartItemCount = signal(0);
   cartTotal = signal(0);
 
@@ -80,7 +82,6 @@ export class MainHeaderComponent {
     // GARAGE: Make változás → Model enable
     // ==========================================
     const garageMakeSubscription = this.garageMakeControl.valueChanges.subscribe((makeId) => {
-      // Reset model és year
       this.garageModelControl.setValue('');
       this.garageYearControl.setValue('');
       this.garageYearControl.disable();
@@ -100,7 +101,6 @@ export class MainHeaderComponent {
     // GARAGE: Model változás → Year enable
     // ==========================================
     const garageModelSubscription = this.garageModelControl.valueChanges.subscribe((modelId) => {
-      // Reset year
       this.garageYearControl.setValue('');
 
       if (modelId) {
@@ -125,6 +125,14 @@ export class MainHeaderComponent {
 
     // Kosár adatok betöltése
     this.loadCartData();
+
+    // ==========================================
+    // DEBUG: User adatok console-ba
+    // ==========================================
+    console.log('👤 Main Header - User adatok:');
+    console.log('  Bejelentkezve:', this.isLoggedIn());
+    console.log('  Név:', this.userName());
+    console.log('  Email:', this.userEmail());
   }
 
   // ==========================================
@@ -132,16 +140,8 @@ export class MainHeaderComponent {
   // ==========================================
 
   loadCartData() {
-    // TODO: Cart service-ből töltsd be a kosár tartalmát
-    // Ha BE van jelentkezve, töltsük be a cart-ot
     if (this.isLoggedIn()) {
-      // TODO: Példa API hívás
-      // this.cartService.getCart().subscribe(items => {
-      //   this.cartItems.set(items);
-      //   this.updateCartCalculations();
-      // });
-
-      // EGYELŐRE ÜRES - nincs mock adat
+      // TODO: Cart service API hívás
       this.cartItems.set([]);
       this.updateCartCalculations();
     }
@@ -149,12 +149,8 @@ export class MainHeaderComponent {
 
   updateCartCalculations() {
     const items = this.cartItems();
-
-    // Termékek száma
     const totalCount = items.reduce((sum, item) => sum + item.quantity, 0);
     this.cartItemCount.set(totalCount);
-
-    // Teljes ár
     const total = items.reduce((sum, item) => sum + item.price * item.quantity, 0);
     this.cartTotal.set(total);
   }
@@ -163,8 +159,6 @@ export class MainHeaderComponent {
     const updatedItems = this.cartItems().filter((item) => item.id !== itemId);
     this.cartItems.set(updatedItems);
     this.updateCartCalculations();
-
-    // TODO: Cart service API hívás
     console.log('Termék eltávolítva:', itemId);
   }
 
@@ -176,7 +170,6 @@ export class MainHeaderComponent {
     this.isSearching.set(true);
     this.showDropdown.set(true);
 
-    // TODO: API hívás
     setTimeout(() => {
       const mockResults: SearchResult[] = [
         { id: 1, name: 'Fékbetét Bosch', category: 'Fékrendszer', price: 8990 },
@@ -228,10 +221,6 @@ export class MainHeaderComponent {
     }
 
     console.log('Garage - Kiválasztott autó:', { make, model, year });
-
-    // TODO: Autó mentése
-    // localStorage.setItem('selectedCar', JSON.stringify({ make, model, year }));
-
     alert(`Kiválasztva: ${year} (Model ID: ${model})`);
   }
 
@@ -240,9 +229,7 @@ export class MainHeaderComponent {
   // ==========================================
 
   logout() {
-    // AuthService logout hívása
     this.authService.logout();
-
     console.log('✅ Kijelentkezés sikeres');
   }
 }

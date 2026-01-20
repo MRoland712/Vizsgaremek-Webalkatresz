@@ -245,7 +245,7 @@
       <!-- CART HOVER MENU VÉGE -->
 
       <!-- PROFIL IKON -->
-      <!-- USER ICON - Hover Menu -->
+      <!-- USER ICON - Hover Menu - VALÓDI USER ADATOK -->
       <li class="nav-item user-item">
         <a
           class="nav-link"
@@ -271,14 +271,16 @@
             </div>
           }
 
-          <!-- BE VAN JELENTKEZVE -->
+          <!-- BE VAN JELENTKEZVE - VALÓDI ADATOK! -->
           @else {
             <div class="user-logged-in">
               <div class="user-header">
                 <i class="fa-solid fa-user-check"></i>
                 <div class="user-info">
-                  <h3>Üdv {{ username }}</h3>
-                  <p class="user-email">{{ userEmail }}</p>
+                  <!-- ⭐ JAVÍTVA: AuthService userName() signal -->
+                  <h3>{{ userName() || 'Felhasználó' }}</h3>
+                  <!-- ⭐ JAVÍTVA: AuthService userEmail() signal -->
+                  <p class="user-email">{{ userEmail() || 'Nincs email' }}</p>
                 </div>
               </div>
 

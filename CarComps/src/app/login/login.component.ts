@@ -1,6 +1,6 @@
 // src/app/login/login.component.ts
 
-import { Component, DestroyRef, inject, OnInit } from '@angular/core';
+import { Component, DestroyRef, inject, OnInit, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { debounceTime } from 'rxjs';
@@ -50,10 +50,8 @@ export class LoginComponent implements OnInit {
         // JWT token mentése
         localStorage.setItem('jwt', res.result.JWTToken!);
 
-        // ==========================================
-        // AuthService-nek szólunk hogy bejelentkezett
-        // ==========================================
-        this.authService.setLoggedIn();
+        // AuthService-nek szólunk hogy bejelentkezett az emailvel
+        this.authService.setLoggedIn(finalLoginData.email);
 
         // Sikeres bejelentkezés után navigálás a FŐOLDALRA
         this.router.navigate(['/']);

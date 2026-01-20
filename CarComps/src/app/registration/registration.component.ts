@@ -11,6 +11,7 @@ import {
   RegisterService,
 } from './register.service';
 import { RegisterErrorResponse } from './register.model';
+import { AuthService } from '../services/auth.service';
 
 @Component({
   selector: 'app-reg',
@@ -21,6 +22,7 @@ import { RegisterErrorResponse } from './register.model';
 export class RegistrationComponent {
   registerService = inject(RegisterService);
   private router = inject(Router);
+  authService = inject(AuthService);
 
   // ==========================================
   // EMAIL ALREADY EXISTS SIGNAL
@@ -67,7 +69,6 @@ export class RegistrationComponent {
     // EMAIL VÁLTOZÁSKOR RESET
     // ==========================================
     this.signupForm.controls.email.valueChanges.subscribe(() => {
-      // Ha user módosítja az email-t, töröljük a hibát
       this.emailAlreadyExists.set(false);
     });
   }
@@ -144,9 +145,14 @@ export class RegistrationComponent {
     // ==========================================
     this.emailAlreadyExists.set(false);
 
+    // DEBUG: Form value vizsgálata
+    console.log('📝 Form value:', this.signupForm.value);
+    console.log('  firstname:', this.signupForm.value.firstname);
+    console.log('  lastname:', this.signupForm.value.lastname);
+
     const finalRegisterData = {
-      firstName: this.signupForm.value.firstname!,
-      lastName: this.signupForm.value.lastname!,
+      firstName: this.signupForm.value.firstname || 'User',
+      lastName: this.signupForm.value.lastname || 'User',
       username: this.signupForm.value.username!,
       email: this.signupForm.value.email!,
       password: this.signupForm.value.password!,
@@ -154,15 +160,48 @@ export class RegistrationComponent {
       phone: this.signupForm.value.phone!,
     };
 
-    console.log('📤 Regisztráció...');
+    console.log('📤 Regisztráció küldése...');
+    console.log('  finalRegisterData:', finalRegisterData);
 
     this.registerService.register(finalRegisterData).subscribe({
       next: (res) => {
-        console.log('✅ Sikeres regisztráció');
+        console.log('✅ Sikeres regisztráció!');
+
+        // JWT token mentése
         localStorage.setItem('jwt', res.result.JWTToken!);
 
-        // Login-ra irányít
-        this.router.navigate(['/login']);
+        // ==========================================
+        // TELJES NÉV összeállítása
+        // ==========================================
+        let displayName = `${finalRegisterData.firstName} ${finalRegisterData.lastName}`.trim();
+
+        // Ha üres vagy "User User", akkor username
+        if (!displayName || displayName === 'User User') {
+          displayName = finalRegisterData.username;
+        }
+
+        console.log('👤 User adatok:');
+        console.log('  Email:', finalRegisterData.email);
+        console.log('  Teljes név:', displayName);
+
+        // ==========================================
+        // AuthService setLoggedIn() hívása
+        // ==========================================
+        this.authService.setLoggedIn(
+          finalRegisterData.email, // Email
+          displayName, // Teljes név vagy username
+        );
+
+        console.log('✅ LocalStorage mentve:');
+        console.log('  userEmail:', localStorage.getItem('userEmail'));
+        console.log('  userName:', localStorage.getItem('userName'));
+        console.log('  isUserData:', localStorage.getItem('isUserData'));
+
+        // ==========================================
+        // ⭐ JAVÍTVA: FŐOLDALRA irányít (nem login-ra!)
+        // ==========================================
+        console.log('🔄 Átirányítás főoldalra...');
+        this.router.navigate(['/']);
       },
       error: (err: HttpErrorResponse) => {
         console.error('❌ Regisztráció hiba:', err);
@@ -174,8 +213,8 @@ export class RegistrationComponent {
           const errorResponse = err.error as RegisterErrorResponse;
 
           if (errorResponse.errors?.includes('EmailIsSameAsDB')) {
-            console.log('Email már használatban van!');
-            this.emailAlreadyExists.set(true); // ← Hiba megjelenítése
+            console.log('⚠️ Email már használatban van!');
+            this.emailAlreadyExists.set(true);
           }
         }
       },
