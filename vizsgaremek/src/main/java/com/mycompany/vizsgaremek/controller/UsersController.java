@@ -225,4 +225,23 @@ public class UsersController {
                 .type(MediaType.APPLICATION_JSON)
                 .build();
     }
+    
+    @PUT
+    @Path("adminLogin")
+    @Consumes(MediaType.APPLICATION_JSON)
+    public Response loginAdminController(String body) {
+        JSONObject bodyObject = new JSONObject(body);
+
+        Users user = new Users(
+                bodyObject.has("email") ? bodyObject.getString("email") : null,
+                bodyObject.has("password") ? bodyObject.getString("password") : null
+        );
+
+        JSONObject toReturn = layer.loginUser(user);
+
+        return Response.status(Integer.parseInt(toReturn.get("statusCode").toString()))
+                .entity(toReturn.toString())
+                .type(MediaType.APPLICATION_JSON)
+                .build();
+    }
 }

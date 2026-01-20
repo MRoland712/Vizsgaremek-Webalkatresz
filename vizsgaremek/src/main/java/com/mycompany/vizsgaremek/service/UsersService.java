@@ -717,5 +717,6 @@ public class UsersService {
         }
         return errorAuth.createOKResponse(toReturn);
     }
+    
 } // DONT DELETE, THIS IS THE CLASS CLOSER
 
