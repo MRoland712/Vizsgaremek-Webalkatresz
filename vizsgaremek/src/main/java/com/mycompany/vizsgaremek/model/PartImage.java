@@ -165,7 +165,7 @@ public class PartImage implements Serializable {
     public static Integer createPartImage(PartImage newImage) {
         EntityManager em = emf.createEntityManager();
         try {
-            StoredProcedureQuery spq = em.createStoredProcedureQuery("createPartImages");
+            StoredProcedureQuery spq = em.createStoredProcedureQuery("createPartImage");
 
             spq.registerStoredProcedureParameter("partIdIN", Integer.class, ParameterMode.IN);
             spq.registerStoredProcedureParameter("urlIN", String.class, ParameterMode.IN);
@@ -176,14 +176,12 @@ public class PartImage implements Serializable {
             spq.setParameter("isPrimaryIN", newImage.getIsPrimary());
 
             spq.execute();
-
-            List<Object[]> resultList = spq.getResultList();
             
-            if (resultList != null && !resultList.isEmpty()) {
-                Object[] record = resultList.get(0);
-                return Integer.valueOf(record[0].toString()); // new_partImages_id
+            Object result = spq.getSingleResult();
+            if(result != null){
+                return((Number)result).intValue();
             }
-
+            
             return -1;
 
         } catch (Exception ex) {
@@ -357,7 +355,7 @@ public class PartImage implements Serializable {
         try {
             em.getTransaction().begin();
 
-            StoredProcedureQuery spq = em.createStoredProcedureQuery("softDeletePartImages");
+            StoredProcedureQuery spq = em.createStoredProcedureQuery("softDeletePartImage");
             spq.registerStoredProcedureParameter("partImages_IdIN", Integer.class, ParameterMode.IN);
             spq.setParameter("partImages_IdIN", id);
 

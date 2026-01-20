@@ -57,7 +57,7 @@ public class ImageUploadService {
         String filePath = folderPath + uniqueFileName;
         
         // Debug log
-        System.out.println("=== IMAGE UPLOAD DEBUG ===");
+        System.out.println("IMAGE UPLOAD DEBUG");
         System.out.println("Upload directory: " + UPLOAD_DIR);
         System.out.println("Folder path: " + folderPath);
         System.out.println("Full file path: " + filePath);
@@ -76,7 +76,6 @@ public class ImageUploadService {
         // 6. Publikus URL visszaadása
         String finalUrl = BASE_URL + folder + "/" + uniqueFileName;
         System.out.println("Generated URL: " + finalUrl);
-        System.out.println("==========================");
         
         return finalUrl;
     }
