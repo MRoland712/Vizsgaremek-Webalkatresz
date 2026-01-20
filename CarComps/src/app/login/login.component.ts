@@ -70,7 +70,7 @@ export class LoginComponent implements OnInit {
       next: (value) => {
         window.localStorage.setItem(
           'saved-login-form',
-          JSON.stringify({ email: value.email, password: value.password })
+          JSON.stringify({ email: value.email, password: value.password }),
         );
       },
     });

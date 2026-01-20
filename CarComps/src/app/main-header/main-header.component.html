@@ -64,7 +64,7 @@
 
     <!-- Ikonok jobb oldalon -->
     <ul class="nav-icons">
-      <!-- GARAGE/WAREHOUSE ICON - Hover Menu -->
+      <!-- GARAGE/WAREHOUSE ICON - MMT Hover Menu -->
       <li class="nav-item garage-item">
         <a
           class="nav-link"
@@ -74,7 +74,7 @@
           <i class="fa-solid fa-warehouse"></i>
         </a>
 
-        <!-- GARAGE HOVER DROPDOWN -->
+        <!-- GARAGE HOVER DROPDOWN - MMT SELECTOR -->
         <div class="garage-dropdown">
           <!-- NINCS BEJELENTKEZVE -->
           @if (!isLoggedIn()) {
@@ -87,29 +87,67 @@
             </div>
           }
 
-          <!-- BE VAN JELENTKEZVE -->
+          <!-- BE VAN JELENTKEZVE - MMT SELECTOR -->
           @else {
             <div class="garage-logged-in">
+              <!-- Header -->
               <div class="garage-header">
                 <i class="fa-solid fa-warehouse"></i>
                 <div class="garage-info">
-                  <h3>Garázsom</h3>
-                  <p class="garage-subtitle">Autóim kezelése</p>
+                  <h3>Válassz autót</h3>
+                  <p class="garage-subtitle">Garázsom</p>
                 </div>
               </div>
 
-              <div class="garage-actions">
-                <!-- Autó hozzáadása gomb - POPUP -->
-                <button (click)="openAddCarDialog()" class="garage-add-btn">
-                  <i class="fa-solid fa-plus"></i>
-                  <span>Autó hozzáadása</span>
-                </button>
+              <!-- MMT Selector -->
+              <div class="garage-box-selector">
+                <!-- Márka -->
+                <div class="garage-select-group">
+                  <label>Márka</label>
+                  <select class="garage-select" [formControl]="garageMakeControl">
+                    <option value="">Válassz márkát</option>
+                    <option value="1">Audi</option>
+                    <option value="2">BMW</option>
+                    <option value="3">Mercedes</option>
+                  </select>
+                  <i class="fa-solid fa-chevron-down garage-select-icon"></i>
+                </div>
 
-                <!-- Garázs megtekintése -->
-                <a routerLink="/profile/garage" class="garage-view-btn">
-                  <i class="fa-solid fa-car"></i>
-                  <span>Garázsom megtekintése</span>
-                </a>
+                <!-- Modell -->
+                <div class="garage-select-group">
+                  <label>Modell</label>
+                  <select class="garage-select" [formControl]="garageModelControl">
+                    <option value="">Válassz modellt</option>
+                    <option value="1">A4</option>
+                    <option value="2">A6</option>
+                  </select>
+                  <i class="fa-solid fa-chevron-down garage-select-icon"></i>
+                </div>
+
+                <!-- Évjárat -->
+                <div class="garage-select-group">
+                  <label>Évjárat</label>
+                  <select class="garage-select" [formControl]="garageYearControl">
+                    <option value="">Válassz évjáratot</option>
+                    <option value="2020">2020</option>
+                    <option value="2021">2021</option>
+                    <option value="2022">2022</option>
+                    <option value="2023">2023</option>
+                  </select>
+                  <i class="fa-solid fa-chevron-down garage-select-icon"></i>
+                </div>
+              </div>
+
+              <!-- Kiválasztás gomb -->
+              <div class="garage-box-actions">
+                <button
+                  class="garage-select-btn"
+                  (click)="selectGarageCar()"
+                  [disabled]="!garageYearControl.value"
+                >
+                  <i class="fa-solid fa-check"></i>
+                  Kiválasztás
+                </button>
               </div>
             </div>
           }
@@ -239,8 +277,8 @@
               <div class="user-header">
                 <i class="fa-solid fa-user-check"></i>
                 <div class="user-info">
-                  <h3>Sanci</h3>
-                  <p class="user-email">sanci@example.com</p>
+                  <h3>Üdv {{ username }}</h3>
+                  <p class="user-email">{{ userEmail }}</p>
                 </div>
               </div>
 

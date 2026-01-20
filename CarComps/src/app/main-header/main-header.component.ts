@@ -51,9 +51,19 @@ export class MainHeaderComponent {
   cartItemCount = signal(0);
   cartTotal = signal(0);
 
+  // ==========================================
+  // GARAGE MMT SELECTOR - FormControls
+  // ==========================================
+
+  garageMakeControl = new FormControl('');
+  garageModelControl = new FormControl({ value: '', disabled: true });
+  garageYearControl = new FormControl({ value: '', disabled: true });
+
   constructor() {
-    // Search debounce
-    const subscription = this.searchControl.valueChanges
+    // ==========================================
+    // SEARCH - Debounce
+    // ==========================================
+    const searchSubscription = this.searchControl.valueChanges
       .pipe(debounceTime(300), distinctUntilChanged())
       .subscribe({
         next: (searchTerm) => {
@@ -66,7 +76,52 @@ export class MainHeaderComponent {
         },
       });
 
-    this.destroyRef.onDestroy(() => subscription.unsubscribe());
+    // ==========================================
+    // GARAGE: Make változás → Model enable
+    // ==========================================
+    const garageMakeSubscription = this.garageMakeControl.valueChanges.subscribe((makeId) => {
+      // Reset model és year
+      this.garageModelControl.setValue('');
+      this.garageYearControl.setValue('');
+      this.garageYearControl.disable();
+
+      if (makeId) {
+        this.garageModelControl.enable();
+        console.log('Garage - Márka:', makeId);
+
+        // TODO: API hívás modellekhez
+        // this.http.get(`/api/models/${makeId}`).subscribe(...)
+      } else {
+        this.garageModelControl.disable();
+      }
+    });
+
+    // ==========================================
+    // GARAGE: Model változás → Year enable
+    // ==========================================
+    const garageModelSubscription = this.garageModelControl.valueChanges.subscribe((modelId) => {
+      // Reset year
+      this.garageYearControl.setValue('');
+
+      if (modelId) {
+        this.garageYearControl.enable();
+        console.log('Garage - Modell:', modelId);
+
+        // TODO: API hívás évjáratokhoz
+        // this.http.get(`/api/years/${modelId}`).subscribe(...)
+      } else {
+        this.garageYearControl.disable();
+      }
+    });
+
+    // ==========================================
+    // Cleanup subscriptions
+    // ==========================================
+    this.destroyRef.onDestroy(() => {
+      searchSubscription.unsubscribe();
+      garageMakeSubscription.unsubscribe();
+      garageModelSubscription.unsubscribe();
+    });
 
     // Kosár adatok betöltése
     this.loadCartData();
@@ -130,7 +185,7 @@ export class MainHeaderComponent {
       ].filter(
         (item) =>
           item.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          item.category.toLowerCase().includes(searchTerm.toLowerCase())
+          item.category.toLowerCase().includes(searchTerm.toLowerCase()),
       );
 
       this.searchResults.set(mockResults);
@@ -156,6 +211,28 @@ export class MainHeaderComponent {
       console.log('Keresés elküldve:', searchTerm);
       this.showDropdown.set(false);
     }
+  }
+
+  // ==========================================
+  // GARAGE: Autó kiválasztása
+  // ==========================================
+
+  selectGarageCar() {
+    const make = this.garageMakeControl.value;
+    const model = this.garageModelControl.value;
+    const year = this.garageYearControl.value;
+
+    if (!year) {
+      console.log('Nincs kiválasztva autó!');
+      return;
+    }
+
+    console.log('Garage - Kiválasztott autó:', { make, model, year });
+
+    // TODO: Autó mentése
+    // localStorage.setItem('selectedCar', JSON.stringify({ make, model, year }));
+
+    alert(`Kiválasztva: ${year} (Model ID: ${model})`);
   }
 
   // ==========================================
