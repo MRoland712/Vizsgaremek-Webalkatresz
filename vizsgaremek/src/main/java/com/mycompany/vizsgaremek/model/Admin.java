@@ -61,7 +61,7 @@ import javax.xml.bind.annotation.XmlRootElement;
     @NamedQuery(name = "Users_1.findByAuthSecret", query = "SELECT u FROM Users_1 u WHERE u.authSecret = :authSecret"),
     @NamedQuery(name = "Users_1.findByGuid", query = "SELECT u FROM Users_1 u WHERE u.guid = :guid"),
     @NamedQuery(name = "Users_1.findByRegistrationToken", query = "SELECT u FROM Users_1 u WHERE u.registrationToken = :registrationToken")})
-public class Users_1 implements Serializable {
+public class Admin implements Serializable {
 
     private static final long serialVersionUID = 1L;
     @Id
@@ -146,14 +146,14 @@ public class Users_1 implements Serializable {
     public static SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
     static AuthenticationService.userAuth userAuth = new AuthenticationService.userAuth();
     
-    public Users_1() {
+    public Admin() {
     }
 
-    public Users_1(Integer id) {
+    public Admin(Integer id) {
         this.id = id;
     }
 
-    public Users_1(Integer id, String email, String username, String password, String authSecret, String guid) {
+    public Admin(Integer id, String email, String username, String password, String authSecret, String guid) {
         this.id = id;
         this.email = email;
         this.username = username;
@@ -356,10 +356,10 @@ public class Users_1 implements Serializable {
     @Override
     public boolean equals(Object object) {
         // TODO: Warning - this method won't work in the case the id fields are not set
-        if (!(object instanceof Users_1)) {
+        if (!(object instanceof Admin)) {
             return false;
         }
-        Users_1 other = (Users_1) object;
+        Admin other = (Admin) object;
         if ((this.id == null && other.id != null) || (this.id != null && !this.id.equals(other.id))) {
             return false;
         }
