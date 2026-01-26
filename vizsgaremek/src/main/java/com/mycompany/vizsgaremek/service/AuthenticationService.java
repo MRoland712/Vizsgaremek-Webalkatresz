@@ -8,6 +8,7 @@ import com.mycompany.vizsgaremek.model.Users;
 import com.mycompany.vizsgaremek.config.Encrypt;
 import com.mycompany.vizsgaremek.model.Addresses;
 import com.mycompany.vizsgaremek.model.Manufacturers;
+import com.mycompany.vizsgaremek.model.PartImages;
 import com.mycompany.vizsgaremek.model.PartVariants;
 import com.mycompany.vizsgaremek.model.Parts;
 import java.math.BigDecimal;
@@ -350,7 +351,7 @@ public class AuthenticationService {
 
     } //User Auth Class closer
 
-    //ADDRESS 
+    //Address 
     public static class addressAuth {
 
         public boolean isDataMissing(String data) {
@@ -440,6 +441,7 @@ public class AuthenticationService {
 
     } //Address Auth Class closer
 
+    //UserLogs
     public static class userLogsAuth {
 
         public boolean isDataMissing(Integer data) {
@@ -530,15 +532,15 @@ public class AuthenticationService {
         }
 
         public boolean isValidSku(String sku) {
-            return sku.length() <= 50;
+            return sku.length() <= 100;
         }
 
         public boolean isValidName(String name) {
-            return name.length() <= 50;
+            return name.length() <= 255;
         }
 
         public boolean isValidCategory(String category) {
-            return category.length() <= 50;
+            return category.length() <= 100;
         }
 
         //BigDecimal 
@@ -564,12 +566,10 @@ public class AuthenticationService {
             return (isDeleted == true);
         }
 
-        public boolean isDataMissing(Addresses data) {
-            return (data == null);
-        }
 
     } //Parts Auth Class closer
 
+    //Manufacturers
     public static class manufacturersAuth {
 
         public boolean isDataMissing(String data) {
@@ -614,6 +614,7 @@ public class AuthenticationService {
 
     } //Manufacturers Auth Class closer
 
+    //PartVaraints
     public static class partvariantsAuth {
 
         public boolean isDataMissing(String data) {
@@ -670,6 +671,64 @@ public class AuthenticationService {
         }
 
     } //PartsVariants Auth Class closer
+    
+    //PartImages
+    public static class partImagesAuth {
+
+        public boolean isDataMissing(String data) {
+            return (data == null || data.trim().isEmpty());
+        }
+
+        public boolean isDataMissing(PartImages data) {
+            return (data == null);
+        }
+
+        public boolean isDataMissing(Integer data) {
+            return (data == null);
+        }
+
+        public boolean isDataMissing(ArrayList<PartImages> data) {
+            return (data == null || data.isEmpty());
+        }
+
+        public boolean isDataMissing(Boolean data) {
+            return (data == null);
+        }
+
+        public boolean isDataMissing(Parts data) {
+            return (data == null);
+        }
+        
+        public boolean isDataMissing(List<Object[]> data) {
+            return (data == null || data.isEmpty());
+        }
+
+        public boolean isValidId(Integer id) {
+            return id > 0 && id.toString().length() <= 11;
+        }
+
+        public boolean isValidPartId(Parts part) {
+            Integer partId = part.getId();
+            return partId > 0 && partId.toString().length() <= 11;
+        }
+
+        public boolean isValidPartId(Integer partId) {
+            return partId > 0 && partId.toString().length() <= 11;
+        }
+
+        public boolean isValidUrl(String url) {
+            return url.length() <= 255;
+        }
+
+        public boolean isPartImagePrimary(Boolean isPrimary) {
+            return isPrimary instanceof Boolean;
+        }
+
+        public boolean isPartImagesDeleted(Boolean isDeleted) {
+            return (isDeleted == true);
+        }
+
+    } //partImagesAuth Auth Class closer
 
 }//Auth Service Class closer
 

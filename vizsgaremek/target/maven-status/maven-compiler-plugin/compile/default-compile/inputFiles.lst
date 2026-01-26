@@ -3,11 +3,13 @@ C:\Users\neblg\Documents\GitHub\Vizsgaremek-Webalkatresz\vizsgaremek\src\main\ja
 C:\Users\neblg\Documents\GitHub\Vizsgaremek-Webalkatresz\vizsgaremek\src\main\java\com\mycompany\vizsgaremek\controller\SendEmailController.java
 C:\Users\neblg\Documents\GitHub\Vizsgaremek-Webalkatresz\vizsgaremek\src\main\java\com\mycompany\vizsgaremek\model\Users.java
 C:\Users\neblg\Documents\GitHub\Vizsgaremek-Webalkatresz\vizsgaremek\src\main\java\com\mycompany\vizsgaremek\config\TFA.java
+C:\Users\neblg\Documents\GitHub\Vizsgaremek-Webalkatresz\vizsgaremek\src\main\java\com\mycompany\vizsgaremek\service\PartImagesService.java
 C:\Users\neblg\Documents\GitHub\Vizsgaremek-Webalkatresz\vizsgaremek\src\main\java\com\mycompany\vizsgaremek\model\EmailInfo.java
 C:\Users\neblg\Documents\GitHub\Vizsgaremek-Webalkatresz\vizsgaremek\src\main\java\com\mycompany\vizsgaremek\model\Payments.java
 C:\Users\neblg\Documents\GitHub\Vizsgaremek-Webalkatresz\vizsgaremek\src\main\java\com\mycompany\vizsgaremek\model\ShippingStatus.java
 C:\Users\neblg\Documents\GitHub\Vizsgaremek-Webalkatresz\vizsgaremek\src\main\java\com\mycompany\vizsgaremek\model\CartItems.java
 C:\Users\neblg\Documents\GitHub\Vizsgaremek-Webalkatresz\vizsgaremek\src\main\java\com\mycompany\vizsgaremek\config\Encrypt.java
+C:\Users\neblg\Documents\GitHub\Vizsgaremek-Webalkatresz\vizsgaremek\src\main\java\com\mycompany\vizsgaremek\controller\PartImagesController.java
 C:\Users\neblg\Documents\GitHub\Vizsgaremek-Webalkatresz\vizsgaremek\src\main\java\com\mycompany\vizsgaremek\service\UsersService.java
 C:\Users\neblg\Documents\GitHub\Vizsgaremek-Webalkatresz\vizsgaremek\src\main\java\com\mycompany\vizsgaremek\config\CorsFilter.java
 C:\Users\neblg\Documents\GitHub\Vizsgaremek-Webalkatresz\vizsgaremek\src\main\java\com\mycompany\vizsgaremek\service\PartsService.java
@@ -16,11 +18,9 @@ C:\Users\neblg\Documents\GitHub\Vizsgaremek-Webalkatresz\vizsgaremek\src\main\ja
 C:\Users\neblg\Documents\GitHub\Vizsgaremek-Webalkatresz\vizsgaremek\src\main\java\com\mycompany\vizsgaremek\model\UserLogs.java
 C:\Users\neblg\Documents\GitHub\Vizsgaremek-Webalkatresz\vizsgaremek\src\main\java\com\mycompany\vizsgaremek\config\JwtUtil.java
 C:\Users\neblg\Documents\GitHub\Vizsgaremek-Webalkatresz\vizsgaremek\src\main\java\com\mycompany\vizsgaremek\model\Invoices.java
-C:\Users\neblg\Documents\GitHub\Vizsgaremek-Webalkatresz\vizsgaremek\src\main\java\com\mycompany\vizsgaremek\model\PartImage.java
 C:\Users\neblg\Documents\GitHub\Vizsgaremek-Webalkatresz\vizsgaremek\src\main\java\com\mycompany\vizsgaremek\model\Manufacturers.java
 C:\Users\neblg\Documents\GitHub\Vizsgaremek-Webalkatresz\vizsgaremek\src\main\java\com\mycompany\vizsgaremek\config\SendEmail.java
 C:\Users\neblg\Documents\GitHub\Vizsgaremek-Webalkatresz\vizsgaremek\src\main\java\com\mycompany\vizsgaremek\config\KvFetcher.java
-C:\Users\neblg\Documents\GitHub\Vizsgaremek-Webalkatresz\vizsgaremek\src\main\java\com\mycompany\vizsgaremek\controller\PartImageController.java
 C:\Users\neblg\Documents\GitHub\Vizsgaremek-Webalkatresz\vizsgaremek\src\main\java\com\mycompany\vizsgaremek\model\LoginLogs.java
 C:\Users\neblg\Documents\GitHub\Vizsgaremek-Webalkatresz\vizsgaremek\src\main\java\com\mycompany\vizsgaremek\model\Motors.java
 C:\Users\neblg\Documents\GitHub\Vizsgaremek-Webalkatresz\vizsgaremek\src\main\java\com\mycompany\vizsgaremek\controller\AddressesController.java
@@ -51,7 +51,6 @@ C:\Users\neblg\Documents\GitHub\Vizsgaremek-Webalkatresz\vizsgaremek\src\main\ja
 C:\Users\neblg\Documents\GitHub\Vizsgaremek-Webalkatresz\vizsgaremek\src\main\java\com\mycompany\vizsgaremek\model\ShippingMethods.java
 C:\Users\neblg\Documents\GitHub\Vizsgaremek-Webalkatresz\vizsgaremek\src\main\java\com\mycompany\vizsgaremek\model\PasswordResets.java
 C:\Users\neblg\Documents\GitHub\Vizsgaremek-Webalkatresz\vizsgaremek\src\main\java\com\mycompany\vizsgaremek\config\base64Converters.java
-C:\Users\neblg\Documents\GitHub\Vizsgaremek-Webalkatresz\vizsgaremek\src\main\java\com\mycompany\vizsgaremek\service\ImageUploadService.java
 C:\Users\neblg\Documents\GitHub\Vizsgaremek-Webalkatresz\vizsgaremek\src\main\java\com\mycompany\vizsgaremek\model\Refunds.java
 C:\Users\neblg\Documents\GitHub\Vizsgaremek-Webalkatresz\vizsgaremek\src\main\java\com\mycompany\vizsgaremek\model\PartImages.java
 C:\Users\neblg\Documents\GitHub\Vizsgaremek-Webalkatresz\vizsgaremek\src\main\java\com\mycompany\vizsgaremek\model\StockLogs.java
