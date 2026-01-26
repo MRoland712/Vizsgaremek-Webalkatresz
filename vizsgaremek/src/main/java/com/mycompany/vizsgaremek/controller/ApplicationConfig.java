@@ -34,6 +34,7 @@ public class ApplicationConfig extends Application {
         resources.add(com.mycompany.vizsgaremek.controller.SendEmailController.class);
         resources.add(com.mycompany.vizsgaremek.controller.TFAController.class);
         resources.add(com.mycompany.vizsgaremek.controller.UserLogsController.class);
+        resources.add(com.mycompany.vizsgaremek.controller.UserTwofaController.class);
         resources.add(com.mycompany.vizsgaremek.controller.UsersController.class);
     }
 }

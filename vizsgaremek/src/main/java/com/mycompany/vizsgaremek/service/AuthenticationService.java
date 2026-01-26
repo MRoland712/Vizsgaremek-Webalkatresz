@@ -5,6 +5,7 @@
 package com.mycompany.vizsgaremek.service;
 
 import com.mycompany.vizsgaremek.model.Users;
+import com.mycompany.vizsgaremek.model.Admin;
 import com.mycompany.vizsgaremek.config.Encrypt;
 import com.mycompany.vizsgaremek.model.Addresses;
 import com.mycompany.vizsgaremek.model.Manufacturers;
@@ -187,6 +188,10 @@ public class AuthenticationService {
         }
 
         public boolean isDataMissing(Users data) {
+            return (data == null);
+        }
+        
+        public boolean isDataMissing(Admin data) {
             return (data == null);
         }
 
@@ -707,6 +712,10 @@ public class AuthenticationService {
         }
 
     } //PartsVariants Auth Class closer
-
+    
+    public class userTwofaAuth {
+    //ToDo: fill with auths
+    }
+    
 }//Auth Service Class closer
 

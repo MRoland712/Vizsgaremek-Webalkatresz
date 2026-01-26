@@ -58,11 +58,12 @@ public class UserTwofa implements Serializable {
     @Temporal(TemporalType.TIMESTAMP)
     private Date updatedAt;
 
-    public UserTwofa() {
-    }
-
+    //createTFA
     public UserTwofa(Integer id) {
         this.id = id;
+    }
+    
+    public UserTwofa() {
     }
 
     public Integer getId() {

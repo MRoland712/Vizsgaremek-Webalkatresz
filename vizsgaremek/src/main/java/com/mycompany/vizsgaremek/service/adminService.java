@@ -5,7 +5,9 @@
 package com.mycompany.vizsgaremek.service;
 
 import com.mycompany.vizsgaremek.config.JwtUtil;
-import com.mycompany.vizsgaremek.model.Users;
+import com.mycompany.vizsgaremek.model.Admin;
+import com.mycompany.vizsgaremek.service.AuthenticationService.userAuth;
+import com.mycompany.vizsgaremek.service.AuthenticationService.errorAuth;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
@@ -14,7 +16,11 @@ import org.json.JSONObject;
  * @author ddori
  */
 public class adminService {
-    public JSONObject loginAdmin(Users logInAdmin) {
+    
+    private final AuthenticationService.userAuth userAuth = new AuthenticationService.userAuth();
+    private final AuthenticationService.errorAuth errorAuth = new AuthenticationService.errorAuth();
+    
+    public JSONObject loginAdmin(Admin logInAdmin) {
         JSONObject toReturn = new JSONObject();
         JSONArray errors = new JSONArray();
 
@@ -39,7 +45,7 @@ public class adminService {
             return errorAuth.createErrorResponse(errors, 400);
         }
 
-        Users adminData = Users.getAdminByEmail(logInAdmin.getEmail());
+        Admin adminData = Admin.getAdminByEmail(logInAdmin.getEmail());
 
         if (userAuth.isDataMissing(adminData)) {
             errors.put("UserNotFound");
@@ -54,7 +60,7 @@ public class adminService {
             errors.put("UserIsSoftDeleted");
         }
 
-        //error check for is user Deleted
+        //error check for is Admin Deleted
         if (errorAuth.hasErrors(errors)) {
             return errorAuth.createErrorResponse(errors, 409);
         }

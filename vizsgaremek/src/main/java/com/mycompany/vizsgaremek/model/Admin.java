@@ -4,11 +4,11 @@
  */
 package com.mycompany.vizsgaremek.model;
 
-import static com.mycompany.vizsgaremek.model.Users.emf;
 import com.mycompany.vizsgaremek.service.AuthenticationService;
 import java.io.Serializable;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.List;
 import javax.persistence.Basic;
 import javax.persistence.Column;
 import javax.persistence.Entity;
@@ -160,6 +160,27 @@ public class Admin implements Serializable {
         this.password = password;
         this.authSecret = authSecret;
         this.guid = guid;
+    }
+
+    //getAdminByEmail
+    public Admin(Integer id, String email, String username, String password, String firstName, String lastName, String phone, Boolean isActive, String role, Date createdAt, Date updatedAt, Date lastLogin, Boolean isSubscribed, Boolean isDeleted, String authSecret, String guid, String registrationToken) {
+        this.id = id;
+        this.email = email;
+        this.username = username;
+        this.password = password;
+        this.firstName = firstName;
+        this.lastName = lastName;
+        this.phone = phone;
+        this.isActive = isActive;
+        this.role = role;
+        this.createdAt = createdAt;
+        this.updatedAt = updatedAt;
+        this.lastLogin = lastLogin;
+        this.isSubscribed = isSubscribed;
+        this.isDeleted = isDeleted;
+        this.authSecret = authSecret;
+        this.guid = guid;
+        this.registrationToken = registrationToken;
     }
 
     public Integer getId() {
@@ -389,6 +410,58 @@ public class Admin implements Serializable {
             return false;
         } finally {
             em.clear();
+            em.close();
+        }
+    }
+    
+    public static Admin getAdminByEmail(String email) {
+        EntityManager em = emf.createEntityManager();
+
+        try {
+            StoredProcedureQuery spq = em.createStoredProcedureQuery("getAdminByEmail");
+            spq.registerStoredProcedureParameter("p_email", String.class, ParameterMode.IN);
+            spq.setParameter("p_email", email);
+
+            spq.execute();
+
+            List<Object[]> resultList = spq.getResultList();
+
+            if (userAuth.isDataMissing(resultList)) {
+                return null;
+            }
+
+            Admin toReturn = new Admin();
+            for (Object[] record : resultList) {
+                Admin u = new Admin(
+                        Integer.valueOf(record[0].toString()),// id
+                        record[1].toString(),// email
+                        record[2].toString(),// username
+                        record[3].toString(),// firstname
+                        record[4].toString(),// lastname
+                        record[5].toString(),// phone
+                        record[6].toString(),// guid
+                        record[7].toString(),// role
+                        Boolean.valueOf(record[8].toString()),// isActive
+                        Boolean.valueOf(record[9].toString()), // isSubscibed
+                        record[10] == null ? null : formatter.parse(record[10].toString()),// lastLogin
+                        record[11] == null ? null : formatter.parse(record[11].toString()),// createdAt
+                        record[12] == null ? null : formatter.parse(record[12].toString()),// updatedAt
+                        record[13].toString(),// password
+                        Boolean.valueOf(record[14].toString()),// isDeleted
+                        record[15].toString(),// authSecret
+                        record[16].toString()// registrationToken
+
+                );
+                toReturn = u;
+            }
+            return toReturn;
+        } catch (Exception ex) {
+            if (em.getTransaction().isActive()) {
+                em.getTransaction().rollback(); // Ha hiba van, rollback
+            }
+            ex.printStackTrace();
+            return null;
+        } finally {
             em.close();
         }
     }
