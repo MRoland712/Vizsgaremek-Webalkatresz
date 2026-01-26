@@ -4,21 +4,58 @@
  */
 package com.mycompany.vizsgaremek.model;
 
+import com.mycompany.vizsgaremek.service.AuthenticationService;
 import java.io.Serializable;
+import java.text.SimpleDateFormat;
 import java.util.Date;
 import javax.persistence.Basic;
 import javax.persistence.Column;
 import javax.persistence.Entity;
+import javax.persistence.EntityManagerFactory;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.NamedQueries;
 import javax.persistence.NamedQuery;
+import javax.persistence.Persistence;
 import javax.persistence.Table;
 import javax.persistence.Temporal;
 import javax.persistence.TemporalType;
 import javax.validation.constraints.Size;
 import javax.xml.bind.annotation.XmlRootElement;
+
+import java.io.Serializable;
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Date;
+import java.util.List;
+import javax.persistence.Basic;
+import javax.persistence.CascadeType;
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.EntityManager;
+import javax.persistence.EntityManagerFactory;
+import javax.persistence.EntityTransaction;
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
+import javax.persistence.Id;
+import javax.persistence.NamedQueries;
+import javax.persistence.NamedQuery;
+import javax.persistence.OneToMany;
+import javax.persistence.ParameterMode;
+import javax.persistence.Persistence;
+import javax.persistence.StoredProcedureQuery;
+import javax.persistence.Table;
+import javax.persistence.Temporal;
+import javax.persistence.TemporalType;
+import javax.validation.constraints.NotNull;
+import javax.validation.constraints.Size;
+import javax.xml.bind.annotation.XmlRootElement;
+import javax.xml.bind.annotation.XmlTransient;
+import com.mycompany.vizsgaremek.service.AuthenticationService;
+import javax.persistence.EntityManager;
+import javax.persistence.StoredProcedureQuery;
 
 /**
  *
@@ -57,11 +94,10 @@ public class UserTwofa implements Serializable {
     @Column(name = "updated_at")
     @Temporal(TemporalType.TIMESTAMP)
     private Date updatedAt;
-
-    //createTFA
-    public UserTwofa(Integer id) {
-        this.id = id;
-    }
+    
+    static EntityManagerFactory emf = Persistence.createEntityManagerFactory("com.mycompany_vizsgaremek_war_1.0-SNAPSHOTPU");
+    public static SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+    //public AuthenticationService.userTwofaAuth userTwofaAuth = new AuthenticationService.userTwofaAuth();
     
     public UserTwofa() {
     }
@@ -139,4 +175,32 @@ public class UserTwofa implements Serializable {
         return "com.mycompany.vizsgaremek.model.UserTwofa[ id=" + id + " ]";
     }
     
+    //userId, 0, secretKey, recoveryCodes.toString()
+    public static Boolean createUserTwofa(Integer userId, Boolean isEnabled, String secretKey, String recoveryCodes) {
+        EntityManager em = emf.createEntityManager();
+        try {
+            StoredProcedureQuery spq = em.createStoredProcedureQuery("createUserTwoFa");
+
+            spq.registerStoredProcedureParameter("user_idIN", Integer.class, ParameterMode.IN);
+            spq.registerStoredProcedureParameter("twofa_enabledIN", Boolean.class, ParameterMode.IN);
+            spq.registerStoredProcedureParameter("twofa_secretIN", String.class, ParameterMode.IN);
+            spq.registerStoredProcedureParameter("recovery_codesIN", String.class, ParameterMode.IN);
+
+            spq.setParameter("user_idIN", userId);
+            spq.setParameter("twofa_enabledIN", isEnabled);
+            spq.setParameter("twofa_secretIN", secretKey);
+            spq.setParameter("recovery_codesIN", recoveryCodes);
+
+            spq.execute();
+
+            return true;
+
+        } catch (Exception ex) {
+            ex.printStackTrace();
+            return false;
+        } finally {
+            em.clear();
+            em.close();
+        }
+    }
 }

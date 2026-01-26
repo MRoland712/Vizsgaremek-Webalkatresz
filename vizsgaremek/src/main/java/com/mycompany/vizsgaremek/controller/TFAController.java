@@ -67,8 +67,6 @@ public class TFAController {
     }
 
     private static final AuthenticationService.errorAuth errorAuth = new AuthenticationService.errorAuth();
-
-    private static String secretKey = "H2TNYT7AW6AMP2J5P352XNI6YAYH4GEQ"; //TEMP
     
     @POST
     @Path("generateQR")
@@ -83,8 +81,8 @@ public class TFAController {
         JSONObject toReturn = new JSONObject();
         JSONArray errors = new JSONArray();
 
-        if (!bodyObject.has("email/username")) {
-            errors.put("missingEmail/Username");
+        if (!bodyObject.has("email")) {
+            errors.put("missingEmail");
 
             return Response.status(400)
                     .entity(errorAuth.createErrorResponse(errors, 400).toString())
@@ -92,7 +90,7 @@ public class TFAController {
                     .build();
         }
 
-        /*TEMPCOMMENT: String*/ secretKey = generateSecretKey();
+        String secretKey = generateSecretKey();
         toReturn.put("secretKey", secretKey);
         String QR = generateQRUrl(secretKey, bodyObject.getString("email/username"));
         toReturn.put("QR", QR);
@@ -119,6 +117,15 @@ public class TFAController {
 
         if (!bodyObject.has("code")) {
             errors.put("missingCode");
+
+            return Response.status(400)
+                    .entity(errorAuth.createErrorResponse(errors, 400).toString())
+                    .type(MediaType.APPLICATION_JSON)
+                    .build();
+        }
+        
+        if (!bodyObject.has("email")) {
+            errors.put("missingEmail");
 
             return Response.status(400)
                     .entity(errorAuth.createErrorResponse(errors, 400).toString())

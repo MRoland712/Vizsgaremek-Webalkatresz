@@ -715,6 +715,8 @@ public class UsersService {
         if (userData.getIsActive() == false) {
             toReturn.put("message", "User Is Not Activated");
         }
+        
+        toReturn.put("username", userData.getUsername());
         return errorAuth.createOKResponse(toReturn);
     }
     

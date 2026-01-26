@@ -5,7 +5,6 @@
 package com.mycompany.vizsgaremek.controller;
 
 import com.mycompany.vizsgaremek.config.JwtUtil;
-import com.mycompany.vizsgaremek.model.UserTwofa;
 import com.mycompany.vizsgaremek.service.AuthenticationService;
 import com.mycompany.vizsgaremek.service.UserTwofaService;
 import javax.ws.rs.core.Context;
@@ -29,10 +28,10 @@ import org.json.JSONObject;
 public class UserTwofaController {
 
     private UserTwofaService layer = new UserTwofaService();
-    private final AuthenticationService.userTwofaAuth userTFAAuth = new AuthenticationService.userTwofaAuth();
+    public static final AuthenticationService.userTwofaAuth userTFAAuth = new AuthenticationService.userTwofaAuth();
     private final AuthenticationService.errorAuth errorAuth = new AuthenticationService.errorAuth();
     private final JwtUtil jwt = new JwtUtil();
-    
+
     @Context
     private UriInfo context;
 
@@ -43,7 +42,9 @@ public class UserTwofaController {
     }
 
     /**
-     * Retrieves representation of an instance of com.mycompany.vizsgaremek.controller.UserTwofaController
+     * Retrieves representation of an instance of
+     * com.mycompany.vizsgaremek.controller.UserTwofaController
+     *
      * @return an instance of java.lang.String
      */
     @GET
@@ -55,26 +56,24 @@ public class UserTwofaController {
 
     /**
      * PUT method for updating or creating an instance of UserTwofaController
+     *
      * @param content representation for the resource
      */
     @PUT
     @Consumes(MediaType.APPLICATION_JSON)
     public void putJson(String content) {
     }
-    
+
     @POST
     @Path("createUserTwofa")
     @Consumes(MediaType.APPLICATION_JSON)
     public Response createUserTwofaController(String body) {
         JSONObject bodyObject = new JSONObject(body);
+        JSONObject toReturn = new JSONObject();
 
-        //Integer id, Boolean twofaEnabled, String twofaSecret, String recoveryCodes
-        UserTwofa createdUserTFA = new UserTwofa(
-                bodyObject.has("id") ? bodyObject.getInt("id") : null,
-                bodyObject.has("twofaSecret") ? bodyObject.getString("twofaSecret") : null,
-        );
-
-        JSONObject toReturn = layer.createUserTwofa(createdUserTFA);
+        String email = bodyObject.getString("email");
+        
+        toReturn = layer.createUserTwofaService(email);
 
         return Response.status(Integer.parseInt(toReturn.get("statusCode").toString()))
                 .entity(toReturn.toString())

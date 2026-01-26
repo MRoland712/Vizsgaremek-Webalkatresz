@@ -5,7 +5,6 @@
 package com.mycompany.vizsgaremek.service;
 
 import com.mycompany.vizsgaremek.model.Users;
-import com.mycompany.vizsgaremek.model.Admin;
 import com.mycompany.vizsgaremek.config.Encrypt;
 import com.mycompany.vizsgaremek.model.Addresses;
 import com.mycompany.vizsgaremek.model.Manufacturers;
@@ -65,7 +64,7 @@ public class AuthenticationService {
             response.put("statusCode", statusCode);
             return response;
         }
-        
+
         /**
          * Creates an JSONArray OK response with the given JSONArray result data
          *
@@ -101,15 +100,14 @@ public class AuthenticationService {
             response.put("statusCode", 200);
             return response;
         }
-        
+
         /**
-         * Creates an JSONObject OK response with the given Claims result
-         * data
+         * Creates an JSONObject OK response with the given Claims result data
          *
          * @param result The Claims object that contains the result data
          *
-         * @return a JSONObject with the result Claims as "result", a
-         * status of "success" and a "statusCode" of 200
+         * @return a JSONObject with the result Claims as "result", a status of
+         * "success" and a "statusCode" of 200
          */
         public static JSONObject createOKResponse(Claims result) {
             JSONObject response = new JSONObject();
@@ -118,17 +116,15 @@ public class AuthenticationService {
             response.put("statusCode", 200);
             return response;
         }
-        
+
         /**
-         * Creates an JSONObject OK response with the given String result
-         * data
+         * Creates an JSONObject OK response with the given String result data
          *
          * @param result The String that contains the result data
          *
-         * @return a JSONObject with the result String as "result", a
-         * status of "success" and a "statusCode" of 200 in this format {
-         * "result": [ { #result data# } ], "status": "success", "statusCode":
-         * 200 }
+         * @return a JSONObject with the result String as "result", a status of
+         * "success" and a "statusCode" of 200 in this format { "result": [ {
+         * #result data# } ], "status": "success", "statusCode": 200 }
          */
         public static JSONObject createOKResponse(String result) {
             JSONObject response = new JSONObject();
@@ -188,10 +184,6 @@ public class AuthenticationService {
         }
 
         public boolean isDataMissing(Users data) {
-            return (data == null);
-        }
-        
-        public boolean isDataMissing(Admin data) {
             return (data == null);
         }
 
@@ -495,7 +487,7 @@ public class AuthenticationService {
         public boolean isDataMissing(Boolean data) {
             return data == null;
         }
-        
+
         public boolean isDataMissing(JSONObject data) {
             return data.isEmpty() || data == null;
         }
@@ -572,15 +564,15 @@ public class AuthenticationService {
         }
 
         public boolean isValidSku(String sku) {
-            return sku.length() <= 50;
+            return sku.length() <= 100;
         }
 
         public boolean isValidName(String name) {
-            return name.length() <= 50;
+            return name.length() <= 255;
         }
 
         public boolean isValidCategory(String category) {
-            return category.length() <= 50;
+            return category.length() <= 100;
         }
 
         //BigDecimal 
@@ -712,10 +704,28 @@ public class AuthenticationService {
         }
 
     } //PartsVariants Auth Class closer
-    
-    public class userTwofaAuth {
-    //ToDo: fill with auths
-    }
-    
+
+    public static class userTwofaAuth {
+
+        private static final Pattern EMAIL_PATTERN
+                = Pattern.compile("^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}$");
+
+        public static boolean isDataMissing(String data) {
+            return (data == null || data.trim().isEmpty());
+        }
+
+        public static boolean isDataMissing(Integer data) {
+            return (data == null);
+        }
+
+        public static boolean isDataMissing(Users data) {
+            return (data == null);
+        }
+
+        public static boolean isValidEmail(String data) {
+            return EMAIL_PATTERN.matcher(data).matches();
+        }
+    } //userTwofaAuth
+
 }//Auth Service Class closer
 
