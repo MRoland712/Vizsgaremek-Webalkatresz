@@ -158,7 +158,6 @@ public class AuthenticationService {
             return (data == null || data.isEmpty());
         }
 
-        //ToDO: add a try catch for each isValid method 💀💀 vagy megnezni azt hogy object instanceog <x>
         public boolean isValidId(Integer id) {
             return id > 0 && id.toString().length() <= 11;
         }

@@ -403,8 +403,8 @@ public class PartsService {
         }
 
         // isActive CSAK ha meg van adva!
-        /*if (!partsAuth.isDataMissing(updatedParts.getIsActive())) {
-            if (partsAuth.isValidIsActive(updatedParts.getIsActive())) {
+        if (!partsAuth.isDataMissing(updatedParts.getIsActive())) {
+            if (partsAuth.isValidActive(updatedParts.getIsActive())) {
                 existingParts.setIsActive(updatedParts.getIsActive());
             } else {
                 errors.put("InvalidIsActive");
@@ -413,12 +413,12 @@ public class PartsService {
         
         // isDeleted CSAK ha meg van adva!
         if (!partsAuth.isDataMissing(updatedParts.getIsDeleted())) {
-            if (partsAuth.isValidIsDeleted(updatedParts.getIsDeleted())) {
+            if (partsAuth.isPartsDeleted(updatedParts.getIsDeleted())) {
                 existingParts.setIsDeleted(updatedParts.getIsDeleted());
             } else {
                 errors.put("InvalidIsDefault");
             }
-        }*/
+        }
 
         // Hiba ellenőrzés validációk
         if (errorAuth.hasErrors(errors)) {

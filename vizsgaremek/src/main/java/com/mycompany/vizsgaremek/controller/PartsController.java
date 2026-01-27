@@ -176,8 +176,7 @@ public class PartsController {
         if (sku != null) {
             updatedParts.setSku(sku);
         }
-
-
+        
         if (bodyObject.has("name")) {
             updatedParts.setName(bodyObject.getString("name"));
         }

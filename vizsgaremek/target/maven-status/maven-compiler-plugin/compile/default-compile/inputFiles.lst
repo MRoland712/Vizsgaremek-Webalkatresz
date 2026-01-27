@@ -13,6 +13,7 @@ C:\Users\neblg\Documents\GitHub\Vizsgaremek-Webalkatresz\vizsgaremek\src\main\ja
 C:\Users\neblg\Documents\GitHub\Vizsgaremek-Webalkatresz\vizsgaremek\src\main\java\com\mycompany\vizsgaremek\service\UsersService.java
 C:\Users\neblg\Documents\GitHub\Vizsgaremek-Webalkatresz\vizsgaremek\src\main\java\com\mycompany\vizsgaremek\config\CorsFilter.java
 C:\Users\neblg\Documents\GitHub\Vizsgaremek-Webalkatresz\vizsgaremek\src\main\java\com\mycompany\vizsgaremek\service\PartsService.java
+C:\Users\neblg\Documents\GitHub\Vizsgaremek-Webalkatresz\vizsgaremek\src\main\java\com\mycompany\vizsgaremek\controller\StaticResourceController.java
 C:\Users\neblg\Documents\GitHub\Vizsgaremek-Webalkatresz\vizsgaremek\src\main\java\com\mycompany\vizsgaremek\model\Trucks.java
 C:\Users\neblg\Documents\GitHub\Vizsgaremek-Webalkatresz\vizsgaremek\src\main\java\com\mycompany\vizsgaremek\controller\OTPController.java
 C:\Users\neblg\Documents\GitHub\Vizsgaremek-Webalkatresz\vizsgaremek\src\main\java\com\mycompany\vizsgaremek\model\UserLogs.java
@@ -51,6 +52,7 @@ C:\Users\neblg\Documents\GitHub\Vizsgaremek-Webalkatresz\vizsgaremek\src\main\ja
 C:\Users\neblg\Documents\GitHub\Vizsgaremek-Webalkatresz\vizsgaremek\src\main\java\com\mycompany\vizsgaremek\model\ShippingMethods.java
 C:\Users\neblg\Documents\GitHub\Vizsgaremek-Webalkatresz\vizsgaremek\src\main\java\com\mycompany\vizsgaremek\model\PasswordResets.java
 C:\Users\neblg\Documents\GitHub\Vizsgaremek-Webalkatresz\vizsgaremek\src\main\java\com\mycompany\vizsgaremek\config\base64Converters.java
+C:\Users\neblg\Documents\GitHub\Vizsgaremek-Webalkatresz\vizsgaremek\src\main\java\com\mycompany\vizsgaremek\service\ImageUploadService.java
 C:\Users\neblg\Documents\GitHub\Vizsgaremek-Webalkatresz\vizsgaremek\src\main\java\com\mycompany\vizsgaremek\model\Refunds.java
 C:\Users\neblg\Documents\GitHub\Vizsgaremek-Webalkatresz\vizsgaremek\src\main\java\com\mycompany\vizsgaremek\model\PartImages.java
 C:\Users\neblg\Documents\GitHub\Vizsgaremek-Webalkatresz\vizsgaremek\src\main\java\com\mycompany\vizsgaremek\model\StockLogs.java

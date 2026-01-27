@@ -312,7 +312,7 @@ public class PartImages implements Serializable {
 
             for (Object[] record : resultList) {
                 Parts parts = new Parts();
-                parts.setId(Integer.valueOf(record[1].toString()));
+                parts.setId(Integer.valueOf(record[1].toString())); //partId
                 PartImages img = new PartImages(
                         Integer.valueOf(record[0].toString()), // id
                         record[2].toString(), // url
@@ -336,6 +336,47 @@ public class PartImages implements Serializable {
             em.close();
         }
     }
+    
+    public static PartImages getPartImagesByUrl(String url) {
+        EntityManager em = emf.createEntityManager();
+
+        try {
+            StoredProcedureQuery spq = em.createStoredProcedureQuery("getPartImagesByUrl");
+            spq.registerStoredProcedureParameter("urlIN", String.class, ParameterMode.IN);
+            spq.setParameter("urlIN", url);
+
+            spq.execute();
+
+            List<Object[]> resultList = spq.getResultList();
+            
+            PartImages toReturn = null;
+            
+            for (Object[] record : resultList) {
+                Parts parts = new Parts();
+                parts.setId(Integer.valueOf(record[1].toString())); //partId
+                PartImages img = new PartImages(
+                        Integer.valueOf(record[0].toString()), // id
+                        record[2].toString(), // url
+                        Boolean.valueOf(record[3].toString()), // is_primary
+                        record[4] == null ? null : formatter.parse(record[4].toString()), // created_at
+                        Boolean.valueOf(record[5].toString()), // is_deleted
+                        record[6] == null ? null : formatter.parse(record[6].toString()), // deleted_at
+                        parts
+                );
+                toReturn = img;
+            }
+            return toReturn;
+        } catch (Exception ex) {
+            if (em.getTransaction().isActive()) {
+                em.getTransaction().rollback();
+            }
+            ex.printStackTrace();
+            return null;
+        } finally {
+            em.clear();
+            em.close();
+        }
+    }
 
     public static Boolean updatePartImages(PartImages updatedImage) {
         EntityManager em = emf.createEntityManager();
@@ -345,12 +386,14 @@ public class PartImages implements Serializable {
 
             StoredProcedureQuery spq = em.createStoredProcedureQuery("updatePartImages");
 
-            spq.registerStoredProcedureParameter("partImages_IdIN", Integer.class, ParameterMode.IN);
+            spq.registerStoredProcedureParameter("idIN", Integer.class, ParameterMode.IN);
+            spq.registerStoredProcedureParameter("partIdIN", Integer.class, ParameterMode.IN);
             spq.registerStoredProcedureParameter("urlIN", String.class, ParameterMode.IN);
             spq.registerStoredProcedureParameter("isPrimaryIN", Boolean.class, ParameterMode.IN);
             spq.registerStoredProcedureParameter("isDeletedIN", Boolean.class, ParameterMode.IN);
 
-            spq.setParameter("partImages_IdIN", updatedImage.getId());
+            spq.setParameter("idIN", updatedImage.getId());
+            spq.setParameter("partIdIN", updatedImage.getPartId().getId());
             spq.setParameter("urlIN", updatedImage.getUrl());
             spq.setParameter("isPrimaryIN", updatedImage.getIsPrimary());
             spq.setParameter("isDeletedIN", updatedImage.getIsDeleted());
