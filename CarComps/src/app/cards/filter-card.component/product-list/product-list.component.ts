@@ -16,6 +16,8 @@ export class ProductListComponent implements OnInit {
 
   parts: PartsModel[] = [];
   currentCategory: string = '';
+  match = 0;
+  CurrentCatname = '';
 
   ngOnInit(): void {
     // ⭐ PATH PARAM figyelése (nem queryParams!)
@@ -31,11 +33,15 @@ export class ProductListComponent implements OnInit {
   loadPartCategories() {
     this.productsService.getAllParts().subscribe({
       next: (response) => {
+        this.CurrentCatname = this.currentCategory;
         // Szűrés kategóriára
         if (this.currentCategory) {
           // Van kategória → szűrés
           this.parts = response.parts.filter(
             (part) => part.category.toLowerCase() === this.currentCategory.toLowerCase(),
+            (this.match = response.parts.filter(
+              (part) => part.category.toLowerCase() === this.currentCategory.toLowerCase(),
+            ).length),
           );
           console.log(`✅ Product List: ${this.parts.length} termék szűrve`);
         } else {
