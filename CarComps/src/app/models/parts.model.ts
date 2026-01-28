@@ -12,11 +12,6 @@ export interface PartsModel {
   updatedAt: string;
 }
 
-export interface dummyParts {
-  id: number;
-  name: string;
-}
-
 export interface GetAllPartsResponse {
   success: boolean;
   parts: PartsModel[];

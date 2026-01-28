@@ -1,0 +1,97 @@
+/* product-page.component.css - EGYSZERŰ */
+
+.products-page {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 40px 20px;
+}
+
+.products-header {
+  margin-bottom: 30px;
+}
+
+.products-header h1 {
+  font-size: 32px;
+  margin: 10px 0;
+}
+
+.products-header a {
+  color: #ff6b35;
+  text-decoration: none;
+  font-size: 16px;
+}
+
+/* Grid */
+.products-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+  gap: 20px;
+}
+
+/* Product card */
+.product-card {
+  background: white;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  padding: 20px;
+  transition: all 0.3s ease;
+}
+
+.product-card:hover {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  transform: translateY(-4px);
+}
+
+.product-card h3 {
+  font-size: 18px;
+  margin: 0 0 10px 0;
+}
+
+.product-card .price {
+  font-size: 20px;
+  font-weight: bold;
+  color: #ff6b35;
+  margin: 10px 0;
+}
+
+.product-card button {
+  width: 100%;
+  padding: 10px;
+  background: #ff6b35;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 16px;
+  margin-top: 10px;
+}
+
+.product-card button:hover {
+  background: #e55a2b;
+}
+
+/* Loading / Empty */
+.loading,
+.empty {
+  text-align: center;
+  padding: 60px 20px;
+  font-size: 18px;
+  color: #666;
+}
+
+.empty a {
+  display: inline-block;
+  margin-top: 20px;
+  padding: 12px 24px;
+  background: #ff6b35;
+  color: white;
+  text-decoration: none;
+  border-radius: 6px;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .products-grid {
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  }
+}

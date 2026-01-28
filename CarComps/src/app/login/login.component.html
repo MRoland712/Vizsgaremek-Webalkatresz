@@ -47,12 +47,10 @@
     <button type="submit" class="button">Bejelentkezés</button>
     <p>Nincs még fiókod?<a routerLink="/registration" class="reg-link">Regisztrálj egy újat!</a></p>
     @if (emailIsInvalid) {
-    <p class="error-message">hibás email</p>
-    } @if (passwordIsInvalid) {
-    <p class="error-message">
-      Hibás Jelszó! (A jelszónak tartalmaznia kell speciális karaktereket, nagybetűt, számokat és
-      nem lehet rövidebb mint 8 karakter!)
-    </p>
+      <p class="error-message">hibás email</p>
+    }
+    @if (passwordIsInvalid) {
+      <p class="error-message">Hibás Jelszó!</p>
     }
   </form>
 </div>

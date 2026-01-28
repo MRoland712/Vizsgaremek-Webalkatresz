@@ -257,4 +257,206 @@ form > p {
   height: 24px;
   margin-left: auto;
 }
+/* ==========================================
+   LOGIN ERROR HANDLING - Error messages
+   ========================================== */
+
+.error-message-container {
+  min-height: 24px; /* Reserved space - NEM ugrik a layout */
+  margin-top: 4px;
+  transition: all 0.3s ease;
+}
+
+.error-message {
+  color: #ff4444;
+  font-size: 13px;
+  margin: 0;
+  padding: 4px 8px;
+  background: rgba(255, 68, 68, 0.1);
+  border-radius: 4px;
+  border-left: 3px solid #ff4444;
+  animation: slideIn 0.3s ease;
+}
+
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateY(-8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Input invalid state */
+.form__field.invalid {
+  border-color: #ff4444 !important;
+  background: rgba(255, 68, 68, 0.05);
+}
+
+.form__field.invalid:focus {
+  border-color: #ff4444 !important;
+  box-shadow: 0 0 0 3px rgba(255, 68, 68, 0.1);
+}
+
+/* ==========================================
+   LOGIN FAILED BANNER
+   ========================================== */
+
+.login-error-banner {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 16px;
+  margin: 16px 0;
+  background: rgba(255, 68, 68, 0.1);
+  border: 1px solid rgba(255, 68, 68, 0.3);
+  border-radius: 8px;
+  border-left: 4px solid #ff4444;
+  animation: shake 0.5s ease;
+}
+
+.login-error-banner i {
+  color: #ff4444;
+  font-size: 20px;
+}
+
+.login-error-banner p {
+  color: #ff4444;
+  margin: 0;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+@keyframes shake {
+  0%,
+  100% {
+    transform: translateX(0);
+  }
+  25% {
+    transform: translateX(-8px);
+  }
+  75% {
+    transform: translateX(8px);
+  }
+}
+
+/* ==========================================
+   USERNAME CONTROL
+   ========================================== */
+
+.username-control {
+  margin-bottom: 16px;
+}
+
+/* ==========================================
+   BUTTON DISABLED STATE
+   ========================================== */
+
+.button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  background: #cccccc;
+}
+
+.button:disabled:hover {
+  background: #cccccc;
+  transform: none;
+} /* ==========================================
+   LOGIN ERROR HANDLING - EGYSZERŰ VERZIÓ
+   NEM KELL ERROR-MESSAGE-CONTAINER!
+   ========================================== */
+
+.error-message {
+  color: #ff4444;
+  font-size: 13px;
+  margin: 4px 0 0 0;
+  padding: 4px 8px;
+  background: rgba(255, 68, 68, 0.1);
+  border-radius: 4px;
+  border-left: 3px solid #ff4444;
+  animation: slideIn 0.3s ease;
+}
+
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Input invalid state */
+.form__field.invalid {
+  border-color: #ff4444 !important;
+}
+
+.form__field.invalid:focus {
+  border-color: #ff4444 !important;
+  box-shadow: 0 0 0 2px rgba(255, 68, 68, 0.2);
+}
+
+/* ==========================================
+   LOGIN FAILED BANNER
+   ========================================== */
+
+.login-error-banner {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 16px;
+  margin: 12px 0;
+  background: rgba(255, 68, 68, 0.1);
+  border: 1px solid rgba(255, 68, 68, 0.3);
+  border-radius: 8px;
+  border-left: 4px solid #ff4444;
+  animation: shake 0.5s ease;
+}
+
+.login-error-banner i {
+  color: #ff4444;
+  font-size: 18px;
+}
+
+.login-error-banner p {
+  color: #ff4444;
+  margin: 0;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+@keyframes shake {
+  0%,
+  100% {
+    transform: translateX(0);
+  }
+  25% {
+    transform: translateX(-6px);
+  }
+  75% {
+    transform: translateX(6px);
+  }
+}
+
+/* ==========================================
+   USERNAME CONTROL (ha új mező)
+   ========================================== */
+
+.username-control {
+  margin-bottom: 20px;
+}
+
+/* ==========================================
+   BUTTON DISABLED
+   ========================================== */
+
+.button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  background: #999;
+}
 /* TODO: CSS LOGIN MINDEN MEGIGAZÍTÁSA HOGY IGÉNYES LEGYEN */

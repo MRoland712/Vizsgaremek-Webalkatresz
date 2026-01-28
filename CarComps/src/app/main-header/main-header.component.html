@@ -251,6 +251,7 @@
           class="nav-link"
           [routerLink]="isLoggedIn() ? '/profile' : '/registration'"
           title="Profil"
+          id="profil"
         >
           <i class="fa-solid fa-user"></i>
         </a>
@@ -277,9 +278,8 @@
               <div class="user-header">
                 <i class="fa-solid fa-user-check"></i>
                 <div class="user-info">
-                  <!-- ⭐ JAVÍTVA: AuthService userName() signal -->
                   <h3>{{ userName() || 'Felhasználó' }}</h3>
-                  <!-- ⭐ JAVÍTVA: AuthService userEmail() signal -->
+
                   <p class="user-email">{{ userEmail() || 'Nincs email' }}</p>
                 </div>
               </div>

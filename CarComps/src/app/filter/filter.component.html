@@ -4,14 +4,14 @@
   <hr />
   <ul class="filter-list">
     @for (part of parts; track part.id) {
-    <li class="filter-item">
-      <label [for]="'category-' + part.id" class="checkbox-container">
-        <!--          ↑ Prefix: category- -->
-        <input type="checkbox" [id]="'category-' + part.id" />
-        <span class="checkmark"></span>
-        {{ part.category }}
-      </label>
-    </li>
+      <li class="filter-item">
+        <label [for]="'category-' + part.id" class="checkbox-container">
+          <!--          ↑ Prefix: category- -->
+          <input type="checkbox" [id]="'category-' + part.id" />
+          <span class="checkmark"></span>
+          {{ part.category }}
+        </label>
+      </li>
     }
   </ul>
 
@@ -19,15 +19,15 @@
   <h3 class="filter-title">MÁRKÁK</h3>
   <hr />
   <ul class="filter-list">
-    @for (part of parts; track part.id) {
-    <li class="filter-item">
-      <label [for]="'brand-' + part.id" class="checkbox-container">
-        <!--          ↑ Prefix: brand- -->
-        <input type="checkbox" [id]="'brand-' + part.id" />
-        <span class="checkmark"></span>
-        {{ part.name }}
-      </label>
-    </li>
+    @for (manufacturer of manufacturers; track manufacturer.id) {
+      <li class="filter-item">
+        <label [for]="'brand-' + manufacturer.name" class="checkbox-container">
+          <!--          ↑ Prefix: brand- -->
+          <input type="checkbox" [id]="'brand-' + manufacturer.name" />
+          <span class="checkmark"></span>
+          {{ manufacturer.name }}
+        </label>
+      </li>
     }
   </ul>
 </div>

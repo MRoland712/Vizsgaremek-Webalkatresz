@@ -1,0 +1,30 @@
+<div class="profile-info-selector-box">
+  @for (item of [dummyDatas]; track $index) {
+    <div class="info-row">
+      <i class="fa-solid fa-address-book"></i>
+      <h3>Teljes név</h3>
+      <p>{{ item.firstname }} {{ item.lastname }}</p>
+    </div>
+
+    <div class="info-row">
+      <i class="fa-solid fa-user"></i>
+      <h3>Felhasználónév:</h3>
+      <p>{{ item.username }}</p>
+    </div>
+    <div class="info-row">
+      <i class="fa-solid fa-envelope"></i>
+      <h3>Email:</h3>
+      <p>{{ item.email }}</p>
+    </div>
+    <div class="info-row">
+      <i class="fa-solid fa-key"></i>
+      <h3>Jelszó:</h3>
+      <p>********</p>
+    </div>
+    <div class="info-row">
+      <i class="fa-solid fa-phone"></i>
+      <h3>Telefonszám:</h3>
+      <p>{{ item.phone }}</p>
+    </div>
+  }
+</div>

@@ -49,6 +49,39 @@ export class AuthService {
     console.log('  _userName:', this._userName());
   }
 
+  // ⭐ ÚJ METÓDUS: Signal-ok frissítése localStorage-ból
+  refreshUserData() {
+    const email = localStorage.getItem('userEmail');
+    const name = localStorage.getItem('userName');
+    const token = localStorage.getItem('jwt');
+    const isUserData = localStorage.getItem('isUserData');
+
+    console.log('🔄 refreshUserData meghívva:');
+    console.log('  email:', email);
+    console.log('  name:', name);
+
+    // Login státusz frissítése
+    if (token || isUserData === 'true') {
+      this._isLoggedIn.set(true);
+    }
+
+    // Email frissítése
+    if (email) {
+      this._userEmail.set(email);
+      console.log('✅ Email signal frissítve:', email);
+    }
+
+    // UserName frissítése
+    if (name) {
+      this._userName.set(name);
+      console.log('✅ UserName signal frissítve:', name);
+    }
+
+    console.log('🔄 Signals után:');
+    console.log('  userName():', this._userName());
+    console.log('  userEmail():', this._userEmail());
+  }
+
   setLoggedIn(email?: string, userName?: string) {
     this._isLoggedIn.set(true);
 

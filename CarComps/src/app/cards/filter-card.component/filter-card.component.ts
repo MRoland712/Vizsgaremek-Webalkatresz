@@ -1,10 +1,11 @@
-import { Component, inject, OnInit, signal, computed } from '@angular/core';
+import { Component, inject, OnInit, signal, computed, Input } from '@angular/core';
 import { GetallpartsService } from '../../services/getallparts.service';
 import { PartsModel } from '../../models/parts.model';
+import { Router, RouterLink } from '@angular/router';
 
 @Component({
   selector: 'app-filter-card',
-  imports: [],
+  imports: [RouterLink],
   templateUrl: './filter-card.component.html',
   styleUrl: './filter-card.component.css',
 })
@@ -76,4 +77,7 @@ export class CategoryCardComponent implements OnInit {
       },
     });
   }
+  constructor(private router: Router) {}
+
+  // Kattintásra navigálás
 }

@@ -1,17 +1,8 @@
 import { Component, inject, OnInit } from '@angular/core';
+import { ActivatedRoute } from '@angular/router';
 import { ProductCardComponent } from '../product-card/product-card.component';
-import { Product } from './product.model';
 import { GetallpartsService } from '../../../services/getallparts.service';
 import { PartsModel } from '../../../models/parts.model';
-
-/**
- * ==========================================
- * PRODUCT LIST KOMPONENS
- * ==========================================
- *
- * Ez a komponens megjeleníti a termékeket grid layoutban,
- * soronként 2 kártyával.
- */
 
 @Component({
   selector: 'app-product-list',
@@ -20,16 +11,38 @@ import { PartsModel } from '../../../models/parts.model';
   styleUrl: './product-list.component.css',
 })
 export class ProductListComponent implements OnInit {
-  productsService = inject(GetallpartsService);
+  private route = inject(ActivatedRoute);
+  private productsService = inject(GetallpartsService);
+
   parts: PartsModel[] = [];
+  currentCategory: string = '';
 
   ngOnInit(): void {
-    this.loadPartCategories();
+    // ⭐ PATH PARAM figyelése (nem queryParams!)
+    this.route.params.subscribe((params) => {
+      this.currentCategory = params['category'] || '';
+      console.log('📦 Product List - Kategória szűrő:', this.currentCategory);
+
+      // Termékek betöltése
+      this.loadPartCategories();
+    });
   }
+
   loadPartCategories() {
     this.productsService.getAllParts().subscribe({
       next: (response) => {
-        this.parts = response.parts;
+        // Szűrés kategóriára
+        if (this.currentCategory) {
+          // Van kategória → szűrés
+          this.parts = response.parts.filter(
+            (part) => part.category.toLowerCase() === this.currentCategory.toLowerCase(),
+          );
+          console.log(`✅ Product List: ${this.parts.length} termék szűrve`);
+        } else {
+          // Nincs kategória → összes termék
+          this.parts = response.parts;
+          console.log(`✅ Product List: ${this.parts.length} termék (összes)`);
+        }
       },
     });
   }

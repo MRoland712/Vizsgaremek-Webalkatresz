@@ -4,6 +4,9 @@ import { Routes } from '@angular/router';
 import { LoginComponent } from './login/login.component';
 import { RegistrationComponent } from './registration/registration.component';
 import { HomepageComponent } from './homepage.component/homepage.component';
+import { ProductPageComponent } from './product-page.component/product-page.component';
+import { authGuard } from './services/guard';
+import { UserProfileComponent } from './profile-page/user-profile.component/user-profile.component';
 
 export const routes: Routes = [
   // ==========================================
@@ -22,6 +25,10 @@ export const routes: Routes = [
     path: 'registration',
     component: RegistrationComponent,
   },
+  {
+    path: 'products/:category',
+    component: ProductPageComponent,
+  },
 
   // ==========================================
   // VÉDETT ROUTE-OK (csak bejelentkezve)
@@ -36,11 +43,14 @@ export const routes: Routes = [
   //   loadComponent: () => import('./checkout/checkout.component').then((m) => m.CheckoutComponent),
   //   canActivate: [authGuard], // ← VÉDETT! Login kell
   // },
-  // {
-  //   path: 'profile',
-  //   loadComponent: () => import('./profile/profile.component').then((m) => m.ProfileComponent),
-  //   canActivate: [authGuard], // ← VÉDETT! Login kell
-  // },
+  {
+    path: 'profile',
+    loadComponent: () =>
+      import('./profile-page/user-profile.component/user-profile.component').then(
+        (m) => m.UserProfileComponent,
+      ),
+    canActivate: [authGuard], // ← VÉDETT! Login kell
+  },
 
   // ==========================================
   // CATCH-ALL (404)
