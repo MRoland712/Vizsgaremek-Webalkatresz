@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Gép: localhost:3306
--- Létrehozás ideje: 2026. Jan 19. 10:06
+-- Létrehozás ideje: 2026. Jan 29. 20:06
 -- Kiszolgáló verziója: 5.7.24
 -- PHP verzió: 8.3.1
 
@@ -113,6 +113,26 @@ CREATE DEFINER=`root`@`localhost` PROCEDURE `createAddress` (IN `p_user_id` INT,
     COMMIT;
 END$$
 
+DROP PROCEDURE IF EXISTS `createCars`$$
+CREATE DEFINER=`root`@`localhost` PROCEDURE `createCars` (IN `brandIN` VARCHAR(100), IN `modelIN` VARCHAR(100), IN `yearFromIN` INT(11), IN `yearToIN` INT(11))   BEGIN
+    INSERT INTO cars (
+        brand,
+        model,
+        year_from,
+        year_to,
+        created_at
+    )
+    VALUES (
+        brandIN,
+        modelIN,
+        yearFromIN,
+        yearToIN,
+        NOW()
+    );
+    
+    SELECT LAST_INSERT_ID()AS new_cars_id;
+END$$
+
 DROP PROCEDURE IF EXISTS `createManufacturers`$$
 CREATE DEFINER=`root`@`localhost` PROCEDURE `createManufacturers` (IN `p_name` VARCHAR(100), IN `p_country` VARCHAR(50))   BEGIN
 	INSERT INTO manufacturers(
@@ -124,6 +144,26 @@ CREATE DEFINER=`root`@`localhost` PROCEDURE `createManufacturers` (IN `p_name` V
             p_country,
             NOW()
         );
+END$$
+
+DROP PROCEDURE IF EXISTS `createMotors`$$
+CREATE DEFINER=`root`@`localhost` PROCEDURE `createMotors` (IN `brandIN` VARCHAR(100), IN `modelIN` VARCHAR(100), IN `yearFromIN` INT(11), IN `yearToIN` INT(11))   BEGIN
+    INSERT INTO motors (
+        brand,
+        model,
+        year_from,
+        year_to,
+        created_at
+    )
+    VALUES (
+        brandIN,
+        modelIN,
+        yearFromIN,
+        yearToIN,
+        NOW()
+    );
+    
+    SELECT LAST_INSERT_ID()AS new_motors_id;
 END$$
 
 DROP PROCEDURE IF EXISTS `createOrders`$$
@@ -166,7 +206,7 @@ CREATE DEFINER=`root`@`localhost` PROCEDURE `createPartImages` (IN `partIdIN` IN
 END$$
 
 DROP PROCEDURE IF EXISTS `createParts`$$
-CREATE DEFINER=`root`@`localhost` PROCEDURE `createParts` (IN `p_manufacturer_id` INT, IN `p_sku` VARCHAR(255), IN `p_name` VARCHAR(100), IN `p_category` VARCHAR(100), IN `p_price` DECIMAL(10.2), IN `p_stock` INT, IN `p_status` VARCHAR(50), IN `p_is_active` TINYINT)   BEGIN
+CREATE DEFINER=`root`@`localhost` PROCEDURE `createParts` (IN `p_manufacturer_id` INT, IN `p_sku` VARCHAR(255), IN `p_name` VARCHAR(255), IN `p_category` VARCHAR(100), IN `p_price` DECIMAL(10.2), IN `p_stock` INT, IN `p_status` VARCHAR(50), IN `p_is_active` TINYINT)   BEGIN
 	START TRANSACTION;
     INSERT INTO parts(
         manufacturer_id,
@@ -238,6 +278,26 @@ INSERT INTO reviews(
         NULL
         );
      SELECT LAST_INSERT_ID() AS new_review_id;
+END$$
+
+DROP PROCEDURE IF EXISTS `createTrucks`$$
+CREATE DEFINER=`root`@`localhost` PROCEDURE `createTrucks` (IN `brandIN` VARCHAR(100), IN `modelIN` VARCHAR(100), IN `yearFromIN` INT(11), IN `yearToIN` INT(11))   BEGIN
+    INSERT INTO trucks (
+        brand,
+        model,
+        year_from,
+        year_to,
+        created_at
+    )
+    VALUES (
+        brandIN,
+        modelIN,
+        yearFromIN,
+        yearToIN,
+        NOW()
+    );
+    
+    SELECT LAST_INSERT_ID()AS new_Trucks_id;
 END$$
 
 DROP PROCEDURE IF EXISTS `createUser`$$
@@ -415,6 +475,23 @@ CREATE DEFINER=`root`@`localhost` PROCEDURE `getAllAddresses` ()   BEGIN
     ORDER BY a.id DESC;
 END$$
 
+DROP PROCEDURE IF EXISTS `getAllCars`$$
+CREATE DEFINER=`root`@`localhost` PROCEDURE `getAllCars` ()   BEGIN
+	SELECT
+        id,
+        brand,
+        model,
+        year_from,
+        year_to,
+        created_at,
+        updated_at,
+        is_deleted,
+        deleted_at
+        FROM cars
+        WHERE is_deleted = 0
+        ORDER BY id;
+END$$
+
 DROP PROCEDURE IF EXISTS `getAllManufacturers`$$
 CREATE DEFINER=`root`@`localhost` PROCEDURE `getAllManufacturers` ()   BEGIN
 	SELECT
@@ -427,6 +504,23 @@ CREATE DEFINER=`root`@`localhost` PROCEDURE `getAllManufacturers` ()   BEGIN
     FROM manufacturers
     WHERE is_deleted = 0
     ORDER BY id;
+END$$
+
+DROP PROCEDURE IF EXISTS `getAllMotors`$$
+CREATE DEFINER=`root`@`localhost` PROCEDURE `getAllMotors` ()   BEGIN
+	SELECT
+        id,
+        brand,
+        model,
+        year_from,
+        year_to,
+        created_at,
+        updated_at,
+        is_deleted,
+        deleted_at
+        FROM motors
+        WHERE is_deleted = 0
+        ORDER BY id;
 END$$
 
 DROP PROCEDURE IF EXISTS `getAllOrders`$$
@@ -500,6 +594,23 @@ CREATE DEFINER=`root`@`localhost` PROCEDURE `getAllReviews` ()   BEGIN
      ORDER BY id;
 END$$
 
+DROP PROCEDURE IF EXISTS `getAllTrucks`$$
+CREATE DEFINER=`root`@`localhost` PROCEDURE `getAllTrucks` ()   BEGIN
+	SELECT
+        id,
+        brand,
+        model,
+        year_from,
+        year_to,
+        created_at,
+        updated_at,
+        is_deleted,
+        deleted_at
+        FROM trucks
+        WHERE is_deleted = 0
+        ORDER BY id;
+END$$
+
 DROP PROCEDURE IF EXISTS `getAllUserTwoFa`$$
 CREATE DEFINER=`root`@`localhost` PROCEDURE `getAllUserTwoFa` ()   BEGIN
     SELECT 
@@ -517,6 +628,57 @@ CREATE DEFINER=`root`@`localhost` PROCEDURE `getAllUserTwoFa` ()   BEGIN
     ORDER BY id DESC;
 END$$
 
+DROP PROCEDURE IF EXISTS `getCarsByBrand`$$
+CREATE DEFINER=`root`@`localhost` PROCEDURE `getCarsByBrand` (IN `brandIN` VARCHAR(100))   BEGIN
+	SELECT
+        id,
+        brand,
+        model,
+        year_from,
+        year_to,
+        created_at,
+        updated_at,
+        is_deleted,
+        deleted_at
+	FROM cars
+    WHERE brand = brandIN
+    ORDER BY brand;
+END$$
+
+DROP PROCEDURE IF EXISTS `getCarsById`$$
+CREATE DEFINER=`root`@`localhost` PROCEDURE `getCarsById` (IN `idIN` INT(11))   BEGIN
+	SELECT
+        id,
+        brand,
+        model,
+        year_from,
+        year_to,
+        created_at,
+        updated_at,
+        is_deleted,
+        deleted_at
+	FROM cars
+    WHERE id = idIN
+    ORDER BY id;
+END$$
+
+DROP PROCEDURE IF EXISTS `getCarsByModel`$$
+CREATE DEFINER=`root`@`localhost` PROCEDURE `getCarsByModel` (IN `modelIN` VARCHAR(100))   BEGIN
+	SELECT
+        id,
+        brand,
+        model,
+        year_from,
+        year_to,
+        created_at,
+        updated_at,
+        is_deleted,
+        deleted_at
+	FROM cars
+    WHERE model = modelIN
+    ORDER BY brand;
+END$$
+
 DROP PROCEDURE IF EXISTS `getManufacturersById`$$
 CREATE DEFINER=`root`@`localhost` PROCEDURE `getManufacturersById` (IN `p_manufacturers_id` INT)   BEGIN
     SELECT 
@@ -528,6 +690,57 @@ CREATE DEFINER=`root`@`localhost` PROCEDURE `getManufacturersById` (IN `p_manufa
         deleted_at
     FROM manufacturers
     WHERE id = p_manufacturers_id;
+END$$
+
+DROP PROCEDURE IF EXISTS `getMotorsByBrand`$$
+CREATE DEFINER=`root`@`localhost` PROCEDURE `getMotorsByBrand` (IN `brandIN` VARCHAR(100))   BEGIN
+	SELECT
+        id,
+        brand,
+        model,
+        year_from,
+        year_to,
+        created_at,
+        updated_at,
+        is_deleted,
+        deleted_at
+	FROM motors
+    WHERE brand = brandIN
+    ORDER BY brand;
+END$$
+
+DROP PROCEDURE IF EXISTS `getMotorsById`$$
+CREATE DEFINER=`root`@`localhost` PROCEDURE `getMotorsById` (IN `idIN` INT(11))   BEGIN
+	SELECT
+        id,
+        brand,
+        model,
+        year_from,
+        year_to,
+        created_at,
+        updated_at,
+        is_deleted,
+        deleted_at
+	FROM motors
+    WHERE id = idIN
+    ORDER BY id;
+END$$
+
+DROP PROCEDURE IF EXISTS `getMotorsByModel`$$
+CREATE DEFINER=`root`@`localhost` PROCEDURE `getMotorsByModel` (IN `modelIN` VARCHAR(100))   BEGIN
+	SELECT
+        id,
+        brand,
+        model,
+        year_from,
+        year_to,
+        created_at,
+        updated_at,
+        is_deleted,
+        deleted_at
+	FROM motors
+    WHERE model = modelIN
+    ORDER BY brand;
 END$$
 
 DROP PROCEDURE IF EXISTS `getOrdersById`$$
@@ -570,8 +783,8 @@ CREATE DEFINER=`root`@`localhost` PROCEDURE `getPartImagesById` (IN `partImages_
      WHERE id = partImages_id;
 END$$
 
-DROP PROCEDURE IF EXISTS `getPartImagesByUrl`$$
-CREATE DEFINER=`root`@`localhost` PROCEDURE `getPartImagesByUrl` (IN `partImages_url` VARCHAR(255))   BEGIN
+DROP PROCEDURE IF EXISTS `getPartImagesByPartId`$$
+CREATE DEFINER=`root`@`localhost` PROCEDURE `getPartImagesByPartId` (IN `partIdIN` INT(11))   BEGIN
 	SELECT
     	id,
         part_id,
@@ -581,7 +794,21 @@ CREATE DEFINER=`root`@`localhost` PROCEDURE `getPartImagesByUrl` (IN `partImages
         is_deleted,
         deleted_at
      FROM part_images
-     WHERE id = partImages_url;
+     WHERE part_id = partIdIN;
+END$$
+
+DROP PROCEDURE IF EXISTS `getPartImagesByUrl`$$
+CREATE DEFINER=`root`@`localhost` PROCEDURE `getPartImagesByUrl` (IN `urlIN` VARCHAR(255))   BEGIN
+	SELECT
+    	id,
+        part_id,
+        url,
+        is_primary,
+        created_at,
+        is_deleted,
+        deleted_at
+     FROM part_images
+     WHERE url = urlIN;
 END$$
 
 DROP PROCEDURE IF EXISTS `getPartsById`$$
@@ -712,7 +939,7 @@ CREATE DEFINER=`root`@`localhost` PROCEDURE `getReviewsById` (IN `review_id` INT
 END$$
 
 DROP PROCEDURE IF EXISTS `getReviewsByPartId`$$
-CREATE DEFINER=`root`@`localhost` PROCEDURE `getReviewsByPartId` (IN `art_IdIN` INT)   BEGIN
+CREATE DEFINER=`root`@`localhost` PROCEDURE `getReviewsByPartId` (IN `part_IdIN` INT)   BEGIN
     SELECT 
         id,
         user_id,
@@ -758,6 +985,57 @@ CREATE DEFINER=`root`@`localhost` PROCEDURE `getReviewsByUserId` (IN `userIdIN` 
     WHERE user_id = userIdIN
         AND is_deleted = 0
     ORDER BY created_at DESC;
+END$$
+
+DROP PROCEDURE IF EXISTS `getTrucksByBrand`$$
+CREATE DEFINER=`root`@`localhost` PROCEDURE `getTrucksByBrand` (IN `brandIN` VARCHAR(100))   BEGIN
+	SELECT
+        id,
+        brand,
+        model,
+        year_from,
+        year_to,
+        created_at,
+        updated_at,
+        is_deleted,
+        deleted_at
+	FROM trucks
+    WHERE brand = brandIN
+    ORDER BY brand;
+END$$
+
+DROP PROCEDURE IF EXISTS `getTrucksById`$$
+CREATE DEFINER=`root`@`localhost` PROCEDURE `getTrucksById` (IN `idIN` INT(11))   BEGIN
+	SELECT
+        id,
+        brand,
+        model,
+        year_from,
+        year_to,
+        created_at,
+        updated_at,
+        is_deleted,
+        deleted_at
+	FROM trucks
+    WHERE id = idIN
+    ORDER BY id;
+END$$
+
+DROP PROCEDURE IF EXISTS `getTrucksByModel`$$
+CREATE DEFINER=`root`@`localhost` PROCEDURE `getTrucksByModel` (IN `modelIN` VARCHAR(100))   BEGIN
+	SELECT
+        id,
+        brand,
+        model,
+        year_from,
+        year_to,
+        created_at,
+        updated_at,
+        is_deleted,
+        deleted_at
+	FROM trucks
+    WHERE model = modelIN
+    ORDER BY brand;
 END$$
 
 DROP PROCEDURE IF EXISTS `getUserByEmail`$$
@@ -826,6 +1104,15 @@ CREATE DEFINER=`root`@`localhost` PROCEDURE `softDeleteAddress` (IN `p_address_i
     WHERE id = p_address_id;
 END$$
 
+DROP PROCEDURE IF EXISTS `softDeleteCars`$$
+CREATE DEFINER=`root`@`localhost` PROCEDURE `softDeleteCars` (IN `idIN` INT(11))   BEGIN
+    UPDATE cars
+    SET 
+        is_deleted = 1,
+        deleted_at = NOW()
+    WHERE id = idIN;
+END$$
+
 DROP PROCEDURE IF EXISTS `softDeleteManufacturers`$$
 CREATE DEFINER=`root`@`localhost` PROCEDURE `softDeleteManufacturers` (IN `p_manufacturers_id` INT)   BEGIN
     UPDATE manufacturers
@@ -833,6 +1120,15 @@ CREATE DEFINER=`root`@`localhost` PROCEDURE `softDeleteManufacturers` (IN `p_man
         is_deleted = TRUE,
         deleted_at = NOW()
     WHERE id = p_manufacturers_id;
+END$$
+
+DROP PROCEDURE IF EXISTS `softDeleteMotors`$$
+CREATE DEFINER=`root`@`localhost` PROCEDURE `softDeleteMotors` (IN `idIN` INT(11))   BEGIN
+    UPDATE motors
+    SET 
+        is_deleted = 1,
+        deleted_at = NOW()
+    WHERE id = idIN;
 END$$
 
 DROP PROCEDURE IF EXISTS `softDeleteOrders`$$
@@ -877,6 +1173,15 @@ CREATE DEFINER=`root`@`localhost` PROCEDURE `softDeleteReviews` (IN `review_IdIN
         is_deleted = 1,
         deleted_at = NOW()
     WHERE id = review_IdIN;
+END$$
+
+DROP PROCEDURE IF EXISTS `softDeleteTrucks`$$
+CREATE DEFINER=`root`@`localhost` PROCEDURE `softDeleteTrucks` (IN `idIN` INT(11))   BEGIN
+    UPDATE trucks
+    SET 
+        is_deleted = 1,
+        deleted_at = NOW()
+    WHERE id = idIN;
 END$$
 
 DROP PROCEDURE IF EXISTS `softDeleteUser`$$
@@ -946,6 +1251,21 @@ CREATE DEFINER=`root`@`localhost` PROCEDURE `updateAddress` (IN `p_address_id` I
     COMMIT;
 END$$
 
+DROP PROCEDURE IF EXISTS `updateCars`$$
+CREATE DEFINER=`root`@`localhost` PROCEDURE `updateCars` (IN `idIN` INT(11), IN `brandIN` VARCHAR(100), IN `modelIN` VARCHAR(100), IN `yearFromIN` INT(11), IN `yearToIN` INT(11), IN `isDeleted` TINYINT)   BEGIN
+
+    UPDATE cars
+    SET 
+        brand = brandIN,
+        model = modelIN,
+        year_from = yearFromIN,
+        year_to = yearToIN,
+        updated_at = NOW(),
+        is_deleted = isDeleted
+    WHERE id = idIN;
+
+END$$
+
 DROP PROCEDURE IF EXISTS `updateManufacturers`$$
 CREATE DEFINER=`root`@`localhost` PROCEDURE `updateManufacturers` (IN `p_manufacturers_id` INT, IN `p_name` VARCHAR(255), IN `p_country` VARCHAR(100))   BEGIN
   START TRANSACTION;
@@ -956,18 +1276,35 @@ CREATE DEFINER=`root`@`localhost` PROCEDURE `updateManufacturers` (IN `p_manufac
   COMMIT;
 END$$
 
+DROP PROCEDURE IF EXISTS `updateMotors`$$
+CREATE DEFINER=`root`@`localhost` PROCEDURE `updateMotors` (IN `idIN` INT(11), IN `brandIN` VARCHAR(100), IN `modelIN` VARCHAR(100), IN `yearFromIN` INT(11), IN `yearToIN` INT(11), IN `isDeleted` TINYINT)   BEGIN
+
+    UPDATE motors
+    SET 
+        brand = brandIN,
+        model = modelIN,
+        year_from = yearFromIN,
+        year_to = yearToIN,
+        updated_at = NOW(),
+        is_deleted = isDeleted
+    WHERE id = idIN;
+
+END$$
+
 DROP PROCEDURE IF EXISTS `updatePartImages`$$
-CREATE DEFINER=`root`@`localhost` PROCEDURE `updatePartImages` (IN `partImages_IdIN` INT(11), IN `urlIN` VARCHAR(255), IN `isPrimaryIN` TINYINT, IN `isDeletedIN` TINYINT)   BEGIN
+CREATE DEFINER=`root`@`localhost` PROCEDURE `updatePartImages` (IN `IdIN` INT(11), IN `partIdIN` INT(11), IN `urlIN` VARCHAR(255), IN `isPrimaryIN` TINYINT, IN `isDeletedIN` TINYINT)   BEGIN
     UPDATE part_images
     SET 
+    	part_id = partIdIN,
         url = urlIN,
         is_primary = isPrimaryIN,
-        is_deleted = isDeletedIN
-    WHERE id = partImages_IdIN;
+        is_deleted = isDeletedIN,
+        deleted_at = IF(isDeletedIN = 1, NOW(), NULL)
+    WHERE id = IdIN;
 END$$
 
 DROP PROCEDURE IF EXISTS `updateParts`$$
-CREATE DEFINER=`root`@`localhost` PROCEDURE `updateParts` (IN `p_part_id` INT, IN `p_manufacturer_id` INT, IN `p_sku` VARCHAR(100), IN `p_name` VARCHAR(255), IN `p_category` VARCHAR(100), IN `p_price` DECIMAL(10,2), IN `p_stock` INT, IN `p_status` VARCHAR(20), IN `p_is_active` TINYINT, IN `p_is_deleted` TINYINT)   BEGIN
+CREATE DEFINER=`root`@`localhost` PROCEDURE `updateParts` (IN `p_part_id` INT(11), IN `p_manufacturer_id` INT(11), IN `p_sku` VARCHAR(100), IN `p_name` VARCHAR(255), IN `p_category` VARCHAR(100), IN `p_price` DECIMAL(10,2), IN `p_stock` INT(11), IN `p_status` VARCHAR(20), IN `p_is_active` TINYINT, IN `p_is_deleted` TINYINT)   BEGIN
     START TRANSACTION;
     
     UPDATE parts
@@ -1001,13 +1338,28 @@ CREATE DEFINER=`root`@`localhost` PROCEDURE `updatePartVariants` (IN `idIN` INT(
 END$$
 
 DROP PROCEDURE IF EXISTS `updateReviews`$$
-CREATE DEFINER=`root`@`localhost` PROCEDURE `updateReviews` (IN `review_id` INT, IN `ratingIN` INT, IN `commentIN` TEXT)   BEGIN
+CREATE DEFINER=`root`@`localhost` PROCEDURE `updateReviews` (IN `review_id` INT, IN `ratingIN` INT, IN `commentIN` TEXT, IN `isDeletedIN` TINYINT)   BEGIN
     UPDATE reviews
     SET 
         rating = ratingIN,
         comment = commentIN,
         is_deleted = isDeletedIN
     WHERE id = review_id;
+END$$
+
+DROP PROCEDURE IF EXISTS `updateTrucks`$$
+CREATE DEFINER=`root`@`localhost` PROCEDURE `updateTrucks` (IN `idIN` INT(11), IN `brandIN` VARCHAR(100), IN `modelIN` VARCHAR(100), IN `yearFromIN` INT(11), IN `yearToIN` INT(11), IN `isDeleted` TINYINT)   BEGIN
+
+    UPDATE trucks
+    SET 
+        brand = brandIN,
+        model = modelIN,
+        year_from = yearFromIN,
+        year_to = yearToIN,
+        updated_at = NOW(),
+        is_deleted = isDeleted
+    WHERE id = idIN;
+
 END$$
 
 DROP PROCEDURE IF EXISTS `updateUser`$$
@@ -1618,6 +1970,7 @@ ALTER TABLE `email_verifications`
 ALTER TABLE `invoices`
   ADD PRIMARY KEY (`id`),
   ADD KEY `order_id` (`order_id`);
+  ADD KEY `invoices_ibfk_1` (`order_id`);
 
 --
 -- A tábla indexei `login_logs`
