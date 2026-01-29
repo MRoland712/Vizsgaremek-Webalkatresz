@@ -4,13 +4,12 @@
  */
 package com.mycompany.vizsgaremek.controller;
 
-import com.mycompany.vizsgaremek.config.TFA;
 import com.mycompany.vizsgaremek.config.JwtUtil;
 import com.mycompany.vizsgaremek.service.AuthenticationService;
 
-import static com.mycompany.vizsgaremek.config.TFA.generateQRUrl;
-import static com.mycompany.vizsgaremek.config.TFA.validateCode;
-import static com.mycompany.vizsgaremek.config.TFA.generateSecretKey;
+import com.mycompany.vizsgaremek.config.TFA;
+import com.mycompany.vizsgaremek.model.UserTwofa;
+import com.mycompany.vizsgaremek.model.Users;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.UriInfo;
 import javax.ws.rs.Consumes;
@@ -67,7 +66,7 @@ public class TFAController {
     }
 
     private static final AuthenticationService.errorAuth errorAuth = new AuthenticationService.errorAuth();
-    
+
     @POST
     @Path("generateQR")
     @Consumes(MediaType.APPLICATION_JSON)
@@ -90,9 +89,9 @@ public class TFAController {
                     .build();
         }
 
-        String secretKey = generateSecretKey();
+        String secretKey = TFA.generateSecretKey();
         toReturn.put("secretKey", secretKey);
-        String QR = generateQRUrl(secretKey, bodyObject.getString("email/username"));
+        String QR = TFA.generateQRUrl(secretKey, bodyObject.getString("email"));
         toReturn.put("QR", QR);
 
         return Response.status(200)
@@ -100,12 +99,12 @@ public class TFAController {
                 .type(MediaType.APPLICATION_JSON)
                 .build();
     }
-    
+
     @POST
     @Path("validateTFACode")
     @Consumes(MediaType.APPLICATION_JSON)
     public Response validateTFACode(@HeaderParam("token") String jwtToken, String body) {
-        
+
         Response jwtError = JwtUtil.validateJwtAndReturnError(jwtToken);
         if (jwtError != null) {
             return jwtError;
@@ -123,7 +122,7 @@ public class TFAController {
                     .type(MediaType.APPLICATION_JSON)
                     .build();
         }
-        
+
         if (!bodyObject.has("email")) {
             errors.put("missingEmail");
 
@@ -134,12 +133,24 @@ public class TFAController {
         }
         //ToDo: getTwoFaSecret
         String isValid;
-        if (validateCode(secretKey, bodyObject.getString("code"))) {
-              isValid = "valid";
-        } else {
-              isValid = "invalid";
+
+        Users userData = Users.getUserByEmail(bodyObject.getString("email"));
+
+        if (userData == null) {
+            errors.put("UserNotFound");
+
+            return Response.status(404)
+                    .entity(errorAuth.createErrorResponse(errors, 404).toString())
+                    .type(MediaType.APPLICATION_JSON)
+                    .build();
         }
-        
+
+        if (TFA.validateCode(UserTwofa.getUserTwofaByUserId(userData.getId()).getTwofaSecret(), bodyObject.getString("code"))) {
+            isValid = "valid";
+        } else {
+            isValid = "invalid";
+        }
+
         return Response.status(200)
                 .entity(errorAuth.createOKResponse(isValid).toString())
                 .type(MediaType.APPLICATION_JSON)

@@ -10,6 +10,7 @@ import com.mycompany.vizsgaremek.model.Addresses;
 import com.mycompany.vizsgaremek.model.Manufacturers;
 import com.mycompany.vizsgaremek.model.PartVariants;
 import com.mycompany.vizsgaremek.model.Parts;
+import com.mycompany.vizsgaremek.model.UserTwofa;
 import io.jsonwebtoken.Claims;
 import java.math.BigDecimal;
 import java.util.ArrayList;
@@ -713,7 +714,11 @@ public class AuthenticationService {
         public static boolean isDataMissing(String data) {
             return (data == null || data.trim().isEmpty());
         }
-
+        
+        public static boolean isDataMissing(List<Object[]> data) {
+            return data.isEmpty() || data == null;
+        }
+        
         public static boolean isDataMissing(Integer data) {
             return (data == null);
         }
@@ -721,9 +726,17 @@ public class AuthenticationService {
         public static boolean isDataMissing(Users data) {
             return (data == null);
         }
+        
+        public static boolean isDataMissing(UserTwofa data) {
+            return data == null;
+        }
 
-        public static boolean isValidEmail(String data) {
-            return EMAIL_PATTERN.matcher(data).matches();
+        public static boolean isValidEmail(String email) {
+            return EMAIL_PATTERN.matcher(email).matches();
+        }
+        
+        public static boolean isValidUserId(Integer userId) {
+            return userId > 0 && userId.toString().trim().length() <= 11;
         }
     } //userTwofaAuth
 

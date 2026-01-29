@@ -72,15 +72,84 @@ public class UserTwofaService {
         }
 
         ArrayList<String> list = new ArrayList<>();
-        
+
         String[] parts = recoveryCodes.toString().split(";");
 
         Collections.addAll(list, parts);
-        
+
         toReturn.put("secretKey", secretKey);
         toReturn.put("recoveryCodes", list);
         toReturn.put("QR", TFA.generateQRUrl(secretKey, email));
 
+        return errorAuth.createOKResponse(toReturn);
+    }
+
+    public static JSONObject getUserTwofaByUserIdService(Integer userId) {
+        JSONObject toReturn = new JSONObject();
+        JSONArray errors = new JSONArray();
+        
+        if (userTwofaAuth.isDataMissing(userId)) {
+            errors.put("missingUserId");
+        }
+        
+        if (!userTwofaAuth.isValidUserId(userId)) {
+            errors.put("invalidUserId");
+        }
+
+        //error check if datas given are missing or invalid
+        if (errorAuth.hasErrors(errors)) {
+            return errorAuth.createErrorResponse(errors, 400);
+        }
+        
+        UserTwofa response = UserTwofa.getUserTwofaByUserId(userId);
+        
+        if (userTwofaAuth.isDataMissing(response)) {
+            errors.put("modelError");
+        }
+        
+        //error check if modelError
+        if (errorAuth.hasErrors(errors)) {
+            return errorAuth.createErrorResponse(errors, 500);
+        }
+        
+        ArrayList<String> list = new ArrayList<>();
+
+        String[] parts = response.getRecoveryCodes().toString().split(";");
+
+        Collections.addAll(list, parts);
+        
+        toReturn.put("id",response.getId());
+        toReturn.put("userId",response.getUserId().getId());
+        toReturn.put("TFASecret",response.getTwofaSecret());
+        toReturn.put("TFAEnabled",response.getTwofaEnabled());
+        toReturn.put("recoveryCodes",list);
+        toReturn.put("createdAt",response.getCreatedAt());
+        toReturn.put("updatedAt",response.getUpdatedAt());
+        toReturn.put("isDeleted",response.getIsDeleted());
+        toReturn.put("deletedAt",response.getDeletedAt());
+        
+        return errorAuth.createOKResponse(toReturn);
+    }
+    
+    public static JSONObject updateUserTwofaService(Integer userId) {
+        JSONObject toReturn = new JSONObject();
+        JSONArray errors = new JSONArray();
+        
+        if (userTwofaAuth.isDataMissing(userId)) {
+            errors.put("missingUserId");
+        }
+        
+        if (!userTwofaAuth.isValidUserId(userId)) {
+            errors.put("invalidUserId");
+        }
+
+        //error check if datas given are missing or invalid
+        if (errorAuth.hasErrors(errors)) {
+            return errorAuth.createErrorResponse(errors, 400);
+        }
+        
+        UserTwofa response = UserTwofa.getUserTwofaByUserId(userId);
+        
         return errorAuth.createOKResponse(toReturn);
     }
 }
