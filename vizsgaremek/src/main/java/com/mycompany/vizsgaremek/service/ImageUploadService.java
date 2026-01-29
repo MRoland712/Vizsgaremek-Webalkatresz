@@ -12,7 +12,7 @@ public class ImageUploadService {
     private static final String UPLOAD_DIR = "C:\\carcompsImages\\";
     
     // URL alap
-    private static final String BASE_URL = "http://localhost:8080/vizsgaremek/images/";
+    private static final String BASE_URL = "http://localhost:8080/vizsgaremek-1.0-SNAPSHOT/webresources/images/";
     
     /**
      * Kép feltöltése

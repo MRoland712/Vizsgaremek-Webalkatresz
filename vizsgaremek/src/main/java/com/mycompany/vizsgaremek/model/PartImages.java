@@ -169,7 +169,6 @@ public class PartImages implements Serializable {
         this.partId = partId;
     }
 
-    
     @Override
     public boolean equals(Object object) {
         // TODO: Warning - this method won't work in the case the id fields are not set
@@ -188,27 +187,34 @@ public class PartImages implements Serializable {
         return "com.mycompany.vizsgaremek.model.PartImages[ id=" + id + " ]";
     }
 
-    public static Boolean createPartImages (PartImages createPartImages) {
+    public static Integer createPartImages(PartImages newImage) {
         EntityManager em = emf.createEntityManager();
         try {
             StoredProcedureQuery spq = em.createStoredProcedureQuery("createPartImages");
 
             spq.registerStoredProcedureParameter("partIdIN", Integer.class, ParameterMode.IN);
             spq.registerStoredProcedureParameter("urlIN", String.class, ParameterMode.IN);
-            spq.registerStoredProcedureParameter("isPrimaryIN", Integer.class, ParameterMode.IN);
+            spq.registerStoredProcedureParameter("isPrimaryIN", Boolean.class, ParameterMode.IN);
 
-            spq.setParameter("partIdIN", createPartImages.getPartId().getId());
-            spq.setParameter("urlIN", createPartImages.getUrl());
-            spq.setParameter("isPrimaryIN", Boolean.TRUE.equals(createPartImages.getIsPrimary()) ? 1 : 0);
+            spq.setParameter("partIdIN", newImage.getPartId().getId());
+            spq.setParameter("urlIN", newImage.getUrl());
+            spq.setParameter("isPrimaryIN", newImage.getIsPrimary());
 
             spq.execute();
-            
-            return true;
+
+            // ÚJ ID visszaadása a imageupload miatt 
+            Object result = spq.getSingleResult();
+            if (result != null) {
+                return ((Number) result).intValue();
+            }
+
+            return -1;  // Hiba esetén
 
         } catch (Exception ex) {
             ex.printStackTrace();
-            return false;
+            return -1;
         } finally {
+            em.clear();
             em.close();
         }
     }
@@ -336,7 +342,7 @@ public class PartImages implements Serializable {
             em.close();
         }
     }
-    
+
     public static PartImages getPartImagesByUrl(String url) {
         EntityManager em = emf.createEntityManager();
 
@@ -348,9 +354,9 @@ public class PartImages implements Serializable {
             spq.execute();
 
             List<Object[]> resultList = spq.getResultList();
-            
+
             PartImages toReturn = null;
-            
+
             for (Object[] record : resultList) {
                 Parts parts = new Parts();
                 parts.setId(Integer.valueOf(record[1].toString())); //partId

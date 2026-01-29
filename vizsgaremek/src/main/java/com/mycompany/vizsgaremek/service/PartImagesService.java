@@ -42,19 +42,18 @@ public class PartImagesService {
             return errorAuth.createErrorResponse(errors, 400);
         }
 
-        // MODEL HÍVÁS
-        if (PartImages.createPartImages(createPartImages)) {  // ← Static metódus hívás!
-            toReturn.put("message", "PartImages Created Successfully");
-            toReturn.put("statusCode", 201);
+        Integer newId = PartImages.createPartImages(createPartImages);  // Integer
+
+        if (newId != null && newId > 0) {  //  Sikeres
             toReturn.put("success", true);
-            return toReturn;
-        } else {
-            JSONObject error = new JSONObject();
-            error.put("message", "PartImages Creation Failed");
-            error.put("statusCode", 500);
-            error.put("success", false);
-            return error;
+            toReturn.put("id", newId);  // ID hozzáadása
+            toReturn.put("statusCode", 201);
+        } else {  // newId <= 0 vagy null
+            toReturn.put("success", false);
+            toReturn.put("statusCode", 500);
         }
+
+        return toReturn;
     } // createPartImages Closer
 
     public JSONObject getAllPartImages() {
@@ -169,7 +168,7 @@ public class PartImagesService {
 
         return toReturn;
     }//getPartImagesByPartId
-    
+
     public JSONObject getPartImagesByUrl(String url) {
         JSONObject toReturn = new JSONObject();
         JSONArray errors = new JSONArray();
@@ -203,7 +202,7 @@ public class PartImagesService {
 
         return toReturn;
     }//getPartImagesByUrl
-    
+
     public JSONObject softDeletePartImages(Integer id) {
         JSONObject toReturn = new JSONObject();
         JSONArray errors = new JSONArray();
@@ -259,7 +258,7 @@ public class PartImagesService {
         toReturn.put("Message", "Deleted PartImages Succesfully");
         return toReturn;
     }//softDeletePartImages
-    
+
     public JSONObject updatePartImages(PartImages updatedPartImages) {
         JSONObject toReturn = new JSONObject();
         JSONArray errors = new JSONArray();
@@ -318,8 +317,6 @@ public class PartImagesService {
             }
         }
 
-       
-
         // isPrimary CSAK ha meg van adva!
         if (!partImagesAuth.isDataMissing(updatedPartImages.getIsPrimary())) {
             if (partImagesAuth.isPartImagePrimary(updatedPartImages.getIsPrimary())) {
@@ -328,7 +325,7 @@ public class PartImagesService {
                 errors.put("InvalidIsPrimary");
             }
         }
-        
+
         // isDeleted CSAK ha meg van adva!
         if (!partImagesAuth.isDataMissing(updatedPartImages.getIsDeleted())) {
             if (partImagesAuth.isPartImagesDeleted(updatedPartImages.getIsDeleted())) {
