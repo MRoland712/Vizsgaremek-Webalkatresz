@@ -8,15 +8,13 @@ import { LoginRequest, LoginResponse, User } from './login-users.model';
 export class LoginService {
   private httpClient = inject(HttpClient);
 
-  private readonly baseUrl =
-    'https://proxy.corsfix.com/?http://api.carcomps.hu/vizsgaremek-1.0-SNAPSHOT/webresources/';
+  private readonly baseUrl = 'http://api.carcomps.hu/vizsgaremek-1.0-SNAPSHOT/webresources/';
 
   private readonly loginUserUrl = this.baseUrl + 'user/loginUser';
 
   headers = {
     headers: new HttpHeaders({
       'Content-Type': 'application/json',
-      'Access-Control-Allow-Origin': 'http://localhost:4200',
     }),
   };
 

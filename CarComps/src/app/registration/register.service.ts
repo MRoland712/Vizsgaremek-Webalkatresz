@@ -92,7 +92,6 @@ export class RegisterService {
   headers = {
     headers: new HttpHeaders({
       'Content-Type': 'application/json',
-      'Access-Control-Allow-Origin': 'http://localhost:4200',
     }),
   };
   register(body: RegisterBody): Observable<RegisterResponse> {

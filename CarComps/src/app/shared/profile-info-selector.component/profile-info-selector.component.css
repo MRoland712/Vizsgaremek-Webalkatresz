@@ -1,0 +1,83 @@
+.profile-info-selector-box {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr); /* ⭐ Auto szélesség, nem minmax */
+  gap: 20px 32px; /* ⭐ Tágasabb vízszintes gap (24→32px) */
+  justify-items: center;
+  align-items: start;
+  padding: 16px;
+  box-sizing: border-box;
+  max-width: 600px; /* ⭐ Maximum szélesség */
+  margin: 0 auto; /* ⭐ Középre igazítás */
+}
+
+.info-row {
+  border: transparent solid 2px;
+  border-radius: 16px; /* ⭐ 12px → 16px (kerekebb) */
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  width: 100%; /* ⭐ 260px → 100% (grid kezeli) */
+  max-width: 240px; /* ⭐ Maximum 240px */
+  height: 140px; /* ⭐ 140px → 120px (alacsonyabb) */
+  padding: 16px; /* ⭐ 18px → 16px */
+  margin: 0;
+  gap: 8px; /* ⭐ 8px → 6px (szorosabb belső gap) */
+  box-sizing: border-box;
+  box-shadow: 10px 4px 14px 4px rgba(43, 43, 43, 0.15);
+  -webkit-box-shadow: 10px 4px 14px 4px rgba(43, 43, 43, 0.15);
+  -moz-box-shadow: 10px 4px 14px 4px rgba(43, 43, 43, 0.15);
+  background: #fffafa;
+}
+
+.info-icon {
+  font-size: 20px; /* ⭐ 22px → 20px */
+  border: none;
+  background-color: #2b2b2b;
+  color: #fffafa;
+  border-radius: 8px; /* ⭐ 6px → 8px */
+  padding: 10px;
+  display: flex;
+  justify-content: center;
+  width: fit-content;
+  margin-bottom: 4px; /* ⭐ 8px → 4px */
+}
+
+.info-row h3 {
+  font-size: 20px; /* ⭐ Kisebb cím */
+  font-weight: 600;
+  margin: 0;
+  color: #2b2b2b;
+}
+
+.info-row p {
+  font-size: 15px; /* ⭐ Kisebb szöveg */
+  margin: 0;
+  color: #666;
+}
+
+.info-content {
+  text-align: center;
+  width: 100%;
+}
+.info-row:hover {
+  transform: translateY(-2px); /* ⭐ Enyhe emelés hoverre */
+  transition: all 0.2s ease-in-out; /* ⭐ Zökkenő*/
+  border: 2px solid #ff6600;
+  cursor: pointer;
+}
+
+/* mobilon egy oszlop és kisebb dobozok */
+@media (max-width: 768px) {
+  .profile-info-selector-box {
+    grid-template-columns: 1fr;
+    gap: 16px;
+    max-width: 100%;
+  }
+  .info-row {
+    width: 100%;
+    max-width: 100%;
+    height: auto;
+    padding: 14px;
+  }
+}

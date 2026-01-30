@@ -6,6 +6,7 @@ export interface LoginResponse {
   result: {
     Message?: string;
     JWTToken?: string;
+    username: string;
   };
   status: string;
   statusCode: number;

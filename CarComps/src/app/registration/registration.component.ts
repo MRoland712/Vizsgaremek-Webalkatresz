@@ -173,7 +173,7 @@ export class RegistrationComponent {
         // ==========================================
         // TELJES NÉV összeállítása
         // ==========================================
-        let displayName = `${finalRegisterData.firstName} ${finalRegisterData.lastName}`.trim();
+        let displayName = `${finalRegisterData.username}`;
 
         // Ha üres vagy "User User", akkor username
         if (!displayName || displayName === 'User User') {

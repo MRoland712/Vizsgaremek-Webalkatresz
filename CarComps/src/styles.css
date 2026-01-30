@@ -8,3 +8,7 @@
   box-sizing: border-box;
   font-family: 'CCFont';
 }
+html,
+body {
+  background-color: #fffafa;
+}
