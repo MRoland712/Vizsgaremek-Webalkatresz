@@ -1969,7 +1969,7 @@ ALTER TABLE `email_verifications`
 --
 ALTER TABLE `invoices`
   ADD PRIMARY KEY (`id`),
-  ADD KEY `order_id` (`order_id`);
+  ADD KEY `order_id` (`order_id`),
   ADD KEY `invoices_ibfk_1` (`order_id`);
 
 --
