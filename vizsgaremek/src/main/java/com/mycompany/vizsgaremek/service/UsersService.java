@@ -717,6 +717,9 @@ public class UsersService {
         }
         
         toReturn.put("username", userData.getUsername());
+        toReturn.put("firstName", userData.getFirstName());
+        toReturn.put("lastName", userData.getLastName());
+        toReturn.put("phone", userData.getPhone());
         return errorAuth.createOKResponse(toReturn);
     }
     

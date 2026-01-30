@@ -148,7 +148,7 @@ public class UserTwofaController {
             updatedUserTwofa.setRecoveryCodes(bodyObject.getString("recoveryCodes"));
         }
 
-        JSONObject toReturn = layer.updateUserTwofaService(updatedUserTwofa);
+        JSONObject toReturn = null; //= layer.updateUserTwofaService(updatedUserTwofa);
 
         return Response.status(Integer.parseInt(toReturn.get("statusCode").toString()))
                 .entity(toReturn.toString())

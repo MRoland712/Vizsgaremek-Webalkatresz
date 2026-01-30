@@ -148,7 +148,7 @@ public class UserTwofaService {
             return errorAuth.createErrorResponse(errors, 400);
         }
         
-        UserTwofa response = UserTwofa.getUserTwofaByUserId(userId);
+        //UserTwofa response = UserTwofa.updateUserTwofa(userId);
         
         return errorAuth.createOKResponse(toReturn);
     }
