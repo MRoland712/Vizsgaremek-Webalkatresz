@@ -1,4 +1,5 @@
 com\mycompany\vizsgaremek\config\SendEmail$1.class
+com\mycompany\vizsgaremek\controller\StaticResourceController.class
 com\mycompany\vizsgaremek\config\JwtUtil.class
 com\mycompany\vizsgaremek\controller\SendEmailController.class
 com\mycompany\vizsgaremek\model\Payments.class
@@ -21,7 +22,9 @@ com\mycompany\vizsgaremek\controller\ManufacturersController.class
 com\mycompany\vizsgaremek\model\Invoices.class
 com\mycompany\vizsgaremek\service\AuthenticationService$addressAuth.class
 com\mycompany\vizsgaremek\config\SendEmail$2.class
+com\mycompany\vizsgaremek\controller\PartImagesController.class
 com\mycompany\vizsgaremek\config\TFA.class
+com\mycompany\vizsgaremek\service\AuthenticationService$partImagesAuth.class
 com\mycompany\vizsgaremek\model\Orders.class
 com\mycompany\vizsgaremek\controller\AddressesController.class
 com\mycompany\vizsgaremek\model\Parts.class
@@ -55,6 +58,8 @@ com\mycompany\vizsgaremek\controller\ApplicationConfig.class
 com\mycompany\vizsgaremek\service\AuthenticationService$userTwofaAuth.class
 com\mycompany\vizsgaremek\model\EmailVerifications.class
 com\mycompany\vizsgaremek\model\OrderItems.class
+com\mycompany\vizsgaremek\service\ImageUploadService.class
+com\mycompany\vizsgaremek\service\PartImagesService.class
 com\mycompany\vizsgaremek\config\OTPVerifyer.class
 com\mycompany\vizsgaremek\controller\PartVariantsController.class
 com\mycompany\vizsgaremek\model\OrderLogs.class

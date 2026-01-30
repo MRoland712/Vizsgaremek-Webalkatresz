@@ -574,12 +574,12 @@ public class Parts implements Serializable {
         }
     }
 
-    public static ArrayList<String> getPartsByCategory() {
+    public static ArrayList<String> getPartsCategory() {
         EntityManager em = emf.createEntityManager();
         ArrayList<String> toReturn = new ArrayList<>();
 
         try {
-            StoredProcedureQuery spq = em.createStoredProcedureQuery("getPartsByCategory");
+            StoredProcedureQuery spq = em.createStoredProcedureQuery("getPartsCategory");
             spq.execute();
 
             List<Object> resultList = spq.getResultList();

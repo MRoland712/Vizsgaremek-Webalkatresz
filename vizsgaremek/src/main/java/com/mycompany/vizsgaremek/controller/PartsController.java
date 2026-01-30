@@ -147,9 +147,9 @@ public class PartsController {
     @GET
     @Path("getPartsCategory")
     @Consumes(MediaType.APPLICATION_JSON)
-    public Response getPartsByCategory() {
+    public Response getPartsCategory() {
         PartsService partsService = new PartsService();
-        JSONObject toReturn = partsService.getPartsByCategory();
+        JSONObject toReturn = partsService.getPartsCategory();
 
         return Response.status(Integer.parseInt(toReturn.get("statusCode").toString()))
                 .entity(toReturn.toString())
@@ -176,8 +176,7 @@ public class PartsController {
         if (sku != null) {
             updatedParts.setSku(sku);
         }
-
-
+        
         if (bodyObject.has("name")) {
             updatedParts.setName(bodyObject.getString("name"));
         }

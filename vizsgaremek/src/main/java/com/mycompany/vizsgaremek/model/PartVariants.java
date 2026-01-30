@@ -378,7 +378,7 @@ public class PartVariants implements Serializable {
 
             List<Object[]> resultList = spq.getResultList();
 
-            // FOR CIKLUS - MINDEN rekordot feldolgozunk!
+            
             for (Object[] record : resultList) {
                 // Parts objektum
                 Parts part = new Parts();
@@ -424,6 +424,7 @@ public class PartVariants implements Serializable {
 
             List<Object[]> resultList = spq.getResultList();
 
+            
             for (Object[] record : resultList) {
                 // Parts objektum
                 Parts part = new Parts();
@@ -441,7 +442,7 @@ public class PartVariants implements Serializable {
                         part // 8. partId
                 );
 
-                toReturn.add(pv);
+                toReturn.add(pv);  
             }
 
             return toReturn;
