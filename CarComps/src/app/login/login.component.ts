@@ -65,11 +65,18 @@ export class LoginComponent implements OnInit {
 
         // JWT token mentése
         localStorage.setItem('jwt', res.result.JWTToken!);
+        localStorage.setItem('userEmail', finalLoginData.email);
 
         // Username a response-ból
         const username = res.result.username || finalLoginData.email;
-        localStorage.setItem('userName', username);
+        const firstname = res.result.firstName || '';
+        const lastname = res.result.lastName || '';
+        const phone = res.result.phone || '';
 
+        localStorage.setItem('userName', username);
+        localStorage.setItem('firstName', firstname);
+        localStorage.setItem('lastName', lastname);
+        localStorage.setItem('phone', phone || '');
         // AuthService setLoggedIn()
         this.authService.setLoggedIn(finalLoginData.email, username);
 

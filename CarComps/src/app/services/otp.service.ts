@@ -1,5 +1,5 @@
 import { Injectable, inject } from '@angular/core';
-import { HttpClient, HttpParams } from '@angular/common/http';
+import { HttpClient, HttpHeaders, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { tap, catchError } from 'rxjs/operators';
 
@@ -8,7 +8,10 @@ export interface SendOTPResponse {
   message: string;
   statusCode: number;
 }
-
+export interface VerifyOTPRequest {
+  email: string;
+  OTP: number;
+}
 export interface VerifyOTPResponse {
   success: boolean;
   message: string;
@@ -24,68 +27,43 @@ export class OtpService {
   private readonly baseUrl = 'http://api.carcomps.hu/vizsgaremek-1.0-SNAPSHOT/webresources/';
 
   /**
-   * ⭐ OTP küldése email-re
+   * ⭐ SEND OTP
    * Method: POST
-   * URL: baseUrl + email/sendOTP?email=user@example.com
-   * FONTOS: Query param használata, NEM JSON body!
+   * URL: email/sendOTP?email=vinrar712@gmail.com
+   * Body: ÜRES (null)
    */
   sendOTP(email: string): Observable<SendOTPResponse> {
     const url = `${this.baseUrl}email/sendOTP`;
 
-    // ⭐ Query param hozzáadása
+    // ⭐ Query param
     const params = new HttpParams().set('email', email);
 
-    console.log('🚀 OTP sendOTP hívás:');
-    console.log('  Method: POST');
-    console.log('  URL:', url);
-    console.log('  Query Param:', `?email=${email}`);
-    console.log('  Teljes URL:', `${url}?email=${email}`);
+    console.log('🚀 sendOTP:');
+    console.log('  POST', `${url}?email=${email}`);
 
-    // ⭐ POST kérés query param-mal (body ÜRES vagy null)
+    // ⭐ POST + query param + üres body
     return this.http.post<SendOTPResponse>(url, null, { params }).pipe(
       tap((res) => {
-        console.log('✅ sendOTP response:', res);
+        console.log('✅ sendOTP success:', res);
       }),
       catchError((err) => {
-        console.error('❌ sendOTP hiba:', err);
-        console.error('  Status:', err.status);
-        console.error('  URL:', err.url);
-        console.error('  Error:', err.error);
+        console.error('❌ sendOTP error:', err);
         throw err;
       }),
     );
   }
 
   /**
-   * ⭐ OTP verifikáció
-   * Method: POST (valószínű)
-   * URL: baseUrl + OTP/verifyOTP?email=...&otp=...
+   * ⭐ VERIFY OTP
+   * Method: POST
+   * URL: OTP/verifyOTP
+   * Body: { "email": "...", "otp": "..." }
    */
-  verifyOTP(email: string, otp: string): Observable<VerifyOTPResponse> {
+  verifyOTP(body: VerifyOTPRequest): Observable<VerifyOTPResponse> {
     const url = `${this.baseUrl}OTP/verifyOTP`;
 
-    // ⭐ Query params hozzáadása
-    const params = new HttpParams().set('email', email).set('otp', otp);
+    return this.http.post<VerifyOTPResponse>(url, body);
 
-    console.log('🚀 OTP verifyOTP hívás:');
-    console.log('  Method: POST');
-    console.log('  URL:', url);
-    console.log('  Query Params:', `?email=${email}&otp=${otp}`);
-    console.log('  Teljes URL:', `${url}?email=${email}&otp=${otp}`);
-
-    // ⭐ POST kérés query param-mal
-    return this.http.post<VerifyOTPResponse>(url, null, { params }).pipe(
-      tap((res) => {
-        console.log('✅ verifyOTP response:', res);
-      }),
-      catchError((err) => {
-        console.error('❌ verifyOTP hiba:', err);
-        console.error('  Status:', err.status);
-        console.error('  URL:', err.url);
-        console.error('  Error:', err.error);
-        throw err;
-      }),
-    );
+    // ⭐ POST + JSON body
   }
 }
-//TODO : QUERY PARAM

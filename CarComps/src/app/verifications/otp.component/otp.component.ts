@@ -1,6 +1,5 @@
 import { Component, inject, signal, output } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
-
 import { HttpErrorResponse } from '@angular/common/http';
 import { OtpService } from '../../services/otp.service';
 
@@ -40,9 +39,6 @@ export class OtpComponent {
     digit6: ['', [Validators.required, Validators.pattern(/^[0-9]$/)]],
   });
 
-  /**
-   * Dialog megnyitása + OTP küldés
-   */
   open(email: string) {
     this.userEmail.set(email);
     this.isOpen.set(true);
@@ -50,22 +46,14 @@ export class OtpComponent {
     this.errorMessage.set(null);
     this.successMessage.set(null);
     this.otpForm.reset();
-
-    // OTP küldés automatikusan
     this.sendOTP();
   }
 
-  /**
-   * Dialog bezárása
-   */
   close() {
     this.isOpen.set(false);
     this.cancelled.emit();
   }
 
-  /**
-   * OTP küldése email-re
-   */
   sendOTP() {
     const email = this.userEmail();
     if (!email) return;
@@ -79,11 +67,7 @@ export class OtpComponent {
         this.isSending.set(false);
         this.otpSent.set(true);
         this.successMessage.set('Kód elküldve az email címedre!');
-
-        // Cooldown timer (60 sec)
         this.startResendCooldown();
-
-        // Success message eltűnik 5 sec után
         setTimeout(() => this.successMessage.set(null), 5000);
       },
       error: (err: HttpErrorResponse) => {
@@ -95,7 +79,7 @@ export class OtpComponent {
   }
 
   /**
-   * OTP verifikáció
+   * ⭐ JAVÍTOTT OTP verifikáció
    */
   verifyOTP() {
     if (this.otpForm.invalid) {
@@ -103,27 +87,44 @@ export class OtpComponent {
       return;
     }
 
-    const otp =
-      this.otpForm.value.digit1! +
-      this.otpForm.value.digit2! +
-      this.otpForm.value.digit3! +
-      this.otpForm.value.digit4! +
-      this.otpForm.value.digit5! +
-      this.otpForm.value.digit6!;
-
-    const email = this.userEmail();
+    const FinalOTPData = {
+      email: this.userEmail(),
+      OTP: Number(
+        this.otpForm.value.digit1! +
+          this.otpForm.value.digit2! +
+          this.otpForm.value.digit3! +
+          this.otpForm.value.digit4! +
+          this.otpForm.value.digit5! +
+          this.otpForm.value.digit6!,
+      ),
+    };
 
     this.isVerifying.set(true);
     this.errorMessage.set(null);
 
-    console.log('🔐 OTP verifikáció:', { email, otp });
+    console.log('🔐 Verify OTP request:', FinalOTPData);
 
-    this.otpService.verifyOTP(email, otp).subscribe({
+    this.otpService.verifyOTP(FinalOTPData).subscribe({
       next: (res) => {
-        console.log('✅ OTP sikeres:', res);
+        console.log('✅ OTP TELJES RESPONSE:', res);
+        console.log('  Type:', typeof res);
+        console.log('  Keys:', Object.keys(res));
+        console.log('  res.verified:', res.verified);
+        console.log('  res.success:', res.success);
+        console.log('  res.status:', (res as any).status);
+
         this.isVerifying.set(false);
 
-        if (res.verified) {
+        // ⭐ JAVÍTOTT: Többféle success ellenőrzés
+        const isSuccess =
+          res.verified === true ||
+          res.success === true ||
+          (res as any).status === 'success' ||
+          res.statusCode === 200;
+
+        console.log('🎯 Is success?', isSuccess);
+
+        if (isSuccess) {
           this.successMessage.set('Email cím sikeresen megerősítve!');
 
           // 2 sec után bezárás + verified emit
@@ -132,23 +133,24 @@ export class OtpComponent {
             this.verified.emit();
           }, 2000);
         } else {
+          console.warn('⚠️ Response nem tartalmaz success flag-et!');
+          console.warn('  Full response:', JSON.stringify(res, null, 2));
           this.errorMessage.set('Hibás vagy lejárt kód!');
         }
       },
       error: (err: HttpErrorResponse) => {
         console.error('❌ OTP verifikációs hiba:', err);
+        console.error('  Status:', err.status);
+        console.error('  Error body:', err.error);
+
         this.isVerifying.set(false);
         this.errorMessage.set(err.error?.message || 'Hibás vagy lejárt kód');
       },
     });
   }
 
-  /**
-   * Újraküldés cooldown timer
-   */
   private startResendCooldown() {
     this.resendCooldown.set(60);
-
     const interval = setInterval(() => {
       const current = this.resendCooldown();
       if (current > 0) {
@@ -159,25 +161,17 @@ export class OtpComponent {
     }, 1000);
   }
 
-  /**
-   * Automatikus focus következő input-ra
-   */
   onDigitInput(event: Event, nextIndex: number) {
     const input = event.target as HTMLInputElement;
-
     if (input.value.length === 1 && nextIndex <= 6) {
       const nextInput = document.getElementById(`digit${nextIndex}`) as HTMLInputElement;
       nextInput?.focus();
     }
   }
 
-  /**
-   * Backspace kezelése
-   */
   onDigitKeyDown(event: KeyboardEvent, currentIndex: number) {
     if (event.key === 'Backspace') {
       const input = event.target as HTMLInputElement;
-
       if (input.value === '' && currentIndex > 1) {
         const prevInput = document.getElementById(`digit${currentIndex - 1}`) as HTMLInputElement;
         prevInput?.focus();
@@ -185,13 +179,9 @@ export class OtpComponent {
     }
   }
 
-  /**
-   * Paste kezelése (teljes kód beillesztése)
-   */
   onPaste(event: ClipboardEvent) {
     event.preventDefault();
     const pastedData = event.clipboardData?.getData('text');
-
     if (pastedData && /^\d{6}$/.test(pastedData)) {
       this.otpForm.patchValue({
         digit1: pastedData[0],
