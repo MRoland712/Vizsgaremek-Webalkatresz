@@ -7,6 +7,9 @@ export interface LoginResponse {
     Message?: string;
     JWTToken?: string;
     username: string;
+    firstName: string;
+    lastName: string;
+    phone: string;
   };
   status: string;
   statusCode: number;

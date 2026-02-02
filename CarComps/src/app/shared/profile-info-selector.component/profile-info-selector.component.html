@@ -1,36 +1,175 @@
 <div class="profile-info-selector-box">
-  @for (item of [dummyDatas]; track $index) {
-    <div class="info-row">
+  @for (item of [ProfileDatas]; track $index) {
+    <!-- Teljes név -->
+    <div class="info-row" (click)="openDialog('fullname')">
       <i class="fa-solid fa-address-book info-icon"></i>
       <h3>Teljes név</h3>
       <p>{{ item.firstname }} {{ item.lastname }}</p>
     </div>
 
-    <div class="info-row">
+    <!-- Felhasználónév -->
+    <div class="info-row" (click)="openDialog('username')">
       <i class="fa-solid fa-user info-icon"></i>
       <h3>Felhasználónév</h3>
       <p>{{ item.username }}</p>
     </div>
-    <div class="info-row">
+
+    <!-- Email -->
+    <div class="info-row" (click)="openDialog('email')">
       <i class="fa-solid fa-envelope info-icon"></i>
       <h3>Email</h3>
       <p>{{ item.email }}</p>
     </div>
-    <div class="info-row">
+
+    <!-- Jelszó -->
+    <div class="info-row" (click)="openDialog('password')">
       <i class="fa-solid fa-key info-icon"></i>
       <h3>Jelszó</h3>
       <p>********</p>
     </div>
-    <div class="info-row">
+
+    <!-- Telefonszám -->
+    <div class="info-row" (click)="openDialog('phone')">
       <i class="fa-solid fa-phone info-icon"></i>
       <h3>Telefonszám</h3>
       <p>{{ item.phone }}</p>
     </div>
-    <div class="info-row">
+
+    <!-- 2FA -->
+    <div class="info-row" (click)="openDialog('2fa')">
       <i class="fa-solid fa-shield info-icon"></i>
       <h3>2FA</h3>
       <p>Nincs aktiválva</p>
     </div>
   }
 </div>
-<div class="edit-box"></div>
+
+<!-- ==========================================
+     DIALOG WINDOW
+     ========================================== -->
+@if (isDialogOpen()) {
+  <div class="dialog-overlay" (click)="closeDialog()">
+    <div class="dialog-content" (click)="$event.stopPropagation()">
+      <!-- Dialog Header -->
+      <div class="dialog-header">
+        <h2>{{ getDialogTitle() }}</h2>
+        <button class="close-btn" (click)="closeDialog()">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+      </div>
+
+      <!-- Dialog Body -->
+      <form [formGroup]="editForm" (ngSubmit)="onSave()">
+        <!-- ⭐ TELJES NÉV -->
+        @if (currentEditField() === 'fullname') {
+          <div class="form-group">
+            <label>Keresztnév</label>
+            <input type="text" formControlName="firstname" placeholder="Keresztnév" />
+            @if (editForm.controls.firstname.invalid && editForm.controls.firstname.touched) {
+              <span class="error">Minimum 2 karakter</span>
+            }
+          </div>
+
+          <div class="form-group">
+            <label>Vezetéknév</label>
+            <input type="text" formControlName="lastname" placeholder="Vezetéknév" />
+            @if (editForm.controls.lastname.invalid && editForm.controls.lastname.touched) {
+              <span class="error">Minimum 2 karakter</span>
+            }
+          </div>
+        }
+
+        <!-- ⭐ FELHASZNÁLÓNÉV -->
+        @if (currentEditField() === 'username') {
+          <div class="form-group">
+            <label>Felhasználónév</label>
+            <input type="text" formControlName="username" placeholder="Felhasználónév" />
+            @if (editForm.controls.username.invalid && editForm.controls.username.touched) {
+              <span class="error">Minimum 3 karakter</span>
+            }
+          </div>
+        }
+
+        <!-- ⭐ EMAIL -->
+        @if (currentEditField() === 'email') {
+          <div class="form-group">
+            <label>Email cím</label>
+            <input type="email" formControlName="email" placeholder="email@example.com" />
+            @if (editForm.controls.email.invalid && editForm.controls.email.touched) {
+              <span class="error">Érvénytelen email cím</span>
+            }
+          </div>
+        }
+
+        <!-- ⭐ JELSZÓ -->
+        @if (currentEditField() === 'password') {
+          <div class="form-group">
+            <label>Jelenlegi jelszó</label>
+            <input type="password" formControlName="currentPassword" placeholder="••••••••" />
+          </div>
+
+          <div class="form-group">
+            <label>Új jelszó</label>
+            <input type="password" formControlName="newPassword" placeholder="••••••••" />
+            @if (editForm.controls.newPassword.invalid && editForm.controls.newPassword.touched) {
+              <span class="error">Minimum 8 karakter</span>
+            }
+          </div>
+
+          <div class="form-group">
+            <label>Új jelszó megerősítése</label>
+            <input type="password" formControlName="confirmPassword" placeholder="••••••••" />
+          </div>
+        }
+
+        <!-- ⭐ TELEFONSZÁM -->
+        @if (currentEditField() === 'phone') {
+          <div class="form-group">
+            <label>Telefonszám</label>
+            <input type="tel" formControlName="phone" placeholder="+36 30 123 4567" />
+            @if (editForm.controls.phone.invalid && editForm.controls.phone.touched) {
+              <span class="error">9-15 számjegy szükséges</span>
+            }
+          </div>
+        }
+
+        <!-- ⭐ 2FA -->
+        @if (currentEditField() === '2fa') {
+          <div class="info-message">
+            <i class="fa-solid fa-shield-halved"></i>
+            <p>A kétfaktoros hitelesítés extra védelmet nyújt a fiókodnak.</p>
+          </div>
+        }
+
+        <!-- Success Message -->
+        @if (saveSuccess()) {
+          <div class="success-message">
+            <i class="fa-solid fa-circle-check"></i>
+            <p>Sikeres mentés!</p>
+          </div>
+        }
+
+        <!-- Error Message -->
+        @if (saveError()) {
+          <div class="error-message">
+            <i class="fa-solid fa-circle-exclamation"></i>
+            <p>{{ saveError() }}</p>
+          </div>
+        }
+
+        <!-- Dialog Footer -->
+        <div class="dialog-footer">
+          <button type="button" class="btn-cancel" (click)="closeDialog()">Mégse</button>
+          <button type="submit" class="btn-save" [disabled]="isSaving()">
+            @if (isSaving()) {
+              <i class="fa-solid fa-spinner fa-spin"></i>
+              Mentés...
+            } @else {
+              Mentés
+            }
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+}

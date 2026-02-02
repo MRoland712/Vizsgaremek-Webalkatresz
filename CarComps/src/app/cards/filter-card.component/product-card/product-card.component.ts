@@ -1,4 +1,4 @@
-import { Component, input, OnInit, signal, computed } from '@angular/core';
+import { Component, input, signal, computed } from '@angular/core';
 import { PartsModel } from '../../../models/parts.model';
 
 @Component({
@@ -45,7 +45,21 @@ export class ProductCardComponent {
     if (currentQty === 0) {
       return;
     }
-
     // TODO: Cart service hívás
+    console.log('🛒 Kosárba:', {
+      product: this.product().name,
+      quantity: currentQty,
+      totalPrice: this.product().price * currentQty,
+    });
+  }
+
+  /**
+   * ⭐ Kép betöltési hiba kezelése
+   * Ha a kép nem tölthető be, placeholder-t használunk
+   */
+  onImageError(event: Event): void {
+    const img = event.target as HTMLImageElement;
+    img.src = 'assets/placeholder.jpg';
+    console.warn('⚠️ Kép betöltési hiba:', this.product().name);
   }
 }

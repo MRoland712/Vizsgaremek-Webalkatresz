@@ -1,8 +1,12 @@
 <div class="product-wrapper">
   <div class="left">
-    <img src="" alt="product image" />
+    <!-- ⭐ imageUrl használata product-ból -->
+    <img
+      [src]="product().imageUrl || 'assets/placeholder.jpg'"
+      [alt]="product().name"
+      (error)="onImageError($event)"
+    />
   </div>
-
   <div class="right">
     <div class="product-desc">
       <h2>{{ product().name }}</h2>
@@ -14,12 +18,10 @@
         }
       </ul>
     </div>
-
     <!-- Ár -->
     <div class="price-section">
       <h3 class="price">{{ product().price }} HUF</h3>
     </div>
-
     <!-- Gombok az ár alatt -->
     <div class="button-container">
       <div class="quantity-controls">
