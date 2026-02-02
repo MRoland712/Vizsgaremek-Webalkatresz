@@ -32,7 +32,7 @@ public class ImageUploadService {
         
         // 2. Egyedi fájlnév generálása
         String extension = getFileExtension(originalFileName);
-        String uniqueFileName = UUID.randomUUID().toString() + extension;
+        String uniqueFileName = originalFileName;
         
         // 3. Teljes útvonal
         String folderPath = UPLOAD_DIR + folder + File.separator;
