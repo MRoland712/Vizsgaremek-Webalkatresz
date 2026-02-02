@@ -1,0 +1,26 @@
+import { Component } from '@angular/core';
+import { MainHeaderComponent } from '../main-header/main-header.component';
+import { FooterComponent } from '../footer.component/footer.component';
+import { MmtContainerComponent } from '../mmt-container/mmt-container.component';
+import { Filter } from '../filter/filter.component';
+import { ProductListComponent } from '../cards/filter-card.component/product-list/product-list.component';
+import { CategoryCardComponent } from '../cards/filter-card.component/filter-card.component';
+import { PaymentForwardButtonComponent } from '../shared/payment-forward-button.component/payment-forward-button.component';
+import { ProfileSidenavComponent } from '../side-navbar.component/side-navbar.component';
+
+@Component({
+  selector: 'app-homepage',
+  imports: [
+    MainHeaderComponent,
+    FooterComponent,
+    MmtContainerComponent,
+    Filter,
+    ProductListComponent,
+    CategoryCardComponent,
+    PaymentForwardButtonComponent,
+    ProfileSidenavComponent,
+  ],
+  templateUrl: './homepage.component.html',
+  styleUrl: './homepage.component.css',
+})
+export class HomepageComponent {}

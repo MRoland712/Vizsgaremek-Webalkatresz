@@ -1,0 +1,43 @@
+<!-- filter-card.component.html - PATH PARAM VERZIÓ -->
+
+<!-- LOADING STATE -->
+@if (isLoading()) {
+  <div class="loading-state">
+    <i class="fa-solid fa-spinner fa-spin"></i>
+    <p>Kategóriák betöltése...</p>
+  </div>
+}
+
+<!-- ERROR STATE -->
+@if (error()) {
+  <div class="error-state">
+    <i class="fa-solid fa-triangle-exclamation"></i>
+    <p>{{ error() }}</p>
+    <button (click)="loadCategories()">Újrapróbálás</button>
+  </div>
+}
+
+<!-- CATEGORY GRID -->
+@if (!isLoading() && !error() && categories().length > 0) {
+  <div class="category-grid">
+    @for (category of categories(); track category.name) {
+      <!-- ⭐ PATH PARAM: /products/gumiabroncs -->
+      <a class="category-card" [routerLink]="['/products', category.name]">
+        <div class="image-container">
+          <img [src]="category.imageUrl" [alt]="category.name" class="category-image" />
+        </div>
+        <div class="divider"></div>
+        <h3 class="category-name">{{ category.name }}</h3>
+        <span class="category-count">{{ category.count }} termék</span>
+      </a>
+    }
+  </div>
+}
+
+<!-- EMPTY STATE -->
+@if (!isLoading() && !error() && categories().length === 0) {
+  <div class="empty-state">
+    <i class="fa-solid fa-box-open"></i>
+    <p>Nincsenek elérhető kategóriák</p>
+  </div>
+}

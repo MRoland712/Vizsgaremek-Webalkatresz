@@ -1,0 +1,39 @@
+<div class="product-wrapper">
+  <div class="left">
+    <img src="" alt="product image" />
+  </div>
+
+  <div class="right">
+    <div class="product-desc">
+      <h2>{{ product().name }}</h2>
+      <h3>Article Number: {{ product().sku }}</h3>
+      <!-- Termék részletek kiírása -->
+      <ul>
+        @for (detail of productDetails(); track $index) {
+          <li>{{ detail.label }}: {{ detail.value }}</li>
+        }
+      </ul>
+    </div>
+
+    <!-- Ár -->
+    <div class="price-section">
+      <h3 class="price">{{ product().price }} HUF</h3>
+    </div>
+
+    <!-- Gombok az ár alatt -->
+    <div class="button-container">
+      <div class="quantity-controls">
+        <button type="button" class="quantity-btn decrease" (click)="decreaseQuantity()">
+          <i class="fa-solid fa-angle-down"></i>
+        </button>
+        <span class="quantity-display">{{ quantity() }}</span>
+        <button type="button" class="quantity-btn increase" (click)="increaseQuantity()">
+          <i class="fa-solid fa-angle-up"></i>
+        </button>
+      </div>
+      <button type="button" class="add-to-cart-btn" (click)="addToCart()">
+        <i class="fa-solid fa-cart-shopping"></i>
+      </button>
+    </div>
+  </div>
+</div>
