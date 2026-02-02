@@ -399,7 +399,7 @@ public class UsersService {
         
         return errorAuth.createOKResponse();
     }
-
+    //ToDo: email verified, phone verified, failed login?
     public JSONObject updateUser(Users updatedUser) {
         JSONObject toReturn = new JSONObject();
         JSONArray errors = new JSONArray();

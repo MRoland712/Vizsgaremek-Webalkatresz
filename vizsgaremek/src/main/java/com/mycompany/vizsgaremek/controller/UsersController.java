@@ -189,6 +189,7 @@ public class UsersController {
         if (bodyObject.has("isSubscribed")) {
             updatedUser.setIsSubscribed(bodyObject.getBoolean("isSubscribed"));
         }
+        //ToDo: email verified, phone verified
         if (bodyObject.has("password")) {
             updatedUser.setPassword(bodyObject.getString("password"));
         }
