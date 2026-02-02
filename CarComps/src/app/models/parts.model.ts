@@ -10,6 +10,7 @@ export interface PartsModel {
   isActive: boolean;
   status: string;
   updatedAt: string;
+  imageUrl?: string;
 }
 
 export interface GetAllPartsResponse {
