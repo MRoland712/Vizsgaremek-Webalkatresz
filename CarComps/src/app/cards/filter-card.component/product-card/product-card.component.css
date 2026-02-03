@@ -1,0 +1,206 @@
+.product-wrapper {
+  display: flex;
+  border: 1px solid #fffafa;
+  border-radius: 15px;
+  max-width: 500px; /* 600px → 500px */
+  width: 100%;
+  height: 260px; /* 500px → 260px KOMPAKT! */
+  margin: auto;
+  margin-bottom: 50px;
+  overflow: hidden;
+  box-shadow: 10px 4px 14px 4px rgba(43, 43, 43, 0.15);
+  -webkit-box-shadow: 10px 4px 14px 4px rgba(43, 43, 43, 0.15);
+  -moz-box-shadow: 10px 4px 14px 4px rgba(43, 43, 43, 0.15);
+  background-color: #fffafa;
+}
+
+/* Bal oldal - kép */
+.left {
+  flex: 0 0 180px; /* Fix szélesség 180px */
+  background-color: #2b2b2b;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 15px; /* 20px → 15px */
+}
+
+.left img {
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain;
+}
+
+/* Jobb oldal - termék info */
+.right {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  padding: 18px 16px; /* 30px 25px → 18px 16px */
+  color: #2b2b2b;
+}
+
+/* Termék leírás - KOMPAKT */
+.product-desc {
+  flex: 1;
+  margin-bottom: 10px; /* 20px → 10px */
+}
+
+.product-desc h2 {
+  font-size: 20px; /* 20px → 15px */
+  font-weight: 700;
+  margin-bottom: 4px; /* 8px → 4px */
+  color: #2b2b2b;
+  line-height: 1.3;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: -webkit-box;
+  -webkit-line-clamp: 2; /* Maximum 2 sor */
+  -webkit-box-orient: vertical;
+}
+
+.product-desc h3 {
+  font-size: 11px; /* 14px → 11px */
+  font-weight: 400;
+  color: #666;
+  margin-bottom: 6px; /* 12px → 6px */
+}
+.product-desc ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  font-size: 12px; /* 14px → 12px */
+  color: #444;
+}
+
+/* Ár szekció - KOMPAKT */
+.price-section {
+  margin-bottom: 10px; /* 20px → 10px */
+}
+
+.price {
+  font-size: 20px; /* 28px → 20px */
+  font-weight: 700;
+  display: flex;
+  flex: 1;
+  color: #2b2b2b;
+  margin: 0;
+  line-height: 1;
+  justify-content: right;
+}
+
+/* Gombok container - KOMPAKT */
+.button-container {
+  display: flex;
+  align-items: center;
+  gap: 10px; /* 12px → 10px */
+  margin-top: auto;
+}
+
+/* Quantity controls - KISEBB GOMBOK */
+.quantity-controls {
+  display: flex;
+  align-items: center;
+  gap: 0;
+  border-radius: 12px; /* 15px → 12px */
+  overflow: hidden;
+  background-color: #2b2b2b;
+  color: #fffafa;
+}
+
+.quantity-btn {
+  width: 32px; /* 40px → 32px */
+  height: 42px; /* 61px → 42px */
+  border: none;
+  background-color: transparent;
+  color: #ff6600;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 13px; /* 14px → 13px */
+}
+
+.quantity-btn.decrease:hover {
+  background: linear-gradient(to right, #2b2b2b, #4a4949);
+}
+
+.quantity-btn.increase:hover {
+  background: linear-gradient(to left, #2b2b2b, #4a4949);
+}
+
+.quantity-btn.decrease {
+  border-right: transparent;
+}
+
+.quantity-btn.increase {
+  border-left: transparent;
+}
+
+.quantity-display {
+  min-width: 40px; /* 50px → 40px */
+  height: 42px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px; /* 16px → 14px */
+  font-weight: 600;
+  color: #fffafa;
+  user-select: none;
+}
+
+/* Kosárba gomb - KOMPAKT */
+.add-to-cart-btn {
+  flex: 1;
+  height: 42px; /* 61px → 42px */
+  border: none;
+  background-color: #2b2b2b;
+  color: #ff6600;
+  border-radius: 12px; /* 15px → 12px */
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px; /* 8px → 6px */
+  font-size: 14px; /* 16px → 14px */
+  font-weight: 600;
+}
+
+.add-to-cart-btn:hover {
+  background: linear-gradient(to right, #2b2b2b, #4a4949);
+}
+
+.add-to-cart-btn i {
+  font-size: 16px; /* 20px → 16px */
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+  .product-wrapper {
+    flex-direction: column;
+    height: auto;
+    max-width: 350px; /* 400px → 350px */
+  }
+
+  .left {
+    flex: 0 0 180px;
+    width: 100%;
+  }
+
+  .right {
+    padding: 16px;
+  }
+
+  .button-container {
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .quantity-controls {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .add-to-cart-btn {
+    width: 100%;
+  }
+}

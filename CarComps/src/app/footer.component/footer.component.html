@@ -1,0 +1,73 @@
+<footer class="footer">
+  <div class="footer-container">
+    <!-- Company Info Section -->
+    <div class="footer-section company-info">
+      <img [src]="logoSrc" alt="CarComps Logo" class="footer-logo" />
+      <p class="company-description">
+        A megbízható partnere autóalkatrészek beszerzésében. Minőségi alkatrészek, versenyképes
+        árak.
+      </p>
+      <div class="social-links">
+        @for (social of socialLinks; track social.url) {
+        <a
+          [href]="social.url"
+          target="_blank"
+          rel="noopener noreferrer"
+          [attr.aria-label]="social.label"
+          class="social-icon"
+        >
+          <i [class]="social.icon"></i>
+        </a>
+        }
+      </div>
+    </div>
+
+    <!-- Quick Links Section -->
+    <div class="footer-section">
+      <h3 class="footer-heading">Gyors linkek</h3>
+      <ul class="footer-links">
+        @for (link of quickLinks; track link.url) {
+        <li>
+          <a [href]="link.url">{{ link.label }}</a>
+        </li>
+        }
+      </ul>
+    </div>
+
+    <!-- Legal Links Section -->
+    <div class="footer-section">
+      <h3 class="footer-heading">Jogi információk</h3>
+      <ul class="footer-links">
+        @for (link of legalLinks; track link.url) {
+        <li>
+          <a [href]="link.url">{{ link.label }}</a>
+        </li>
+        }
+      </ul>
+    </div>
+
+    <!-- Contact Section -->
+    <div class="footer-section">
+      <h3 class="footer-heading">Kapcsolat</h3>
+      <ul class="footer-contact">
+        <li>
+          <i class="fa-solid fa-envelope"></i>
+          <a [href]="'mailto:' + contactInfo.email">{{ contactInfo.email }}</a>
+        </li>
+        <li>
+          <i class="fa-solid fa-phone"></i>
+          <a [href]="'tel:' + contactInfo.phone">{{ contactInfo.phone }}</a>
+        </li>
+        <li>
+          <i class="fa-solid fa-location-dot"></i>
+          <span>{{ contactInfo.address }}</span>
+        </li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- Copyright Section -->
+  <div class="footer-bottom">
+    <p class="copyright">© {{ currentYear }} CarComps. Minden jog fenntartva.</p>
+  </div>
+</footer>

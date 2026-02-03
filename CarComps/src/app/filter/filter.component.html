@@ -1,0 +1,35 @@
+<div class="filter-container">
+  <!-- ==========================================
+       ALKATRÉSZEK - EGYEDI KATEGÓRIÁK
+       ========================================== -->
+  <h3 class="filter-title">ALKATRÉSZEK</h3>
+  <hr />
+  <ul class="filter-list">
+    @for (category of uniqueCategories(); track category) {
+      <li class="filter-item">
+        <label [for]="'category-' + category" class="checkbox-container">
+          <input type="checkbox" [id]="'category-' + category" />
+          <span class="checkmark"></span>
+          {{ category }}
+        </label>
+      </li>
+    }
+  </ul>
+
+  <!-- ==========================================
+       MÁRKÁK - EGYEDI + HASZNÁLT MÁRKÁK
+       ========================================== -->
+  <h3 class="filter-title">MÁRKÁK</h3>
+  <hr />
+  <ul class="filter-list">
+    @for (manufacturer of uniqueManufacturers(); track manufacturer.id) {
+      <li class="filter-item">
+        <label [for]="'brand-' + manufacturer.id" class="checkbox-container">
+          <input type="checkbox" [id]="'brand-' + manufacturer.id" />
+          <span class="checkmark"></span>
+          {{ manufacturer.name }}
+        </label>
+      </li>
+    }
+  </ul>
+</div>

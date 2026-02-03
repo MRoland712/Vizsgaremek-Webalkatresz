@@ -392,7 +392,7 @@ public class PartVariants implements Serializable {
                         record[4] != null ? new BigDecimal(record[4].toString()) : null, // 4. additional_price
                         record[5] == null ? null : formatter.parse(record[5].toString()), // 5. created_at
                         Boolean.valueOf(record[6].toString()), // 6. is_deleted
-                        record[7] == null ? null : formatter.parse(record[7].toString()), // 7. deleted_at (JAVÍTVA! volt: record[6])
+                        record[7] == null ? null : formatter.parse(record[7].toString()), // 7. deleted_at
                         part // 8. partId
                 );
 

@@ -28,6 +28,8 @@ public class JwtUtil {
     private static final long TOKEN_VALIDITY = 24 * 60 * 60 * 1000;
     
     private static final AuthenticationService.JWTAuth JWTAuth = new AuthenticationService.JWTAuth();
+    
+    private static final AuthenticationService.errorAuth errorAuth = new AuthenticationService.errorAuth();
 
     /**
      * Get signing key from SECRET_KEY string
@@ -176,7 +178,7 @@ public class JwtUtil {
      * @param token JWT token string
      * @return Claims object
      */
-    private static Claims extractAllClaims(String token) {
+    public static Claims extractAllClaims(String token) {
         return Jwts.parserBuilder() // ← CHANGED: parserBuilder() instead of parser()
                 .setSigningKey(getSigningKey())
                 .build()
@@ -184,8 +186,7 @@ public class JwtUtil {
                 .getBody();
     }
     
-    AuthenticationService.errorAuth errorAuth = new AuthenticationService.errorAuth();
-    public Response validateJwtAndReturnError(String jwtToken) {
+    public static Response validateJwtAndReturnError(String jwtToken) {
         JSONArray errors = new JSONArray();
 
         if (JWTAuth.isDataMissing(jwtToken)) {

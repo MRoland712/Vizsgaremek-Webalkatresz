@@ -399,7 +399,7 @@ public class UsersService {
         
         return errorAuth.createOKResponse();
     }
-
+    //ToDo: email verified, phone verified, failed login?
     public JSONObject updateUser(Users updatedUser) {
         JSONObject toReturn = new JSONObject();
         JSONArray errors = new JSONArray();
@@ -681,11 +681,10 @@ public class UsersService {
         if (errorAuth.hasErrors(errors)) {
             return errorAuth.createErrorResponse(errors, 401);
         }
-        System.err.println("FUT");
+
         //get data from spq
         Boolean modelResult = Users.loginUser(userData);
-        
-        System.err.println("FUT TOVA");
+
 
         //if spq gives null data
         if (userAuth.isDataMissing(modelResult)) {
@@ -716,7 +715,13 @@ public class UsersService {
         if (userData.getIsActive() == false) {
             toReturn.put("message", "User Is Not Activated");
         }
+        
+        toReturn.put("username", userData.getUsername());
+        toReturn.put("firstName", userData.getFirstName());
+        toReturn.put("lastName", userData.getLastName());
+        toReturn.put("phone", userData.getPhone());
         return errorAuth.createOKResponse(toReturn);
     }
+    
 } // DONT DELETE, THIS IS THE CLASS CLOSER
 

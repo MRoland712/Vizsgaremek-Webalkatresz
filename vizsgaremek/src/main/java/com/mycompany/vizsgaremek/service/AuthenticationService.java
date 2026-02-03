@@ -11,6 +11,8 @@ import com.mycompany.vizsgaremek.model.Manufacturers;
 import com.mycompany.vizsgaremek.model.PartImages;
 import com.mycompany.vizsgaremek.model.PartVariants;
 import com.mycompany.vizsgaremek.model.Parts;
+import com.mycompany.vizsgaremek.model.UserTwofa;
+import io.jsonwebtoken.Claims;
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
@@ -94,6 +96,39 @@ public class AuthenticationService {
          * 200 }
          */
         public static JSONObject createOKResponse(JSONObject result) {
+            JSONObject response = new JSONObject();
+            response.put("result", result);
+            response.put("status", "success");
+            response.put("statusCode", 200);
+            return response;
+        }
+
+        /**
+         * Creates an JSONObject OK response with the given Claims result data
+         *
+         * @param result The Claims object that contains the result data
+         *
+         * @return a JSONObject with the result Claims as "result", a status of
+         * "success" and a "statusCode" of 200
+         */
+        public static JSONObject createOKResponse(Claims result) {
+            JSONObject response = new JSONObject();
+            response.put("result", result);
+            response.put("status", "success");
+            response.put("statusCode", 200);
+            return response;
+        }
+
+        /**
+         * Creates an JSONObject OK response with the given String result data
+         *
+         * @param result The String that contains the result data
+         *
+         * @return a JSONObject with the result String as "result", a status of
+         * "success" and a "statusCode" of 200 in this format { "result": [ {
+         * #result data# } ], "status": "success", "statusCode": 200 }
+         */
+        public static JSONObject createOKResponse(String result) {
             JSONObject response = new JSONObject();
             response.put("result", result);
             response.put("status", "success");
@@ -454,7 +489,7 @@ public class AuthenticationService {
         public boolean isDataMissing(Boolean data) {
             return data == null;
         }
-        
+
         public boolean isDataMissing(JSONObject data) {
             return data.isEmpty() || data == null;
         }
@@ -728,6 +763,40 @@ public class AuthenticationService {
         }
 
     } //partImagesAuth Auth Class closer
+
+    public static class userTwofaAuth {
+
+        private static final Pattern EMAIL_PATTERN
+                = Pattern.compile("^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}$");
+
+        public static boolean isDataMissing(String data) {
+            return (data == null || data.trim().isEmpty());
+        }
+        
+        public static boolean isDataMissing(List<Object[]> data) {
+            return data.isEmpty() || data == null;
+        }
+        
+        public static boolean isDataMissing(Integer data) {
+            return (data == null);
+        }
+
+        public static boolean isDataMissing(Users data) {
+            return (data == null);
+        }
+        
+        public static boolean isDataMissing(UserTwofa data) {
+            return data == null;
+        }
+
+        public static boolean isValidEmail(String email) {
+            return EMAIL_PATTERN.matcher(email).matches();
+        }
+        
+        public static boolean isValidUserId(Integer userId) {
+            return userId > 0 && userId.toString().trim().length() <= 11;
+        }
+    } //userTwofaAuth
 
 }//Auth Service Class closer
 

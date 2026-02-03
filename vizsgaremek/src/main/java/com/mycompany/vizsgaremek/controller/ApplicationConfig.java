@@ -26,6 +26,7 @@ public class ApplicationConfig extends Application {
     private void addRestResourceClasses(Set<Class<?>> resources) {
         resources.add(com.mycompany.vizsgaremek.config.CorsFilter.class);
         resources.add(com.mycompany.vizsgaremek.controller.AddressesController.class);
+        resources.add(com.mycompany.vizsgaremek.controller.JWTController.class);
         resources.add(com.mycompany.vizsgaremek.controller.ManufacturersController.class);
         resources.add(com.mycompany.vizsgaremek.controller.OTPController.class);
         resources.add(com.mycompany.vizsgaremek.controller.PartImagesController.class);
@@ -33,7 +34,9 @@ public class ApplicationConfig extends Application {
         resources.add(com.mycompany.vizsgaremek.controller.PartsController.class);
         resources.add(com.mycompany.vizsgaremek.controller.SendEmailController.class);
         resources.add(com.mycompany.vizsgaremek.controller.StaticResourceController.class);
+        resources.add(com.mycompany.vizsgaremek.controller.TFAController.class);
         resources.add(com.mycompany.vizsgaremek.controller.UserLogsController.class);
+        resources.add(com.mycompany.vizsgaremek.controller.UserTwofaController.class);
         resources.add(com.mycompany.vizsgaremek.controller.UsersController.class);
     }
 }

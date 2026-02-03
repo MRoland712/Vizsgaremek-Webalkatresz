@@ -700,7 +700,7 @@ public class Users implements Serializable {
             em.close();
         }
     }
-
+    //ToDo: email verified, phone verified, failed login?
     public static Boolean updateUser(Users updatedUser) {
         EntityManager em = emf.createEntityManager();
 

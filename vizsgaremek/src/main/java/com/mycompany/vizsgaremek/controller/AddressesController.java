@@ -58,10 +58,10 @@ public class AddressesController {
      *
      * @param content representation for the resource
      */
-    @PUT
+    /*@PUT
     @Consumes(MediaType.APPLICATION_JSON)
     public void putJson(String content) {
-    }
+    }*/
 
     @POST
     @Path("createAddress")

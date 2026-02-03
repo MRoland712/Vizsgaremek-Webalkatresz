@@ -46,21 +46,6 @@ public class UsersController {
     public void putXml(String content) {
     }
 
-    @GET
-    @Path("validateJWT")
-    @Consumes(MediaType.APPLICATION_JSON)
-    public Response validateJWTEndpoint(@HeaderParam("token") String jwtToken) {
-        Response jwtError = jwt.validateJwtAndReturnError(jwtToken);
-        if (jwtError != null) {
-            return jwtError;
-        }
-
-        return Response.status(200)
-                .entity(errorAuth.createOKResponse().toString())
-                .type(MediaType.APPLICATION_JSON)
-                .build();
-    }
-
     @POST
     @Path("createUser")
     @Consumes(MediaType.APPLICATION_JSON)
@@ -204,6 +189,7 @@ public class UsersController {
         if (bodyObject.has("isSubscribed")) {
             updatedUser.setIsSubscribed(bodyObject.getBoolean("isSubscribed"));
         }
+        //ToDo: email verified, phone verified
         if (bodyObject.has("password")) {
             updatedUser.setPassword(bodyObject.getString("password"));
         }
@@ -226,6 +212,25 @@ public class UsersController {
     @Path("loginUser")
     @Consumes(MediaType.APPLICATION_JSON)
     public Response loginUser(String body) {
+        JSONObject bodyObject = new JSONObject(body);
+
+        Users user = new Users(
+                bodyObject.has("email") ? bodyObject.getString("email") : null,
+                bodyObject.has("password") ? bodyObject.getString("password") : null
+        );
+
+        JSONObject toReturn = layer.loginUser(user);
+
+        return Response.status(Integer.parseInt(toReturn.get("statusCode").toString()))
+                .entity(toReturn.toString())
+                .type(MediaType.APPLICATION_JSON)
+                .build();
+    }
+    
+    @PUT
+    @Path("adminLogin")
+    @Consumes(MediaType.APPLICATION_JSON)
+    public Response loginAdminController(String body) {
         JSONObject bodyObject = new JSONObject(body);
 
         Users user = new Users(

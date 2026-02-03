@@ -53,7 +53,8 @@ public class Encrypt {
             "titkosJelszó12!",
             "árvíztűrő_tükörfúrógép",
             "ÓÜÖÚŐŰÁÉÍ",
-            "Password123!éáű"
+            "Password123!éáű",
+            "1234Jelszo1234!"
         };
 
         for (String password : testPasswords) {

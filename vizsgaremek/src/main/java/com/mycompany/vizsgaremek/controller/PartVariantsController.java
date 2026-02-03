@@ -54,10 +54,10 @@ public class PartVariantsController {
      * PUT method for updating or creating an instance of PartVariantsController
      * @param content representation for the resource
      */
-    @PUT
+    /*@PUT
     @Consumes(MediaType.APPLICATION_JSON)
     public void putJson(String content) {
-    }
+    }*/
     
     @POST
     @Path("createPartVariants")

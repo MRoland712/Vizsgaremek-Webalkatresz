@@ -1,0 +1,48 @@
+/* ==========================================
+   PRODUCT GRID - 2 OSZLOP
+   ========================================== */
+
+.product-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr); /* ← 2 oszlop! */
+  gap: 24px;
+  padding: 40px;
+  max-width: 1400px;
+  margin: 0 auto;
+}
+
+/* ==========================================
+   RESPONSIVE - 1 OSZLOP MOBILON
+   ========================================== */
+
+@media (max-width: 992px) {
+  .product-grid {
+    padding: 30px;
+    gap: 20px;
+  }
+}
+
+@media (max-width: 768px) {
+  .product-grid {
+    grid-template-columns: 1fr; /* ← 1 oszlop mobilon */
+    padding: 20px;
+    gap: 16px;
+  }
+}
+
+@media (max-width: 480px) {
+  .product-grid {
+    padding: 16px;
+    gap: 12px;
+  }
+}
+
+/* ==========================================
+   OPCIONÁLIS - 3 OSZLOP NAGY KÉPERNYŐN
+   ========================================== */
+
+@media (min-width: 1600px) {
+  .product-grid {
+    grid-template-columns: repeat(3, 1fr); /* 3 oszlop extra wide */
+  }
+}

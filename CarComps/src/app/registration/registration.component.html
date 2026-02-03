@@ -1,0 +1,136 @@
+<div class="login-page">
+  <!-- FORM - KÖZÉPEN -->
+  <form [formGroup]="signupForm" (ngSubmit)="onSignUpSubmit()">
+    <!-- HEADER -->
+    <div class="form-header">
+      <img src="assets/CarComps_Logo_C_white.png" alt="CarComps Logo" class="logo" />
+      <h2>Regisztráció</h2>
+    </div>
+
+    <!-- FORM CONTAINER - 2 OSZLOPOS GRID -->
+    <div class="login-container">
+      <!-- BAL OSZLOP: FELHASZNÁLÓNÉV -->
+      <div class="username-control">
+        <input
+          type="text"
+          class="form__field"
+          placeholder="Felhasználónév"
+          id="username"
+          formControlName="username"
+          [class.invalid]="usernameIsInvalid"
+        />
+        <label for="username" class="form__label">Felhasználónév</label>
+        @if (usernameIsInvalid) {
+        <p class="error-message">Hibás felhasználónév! (3-20 karakter)</p>
+        }
+      </div>
+
+      <!-- JOBB OSZLOP: TELEFONSZÁM  TODO TELEFONSZÁM ÁTHELYEZÉS-->
+      <div class="email-control">
+        <input
+          type="email"
+          class="form__field"
+          placeholder="Email"
+          id="email"
+          formControlName="email"
+          [class.invalid]="emailIsInvalid || emailAlreadyExists()"
+        />
+        <label for="email" class="form__label">Email</label>
+        @if (emailIsInvalid || emailAlreadyExists()) {
+        <p class="error-message">Hibás email cím</p>
+        }
+      </div>
+
+      <!-- BAL OSZLOP: VEZETÉKNÉV -->
+      <div class="firstname-control">
+        <input
+          type="text"
+          class="form__field"
+          placeholder="Vezetéknév"
+          id="firstname"
+          formControlName="firstname"
+          [class.invalid]="firstnameIsInvalid"
+        />
+        <label for="firstname" class="form__label">Vezetéknév</label>
+        @if (firstnameIsInvalid) {
+        <p class="error-message">Adja meg a vezetéknevét!</p>
+        }
+      </div>
+
+      <!-- JOBB OSZLOP: KERESZTNÉV -->
+      <div class="lastname-control">
+        <input
+          type="text"
+          class="form__field"
+          placeholder="Keresztnév"
+          id="lastname"
+          formControlName="lastname"
+          [class.invalid]="lastnameIsInvalid"
+        />
+        <label for="lastname" class="form__label">Keresztnév</label>
+        @if (lastnameIsInvalid) {
+        <p class="error-message">Adja meg a keresztnevét!</p>
+        }
+      </div>
+
+      <!-- TELJES SZÉLESSÉG: EMAIL -->
+      <div class="phone-control">
+        <input
+          type="text"
+          class="form__field"
+          placeholder="Telefonszám"
+          id="phone"
+          formControlName="phone"
+          [class.invalid]="phoneNumberIsInvalid"
+        />
+        <label for="phone" class="form__label">Telefonszám</label>
+        @if (phoneNumberIsInvalid) {
+        <p class="error-message">Adja meg a telefonszámát!</p>
+        }
+      </div>
+
+      <!-- TELJES SZÉLESSÉG: JELSZÓ -->
+      <div class="login-control">
+        <input
+          type="password"
+          class="form__field"
+          placeholder="Jelszó"
+          id="password"
+          formControlName="password"
+          [class.invalid]="passwordIsInvalid"
+        />
+        <label for="password" class="form__label">Jelszó</label>
+        @if (passwordIsInvalid) {
+        <p class="error-message">
+          Hibás jelszó! (Legalább 8 karakter, speciális karakter, nagybetű, szám)
+        </p>
+        }
+      </div>
+
+      <!-- TELJES SZÉLESSÉG: JELSZÓ MEGERŐSÍTÉSE -->
+      <div class="login-control">
+        <input
+          type="password"
+          class="form__field"
+          placeholder="Jelszó megerősítése"
+          id="rePassword"
+          formControlName="rePassword"
+          [class.invalid]="rePasswordIsInvalid"
+        />
+        <label for="rePassword" class="form__label">Jelszó megerősítése</label>
+        @if (rePasswordIsInvalid) {
+        <p class="error-message">A jelszavak nem egyeznek!</p>
+        }
+      </div>
+    </div>
+
+    <!-- SUBMIT BUTTON -->
+    <button type="submit" class="button" [disabled]="signupForm.invalid">Regisztráció</button>
+
+    <!-- LOGIN LINK -->
+    <p>
+      Van már fiókod?
+      <a routerLink="/login" class="reg-link">Jelentkezz be!</a>
+    </p>
+  </form>
+</div>

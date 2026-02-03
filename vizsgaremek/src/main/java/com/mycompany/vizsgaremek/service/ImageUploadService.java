@@ -12,7 +12,7 @@ public class ImageUploadService {
     private static final String UPLOAD_DIR = "C:\\carcompsImages\\";
     
     // URL alap
-    private static final String BASE_URL = "http://localhost:8080/vizsgaremek-1.0-SNAPSHOT/webresources/images/";
+    private static final String BASE_URL = "http://api.Carcomps.hu/vizsgaremek-1.0-SNAPSHOT/webresources/images/";
     
     /**
      * Kép feltöltése
@@ -32,7 +32,7 @@ public class ImageUploadService {
         
         // 2. Egyedi fájlnév generálása
         String extension = getFileExtension(originalFileName);
-        String uniqueFileName = UUID.randomUUID().toString() + extension;
+        String uniqueFileName = originalFileName;
         
         // 3. Teljes útvonal
         String folderPath = UPLOAD_DIR + folder + File.separator;
