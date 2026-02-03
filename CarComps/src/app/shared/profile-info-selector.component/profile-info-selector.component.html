@@ -35,6 +35,20 @@
       <p>{{ item.phone }}</p>
     </div>
 
+    <!-- ⭐ Rendeléseim -->
+    <div class="info-row" (click)="openDialog('orders')">
+      <i class="fa-solid fa-box info-icon"></i>
+      <h3>Rendeléseim</h3>
+      <p>Megrendelések</p>
+    </div>
+
+    <!-- ⭐ Szállítási cím -->
+    <div class="info-row" (click)="openDialog('address')">
+      <i class="fa-solid fa-location-dot info-icon"></i>
+      <h3>Szállítási cím</h3>
+      <p>Cím kezelése</p>
+    </div>
+
     <!-- 2FA -->
     <div class="info-row" (click)="openDialog('2fa')">
       <i class="fa-solid fa-shield info-icon"></i>
@@ -49,7 +63,11 @@
      ========================================== -->
 @if (isDialogOpen()) {
   <div class="dialog-overlay" (click)="closeDialog()">
-    <div class="dialog-content" (click)="$event.stopPropagation()">
+    <div
+      class="dialog-content"
+      [class.wide-dialog]="currentEditField() === 'orders'"
+      (click)="$event.stopPropagation()"
+    >
       <!-- Dialog Header -->
       <div class="dialog-header">
         <h2>{{ getDialogTitle() }}</h2>
@@ -60,8 +78,129 @@
 
       <!-- Dialog Body -->
       <form [formGroup]="editForm" (ngSubmit)="onSave()">
+        <!-- EXISTING FIELDS... -->
+
         <!-- ⭐ TELJES NÉV -->
         @if (currentEditField() === 'fullname') {
+          <div class="form-group">
+            <label>Keresztnév</label>
+            <input type="text" formControlName="firstname" placeholder="Keresztnév" />
+            @if (editForm.controls.firstname.invalid && editForm.controls.firstname.touched) {
+              <span class="error">Minimum 2 karakter</span>
+            }
+          </div>
+          <div class="form-group">
+            <label>Vezetéknév</label>
+            <input type="text" formControlName="lastname" placeholder="Vezetéknév" />
+            @if (editForm.controls.lastname.invalid && editForm.controls.lastname.touched) {
+              <span class="error">Minimum 2 karakter</span>
+            }
+          </div>
+        }
+
+        @if (currentEditField() === 'username') {
+          <div class="form-group">
+            <label>Felhasználónév</label>
+            <input type="text" formControlName="username" placeholder="Felhasználónév" />
+            @if (editForm.controls.username.invalid && editForm.controls.username.touched) {
+              <span class="error">Minimum 3 karakter</span>
+            }
+          </div>
+        }
+
+        @if (currentEditField() === 'email') {
+          <div class="form-group">
+            <label>Email cím</label>
+            <input type="email" formControlName="email" placeholder="email@example.com" />
+            @if (editForm.controls.email.invalid && editForm.controls.email.touched) {
+              <span class="error">Érvénytelen email cím</span>
+            }
+          </div>
+        }
+
+        @if (currentEditField() === 'password') {
+          <div class="form-group">
+            <label>Jelenlegi jelszó</label>
+            <input type="password" formControlName="currentPassword" placeholder="••••••••" />
+          </div>
+          <div class="form-group">
+            <label>Új jelszó</label>
+            <input type="password" formControlName="newPassword" placeholder="••••••••" />
+            @if (editForm.controls.newPassword.invalid && editForm.controls.newPassword.touched) {
+              <span class="error">Minimum 8 karakter</span>
+            }
+          </div>
+          <div class="form-group">
+            <label>Új jelszó megerősítése</label>
+            <input type="password" formControlName="confirmPassword" placeholder="••••••••" />
+          </div>
+        }
+
+        @if (currentEditField() === 'phone') {
+          <div class="form-group">
+            <label>Telefonszám</label>
+            <input type="tel" formControlName="phone" placeholder="+36 30 123 4567" />
+            @if (editForm.controls.phone.invalid && editForm.controls.phone.touched) {
+              <span class="error">9-15 számjegy szükséges</span>
+            }
+          </div>
+        }
+
+        @if (currentEditField() === '2fa') {
+          <div class="info-message">
+            <i class="fa-solid fa-shield-halved"></i>
+            <p>A kétfaktoros hitelesítés extra védelmet nyújt a fiókodnak.</p>
+          </div>
+        }
+
+        <!-- ⭐ RENDELÉSEIM -->
+        @if (currentEditField() === 'orders') {
+          @if (isLoadingOrders()) {
+            <div class="loading-state">
+              <i class="fa-solid fa-spinner fa-spin"></i>
+              <p>Rendelések betöltése...</p>
+            </div>
+          } @else {
+            @if (orders().length === 0) {
+              <div class="empty-state">
+                <i class="fa-solid fa-box-open"></i>
+                <p>Még nincs rendelésed</p>
+              </div>
+            } @else {
+              <div class="orders-list">
+                @for (order of orders(); track order.id) {
+                  <div class="order-card">
+                    <div class="order-header">
+                      <div class="order-id">
+                        <strong>Rendelés #{{ order.id }}</strong>
+                        <span class="order-date">{{ order.orderDate }}</span>
+                      </div>
+                      <span class="order-status">
+                        {{ order.status }}
+                      </span>
+                    </div>
+                    <div class="order-items">
+                      @for (item of order.items; track $index) {
+                        <div class="order-item">
+                          <span class="item-name">{{ item.productName }}</span>
+                          <span class="item-quantity">{{ item.quantity }} db</span>
+                          <span class="item-price">{{ item.price }} HUF</span>
+                        </div>
+                      }
+                    </div>
+                    <div class="order-total">
+                      <strong>Végösszeg:</strong>
+                      <strong>{{ order.totalPrice }} HUF</strong>
+                    </div>
+                  </div>
+                }
+              </div>
+            }
+          }
+        }
+
+        <!-- ⭐ SZÁLLÍTÁSI CÍM -->
+        @if (currentEditField() === 'address') {
           <div class="form-group">
             <label>Keresztnév</label>
             <input type="text" formControlName="firstname" placeholder="Keresztnév" />
@@ -77,53 +216,7 @@
               <span class="error">Minimum 2 karakter</span>
             }
           </div>
-        }
 
-        <!-- ⭐ FELHASZNÁLÓNÉV -->
-        @if (currentEditField() === 'username') {
-          <div class="form-group">
-            <label>Felhasználónév</label>
-            <input type="text" formControlName="username" placeholder="Felhasználónév" />
-            @if (editForm.controls.username.invalid && editForm.controls.username.touched) {
-              <span class="error">Minimum 3 karakter</span>
-            }
-          </div>
-        }
-
-        <!-- ⭐ EMAIL -->
-        @if (currentEditField() === 'email') {
-          <div class="form-group">
-            <label>Email cím</label>
-            <input type="email" formControlName="email" placeholder="email@example.com" />
-            @if (editForm.controls.email.invalid && editForm.controls.email.touched) {
-              <span class="error">Érvénytelen email cím</span>
-            }
-          </div>
-        }
-
-        <!-- ⭐ JELSZÓ -->
-        @if (currentEditField() === 'password') {
-          <div class="form-group">
-            <label>Jelenlegi jelszó</label>
-            <input type="password" formControlName="currentPassword" placeholder="••••••••" />
-          </div>
-
-          <div class="form-group">
-            <label>Új jelszó</label>
-            <input type="password" formControlName="newPassword" placeholder="••••••••" />
-            @if (editForm.controls.newPassword.invalid && editForm.controls.newPassword.touched) {
-              <span class="error">Minimum 8 karakter</span>
-            }
-          </div>
-
-          <div class="form-group">
-            <label>Új jelszó megerősítése</label>
-            <input type="password" formControlName="confirmPassword" placeholder="••••••••" />
-          </div>
-        }
-
-        <!-- ⭐ TELEFONSZÁM -->
-        @if (currentEditField() === 'phone') {
           <div class="form-group">
             <label>Telefonszám</label>
             <input type="tel" formControlName="phone" placeholder="+36 30 123 4567" />
@@ -131,13 +224,55 @@
               <span class="error">9-15 számjegy szükséges</span>
             }
           </div>
-        }
 
-        <!-- ⭐ 2FA -->
-        @if (currentEditField() === '2fa') {
-          <div class="info-message">
-            <i class="fa-solid fa-shield-halved"></i>
-            <p>A kétfaktoros hitelesítés extra védelmet nyújt a fiókodnak.</p>
+          <div class="form-group">
+            <label>Adószám</label>
+            <input type="text" formControlName="taxnumber" placeholder="Adószám" />
+            @if (editForm.controls.taxnumber.invalid && editForm.controls.taxnumber.touched) {
+              <span class="error">Kötelező mező</span>
+            }
+          </div>
+
+          <div class="form-group">
+            <label>Ország</label>
+            <input type="text" formControlName="country" placeholder="Magyarország" />
+            @if (editForm.controls.country.invalid && editForm.controls.country.touched) {
+              <span class="error">Kötelező mező</span>
+            }
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label>Irányítószám</label>
+              <input type="text" formControlName="postalCode" placeholder="1234" maxlength="4" />
+              @if (editForm.controls.postalCode.invalid && editForm.controls.postalCode.touched) {
+                <span class="error">4 számjegy</span>
+              }
+            </div>
+            <div class="form-group">
+              <label>Város</label>
+              <input type="text" formControlName="city" placeholder="Budapest" />
+              @if (editForm.controls.city.invalid && editForm.controls.city.touched) {
+                <span class="error">Kötelező mező</span>
+              }
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label>Utca</label>
+              <input type="text" formControlName="street" placeholder="Fő utca" />
+              @if (editForm.controls.street.invalid && editForm.controls.street.touched) {
+                <span class="error">Kötelező mező</span>
+              }
+            </div>
+            <div class="form-group">
+              <label>Házszám</label>
+              <input type="text" formControlName="houseNumber" placeholder="12" />
+              @if (editForm.controls.houseNumber.invalid && editForm.controls.houseNumber.touched) {
+                <span class="error">Kötelező mező</span>
+              }
+            </div>
           </div>
         }
 
@@ -158,17 +293,21 @@
         }
 
         <!-- Dialog Footer -->
-        <div class="dialog-footer">
-          <button type="button" class="btn-cancel" (click)="closeDialog()">Mégse</button>
-          <button type="submit" class="btn-save" [disabled]="isSaving()">
-            @if (isSaving()) {
-              <i class="fa-solid fa-spinner fa-spin"></i>
-              Mentés...
-            } @else {
-              Mentés
+        @if (currentEditField() !== 'orders') {
+          <div class="dialog-footer">
+            <button type="button" class="btn-cancel" (click)="closeDialog()">Mégse</button>
+            @if (currentEditField() !== '2fa') {
+              <button type="submit" class="btn-save" [disabled]="isSaving()">
+                @if (isSaving()) {
+                  <i class="fa-solid fa-spinner fa-spin"></i>
+                  Mentés...
+                } @else {
+                  Mentés
+                }
+              </button>
             }
-          </button>
-        </div>
+          </div>
+        }
       </form>
     </div>
   </div>

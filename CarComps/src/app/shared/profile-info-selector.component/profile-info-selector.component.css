@@ -355,3 +355,209 @@ form {
     padding: 16px;
   }
 }
+/* Existing styles... */
+
+/* ==========================================
+   WIDE DIALOG (for orders)
+   ========================================== */
+
+.wide-dialog {
+  max-width: 700px !important;
+}
+
+/* ==========================================
+   ORDERS LIST
+   ========================================== */
+
+.orders-list {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  max-height: 500px;
+  overflow-y: auto;
+  padding-right: 8px;
+}
+
+.order-card {
+  border: 1px solid #e0e0e0;
+  border-radius: 12px;
+  padding: 16px;
+  background: #fafafa;
+  transition: box-shadow 0.2s;
+}
+
+.order-card:hover {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.order-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid #e0e0e0;
+}
+
+.order-id {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.order-id strong {
+  font-size: 16px;
+  color: #2b2b2b;
+}
+
+.order-date {
+  font-size: 13px;
+  color: #999;
+}
+
+.order-status {
+  padding: 6px 12px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+}
+
+.status-success {
+  background: rgba(76, 175, 80, 0.15);
+  color: #4caf50;
+}
+
+.status-warning {
+  background: rgba(255, 152, 0, 0.15);
+  color: #ff9800;
+}
+
+.status-error {
+  background: rgba(244, 67, 54, 0.15);
+  color: #f44336;
+}
+
+.status-default {
+  background: rgba(158, 158, 158, 0.15);
+  color: #9e9e9e;
+}
+
+.order-items {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.order-item {
+  display: grid;
+  grid-template-columns: 1fr auto auto;
+  gap: 12px;
+  padding: 8px;
+  background: white;
+  border-radius: 6px;
+  font-size: 14px;
+}
+
+.item-name {
+  color: #2b2b2b;
+}
+
+.item-quantity {
+  color: #666;
+  font-weight: 500;
+}
+
+.item-price {
+  color: #ff6600;
+  font-weight: 600;
+}
+
+.order-total {
+  display: flex;
+  justify-content: space-between;
+  padding-top: 12px;
+  border-top: 1px solid #e0e0e0;
+  font-size: 16px;
+  color: #2b2b2b;
+}
+
+/* ==========================================
+   LOADING & EMPTY STATES
+   ========================================== */
+
+.loading-state,
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 40px 20px;
+  text-align: center;
+}
+
+.loading-state i,
+.empty-state i {
+  font-size: 48px;
+  color: #ccc;
+  margin-bottom: 16px;
+}
+
+.loading-state i {
+  color: #ff6600;
+}
+
+.loading-state p,
+.empty-state p {
+  margin: 0;
+  color: #999;
+  font-size: 15px;
+}
+
+/* ==========================================
+   FORM ROW (for address)
+   ========================================== */
+
+.form-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+
+@media (max-width: 480px) {
+  .form-row {
+    grid-template-columns: 1fr;
+  }
+
+  .wide-dialog {
+    max-width: 95% !important;
+  }
+
+  .order-item {
+    grid-template-columns: 1fr;
+    gap: 4px;
+  }
+}
+
+/* ==========================================
+   SCROLLBAR STYLING
+   ========================================== */
+
+.orders-list::-webkit-scrollbar {
+  width: 6px;
+}
+
+.orders-list::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 10px;
+}
+
+.orders-list::-webkit-scrollbar-thumb {
+  background: #ccc;
+  border-radius: 10px;
+}
+
+.orders-list::-webkit-scrollbar-thumb:hover {
+  background: #999;
+}

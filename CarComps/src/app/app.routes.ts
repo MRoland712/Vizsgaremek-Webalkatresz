@@ -6,7 +6,6 @@ import { RegistrationComponent } from './registration/registration.component';
 import { HomepageComponent } from './homepage.component/homepage.component';
 import { ProductPageComponent } from './product-page.component/product-page.component';
 import { authGuard } from './services/guard';
-import { UserProfileComponent } from './profile-page/user-profile.component/user-profile.component';
 
 export const routes: Routes = [
   // ==========================================
