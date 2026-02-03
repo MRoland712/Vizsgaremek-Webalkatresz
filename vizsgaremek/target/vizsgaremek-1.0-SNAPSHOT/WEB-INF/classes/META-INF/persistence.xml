@@ -5,6 +5,10 @@
     <jta-data-source>java:/car_parts_shop_fix</jta-data-source>
     <!-- Automatikus entitásfelismerés -->
     <class>com.mycompany.vizsgaremek.model.Users_1</class>
+    <class>com.mycompany.vizsgaremek.model.PartCompatibility</class>
+    <class>com.mycompany.vizsgaremek.model.Parts</class>
+    <class>com.mycompany.vizsgaremek.model.Manufacturers</class>
+    <class>com.mycompany.vizsgaremek.model.CartItems</class>
     <exclude-unlisted-classes>false</exclude-unlisted-classes>
     <properties>
       <property name="hibernate.hbm2ddl.auto" value="none"/>

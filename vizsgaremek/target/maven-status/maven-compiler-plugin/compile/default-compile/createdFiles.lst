@@ -59,6 +59,7 @@ com\mycompany\vizsgaremek\service\AuthenticationService$userTwofaAuth.class
 com\mycompany\vizsgaremek\model\EmailVerifications.class
 com\mycompany\vizsgaremek\model\OrderItems.class
 com\mycompany\vizsgaremek\service\ImageUploadService.class
+com\mycompany\vizsgaremek\model\PartCompatibility.class
 com\mycompany\vizsgaremek\service\PartImagesService.class
 com\mycompany\vizsgaremek\config\OTPVerifyer.class
 com\mycompany\vizsgaremek\controller\PartVariantsController.class
