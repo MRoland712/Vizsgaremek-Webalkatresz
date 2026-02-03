@@ -1,11 +1,11 @@
 -- phpMyAdmin SQL Dump
--- version 5.1.2
+-- version 5.2.3
 -- https://www.phpmyadmin.net/
 --
--- Gép: localhost:3306
--- Létrehozás ideje: 2026. Jan 29. 20:06
--- Kiszolgáló verziója: 5.7.24
--- PHP verzió: 8.3.1
+-- Gép: localhost:8889
+-- Létrehozás ideje: 2026. Feb 03. 19:50
+-- Kiszolgáló verziója: 8.0.44
+-- PHP verzió: 8.3.28
 
 SET SQL_MODE = "NO_AUTO_VALUE_ON_ZERO";
 START TRANSACTION;
@@ -20,7 +20,7 @@ SET time_zone = "+00:00";
 --
 -- Adatbázis: `car_parts_shop_fix`
 --
-CREATE DATABASE IF NOT EXISTS `car_parts_shop_fix` DEFAULT CHARACTER SET utf8 COLLATE utf8_general_ci;
+CREATE DATABASE IF NOT EXISTS `car_parts_shop_fix` DEFAULT CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci;
 USE `car_parts_shop_fix`;
 
 DELIMITER $$
@@ -1434,8 +1434,8 @@ DELIMITER ;
 
 DROP TABLE IF EXISTS `addresses`;
 CREATE TABLE `addresses` (
-  `id` int(11) NOT NULL,
-  `user_id` int(11) NOT NULL,
+  `id` int NOT NULL,
+  `user_id` int NOT NULL,
   `first_name` varchar(50) DEFAULT NULL,
   `last_name` varchar(50) DEFAULT NULL,
   `company` varchar(50) DEFAULT NULL,
@@ -1449,7 +1449,7 @@ CREATE TABLE `addresses` (
   `updated_at` datetime DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   `is_deleted` tinyint(1) DEFAULT '0',
   `deleted_at` datetime DEFAULT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3;
 
 -- --------------------------------------------------------
 
@@ -1459,16 +1459,16 @@ CREATE TABLE `addresses` (
 
 DROP TABLE IF EXISTS `cars`;
 CREATE TABLE `cars` (
-  `id` int(11) NOT NULL,
+  `id` int NOT NULL,
   `brand` varchar(100) NOT NULL,
   `model` varchar(100) NOT NULL,
-  `year_from` int(11) DEFAULT NULL,
-  `year_to` int(11) DEFAULT NULL,
+  `year_from` int DEFAULT NULL,
+  `year_to` int DEFAULT NULL,
   `created_at` datetime DEFAULT CURRENT_TIMESTAMP,
   `updated_at` datetime DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   `is_deleted` tinyint(1) DEFAULT '0',
   `deleted_at` datetime DEFAULT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3;
 
 -- --------------------------------------------------------
 
@@ -1478,14 +1478,14 @@ CREATE TABLE `cars` (
 
 DROP TABLE IF EXISTS `cart_items`;
 CREATE TABLE `cart_items` (
-  `id` int(11) NOT NULL,
-  `user_id` int(11) NOT NULL,
-  `part_id` int(11) NOT NULL,
-  `quantity` int(11) DEFAULT '1',
+  `id` int NOT NULL,
+  `user_id` int NOT NULL,
+  `part_id` int NOT NULL,
+  `quantity` int DEFAULT '1',
   `added_at` datetime DEFAULT CURRENT_TIMESTAMP,
   `is_deleted` tinyint(1) DEFAULT '0',
   `deleted_at` datetime DEFAULT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3;
 
 -- --------------------------------------------------------
 
@@ -1495,13 +1495,13 @@ CREATE TABLE `cart_items` (
 
 DROP TABLE IF EXISTS `email_verifications`;
 CREATE TABLE `email_verifications` (
-  `id` int(11) NOT NULL,
-  `user_id` int(11) NOT NULL,
+  `id` int NOT NULL,
+  `user_id` int NOT NULL,
   `token` varchar(6) NOT NULL,
   `verified` tinyint(1) DEFAULT '0',
   `sent_at` datetime DEFAULT CURRENT_TIMESTAMP,
   `verified_at` datetime DEFAULT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3;
 
 -- --------------------------------------------------------
 
@@ -1511,13 +1511,13 @@ CREATE TABLE `email_verifications` (
 
 DROP TABLE IF EXISTS `invoices`;
 CREATE TABLE `invoices` (
-  `id` int(11) NOT NULL,
-  `order_id` int(11) NOT NULL,
+  `id` int NOT NULL,
+  `order_id` int NOT NULL,
   `pdf_url` varchar(255) DEFAULT NULL,
   `created_at` datetime DEFAULT CURRENT_TIMESTAMP,
   `is_deleted` tinyint(1) DEFAULT '0',
   `deleted_at` datetime DEFAULT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3;
 
 -- --------------------------------------------------------
 
@@ -1527,11 +1527,11 @@ CREATE TABLE `invoices` (
 
 DROP TABLE IF EXISTS `login_logs`;
 CREATE TABLE `login_logs` (
-  `id` int(11) NOT NULL,
-  `user_id` int(11) NOT NULL,
+  `id` int NOT NULL,
+  `user_id` int NOT NULL,
   `user_agent` varchar(255) DEFAULT NULL,
   `logged_in_at` datetime DEFAULT CURRENT_TIMESTAMP
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3;
 
 -- --------------------------------------------------------
 
@@ -1541,13 +1541,13 @@ CREATE TABLE `login_logs` (
 
 DROP TABLE IF EXISTS `manufacturers`;
 CREATE TABLE `manufacturers` (
-  `id` int(11) NOT NULL,
+  `id` int NOT NULL,
   `name` varchar(100) NOT NULL,
   `country` varchar(50) DEFAULT NULL,
   `created_at` datetime DEFAULT CURRENT_TIMESTAMP,
   `is_deleted` tinyint(1) DEFAULT '0',
   `deleted_at` datetime DEFAULT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3;
 
 -- --------------------------------------------------------
 
@@ -1557,16 +1557,16 @@ CREATE TABLE `manufacturers` (
 
 DROP TABLE IF EXISTS `motors`;
 CREATE TABLE `motors` (
-  `id` int(11) NOT NULL,
+  `id` int NOT NULL,
   `brand` varchar(100) NOT NULL,
   `model` varchar(100) NOT NULL,
-  `year_from` int(11) DEFAULT NULL,
-  `year_to` int(11) DEFAULT NULL,
+  `year_from` int DEFAULT NULL,
+  `year_to` int DEFAULT NULL,
   `created_at` datetime DEFAULT CURRENT_TIMESTAMP,
   `updated_at` datetime DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   `is_deleted` tinyint(1) DEFAULT '0',
   `deleted_at` datetime DEFAULT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3;
 
 -- --------------------------------------------------------
 
@@ -1576,13 +1576,13 @@ CREATE TABLE `motors` (
 
 DROP TABLE IF EXISTS `orders`;
 CREATE TABLE `orders` (
-  `id` int(11) NOT NULL,
-  `user_id` int(11) NOT NULL,
+  `id` int NOT NULL,
+  `user_id` int NOT NULL,
   `status` varchar(20) DEFAULT 'pending',
   `created_at` datetime DEFAULT CURRENT_TIMESTAMP,
   `is_deleted` tinyint(1) DEFAULT '0',
   `deleted_at` datetime DEFAULT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3;
 
 -- --------------------------------------------------------
 
@@ -1592,15 +1592,15 @@ CREATE TABLE `orders` (
 
 DROP TABLE IF EXISTS `order_items`;
 CREATE TABLE `order_items` (
-  `id` int(11) NOT NULL,
-  `order_id` int(11) NOT NULL,
-  `part_id` int(11) NOT NULL,
-  `quantity` int(11) DEFAULT '1',
+  `id` int NOT NULL,
+  `order_id` int NOT NULL,
+  `part_id` int NOT NULL,
+  `quantity` int DEFAULT '1',
   `price` decimal(10,2) DEFAULT NULL,
   `created_at` datetime DEFAULT CURRENT_TIMESTAMP,
   `is_deleted` tinyint(1) DEFAULT '0',
   `deleted_at` datetime DEFAULT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3;
 
 -- --------------------------------------------------------
 
@@ -1610,12 +1610,12 @@ CREATE TABLE `order_items` (
 
 DROP TABLE IF EXISTS `order_logs`;
 CREATE TABLE `order_logs` (
-  `id` int(11) NOT NULL,
-  `order_id` int(11) NOT NULL,
+  `id` int NOT NULL,
+  `order_id` int NOT NULL,
   `old_status` varchar(20) DEFAULT NULL,
   `new_status` varchar(20) DEFAULT NULL,
   `changed_at` datetime DEFAULT CURRENT_TIMESTAMP
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3;
 
 -- --------------------------------------------------------
 
@@ -1625,20 +1625,38 @@ CREATE TABLE `order_logs` (
 
 DROP TABLE IF EXISTS `parts`;
 CREATE TABLE `parts` (
-  `id` int(11) NOT NULL,
-  `manufacturer_id` int(11) NOT NULL,
+  `id` int NOT NULL,
+  `manufacturer_id` int NOT NULL,
   `sku` varchar(100) NOT NULL,
   `name` varchar(255) NOT NULL,
   `category` varchar(100) DEFAULT NULL,
   `price` decimal(10,2) NOT NULL,
-  `stock` int(11) DEFAULT '0',
+  `stock` int DEFAULT '0',
   `status` varchar(20) DEFAULT 'available',
   `is_active` tinyint(1) DEFAULT '1',
   `created_at` datetime DEFAULT CURRENT_TIMESTAMP,
   `updated_at` datetime DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   `deleted_at` datetime DEFAULT NULL,
   `is_deleted` tinyint(1) DEFAULT '0'
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3;
+
+-- --------------------------------------------------------
+
+--
+-- Tábla szerkezet ehhez a táblához `part_compatibility`
+--
+
+DROP TABLE IF EXISTS `part_compatibility`;
+CREATE TABLE `part_compatibility` (
+  `id` int NOT NULL,
+  `part_id` int NOT NULL,
+  `vehicle_type` enum('car','motor','truck') NOT NULL,
+  `vehicle_id` int NOT NULL,
+  `created_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` datetime DEFAULT NULL ON UPDATE CURRENT_TIMESTAMP,
+  `deleted_at` datetime DEFAULT NULL,
+  `is_deleted` tinyint(1) DEFAULT '0'
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3;
 
 -- --------------------------------------------------------
 
@@ -1648,14 +1666,14 @@ CREATE TABLE `parts` (
 
 DROP TABLE IF EXISTS `part_images`;
 CREATE TABLE `part_images` (
-  `id` int(11) NOT NULL,
-  `part_id` int(11) NOT NULL,
+  `id` int NOT NULL,
+  `part_id` int NOT NULL,
   `url` varchar(255) NOT NULL,
   `is_primary` tinyint(1) DEFAULT '0',
   `created_at` datetime DEFAULT CURRENT_TIMESTAMP,
   `is_deleted` tinyint(1) DEFAULT '0',
   `deleted_at` datetime DEFAULT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3;
 
 -- --------------------------------------------------------
 
@@ -1665,15 +1683,15 @@ CREATE TABLE `part_images` (
 
 DROP TABLE IF EXISTS `part_variants`;
 CREATE TABLE `part_variants` (
-  `id` int(11) NOT NULL,
-  `part_id` int(11) NOT NULL,
+  `id` int NOT NULL,
+  `part_id` int NOT NULL,
   `name` varchar(100) DEFAULT NULL,
   `value` varchar(100) DEFAULT NULL,
   `additional_price` decimal(10,2) DEFAULT '0.00',
   `created_at` datetime DEFAULT CURRENT_TIMESTAMP,
   `is_deleted` tinyint(1) DEFAULT '0',
   `deleted_at` datetime DEFAULT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3;
 
 -- --------------------------------------------------------
 
@@ -1683,13 +1701,13 @@ CREATE TABLE `part_variants` (
 
 DROP TABLE IF EXISTS `password_resets`;
 CREATE TABLE `password_resets` (
-  `id` int(11) NOT NULL,
-  `user_id` int(11) NOT NULL,
+  `id` int NOT NULL,
+  `user_id` int NOT NULL,
   `token` varchar(255) NOT NULL,
   `expires_at` datetime NOT NULL,
   `used` tinyint(1) DEFAULT '0',
   `created_at` datetime DEFAULT CURRENT_TIMESTAMP
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3;
 
 -- --------------------------------------------------------
 
@@ -1699,8 +1717,8 @@ CREATE TABLE `password_resets` (
 
 DROP TABLE IF EXISTS `payments`;
 CREATE TABLE `payments` (
-  `id` int(11) NOT NULL,
-  `order_id` int(11) NOT NULL,
+  `id` int NOT NULL,
+  `order_id` int NOT NULL,
   `amount` decimal(10,2) DEFAULT NULL,
   `method` varchar(50) DEFAULT NULL,
   `status` varchar(20) DEFAULT NULL,
@@ -1708,7 +1726,7 @@ CREATE TABLE `payments` (
   `created_at` datetime DEFAULT CURRENT_TIMESTAMP,
   `is_deleted` tinyint(1) DEFAULT '0',
   `deleted_at` datetime DEFAULT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3;
 
 -- --------------------------------------------------------
 
@@ -1718,14 +1736,14 @@ CREATE TABLE `payments` (
 
 DROP TABLE IF EXISTS `refunds`;
 CREATE TABLE `refunds` (
-  `id` int(11) NOT NULL,
-  `payment_id` int(11) NOT NULL,
+  `id` int NOT NULL,
+  `payment_id` int NOT NULL,
   `amount` decimal(10,2) DEFAULT NULL,
   `reason` varchar(255) DEFAULT NULL,
   `refunded_at` datetime DEFAULT CURRENT_TIMESTAMP,
   `is_deleted` tinyint(1) DEFAULT '0',
   `deleted_at` datetime DEFAULT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3;
 
 -- --------------------------------------------------------
 
@@ -1735,15 +1753,15 @@ CREATE TABLE `refunds` (
 
 DROP TABLE IF EXISTS `reviews`;
 CREATE TABLE `reviews` (
-  `id` int(11) NOT NULL,
-  `user_id` int(11) NOT NULL,
-  `part_id` int(11) NOT NULL,
-  `rating` int(11) DEFAULT NULL,
+  `id` int NOT NULL,
+  `user_id` int NOT NULL,
+  `part_id` int NOT NULL,
+  `rating` int DEFAULT NULL,
   `comment` text,
   `created_at` datetime DEFAULT CURRENT_TIMESTAMP,
   `is_deleted` tinyint(1) DEFAULT '0',
   `deleted_at` datetime DEFAULT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3;
 
 -- --------------------------------------------------------
 
@@ -1753,13 +1771,13 @@ CREATE TABLE `reviews` (
 
 DROP TABLE IF EXISTS `sessions`;
 CREATE TABLE `sessions` (
-  `id` int(11) NOT NULL,
-  `user_id` int(11) NOT NULL,
+  `id` int NOT NULL,
+  `user_id` int NOT NULL,
   `token` varchar(255) NOT NULL,
   `expires_at` datetime NOT NULL,
   `created_at` datetime DEFAULT CURRENT_TIMESTAMP,
   `revoked` tinyint(1) DEFAULT '0'
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3;
 
 -- --------------------------------------------------------
 
@@ -1769,14 +1787,14 @@ CREATE TABLE `sessions` (
 
 DROP TABLE IF EXISTS `shipping_methods`;
 CREATE TABLE `shipping_methods` (
-  `id` int(11) NOT NULL,
+  `id` int NOT NULL,
   `name` varchar(50) DEFAULT NULL,
   `price` decimal(10,2) DEFAULT NULL,
   `duration` varchar(50) DEFAULT NULL,
   `created_at` datetime DEFAULT CURRENT_TIMESTAMP,
   `is_deleted` tinyint(1) DEFAULT '0',
   `deleted_at` datetime DEFAULT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3;
 
 -- --------------------------------------------------------
 
@@ -1786,15 +1804,15 @@ CREATE TABLE `shipping_methods` (
 
 DROP TABLE IF EXISTS `shipping_status`;
 CREATE TABLE `shipping_status` (
-  `id` int(11) NOT NULL,
-  `order_id` int(11) NOT NULL,
+  `id` int NOT NULL,
+  `order_id` int NOT NULL,
   `status` varchar(50) DEFAULT NULL,
   `tracking_no` varchar(50) DEFAULT NULL,
   `created_at` datetime DEFAULT CURRENT_TIMESTAMP,
   `updated_at` datetime DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   `is_deleted` tinyint(1) DEFAULT '0',
   `deleted_at` datetime DEFAULT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3;
 
 -- --------------------------------------------------------
 
@@ -1804,12 +1822,12 @@ CREATE TABLE `shipping_status` (
 
 DROP TABLE IF EXISTS `stock_logs`;
 CREATE TABLE `stock_logs` (
-  `id` int(11) NOT NULL,
-  `part_id` int(11) NOT NULL,
-  `change_amount` int(11) DEFAULT NULL,
+  `id` int NOT NULL,
+  `part_id` int NOT NULL,
+  `change_amount` int DEFAULT NULL,
   `reason` varchar(255) DEFAULT NULL,
   `created_at` datetime DEFAULT CURRENT_TIMESTAMP
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3;
 
 -- --------------------------------------------------------
 
@@ -1819,16 +1837,16 @@ CREATE TABLE `stock_logs` (
 
 DROP TABLE IF EXISTS `trucks`;
 CREATE TABLE `trucks` (
-  `id` int(11) NOT NULL,
+  `id` int NOT NULL,
   `brand` varchar(100) NOT NULL,
   `model` varchar(100) NOT NULL,
-  `year_from` int(11) DEFAULT NULL,
-  `year_to` int(11) DEFAULT NULL,
+  `year_from` int DEFAULT NULL,
+  `year_to` int DEFAULT NULL,
   `created_at` datetime DEFAULT CURRENT_TIMESTAMP,
   `updated_at` datetime DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   `is_deleted` tinyint(1) DEFAULT '0',
   `deleted_at` datetime DEFAULT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3;
 
 -- --------------------------------------------------------
 
@@ -1838,7 +1856,7 @@ CREATE TABLE `trucks` (
 
 DROP TABLE IF EXISTS `users`;
 CREATE TABLE `users` (
-  `id` int(11) NOT NULL,
+  `id` int NOT NULL,
   `email` varchar(50) NOT NULL,
   `username` varchar(30) NOT NULL,
   `password` varchar(255) NOT NULL,
@@ -1850,7 +1868,7 @@ CREATE TABLE `users` (
   `created_at` datetime DEFAULT CURRENT_TIMESTAMP,
   `updated_at` datetime DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   `last_login` datetime DEFAULT NULL,
-  `failed_login_attempts` int(11) DEFAULT '0',
+  `failed_login_attempts` int DEFAULT '0',
   `locked_until` datetime DEFAULT NULL,
   `timezone` varchar(50) DEFAULT NULL,
   `email_verified` tinyint(1) DEFAULT '0',
@@ -1861,7 +1879,7 @@ CREATE TABLE `users` (
   `auth_secret` varchar(255) NOT NULL,
   `guid` char(36) NOT NULL,
   `registration_token` varchar(255) DEFAULT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3;
 
 -- --------------------------------------------------------
 
@@ -1871,12 +1889,12 @@ CREATE TABLE `users` (
 
 DROP TABLE IF EXISTS `user_logs`;
 CREATE TABLE `user_logs` (
-  `id` int(11) NOT NULL,
-  `user_id` int(11) NOT NULL,
+  `id` int NOT NULL,
+  `user_id` int NOT NULL,
   `action` varchar(255) NOT NULL,
   `details` text,
   `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3;
 
 -- --------------------------------------------------------
 
@@ -1886,8 +1904,8 @@ CREATE TABLE `user_logs` (
 
 DROP TABLE IF EXISTS `user_twofa`;
 CREATE TABLE `user_twofa` (
-  `id` int(11) NOT NULL,
-  `user_id` int(11) NOT NULL,
+  `id` int NOT NULL,
+  `user_id` int NOT NULL,
   `twofa_enabled` tinyint(1) DEFAULT '0',
   `twofa_secret` varchar(255) DEFAULT NULL,
   `recovery_codes` varchar(1024) DEFAULT NULL,
@@ -1895,7 +1913,7 @@ CREATE TABLE `user_twofa` (
   `updated_at` datetime DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   `is_deleted` tinyint(1) DEFAULT '0',
   `deleted_at` datetime DEFAULT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3;
 
 -- --------------------------------------------------------
 
@@ -1905,13 +1923,13 @@ CREATE TABLE `user_twofa` (
 
 DROP TABLE IF EXISTS `warehouses`;
 CREATE TABLE `warehouses` (
-  `id` int(11) NOT NULL,
+  `id` int NOT NULL,
   `name` varchar(50) DEFAULT NULL,
   `location` varchar(255) DEFAULT NULL,
   `created_at` datetime DEFAULT CURRENT_TIMESTAMP,
   `is_deleted` tinyint(1) DEFAULT '0',
   `deleted_at` datetime DEFAULT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3;
 
 -- --------------------------------------------------------
 
@@ -1921,15 +1939,15 @@ CREATE TABLE `warehouses` (
 
 DROP TABLE IF EXISTS `warehouse_stock`;
 CREATE TABLE `warehouse_stock` (
-  `id` int(11) NOT NULL,
-  `warehouse_id` int(11) NOT NULL,
-  `part_id` int(11) NOT NULL,
-  `quantity` int(11) DEFAULT NULL,
+  `id` int NOT NULL,
+  `warehouse_id` int NOT NULL,
+  `part_id` int NOT NULL,
+  `quantity` int DEFAULT NULL,
   `created_at` datetime DEFAULT CURRENT_TIMESTAMP,
   `updated_at` datetime DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   `is_deleted` tinyint(1) DEFAULT '0',
   `deleted_at` datetime DEFAULT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3;
 
 --
 -- Indexek a kiírt táblákhoz
@@ -1969,7 +1987,6 @@ ALTER TABLE `email_verifications`
 --
 ALTER TABLE `invoices`
   ADD PRIMARY KEY (`id`),
-  ADD KEY `order_id` (`order_id`),
   ADD KEY `invoices_ibfk_1` (`order_id`);
 
 --
@@ -2023,6 +2040,17 @@ ALTER TABLE `parts`
   ADD UNIQUE KEY `sku` (`sku`),
   ADD KEY `manufacturer_id` (`manufacturer_id`),
   ADD KEY `category` (`category`);
+
+--
+-- A tábla indexei `part_compatibility`
+--
+ALTER TABLE `part_compatibility`
+  ADD PRIMARY KEY (`id`),
+  ADD UNIQUE KEY `unique_compatibility` (`part_id`,`vehicle_type`,`vehicle_id`),
+  ADD KEY `idx_part_id` (`part_id`),
+  ADD KEY `idx_vehicle_type` (`vehicle_type`),
+  ADD KEY `idx_vehicle_id` (`vehicle_id`),
+  ADD KEY `idx_part_vehicle` (`part_id`,`vehicle_type`,`vehicle_id`);
 
 --
 -- A tábla indexei `part_images`
@@ -2149,169 +2177,175 @@ ALTER TABLE `warehouse_stock`
 -- AUTO_INCREMENT a táblához `addresses`
 --
 ALTER TABLE `addresses`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `id` int NOT NULL AUTO_INCREMENT;
 
 --
 -- AUTO_INCREMENT a táblához `cars`
 --
 ALTER TABLE `cars`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `id` int NOT NULL AUTO_INCREMENT;
 
 --
 -- AUTO_INCREMENT a táblához `cart_items`
 --
 ALTER TABLE `cart_items`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `id` int NOT NULL AUTO_INCREMENT;
 
 --
 -- AUTO_INCREMENT a táblához `email_verifications`
 --
 ALTER TABLE `email_verifications`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `id` int NOT NULL AUTO_INCREMENT;
 
 --
 -- AUTO_INCREMENT a táblához `invoices`
 --
 ALTER TABLE `invoices`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `id` int NOT NULL AUTO_INCREMENT;
 
 --
 -- AUTO_INCREMENT a táblához `login_logs`
 --
 ALTER TABLE `login_logs`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `id` int NOT NULL AUTO_INCREMENT;
 
 --
 -- AUTO_INCREMENT a táblához `manufacturers`
 --
 ALTER TABLE `manufacturers`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `id` int NOT NULL AUTO_INCREMENT;
 
 --
 -- AUTO_INCREMENT a táblához `motors`
 --
 ALTER TABLE `motors`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `id` int NOT NULL AUTO_INCREMENT;
 
 --
 -- AUTO_INCREMENT a táblához `orders`
 --
 ALTER TABLE `orders`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `id` int NOT NULL AUTO_INCREMENT;
 
 --
 -- AUTO_INCREMENT a táblához `order_items`
 --
 ALTER TABLE `order_items`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `id` int NOT NULL AUTO_INCREMENT;
 
 --
 -- AUTO_INCREMENT a táblához `order_logs`
 --
 ALTER TABLE `order_logs`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `id` int NOT NULL AUTO_INCREMENT;
 
 --
 -- AUTO_INCREMENT a táblához `parts`
 --
 ALTER TABLE `parts`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `id` int NOT NULL AUTO_INCREMENT;
+
+--
+-- AUTO_INCREMENT a táblához `part_compatibility`
+--
+ALTER TABLE `part_compatibility`
+  MODIFY `id` int NOT NULL AUTO_INCREMENT;
 
 --
 -- AUTO_INCREMENT a táblához `part_images`
 --
 ALTER TABLE `part_images`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `id` int NOT NULL AUTO_INCREMENT;
 
 --
 -- AUTO_INCREMENT a táblához `part_variants`
 --
 ALTER TABLE `part_variants`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `id` int NOT NULL AUTO_INCREMENT;
 
 --
 -- AUTO_INCREMENT a táblához `password_resets`
 --
 ALTER TABLE `password_resets`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `id` int NOT NULL AUTO_INCREMENT;
 
 --
 -- AUTO_INCREMENT a táblához `payments`
 --
 ALTER TABLE `payments`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `id` int NOT NULL AUTO_INCREMENT;
 
 --
 -- AUTO_INCREMENT a táblához `refunds`
 --
 ALTER TABLE `refunds`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `id` int NOT NULL AUTO_INCREMENT;
 
 --
 -- AUTO_INCREMENT a táblához `reviews`
 --
 ALTER TABLE `reviews`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `id` int NOT NULL AUTO_INCREMENT;
 
 --
 -- AUTO_INCREMENT a táblához `sessions`
 --
 ALTER TABLE `sessions`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `id` int NOT NULL AUTO_INCREMENT;
 
 --
 -- AUTO_INCREMENT a táblához `shipping_methods`
 --
 ALTER TABLE `shipping_methods`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `id` int NOT NULL AUTO_INCREMENT;
 
 --
 -- AUTO_INCREMENT a táblához `shipping_status`
 --
 ALTER TABLE `shipping_status`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `id` int NOT NULL AUTO_INCREMENT;
 
 --
 -- AUTO_INCREMENT a táblához `stock_logs`
 --
 ALTER TABLE `stock_logs`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `id` int NOT NULL AUTO_INCREMENT;
 
 --
 -- AUTO_INCREMENT a táblához `trucks`
 --
 ALTER TABLE `trucks`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `id` int NOT NULL AUTO_INCREMENT;
 
 --
 -- AUTO_INCREMENT a táblához `users`
 --
 ALTER TABLE `users`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `id` int NOT NULL AUTO_INCREMENT;
 
 --
 -- AUTO_INCREMENT a táblához `user_logs`
 --
 ALTER TABLE `user_logs`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `id` int NOT NULL AUTO_INCREMENT;
 
 --
 -- AUTO_INCREMENT a táblához `user_twofa`
 --
 ALTER TABLE `user_twofa`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `id` int NOT NULL AUTO_INCREMENT;
 
 --
 -- AUTO_INCREMENT a táblához `warehouses`
 --
 ALTER TABLE `warehouses`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `id` int NOT NULL AUTO_INCREMENT;
 
 --
 -- AUTO_INCREMENT a táblához `warehouse_stock`
 --
 ALTER TABLE `warehouse_stock`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `id` int NOT NULL AUTO_INCREMENT;
 
 --
 -- Megkötések a kiírt táblákhoz
@@ -2372,6 +2406,12 @@ ALTER TABLE `order_logs`
 --
 ALTER TABLE `parts`
   ADD CONSTRAINT `parts_ibfk_1` FOREIGN KEY (`manufacturer_id`) REFERENCES `manufacturers` (`id`);
+
+--
+-- Megkötések a táblához `part_compatibility`
+--
+ALTER TABLE `part_compatibility`
+  ADD CONSTRAINT `part_compatibility_ibfk_1` FOREIGN KEY (`part_id`) REFERENCES `parts` (`id`) ON DELETE CASCADE;
 
 --
 -- Megkötések a táblához `part_images`
