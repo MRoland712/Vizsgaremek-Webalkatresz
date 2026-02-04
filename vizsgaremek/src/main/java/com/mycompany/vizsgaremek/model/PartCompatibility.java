@@ -25,7 +25,7 @@ import javax.xml.bind.annotation.XmlRootElement;
 
 /**
  *
- * @author ddori
+ * @author neblgergo
  */
 @Entity
 @Table(name = "part_compatibility")

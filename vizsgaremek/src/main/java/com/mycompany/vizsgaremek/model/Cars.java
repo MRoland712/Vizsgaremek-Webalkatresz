@@ -5,15 +5,21 @@
 package com.mycompany.vizsgaremek.model;
 
 import java.io.Serializable;
+import java.text.SimpleDateFormat;
 import java.util.Date;
 import javax.persistence.Basic;
 import javax.persistence.Column;
 import javax.persistence.Entity;
+import javax.persistence.EntityManager;
+import javax.persistence.EntityManagerFactory;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.NamedQueries;
 import javax.persistence.NamedQuery;
+import javax.persistence.ParameterMode;
+import javax.persistence.Persistence;
+import javax.persistence.StoredProcedureQuery;
 import javax.persistence.Table;
 import javax.persistence.Temporal;
 import javax.persistence.TemporalType;
@@ -23,7 +29,7 @@ import javax.xml.bind.annotation.XmlRootElement;
 
 /**
  *
- * @author neblg
+ * @author neblgergo
  */
 @Entity
 @Table(name = "cars")
@@ -72,6 +78,9 @@ public class Cars implements Serializable {
     @Column(name = "deleted_at")
     @Temporal(TemporalType.TIMESTAMP)
     private Date deletedAt;
+    
+    static EntityManagerFactory emf = Persistence.createEntityManagerFactory("com.mycompany_vizsgaremek_war_1.0-SNAPSHOTPU");
+    public static SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 
     public Cars() {
     }
@@ -157,6 +166,28 @@ public class Cars implements Serializable {
     public void setDeletedAt(Date deletedAt) {
         this.deletedAt = deletedAt;
     }
+    
+        //createCars
+
+    public Cars(String brand, String model, Integer yearFrom, Integer yearTo) {
+        this.brand = brand;
+        this.model = model;
+        this.yearFrom = yearFrom;
+        this.yearTo = yearTo;
+    }
+
+    public Cars(Integer id, String brand, String model, Integer yearFrom, Integer yearTo, Date createdAt, Date updatedAt, Date deletedAt ,Boolean isDeleted) {
+        this.id = id;
+        this.brand = brand;
+        this.model = model;
+        this.yearFrom = yearFrom;
+        this.yearTo = yearTo;
+        this.createdAt = createdAt;
+        this.updatedAt = updatedAt;
+        this.deletedAt = deletedAt;
+        this.isDeleted = isDeleted;
+    }
+    
 
     @Override
     public int hashCode() {
@@ -181,6 +212,33 @@ public class Cars implements Serializable {
     @Override
     public String toString() {
         return "com.mycompany.vizsgaremek.model.Cars[ id=" + id + " ]";
+    }
+    
+    public static Boolean createCars(Cars createdCars) {
+        EntityManager em = emf.createEntityManager();
+        try {
+            StoredProcedureQuery spq = em.createStoredProcedureQuery("createCars");
+
+            spq.registerStoredProcedureParameter("brandIN", String.class, ParameterMode.IN);
+            spq.registerStoredProcedureParameter("modelIN", String.class, ParameterMode.IN);
+            spq.registerStoredProcedureParameter("yearFromIN", Integer.class, ParameterMode.IN);
+            spq.registerStoredProcedureParameter("yearToIN", Integer.class, ParameterMode.IN);
+
+            spq.setParameter("brandIN", createdCars.getBrand());
+            spq.setParameter("modelIN", createdCars.getModel());
+            spq.setParameter("yearFromIN", createdCars.getYearFrom());
+            spq.setParameter("yearToIN", createdCars.getYearTo());
+
+            spq.execute();
+
+            return true;
+
+        } catch (Exception ex) {
+            ex.printStackTrace();
+            return false;
+        } finally {
+            em.close();
+        }
     }
     
 }

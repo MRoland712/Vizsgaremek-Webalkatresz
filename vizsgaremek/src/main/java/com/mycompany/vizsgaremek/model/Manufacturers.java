@@ -35,7 +35,7 @@ import javax.xml.bind.annotation.XmlTransient;
 
 /**
  *
- * @author neblg
+ * @author neblgergo
  */
 @Entity
 @Table(name = "manufacturers")
@@ -74,7 +74,7 @@ public class Manufacturers implements Serializable {
     private Date deletedAt;
     @OneToMany(cascade = CascadeType.ALL, mappedBy = "manufacturerId")
     private Collection<Parts> partsCollection;
-
+    
     static EntityManagerFactory emf = Persistence.createEntityManagerFactory("com.mycompany_vizsgaremek_war_1.0-SNAPSHOTPU");
     public static SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 
@@ -137,7 +137,7 @@ public class Manufacturers implements Serializable {
     public void setDeletedAt(Date deletedAt) {
         this.deletedAt = deletedAt;
     }
-
+    
     //createManufacturers
     public Manufacturers(String name, String country) {
         this.name = name;
@@ -162,7 +162,6 @@ public class Manufacturers implements Serializable {
         this.country = country;
         this.isDeleted = isDeleted;
     }
-    
 
     @XmlTransient
     public Collection<Parts> getPartsCollection() {
@@ -197,7 +196,7 @@ public class Manufacturers implements Serializable {
     public String toString() {
         return "com.mycompany.vizsgaremek.model.Manufacturers[ id=" + id + " ]";
     }
-
+    
     public static Boolean createManufacturers(Manufacturers createdManufacturers) {
         EntityManager em = emf.createEntityManager();
         try {
@@ -354,5 +353,5 @@ public class Manufacturers implements Serializable {
             em.close();
         }
     }
-
+    
 }
