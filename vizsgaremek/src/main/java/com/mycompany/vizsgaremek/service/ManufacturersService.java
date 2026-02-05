@@ -106,7 +106,7 @@ public class ManufacturersService {
 
         // Validáció - Nem található
         if (manufacturersAuth.isDataMissing(manufacturer)) {
-            errors.put("AddressNotFound");
+            errors.put("ManufacturersNotFound");
             return errorAuth.createErrorResponse(errors, 404);
         }
 
@@ -156,7 +156,7 @@ public class ManufacturersService {
         }
 
         if (modelResult.getIsDeleted() == true) {
-            errors.put("UserIsSoftDeleted");
+            errors.put("ManufacturersIsDeleted");
         }
 
         //if manufacturers is soft deleted

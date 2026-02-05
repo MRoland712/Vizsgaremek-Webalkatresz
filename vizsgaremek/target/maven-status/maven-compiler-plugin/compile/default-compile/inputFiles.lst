@@ -1,13 +1,17 @@
 /Users/neblgergo/Documents/GitHub/Vizsgaremek-Webalkatresz/vizsgaremek/src/main/java/com/mycompany/vizsgaremek/model/Sessions.java
 /Users/neblgergo/Documents/GitHub/Vizsgaremek-Webalkatresz/vizsgaremek/src/main/java/com/mycompany/vizsgaremek/model/EmailInfo.java
+/Users/neblgergo/Documents/GitHub/Vizsgaremek-Webalkatresz/vizsgaremek/src/main/java/com/mycompany/vizsgaremek/controller/MotorsController.java
 /Users/neblgergo/Documents/GitHub/Vizsgaremek-Webalkatresz/vizsgaremek/src/main/java/com/mycompany/vizsgaremek/controller/UserTwofaController.java
 /Users/neblgergo/Documents/GitHub/Vizsgaremek-Webalkatresz/vizsgaremek/src/main/java/com/mycompany/vizsgaremek/config/OTPVerifyer.java
 /Users/neblgergo/Documents/GitHub/Vizsgaremek-Webalkatresz/vizsgaremek/src/main/java/com/mycompany/vizsgaremek/model/WarehouseStock.java
+/Users/neblgergo/Documents/GitHub/Vizsgaremek-Webalkatresz/vizsgaremek/src/main/java/com/mycompany/vizsgaremek/service/MotorsService.java
 /Users/neblgergo/Documents/GitHub/Vizsgaremek-Webalkatresz/vizsgaremek/src/main/java/com/mycompany/vizsgaremek/controller/JWTController.java
 /Users/neblgergo/Documents/GitHub/Vizsgaremek-Webalkatresz/vizsgaremek/src/main/java/com/mycompany/vizsgaremek/model/PasswordResets.java
 /Users/neblgergo/Documents/GitHub/Vizsgaremek-Webalkatresz/vizsgaremek/src/main/java/com/mycompany/vizsgaremek/service/AuthenticationService.java
 /Users/neblgergo/Documents/GitHub/Vizsgaremek-Webalkatresz/vizsgaremek/src/main/java/com/mycompany/vizsgaremek/model/Users.java
 /Users/neblgergo/Documents/GitHub/Vizsgaremek-Webalkatresz/vizsgaremek/src/main/java/com/mycompany/vizsgaremek/controller/ApplicationConfig.java
+/Users/neblgergo/Documents/GitHub/Vizsgaremek-Webalkatresz/vizsgaremek/src/main/java/com/mycompany/vizsgaremek/service/TrucksService.java
+/Users/neblgergo/Documents/GitHub/Vizsgaremek-Webalkatresz/vizsgaremek/src/main/java/com/mycompany/vizsgaremek/controller/TrucksController.java
 /Users/neblgergo/Documents/GitHub/Vizsgaremek-Webalkatresz/vizsgaremek/src/main/java/com/mycompany/vizsgaremek/config/base64Converters.java
 /Users/neblgergo/Documents/GitHub/Vizsgaremek-Webalkatresz/vizsgaremek/src/main/java/com/mycompany/vizsgaremek/controller/ManufacturersController.java
 /Users/neblgergo/Documents/GitHub/Vizsgaremek-Webalkatresz/vizsgaremek/src/main/java/com/mycompany/vizsgaremek/model/ShippingMethods.java
@@ -44,6 +48,7 @@
 /Users/neblgergo/Documents/GitHub/Vizsgaremek-Webalkatresz/vizsgaremek/src/main/java/com/mycompany/vizsgaremek/model/Motors.java
 /Users/neblgergo/Documents/GitHub/Vizsgaremek-Webalkatresz/vizsgaremek/src/main/java/com/mycompany/vizsgaremek/model/LoginLogs.java
 /Users/neblgergo/Documents/GitHub/Vizsgaremek-Webalkatresz/vizsgaremek/src/main/java/com/mycompany/vizsgaremek/model/PartCompatibility.java
+/Users/neblgergo/Documents/GitHub/Vizsgaremek-Webalkatresz/vizsgaremek/src/main/java/com/mycompany/vizsgaremek/controller/CarsController.java
 /Users/neblgergo/Documents/GitHub/Vizsgaremek-Webalkatresz/vizsgaremek/src/main/java/com/mycompany/vizsgaremek/controller/PartImagesController.java
 /Users/neblgergo/Documents/GitHub/Vizsgaremek-Webalkatresz/vizsgaremek/src/main/java/com/mycompany/vizsgaremek/model/Refunds.java
 /Users/neblgergo/Documents/GitHub/Vizsgaremek-Webalkatresz/vizsgaremek/src/main/java/com/mycompany/vizsgaremek/controller/SendEmailController.java
@@ -57,6 +62,7 @@
 /Users/neblgergo/Documents/GitHub/Vizsgaremek-Webalkatresz/vizsgaremek/src/main/java/com/mycompany/vizsgaremek/controller/TFAController.java
 /Users/neblgergo/Documents/GitHub/Vizsgaremek-Webalkatresz/vizsgaremek/src/main/java/com/mycompany/vizsgaremek/controller/OTPController.java
 /Users/neblgergo/Documents/GitHub/Vizsgaremek-Webalkatresz/vizsgaremek/src/main/java/com/mycompany/vizsgaremek/model/UserTwofa.java
+/Users/neblgergo/Documents/GitHub/Vizsgaremek-Webalkatresz/vizsgaremek/src/main/java/com/mycompany/vizsgaremek/service/CarsService.java
 /Users/neblgergo/Documents/GitHub/Vizsgaremek-Webalkatresz/vizsgaremek/src/main/java/com/mycompany/vizsgaremek/config/KvFetcher.java
 /Users/neblgergo/Documents/GitHub/Vizsgaremek-Webalkatresz/vizsgaremek/src/main/java/com/mycompany/vizsgaremek/config/CorsFilter.java
 /Users/neblgergo/Documents/GitHub/Vizsgaremek-Webalkatresz/vizsgaremek/src/main/java/com/mycompany/vizsgaremek/controller/PartsController.java

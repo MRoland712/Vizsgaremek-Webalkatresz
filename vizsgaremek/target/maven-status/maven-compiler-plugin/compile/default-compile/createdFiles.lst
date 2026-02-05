@@ -6,9 +6,11 @@ com/mycompany/vizsgaremek/service/PartVariantsService.class
 com/mycompany/vizsgaremek/controller/ApplicationConfig.class
 com/mycompany/vizsgaremek/service/AuthenticationService$userTwofaAuth.class
 com/mycompany/vizsgaremek/model/PasswordResets.class
+com/mycompany/vizsgaremek/controller/CarsController.class
 com/mycompany/vizsgaremek/service/UserTwofaService.class
 com/mycompany/vizsgaremek/service/AuthenticationService$userLogsAuth.class
 com/mycompany/vizsgaremek/model/UserLogs.class
+com/mycompany/vizsgaremek/service/TrucksService.class
 com/mycompany/vizsgaremek/controller/AddressesController.class
 com/mycompany/vizsgaremek/controller/StaticResourceController.class
 com/mycompany/vizsgaremek/controller/PartsController.class
@@ -16,6 +18,7 @@ com/mycompany/vizsgaremek/model/Reviews.class
 com/mycompany/vizsgaremek/model/Cars.class
 com/mycompany/vizsgaremek/controller/UserTwofaController.class
 com/mycompany/vizsgaremek/controller/PartImagesController.class
+com/mycompany/vizsgaremek/service/AuthenticationService$carsAuth.class
 com/mycompany/vizsgaremek/config/SendEmail$1.class
 com/mycompany/vizsgaremek/model/PartCompatibility.class
 com/mycompany/vizsgaremek/controller/SendEmailController.class
@@ -27,9 +30,12 @@ com/mycompany/vizsgaremek/config/SendEmail$3.class
 com/mycompany/vizsgaremek/model/ShippingStatus.class
 com/mycompany/vizsgaremek/config/KvFetcher.class
 com/mycompany/vizsgaremek/service/PartsService.class
+com/mycompany/vizsgaremek/controller/TrucksController.class
+com/mycompany/vizsgaremek/controller/MotorsController.class
 com/mycompany/vizsgaremek/service/AuthenticationService$addressAuth.class
 com/mycompany/vizsgaremek/model/LoginLogs.class
 com/mycompany/vizsgaremek/service/AuthenticationService$manufacturersAuth.class
+com/mycompany/vizsgaremek/service/AuthenticationService$motorsAuth.class
 com/mycompany/vizsgaremek/model/StockLogs.class
 com/mycompany/vizsgaremek/model/EmailInfo.class
 com/mycompany/vizsgaremek/model/PartVariants.class
@@ -59,10 +65,13 @@ com/mycompany/vizsgaremek/service/AuthenticationService.class
 com/mycompany/vizsgaremek/controller/OTPController.class
 com/mycompany/vizsgaremek/model/Refunds.class
 com/mycompany/vizsgaremek/service/ImageUploadService.class
+com/mycompany/vizsgaremek/service/AuthenticationService$trucksAuth.class
+com/mycompany/vizsgaremek/service/MotorsService.class
 com/mycompany/vizsgaremek/service/UserLogsService.class
 com/mycompany/vizsgaremek/service/AuthenticationService$errorAuth.class
 com/mycompany/vizsgaremek/service/AuthenticationService$partImagesAuth.class
 com/mycompany/vizsgaremek/model/OrderItems.class
+com/mycompany/vizsgaremek/service/CarsService.class
 com/mycompany/vizsgaremek/service/AuthenticationService$partsAuth.class
 com/mycompany/vizsgaremek/service/AuthenticationService$JWTAuth.class
 com/mycompany/vizsgaremek/model/WarehouseStock.class
