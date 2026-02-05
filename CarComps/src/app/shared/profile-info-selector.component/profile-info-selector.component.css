@@ -7,8 +7,8 @@
   align-items: start;
   padding: 16px;
   box-sizing: border-box;
-  max-width: 600px;
-  margin: 0 auto;
+  max-width: 800px;
+  margin: 5% auto;
 }
 
 .info-row {
@@ -25,9 +25,9 @@
   margin: 0;
   gap: 8px;
   box-sizing: border-box;
-  box-shadow: 10px 4px 14px 4px rgba(43, 43, 43, 0.15);
-  -webkit-box-shadow: 10px 4px 14px 4px rgba(43, 43, 43, 0.15);
-  -moz-box-shadow: 10px 4px 14px 4px rgba(43, 43, 43, 0.15);
+  box-shadow: 0px 0px 15px 0px rgba(0, 0, 0, 0.3);
+  -webkit-box-shadow: 0px 0px 15px 0px rgba(0, 0, 0, 0.3);
+  -moz-box-shadow: 0px 0px 15px 0px rgba(0, 0, 0, 0.3);
   background: #fffafa;
   transition: all 0.2s ease-in-out;
   cursor: pointer;
@@ -36,6 +36,9 @@
 .info-row:hover {
   transform: translateY(-2px);
   border: 2px solid #ff6600;
+  .info-icon {
+    background-color: #ff6600;
+  }
 }
 
 .info-icon {

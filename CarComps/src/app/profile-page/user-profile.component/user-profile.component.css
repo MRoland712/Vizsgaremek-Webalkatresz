@@ -1,6 +1,15 @@
-h2 {
+.hero-text {
   text-align: center;
-  margin-top: 20px;
-  margin-bottom: 20px;
   font-size: 28px;
+  margin-top: 20px;
+  color: #333333;
+}
+
+.profile-wrapper {
+  background-image: url('/assets/feher_hatter_ugyaneb.png');
+  background-repeat: repeat;
+  background-position: center;
+  overflow: hidden;
+  height: 100vh;
+  width: 100%;
 }
