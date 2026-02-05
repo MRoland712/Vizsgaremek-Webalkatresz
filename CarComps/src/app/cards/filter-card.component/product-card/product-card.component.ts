@@ -59,7 +59,7 @@ export class ProductCardComponent {
    */
   onImageError(event: Event): void {
     const img = event.target as HTMLImageElement;
-    img.src = 'assets/placeholder.jpg';
+    img.src = '../../../../../public/assets/CarComps_Logo_C_white.png';
     console.warn('⚠️ Kép betöltési hiba:', this.product().name);
   }
 }

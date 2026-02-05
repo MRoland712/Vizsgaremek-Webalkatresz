@@ -1,11 +1,7 @@
 <div class="product-wrapper">
   <div class="left">
     <!-- ⭐ imageUrl használata product-ból -->
-    <img
-      [src]="product().imageUrl || 'assets/placeholder.jpg'"
-      [alt]="product().name"
-      (error)="onImageError($event)"
-    />
+    <img [src]="product().imageUrl" [alt]="product().name" />
   </div>
   <div class="right">
     <div class="product-desc">

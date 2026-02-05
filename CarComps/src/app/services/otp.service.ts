@@ -24,7 +24,7 @@ export interface VerifyOTPResponse {
 })
 export class OtpService {
   private http = inject(HttpClient);
-  private readonly baseUrl = 'http://api.carcomps.hu/vizsgaremek-1.0-SNAPSHOT/webresources/';
+  private readonly baseUrl = 'https://api.carcomps.hu/vizsgaremek-1.0-SNAPSHOT/webresources/';
 
   /**
    * ⭐ SEND OTP

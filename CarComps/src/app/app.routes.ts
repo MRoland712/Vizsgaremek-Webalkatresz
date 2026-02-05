@@ -50,6 +50,14 @@ export const routes: Routes = [
       ),
     canActivate: [authGuard], // ← VÉDETT! Login kell
   },
+  {
+    path: 'mygarage',
+    loadComponent: () =>
+      import('./profile-page/user-mygarage.component/user-mygarage.component').then(
+        (m) => m.UserMygarageComponent,
+      ),
+    canActivate: [authGuard], // ← VÉDETT! Login kell
+  },
 
   // ==========================================
   // CATCH-ALL (404)
