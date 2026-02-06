@@ -1,4 +1,5 @@
 /Users/neblgergo/Documents/GitHub/Vizsgaremek-Webalkatresz/vizsgaremek/src/main/java/com/mycompany/vizsgaremek/model/Sessions.java
+/Users/neblgergo/Documents/GitHub/Vizsgaremek-Webalkatresz/vizsgaremek/src/main/java/com/mycompany/vizsgaremek/controller/ReviewsController.java
 /Users/neblgergo/Documents/GitHub/Vizsgaremek-Webalkatresz/vizsgaremek/src/main/java/com/mycompany/vizsgaremek/model/EmailInfo.java
 /Users/neblgergo/Documents/GitHub/Vizsgaremek-Webalkatresz/vizsgaremek/src/main/java/com/mycompany/vizsgaremek/controller/MotorsController.java
 /Users/neblgergo/Documents/GitHub/Vizsgaremek-Webalkatresz/vizsgaremek/src/main/java/com/mycompany/vizsgaremek/controller/UserTwofaController.java
@@ -21,6 +22,7 @@
 /Users/neblgergo/Documents/GitHub/Vizsgaremek-Webalkatresz/vizsgaremek/src/main/java/com/mycompany/vizsgaremek/config/Encrypt.java
 /Users/neblgergo/Documents/GitHub/Vizsgaremek-Webalkatresz/vizsgaremek/src/main/java/com/mycompany/vizsgaremek/model/PartVariants.java
 /Users/neblgergo/Documents/GitHub/Vizsgaremek-Webalkatresz/vizsgaremek/src/main/java/com/mycompany/vizsgaremek/service/PartVariantsService.java
+/Users/neblgergo/Documents/GitHub/Vizsgaremek-Webalkatresz/vizsgaremek/src/main/java/com/mycompany/vizsgaremek/service/ReviewsService.java
 /Users/neblgergo/Documents/GitHub/Vizsgaremek-Webalkatresz/vizsgaremek/src/main/java/com/mycompany/vizsgaremek/model/OrderLogs.java
 /Users/neblgergo/Documents/GitHub/Vizsgaremek-Webalkatresz/vizsgaremek/src/main/java/com/mycompany/vizsgaremek/controller/UserLogsController.java
 /Users/neblgergo/Documents/GitHub/Vizsgaremek-Webalkatresz/vizsgaremek/src/main/java/com/mycompany/vizsgaremek/model/CartItems.java

@@ -13,6 +13,7 @@ import com.mycompany.vizsgaremek.model.Motors;
 import com.mycompany.vizsgaremek.model.PartImages;
 import com.mycompany.vizsgaremek.model.PartVariants;
 import com.mycompany.vizsgaremek.model.Parts;
+import com.mycompany.vizsgaremek.model.Reviews;
 import com.mycompany.vizsgaremek.model.Trucks;
 import com.mycompany.vizsgaremek.model.UserTwofa;
 import io.jsonwebtoken.Claims;
@@ -847,7 +848,7 @@ public class AuthenticationService {
         }
 
     } //Cars Auth Class closer
-    
+
     public static class motorsAuth {
 
         public boolean isDataMissing(String data) {
@@ -895,7 +896,7 @@ public class AuthenticationService {
         }
 
     } //Motors Auth Class closer
-    
+
     public static class trucksAuth {
 
         public boolean isDataMissing(String data) {
@@ -943,6 +944,71 @@ public class AuthenticationService {
         }
 
     } //Trucks Auth Class closer
+
+    public static class reviewsAuth {
+
+        public boolean isDataMissing(String data) {
+            return (data == null || data.trim().isEmpty());
+        }
+
+        public boolean isDataMissing(Reviews data) {
+            return (data == null);
+        }
+        
+        public boolean isDataMissing(Parts data) {
+            return (data == null);
+        }
+        public boolean isDataMissing(Users data) {
+            return (data == null);
+        }
+
+        public boolean isDataMissing(Integer data) {
+            return (data == null);
+        }
+
+        public boolean isDataMissing(ArrayList<Reviews> data) {
+            return (data == null || data.isEmpty());
+        }
+
+        public boolean isDataMissing(Boolean data) {
+            return (data == null);
+        }
+
+        public boolean isDataMissing(List<Object[]> data) {
+            return (data == null || data.isEmpty());
+        }
+
+        public boolean isValidId(Integer id) {
+            return id > 0 && id.toString().length() <= 11;
+        }
+
+        public boolean isValidUserId(Users users) {
+            Integer usersId = users.getId();
+            return usersId > 0 && usersId.toString().length() <= 11;
+        }
+
+        public boolean isValidUserId(Integer usersId) {
+            return usersId > 0 && usersId.toString().length() <= 11;
+        }
+
+        public boolean isValidPartId(Parts parts) {
+            Integer partsId = parts.getId();
+            return partsId > 0 && partsId.toString().length() <= 11;
+        }
+
+        public boolean isValidPartId(Integer partsId) {
+            return partsId > 0 && partsId.toString().length() <= 11;
+        }
+
+        public boolean isValidComment(String comment) {
+            return comment.length() <= 200;
+        }
+
+        public boolean isValidRating(Integer rating) {
+            return rating >= 5;
+        }
+
+    } //Reviews Auth Class closer
 
 }//Auth Service Class closer
 

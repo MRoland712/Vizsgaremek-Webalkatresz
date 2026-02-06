@@ -21,6 +21,7 @@ com/mycompany/vizsgaremek/controller/PartImagesController.class
 com/mycompany/vizsgaremek/service/AuthenticationService$carsAuth.class
 com/mycompany/vizsgaremek/config/SendEmail$1.class
 com/mycompany/vizsgaremek/model/PartCompatibility.class
+com/mycompany/vizsgaremek/service/ReviewsService.class
 com/mycompany/vizsgaremek/controller/SendEmailController.class
 com/mycompany/vizsgaremek/model/Payments.class
 com/mycompany/vizsgaremek/service/AuthenticationService$userAuth.class
@@ -32,6 +33,7 @@ com/mycompany/vizsgaremek/config/KvFetcher.class
 com/mycompany/vizsgaremek/service/PartsService.class
 com/mycompany/vizsgaremek/controller/TrucksController.class
 com/mycompany/vizsgaremek/controller/MotorsController.class
+com/mycompany/vizsgaremek/controller/ReviewsController.class
 com/mycompany/vizsgaremek/service/AuthenticationService$addressAuth.class
 com/mycompany/vizsgaremek/model/LoginLogs.class
 com/mycompany/vizsgaremek/service/AuthenticationService$manufacturersAuth.class
@@ -60,6 +62,7 @@ com/mycompany/vizsgaremek/controller/ManufacturersController.class
 com/mycompany/vizsgaremek/model/OrderLogs.class
 com/mycompany/vizsgaremek/model/Addresses.class
 com/mycompany/vizsgaremek/model/Trucks.class
+com/mycompany/vizsgaremek/service/AuthenticationService$reviewsAuth.class
 com/mycompany/vizsgaremek/model/Invoices.class
 com/mycompany/vizsgaremek/service/AuthenticationService.class
 com/mycompany/vizsgaremek/controller/OTPController.class
