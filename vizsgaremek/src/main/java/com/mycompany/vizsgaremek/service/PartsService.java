@@ -83,6 +83,7 @@ public class PartsService {
         }
         
         Parts existingPart = Parts.getPartsBySku(createParts.getSku());
+        if (existingPart != null) {
             errors.put("SkuAlreadyExists");
             return errorAuth.createErrorResponse(errors, 409);
         }
