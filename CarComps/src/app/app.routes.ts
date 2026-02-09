@@ -58,6 +58,13 @@ export const routes: Routes = [
       ),
     canActivate: [authGuard], // ← VÉDETT! Login kell
   },
+  {
+    path: 'product/:id',
+    loadComponent: () =>
+      import('./product-page/single-product.component/single-product.component').then(
+        (m) => m.ProductDetailComponent,
+      ),
+  },
 
   // ==========================================
   // CATCH-ALL (404)

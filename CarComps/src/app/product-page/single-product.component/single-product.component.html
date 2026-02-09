@@ -1,0 +1,231 @@
+<app-main-header></app-main-header>
+
+@if (isLoading()) {
+  <!-- Loading State -->
+  <div class="loading-container">
+    <i class="fa-solid fa-spinner fa-spin"></i>
+    <p>Termék betöltése...</p>
+  </div>
+} @else if (product()) {
+  <!-- Product Detail -->
+  <div class="product-detail-page">
+    <!-- Vissza gomb -->
+    <button class="back-btn" (click)="goBack()">
+      <i class="fa-solid fa-arrow-left"></i>
+      Vissza
+    </button>
+
+    <!-- ⭐ PRODUCT CARD STYLE - Nagy verzió -->
+    <div class="product-card-large">
+      <!-- BAL OLDAL - Kép -->
+      <div class="product-image-section">
+        <div class="main-image">
+          <img [src]="selectedImage()" [alt]="product()!.name" />
+        </div>
+
+        <!-- Thumbnail képek -->
+        @if (images().length > 1) {
+          <div class="thumbnail-gallery">
+            @for (imageUrl of images(); track $index) {
+              <div
+                class="thumbnail"
+                [class.active]="selectedImage() === imageUrl"
+                (click)="selectImage(imageUrl)"
+              >
+                <img [src]="imageUrl" [alt]="product()!.name" />
+              </div>
+            }
+          </div>
+        }
+      </div>
+
+      <!-- JOBB OLDAL - Részletek -->
+      <div class="product-info-section">
+        <!-- Termék név -->
+        <h1 class="product-name">{{ product()!.name }}</h1>
+
+        <!-- Cikkszám -->
+        <p class="product-sku">Cikkszám: {{ product()!.sku }}</p>
+
+        <!-- ⭐ Rating -->
+        <div class="rating-display">
+          <div class="stars">
+            @for (isFull of getStars(); track $index) {
+              <i class="fa-solid fa-star" [class.filled]="isFull"></i>
+            }
+            @if (hasHalfStar()) {
+              <i class="fa-solid fa-star-half-stroke filled"></i>
+            }
+          </div>
+          <span class="rating-text">{{ rating() }} ({{ reviewCount() }} értékelés)</span>
+        </div>
+
+        <!-- Kategória + Manufacturer badges -->
+        <div class="product-badges">
+          <span class="badge category">
+            <i class="fa-solid fa-tag"></i>
+            {{ product()!.category }}
+          </span>
+          @if (manufacturer()) {
+            <span class="badge manufacturer">
+              <i class="fa-solid fa-industry"></i>
+              {{ manufacturer()!.name }}
+            </span>
+          }
+        </div>
+
+        <!-- Specifikációk -->
+        <div class="product-specs">
+          <ul>
+            <li>
+              <span class="spec-label">Raktárkészlet:</span>
+              <span class="spec-value">{{ product()!.stock }} db</span>
+            </li>
+            <li>
+              <span class="spec-label">Állapot:</span>
+              <span
+                class="spec-value"
+                [class.available]="product()!.isActive"
+                [class.unavailable]="!product()!.isActive"
+              >
+                {{ product()!.isActive ? 'Elérhető' : 'Nem elérhető' }}
+              </span>
+            </li>
+            @if (manufacturer()) {
+              <li>
+                <span class="spec-label">Gyártó:</span>
+                <span class="spec-value">{{ manufacturer()!.name }}</span>
+              </li>
+            }
+          </ul>
+        </div>
+
+        <!-- Ár -->
+        <div class="product-price">
+          <span class="price">{{ product()!.price }} HUF</span>
+        </div>
+
+        <!-- Kosár vezérlők -->
+        <div class="cart-actions">
+          <div class="quantity-controls">
+            <button class="quantity-btn decrease" (click)="decreaseQuantity()">
+              <i class="fa-solid fa-angle-down"></i>
+            </button>
+            <span class="quantity-display">{{ quantity() }}</span>
+            <button class="quantity-btn increase" (click)="increaseQuantity()">
+              <i class="fa-solid fa-angle-up"></i>
+            </button>
+          </div>
+
+          <button class="add-to-cart-btn" (click)="addToCart()">
+            <i class="fa-solid fa-cart-shopping"></i>
+            Kosárba helyezés
+          </button>
+        </div>
+
+        <!-- Összesen -->
+        <div class="total-price">
+          <span>Összesen:</span>
+          <strong>{{ product()!.price * quantity() }} HUF</strong>
+        </div>
+      </div>
+    </div>
+
+    <!-- ⭐ TABS - Leírás / Vélemények -->
+    <div class="product-tabs">
+      <div class="tab-buttons">
+        <button
+          class="tab-btn"
+          [class.active]="activeTab() === 'description'"
+          (click)="activeTab.set('description')"
+        >
+          <i class="fa-solid fa-file-lines"></i>
+          Leírás
+        </button>
+        <button
+          class="tab-btn"
+          [class.active]="activeTab() === 'reviews'"
+          (click)="activeTab.set('reviews')"
+        >
+          <i class="fa-solid fa-comments"></i>
+          Vélemények ({{ reviewCount() }})
+        </button>
+      </div>
+
+      <div class="tab-content">
+        <!-- ⭐ LEÍRÁS TAB -->
+        @if (activeTab() === 'description') {
+          <div class="description-content">
+            <h3>Termék leírás</h3>
+            <p>
+              {{
+                'Nincs elérhető leírás ehhez a termékhez. További információért kérjük, vegye fel velünk a kapcsolatot.'
+              }}
+            </p>
+          </div>
+        }
+
+        <!-- ⭐ VÉLEMÉNYEK TAB -->
+        @if (activeTab() === 'reviews') {
+          <div class="reviews-content">
+            <!-- Értékelés összesítő -->
+            <div class="reviews-summary">
+              <div class="rating-overview">
+                <div class="rating-big">{{ rating() }}</div>
+                <div class="stars-big">
+                  @for (isFull of getStars(); track $index) {
+                    <i class="fa-solid fa-star" [class.filled]="isFull"></i>
+                  }
+                  @if (hasHalfStar()) {
+                    <i class="fa-solid fa-star-half-stroke filled"></i>
+                  }
+                </div>
+                <p class="rating-count">{{ reviewCount() }} értékelés alapján</p>
+              </div>
+
+              <button class="write-review-btn">
+                <i class="fa-solid fa-pen"></i>
+                Vélemény írása
+              </button>
+            </div>
+
+            <!-- Vélemények lista -->
+            <div class="reviews-list">
+              @for (review of reviews(); track review.id) {
+                <div class="review-card">
+                  <div class="review-header">
+                    <div class="reviewer-info">
+                      <div class="reviewer-avatar">
+                        {{ review.userName.charAt(0).toUpperCase() }}
+                      </div>
+                      <div class="reviewer-details">
+                        <strong>{{ review.userName }}</strong>
+                        <span class="review-date">{{ review.date }}</span>
+                      </div>
+                    </div>
+                    <div class="review-rating">
+                      @for (i of [1, 2, 3, 4, 5]; track i) {
+                        <i class="fa-solid fa-star" [class.filled]="i <= review.rating"></i>
+                      }
+                    </div>
+                  </div>
+                  <p class="review-text">{{ review.comment }}</p>
+                </div>
+              }
+            </div>
+          </div>
+        }
+      </div>
+    </div>
+  </div>
+} @else {
+  <!-- Not Found -->
+  <div class="not-found-container">
+    <i class="fa-solid fa-box-open"></i>
+    <h2>Termék nem található</h2>
+    <button class="back-btn" (click)="goBack()">
+      <i class="fa-solid fa-arrow-left"></i>
+      Vissza a főoldalra
+    </button>
+  </div>
+}

@@ -1,0 +1,606 @@
+/* ==========================================
+   LOADING / NOT FOUND
+   ========================================== */
+
+.loading-container,
+.not-found-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 40vh;
+  gap: 16px;
+}
+
+.loading-container i {
+  font-size: 40px;
+  color: #ff6600;
+}
+
+.not-found-container i {
+  font-size: 48px;
+  color: #ccc;
+}
+
+/* ==========================================
+   PAGE CONTAINER
+   ========================================== */
+
+.product-detail-page {
+  max-width: 1000px;
+  margin: 32px auto;
+  padding: 0 20px;
+}
+
+.back-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 16px;
+  background: #e0e0e0;
+  border: none;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  color: #2b2b2b;
+  cursor: pointer;
+  transition: all 0.2s;
+  margin-bottom: 24px;
+}
+
+.back-btn:hover {
+  background: #d0d0d0;
+  transform: translateX(-4px);
+}
+
+/* ==========================================
+   ⭐ PRODUCT CARD LARGE - Product Card stílusban
+   ========================================== */
+
+.product-card-large {
+  display: flex;
+  border: 1px solid #fffafa;
+  border-radius: 15px;
+  width: 100%;
+  min-height: 400px;
+  overflow: hidden;
+  box-shadow: 10px 4px 14px 4px rgba(43, 43, 43, 0.15);
+  -webkit-box-shadow: 10px 4px 14px 4px rgba(43, 43, 43, 0.15);
+  -moz-box-shadow: 10px 4px 14px 4px rgba(43, 43, 43, 0.15);
+  background-color: #fffafa;
+  margin-bottom: 32px;
+}
+
+/* BAL OLDAL - Képek */
+.product-image-section {
+  flex: 0 0 400px;
+  background-color: #2b2b2b;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 20px;
+}
+
+.main-image {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.main-image img {
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain;
+}
+
+.thumbnail-gallery {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(70px, 1fr));
+  gap: 8px;
+}
+
+.thumbnail {
+  aspect-ratio: 1;
+  border-radius: 8px;
+  overflow: hidden;
+  border: 2px solid transparent;
+  cursor: pointer;
+  transition: all 0.2s;
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.thumbnail:hover,
+.thumbnail.active {
+  border-color: #ff6600;
+}
+
+.thumbnail img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* JOBB OLDAL - Info */
+.product-info-section {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  padding: 24px;
+  color: #2b2b2b;
+}
+
+.product-name {
+  font-size: 24px;
+  font-weight: 700;
+  margin: 0 0 8px 0;
+  color: #2b2b2b;
+  line-height: 1.3;
+}
+
+.product-sku {
+  font-size: 13px;
+  color: #666;
+  margin: 0 0 12px 0;
+}
+
+/* Rating */
+.rating-display {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 16px;
+}
+
+.stars {
+  display: flex;
+  gap: 3px;
+}
+
+.stars i {
+  font-size: 16px;
+  color: #e0e0e0;
+}
+
+.stars i.filled {
+  color: #ffa500;
+}
+
+.rating-text {
+  font-size: 13px;
+  color: #666;
+}
+
+/* Badges */
+.product-badges {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-bottom: 16px;
+}
+
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  border-radius: 12px;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.badge.category {
+  background: rgba(255, 102, 0, 0.1);
+  color: #ff6600;
+}
+
+.badge.manufacturer {
+  background: rgba(43, 43, 43, 0.1);
+  color: #2b2b2b;
+}
+
+/* Specs */
+.product-specs {
+  flex: 1;
+  margin-bottom: 16px;
+}
+
+.product-specs ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  font-size: 13px;
+  color: #444;
+}
+
+.product-specs li {
+  display: flex;
+  justify-content: space-between;
+  padding: 8px 0;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.spec-label {
+  font-weight: 600;
+  color: #2b2b2b;
+}
+
+.spec-value {
+  color: #666;
+}
+
+.spec-value.available {
+  color: #4caf50;
+  font-weight: 600;
+}
+
+.spec-value.unavailable {
+  color: #ff4444;
+  font-weight: 600;
+}
+
+/* Ár */
+.product-price {
+  margin-bottom: 16px;
+}
+
+.price {
+  font-size: 28px;
+  font-weight: 700;
+  color: #2b2b2b;
+  display: block;
+  text-align: right;
+}
+
+/* Cart Actions - Product Card style */
+.cart-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.quantity-controls {
+  display: flex;
+  align-items: center;
+  gap: 0;
+  border-radius: 12px;
+  overflow: hidden;
+  background-color: #2b2b2b;
+  color: #fffafa;
+}
+
+.quantity-btn {
+  width: 36px;
+  height: 46px;
+  border: none;
+  background-color: transparent;
+  color: #ff6600;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  transition: background 0.2s;
+}
+
+.quantity-btn.decrease:hover {
+  background: linear-gradient(to right, #2b2b2b, #4a4949);
+}
+
+.quantity-btn.increase:hover {
+  background: linear-gradient(to left, #2b2b2b, #4a4949);
+}
+
+.quantity-display {
+  min-width: 50px;
+  height: 46px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 16px;
+  font-weight: 600;
+  color: #fffafa;
+  user-select: none;
+}
+
+.add-to-cart-btn {
+  flex: 1;
+  height: 46px;
+  border: none;
+  background-color: #2b2b2b;
+  color: #ff6600;
+  border-radius: 12px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  font-size: 15px;
+  font-weight: 600;
+  transition: background 0.2s;
+}
+
+.add-to-cart-btn:hover {
+  background: linear-gradient(to right, #2b2b2b, #4a4949);
+}
+
+.add-to-cart-btn i {
+  font-size: 18px;
+}
+
+/* Total */
+.total-price {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px;
+  background: #f9f9f9;
+  border-radius: 8px;
+  font-size: 16px;
+}
+
+.total-price strong {
+  color: #ff6600;
+  font-size: 22px;
+}
+
+/* ==========================================
+   ⭐ TABS SECTION
+   ========================================== */
+
+.product-tabs {
+  background: white;
+  border-radius: 15px;
+  box-shadow: 10px 4px 14px 4px rgba(43, 43, 43, 0.15);
+  overflow: hidden;
+}
+
+.tab-buttons {
+  display: flex;
+  border-bottom: 2px solid #f0f0f0;
+}
+
+.tab-btn {
+  flex: 1;
+  padding: 16px 24px;
+  background: transparent;
+  border: none;
+  font-size: 15px;
+  font-weight: 600;
+  color: #666;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  transition: all 0.2s;
+  position: relative;
+}
+
+.tab-btn:hover {
+  background: rgba(255, 102, 0, 0.05);
+  color: #ff6600;
+}
+
+.tab-btn.active {
+  color: #ff6600;
+}
+
+.tab-btn.active::after {
+  content: '';
+  position: absolute;
+  bottom: -2px;
+  left: 0;
+  width: 100%;
+  height: 3px;
+  background: #ff6600;
+}
+
+.tab-content {
+  padding: 32px;
+}
+
+/* Description Tab */
+.description-content h3 {
+  font-size: 18px;
+  margin: 0 0 16px 0;
+  color: #2b2b2b;
+}
+
+.description-content p {
+  color: #666;
+  line-height: 1.8;
+  margin: 0;
+}
+
+/* Reviews Tab */
+.reviews-content {
+  display: flex;
+  flex-direction: column;
+  gap: 32px;
+}
+
+.reviews-summary {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 24px;
+  background: #f9f9f9;
+  border-radius: 12px;
+}
+
+.rating-overview {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+}
+
+.rating-big {
+  font-size: 48px;
+  font-weight: 700;
+  color: #2b2b2b;
+}
+
+.stars-big {
+  display: flex;
+  gap: 4px;
+}
+
+.stars-big i {
+  font-size: 24px;
+  color: #e0e0e0;
+}
+
+.stars-big i.filled {
+  color: #ffa500;
+}
+
+.rating-count {
+  font-size: 13px;
+  color: #666;
+  margin: 0;
+}
+
+.write-review-btn {
+  padding: 12px 24px;
+  background: #ff6600;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  transition: all 0.2s;
+}
+
+.write-review-btn:hover {
+  background: #e65a00;
+  transform: translateY(-2px);
+}
+
+/* Reviews List */
+.reviews-list {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.review-card {
+  padding: 20px;
+  background: #fafafa;
+  border-radius: 12px;
+  border-left: 3px solid #ff6600;
+}
+
+.review-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+.reviewer-info {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.reviewer-avatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #ff6600, #ff8833);
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+  font-weight: 700;
+}
+
+.reviewer-details {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.reviewer-details strong {
+  font-size: 14px;
+  color: #2b2b2b;
+}
+
+.review-date {
+  font-size: 12px;
+  color: #999;
+}
+
+.review-rating {
+  display: flex;
+  gap: 3px;
+}
+
+.review-rating i {
+  font-size: 14px;
+  color: #e0e0e0;
+}
+
+.review-rating i.filled {
+  color: #ffa500;
+}
+
+.review-text {
+  margin: 0;
+  color: #444;
+  line-height: 1.6;
+  font-size: 14px;
+}
+
+/* ==========================================
+   RESPONSIVE
+   ========================================== */
+
+@media (max-width: 992px) {
+  .product-card-large {
+    flex-direction: column;
+    min-height: auto;
+  }
+
+  .product-image-section {
+    flex: 0 0 300px;
+  }
+
+  .product-info-section {
+    padding: 20px;
+  }
+}
+
+@media (max-width: 768px) {
+  .product-detail-page {
+    margin: 16px auto;
+  }
+
+  .tab-content {
+    padding: 20px;
+  }
+
+  .reviews-summary {
+    flex-direction: column;
+    gap: 20px;
+  }
+
+  .cart-actions {
+    flex-direction: column;
+  }
+
+  .add-to-cart-btn {
+    width: 100%;
+  }
+}
