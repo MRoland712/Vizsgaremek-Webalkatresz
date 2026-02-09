@@ -330,6 +330,8 @@ public class UsersService {
 
     }
 
+    
+
     public JSONObject softDeleteUser(Integer id) {
         JSONObject toReturn = new JSONObject();
         JSONArray errors = new JSONArray();
@@ -372,7 +374,7 @@ public class UsersService {
         }
 
         Boolean result = Users.softDeleteUser(id);
-        System.out.println("softDeleteUser result:"+ result);
+        System.out.println("softDeleteUser result:" + result);
         if (!result) {
             errors.put("ServerError");
         }
@@ -396,9 +398,10 @@ public class UsersService {
             toReturn.put("warning", "Failed To Log User Action");
             return errorAuth.createOKResponse(toReturn);
         }
-        
+
         return errorAuth.createOKResponse();
     }
+
     //ToDo: email verified, phone verified, failed login?
     public JSONObject updateUser(Users updatedUser) {
         JSONObject toReturn = new JSONObject();
@@ -515,7 +518,7 @@ public class UsersService {
             existingUser.setRegistrationToken(updatedUser.getRegistrationToken());
             updatedDatas.add("registration token");
         }
-        
+
         //if isSubscribed is NOT missing AND IS VALID
         if (!userAuth.isDataMissing(updatedUser.getIsSubscribed()) && userAuth.isValidIsSubscribed(updatedUser.getIsSubscribed())) {
             existingUser.setIsSubscribed(updatedUser.getIsSubscribed());
@@ -546,7 +549,7 @@ public class UsersService {
         if (!userAuth.isDataMissing(updatedUser.getIsActive()) && !userAuth.isValidIsActive(updatedUser.getIsActive())) {
             errors.put("InvalidIsActive");
         }
-        
+
         //if isSubscribed is NOT missing AND is NOT VALID
         if (!userAuth.isDataMissing(updatedUser.getIsSubscribed()) && !userAuth.isValidIsSubscribed(updatedUser.getIsSubscribed())) {
             errors.put("InvalidIsSubscribed");
@@ -623,105 +626,6 @@ public class UsersService {
         return errorAuth.createOKResponse();
     }
 
-    public JSONObject loginUser(Users logInUser) {
-        JSONObject toReturn = new JSONObject();
-        JSONArray errors = new JSONArray();
-
-        //IF DATA IS MISSING
-        if (userAuth.isDataMissing(logInUser.getEmail())) {
-            errors.put("MissingEmail");
-        }
-        if (userAuth.isDataMissing(logInUser.getPassword())) {
-            errors.put("MissingPassword");
-        }
-
-        //IF DATA IS INVALID
-        if (!userAuth.isValidEmail(logInUser.getEmail()) && !userAuth.isDataMissing(logInUser.getEmail())) {
-            errors.put("InvalidEmail");
-        }
-        if (!userAuth.isValidPassword(logInUser.getPassword()) && !userAuth.isDataMissing(logInUser.getPassword())) {
-            errors.put("InvalidPassword");
-        }
-
-        //error check if email or psw is invalid or missing
-        if (errorAuth.hasErrors(errors)) {
-            return errorAuth.createErrorResponse(errors, 400);
-        }
-
-        Users userData = Users.getUserByEmail(logInUser.getEmail());
-
-        if (userAuth.isDataMissing(userData)) {
-            errors.put("UserNotFound");
-        }
-
-        //error check for is userData missing
-        if (errorAuth.hasErrors(errors)) {
-            return errorAuth.createErrorResponse(errors, 404);
-        }
-
-        if (userAuth.isUserDeleted(userData.getIsDeleted())) {
-            errors.put("UserIsSoftDeleted");
-        }
-
-        //error check for is user Deleted
-        if (errorAuth.hasErrors(errors)) {
-            return errorAuth.createErrorResponse(errors, 409);
-        }
-
-        try {
-            if (!userAuth.isPasswordSame(logInUser.getPassword(), logInUser.getEmail())) {
-                errors.put("InvalidPassword");
-            }
-        } catch (Exception ex) {
-            ex.printStackTrace();
-            errors.put("EncryptionError");
-        }
-
-        //error check for is password same
-        if (errorAuth.hasErrors(errors)) {
-            return errorAuth.createErrorResponse(errors, 401);
-        }
-
-        //get data from spq
-        Boolean modelResult = Users.loginUser(userData);
-
-
-        //if spq gives null data
-        if (userAuth.isDataMissing(modelResult)) {
-            errors.put("ModelError");
-        }
-
-        //if ModelError
-        if (errorAuth.hasErrors(errors)) {
-            return errorAuth.createErrorResponse(errors, 500);
-        }
-
-        UserLogs createdUserLog = new UserLogs();
-        createdUserLog.setAction("loginUser");
-        createdUserLog.setDetails("User " + userData.getUsername() + " logged in.");
-
-        Boolean userLog = UserLogs.createUserLogs(createdUserLog, userData.getId());
-
-        if (!userLog) {
-            errors.put("UserLogError");
-        }
-
-        if (errorAuth.hasErrors(errors)) {
-            toReturn.put("message", "Failed To Log User Action");
-        }
-
-        toReturn.put("JWTToken", JwtUtil.generateToken(userData.getId(), userData.getEmail(), userData.getRole(), userData.getUsername()));
-        toReturn.put("message", "Logged in User Successfully");
-        if (userData.getIsActive() == false) {
-            toReturn.put("message", "User Is Not Activated");
-        }
-        
-        toReturn.put("username", userData.getUsername());
-        toReturn.put("firstName", userData.getFirstName());
-        toReturn.put("lastName", userData.getLastName());
-        toReturn.put("phone", userData.getPhone());
-        return errorAuth.createOKResponse(toReturn);
-    }
     
 } // DONT DELETE, THIS IS THE CLASS CLOSER
 

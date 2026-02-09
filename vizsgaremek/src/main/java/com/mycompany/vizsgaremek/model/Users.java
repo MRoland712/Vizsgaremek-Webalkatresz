@@ -673,6 +673,8 @@ public class Users implements Serializable {
             em.close();
         }
     }
+    
+   
 
     public static Boolean softDeleteUser(Integer id) {
         EntityManager em = emf.createEntityManager();
