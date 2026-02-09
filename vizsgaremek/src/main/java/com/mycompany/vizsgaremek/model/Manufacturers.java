@@ -354,4 +354,38 @@ public class Manufacturers implements Serializable {
         }
     }
     
+    public static Manufacturers getManufacturersByName(String name) {
+        EntityManager em = emf.createEntityManager();
+        try {
+            StoredProcedureQuery spq = em.createStoredProcedureQuery("getManufacturersByName");
+            spq.registerStoredProcedureParameter("nameIN", String.class, ParameterMode.IN);
+            spq.setParameter("nameIN", name);
+            spq.execute();
+
+            List<Object[]> resultList = spq.getResultList();
+
+
+            Object[] record = resultList.get(0);
+
+
+            Manufacturers m = new Manufacturers(
+                        Integer.valueOf(record[0].toString()), // 1. id
+                        record[1] != null ? record[1].toString() : null, // 2. name
+                        record[2] != null ? record[2].toString() : null, // 3. country
+                        record[3] == null ? null : formatter.parse(record[3].toString()), // 11. createdAt
+                        Boolean.FALSE, // 13. isDeleted
+                        null // 14. deletedAt
+               
+            );
+
+            return m;
+
+        } catch (Exception ex) {
+            ex.printStackTrace();
+            return null;
+        } finally {
+            em.close();
+        }
+    }
+    
 }
