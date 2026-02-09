@@ -5,7 +5,6 @@
 package com.mycompany.vizsgaremek.service;
 
 import com.mycompany.vizsgaremek.model.Parts;
-import com.mycompany.vizsgaremek.service.AuthenticationService.addressAuth;
 import java.util.ArrayList;
 import org.json.JSONArray;
 import org.json.JSONObject;

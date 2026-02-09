@@ -132,7 +132,7 @@ public class ManufacturersController {
         JSONObject bodyObject = new JSONObject(body);
 
         Manufacturers updatedManufacturers = new Manufacturers();
-        updatedManufacturers.setId(manufacturersId);  // QueryParam-ból ID
+        updatedManufacturers.setId(manufacturersId); 
 
         if (bodyObject.has("name")) {
             updatedManufacturers.setName(bodyObject.getString("name"));

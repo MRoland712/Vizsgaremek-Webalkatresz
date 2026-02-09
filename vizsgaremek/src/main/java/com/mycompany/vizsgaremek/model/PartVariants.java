@@ -7,9 +7,9 @@ package com.mycompany.vizsgaremek.model;
 import java.io.Serializable;
 import java.math.BigDecimal;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
-import java.util.ArrayList;
 import javax.persistence.Basic;
 import javax.persistence.Column;
 import javax.persistence.Entity;
@@ -33,7 +33,7 @@ import javax.xml.bind.annotation.XmlRootElement;
 
 /**
  *
- * @author neblg
+ * @author neblgergo
  */
 @Entity
 @Table(name = "part_variants")
@@ -75,7 +75,7 @@ public class PartVariants implements Serializable {
     @JoinColumn(name = "part_id", referencedColumnName = "id")
     @ManyToOne(optional = false)
     private Parts partId;
-
+    
     static EntityManagerFactory emf = Persistence.createEntityManagerFactory("com.mycompany_vizsgaremek_war_1.0-SNAPSHOTPU");
     public static SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 
@@ -149,7 +149,7 @@ public class PartVariants implements Serializable {
     public void setPartId(Parts partId) {
         this.partId = partId;
     }
-
+    
     //createPartVariants
     public PartVariants(Parts partId, String name, String value, BigDecimal additionalPrice) {
         this.partId = partId;
@@ -194,7 +194,7 @@ public class PartVariants implements Serializable {
     public String toString() {
         return "com.mycompany.vizsgaremek.model.PartVariants[ id=" + id + " ]";
     }
-
+    
     public static Boolean createPartVariants(PartVariants createdPartVariants) {
         EntityManager em = emf.createEntityManager();
         try {

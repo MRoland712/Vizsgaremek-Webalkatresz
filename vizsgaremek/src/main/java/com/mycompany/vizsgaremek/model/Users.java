@@ -4,6 +4,7 @@
  */
 package com.mycompany.vizsgaremek.model;
 
+import com.mycompany.vizsgaremek.service.AuthenticationService;
 import java.io.Serializable;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -16,7 +17,6 @@ import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
-import javax.persistence.EntityTransaction;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
@@ -33,11 +33,10 @@ import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
 import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.XmlTransient;
-import com.mycompany.vizsgaremek.service.AuthenticationService;
 
 /**
  *
- * @author ddori
+ * @author neblgergo
  */
 @Entity
 @Table(name = "users")
@@ -68,13 +67,6 @@ import com.mycompany.vizsgaremek.service.AuthenticationService;
     @NamedQuery(name = "Users.findByGuid", query = "SELECT u FROM Users u WHERE u.guid = :guid"),
     @NamedQuery(name = "Users.findByRegistrationToken", query = "SELECT u FROM Users u WHERE u.registrationToken = :registrationToken")})
 public class Users implements Serializable {
-
-    @OneToMany(cascade = CascadeType.ALL, mappedBy = "userId")
-    private Collection<CartItems> cartItemsCollection;
-    @OneToMany(cascade = CascadeType.ALL, mappedBy = "userId")
-    private Collection<Reviews> reviewsCollection;
-    @OneToMany(cascade = CascadeType.ALL, mappedBy = "userId")
-    private Collection<Orders> ordersCollection;
 
     private static final long serialVersionUID = 1L;
     @Id
@@ -155,8 +147,26 @@ public class Users implements Serializable {
     @Column(name = "registration_token")
     private String registrationToken;
     @OneToMany(cascade = CascadeType.ALL, mappedBy = "userId")
+    private Collection<Addresses> addressesCollection;
+    @OneToMany(cascade = CascadeType.ALL, mappedBy = "userId")
+    private Collection<EmailVerifications> emailVerificationsCollection;
+    @OneToMany(cascade = CascadeType.ALL, mappedBy = "userId")
+    private Collection<LoginLogs> loginLogsCollection;
+    @OneToMany(cascade = CascadeType.ALL, mappedBy = "userId")
+    private Collection<Reviews> reviewsCollection;
+    @OneToMany(cascade = CascadeType.ALL, mappedBy = "userId")
     private Collection<UserLogs> userLogsCollection;
-
+    @OneToMany(cascade = CascadeType.ALL, mappedBy = "userId")
+    private Collection<Sessions> sessionsCollection;
+    @OneToMany(cascade = CascadeType.ALL, mappedBy = "userId")
+    private Collection<CartItems> cartItemsCollection;
+    @OneToMany(cascade = CascadeType.ALL, mappedBy = "userId")
+    private Collection<PasswordResets> passwordResetsCollection;
+    @OneToMany(cascade = CascadeType.ALL, mappedBy = "userId")
+    private Collection<UserTwofa> userTwofaCollection;
+    @OneToMany(cascade = CascadeType.ALL, mappedBy = "userId")
+    private Collection<Orders> ordersCollection;
+    
     static EntityManagerFactory emf = Persistence.createEntityManagerFactory("com.mycompany_vizsgaremek_war_1.0-SNAPSHOTPU");
     public static SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
     static AuthenticationService.userAuth userAuth = new AuthenticationService.userAuth();
@@ -164,6 +174,10 @@ public class Users implements Serializable {
     public Users() {
     }
 
+    public Users(Integer id) {
+        this.id = id;
+    }
+    
     //loginUser
     public Users(String email, String password) {
         this.email = email;
@@ -264,6 +278,15 @@ public class Users implements Serializable {
         this.guid = guid;
         this.registrationToken = registrationToken;
         this.isSubscribed = isSubscribed;
+    }
+
+    public Users(Integer id, String email, String username, String password, String authSecret, String guid) {
+        this.id = id;
+        this.email = email;
+        this.username = username;
+        this.password = password;
+        this.authSecret = authSecret;
+        this.guid = guid;
     }
 
     public Integer getId() {
@@ -451,12 +474,93 @@ public class Users implements Serializable {
     }
 
     @XmlTransient
+    public Collection<Addresses> getAddressesCollection() {
+        return addressesCollection;
+    }
+
+    public void setAddressesCollection(Collection<Addresses> addressesCollection) {
+        this.addressesCollection = addressesCollection;
+    }
+
+    @XmlTransient
+    public Collection<EmailVerifications> getEmailVerificationsCollection() {
+        return emailVerificationsCollection;
+    }
+
+    public void setEmailVerificationsCollection(Collection<EmailVerifications> emailVerificationsCollection) {
+        this.emailVerificationsCollection = emailVerificationsCollection;
+    }
+
+    @XmlTransient
+    public Collection<LoginLogs> getLoginLogsCollection() {
+        return loginLogsCollection;
+    }
+
+    public void setLoginLogsCollection(Collection<LoginLogs> loginLogsCollection) {
+        this.loginLogsCollection = loginLogsCollection;
+    }
+
+    @XmlTransient
+    public Collection<Reviews> getReviewsCollection() {
+        return reviewsCollection;
+    }
+
+    public void setReviewsCollection(Collection<Reviews> reviewsCollection) {
+        this.reviewsCollection = reviewsCollection;
+    }
+
+    @XmlTransient
     public Collection<UserLogs> getUserLogsCollection() {
         return userLogsCollection;
     }
 
     public void setUserLogsCollection(Collection<UserLogs> userLogsCollection) {
         this.userLogsCollection = userLogsCollection;
+    }
+
+    @XmlTransient
+    public Collection<Sessions> getSessionsCollection() {
+        return sessionsCollection;
+    }
+
+    public void setSessionsCollection(Collection<Sessions> sessionsCollection) {
+        this.sessionsCollection = sessionsCollection;
+    }
+
+    @XmlTransient
+    public Collection<CartItems> getCartItemsCollection() {
+        return cartItemsCollection;
+    }
+
+    public void setCartItemsCollection(Collection<CartItems> cartItemsCollection) {
+        this.cartItemsCollection = cartItemsCollection;
+    }
+
+    @XmlTransient
+    public Collection<PasswordResets> getPasswordResetsCollection() {
+        return passwordResetsCollection;
+    }
+
+    public void setPasswordResetsCollection(Collection<PasswordResets> passwordResetsCollection) {
+        this.passwordResetsCollection = passwordResetsCollection;
+    }
+
+    @XmlTransient
+    public Collection<UserTwofa> getUserTwofaCollection() {
+        return userTwofaCollection;
+    }
+
+    public void setUserTwofaCollection(Collection<UserTwofa> userTwofaCollection) {
+        this.userTwofaCollection = userTwofaCollection;
+    }
+
+    @XmlTransient
+    public Collection<Orders> getOrdersCollection() {
+        return ordersCollection;
+    }
+
+    public void setOrdersCollection(Collection<Orders> ordersCollection) {
+        this.ordersCollection = ordersCollection;
     }
 
     @Override
@@ -483,7 +587,7 @@ public class Users implements Serializable {
     public String toString() {
         return "com.mycompany.vizsgaremek.model.Users[ id=" + id + " ]";
     }
-
+    
     public static Boolean createUser(Users createdUser) {
         EntityManager em = emf.createEntityManager();
         try {
@@ -775,31 +879,5 @@ public class Users implements Serializable {
             em.close();
         }
     }
-
-    @XmlTransient
-    public Collection<CartItems> getCartItemsCollection() {
-        return cartItemsCollection;
-    }
-
-    public void setCartItemsCollection(Collection<CartItems> cartItemsCollection) {
-        this.cartItemsCollection = cartItemsCollection;
-    }
-
-    @XmlTransient
-    public Collection<Reviews> getReviewsCollection() {
-        return reviewsCollection;
-    }
-
-    public void setReviewsCollection(Collection<Reviews> reviewsCollection) {
-        this.reviewsCollection = reviewsCollection;
-    }
-
-    @XmlTransient
-    public Collection<Orders> getOrdersCollection() {
-        return ordersCollection;
-    }
-
-    public void setOrdersCollection(Collection<Orders> ordersCollection) {
-        this.ordersCollection = ordersCollection;
-    }
+    
 }

@@ -1,0 +1,56 @@
+<div class="login-page">
+  <form [formGroup]="loginForm" (ngSubmit)="onLoginSubmit()">
+    <div class="login-container">
+      <div class="form-header">
+        <a routerLink="/">
+          <img src="assets/CarComps_Logo_C_white.png" alt="CarComps Logo" class="logo" />
+        </a>
+
+        <h2>Bejelentkezés</h2>
+      </div>
+
+      <div class="email-control">
+        <input
+          type="email"
+          class="form__field"
+          placeholder="Email"
+          id="email"
+          [formControl]="loginForm.controls.email"
+        />
+        <label for="email" class="form__label">Email</label>
+      </div>
+
+      <div class="login-control">
+        <input
+          type="password"
+          class="form__field"
+          placeholder="Jelszó"
+          id="password"
+          formControlName="password"
+        />
+        <label for="password" class="form__label">Jelszó</label>
+        <div class="forgot-password-container">
+          <a routerLink="/login">elfelejtetted a jelszavad?</a>
+        </div>
+      </div>
+
+      <div class="chapta">
+        <label class="chapta-container">
+          <!--formControlName="captcha" TODO-HTML-LOGIN-CAPTCHA: INPUT CHECKBOXBA MEGY -->
+          <input type="checkbox" />
+          <span class="checkmark"></span>
+          <span class="chapta-text">Nem vagyok robot</span>
+          <img src="assets/rechapta.png" alt="reCAPTCHA" class="recaptcha-logo" />
+        </label>
+      </div>
+    </div>
+    <button type="submit" class="button">Bejelentkezés</button>
+    <p>Nincs még fiókod?<a routerLink="/registration" class="reg-link">Regisztrálj egy újat!</a></p>
+    @if (emailIsInvalid) {
+      <p class="error-message">hibás email</p>
+    }
+    @if (passwordIsInvalid) {
+      <p class="error-message">Hibás Jelszó!</p>
+    }
+  </form>
+</div>

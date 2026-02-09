@@ -5,39 +5,34 @@
 package com.mycompany.vizsgaremek.model;
 
 import com.mycompany.vizsgaremek.service.AuthenticationService;
-
 import java.io.Serializable;
 import java.text.SimpleDateFormat;
-
 import java.util.Date;
 import java.util.List;
 import javax.persistence.Basic;
 import javax.persistence.Column;
 import javax.persistence.Entity;
+import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
+import javax.persistence.JoinColumn;
+import javax.persistence.ManyToOne;
 import javax.persistence.NamedQueries;
 import javax.persistence.NamedQuery;
-import javax.persistence.ManyToOne;
 import javax.persistence.ParameterMode;
 import javax.persistence.Persistence;
-
+import javax.persistence.StoredProcedureQuery;
 import javax.persistence.Table;
 import javax.persistence.Temporal;
 import javax.persistence.TemporalType;
-
 import javax.validation.constraints.Size;
 import javax.xml.bind.annotation.XmlRootElement;
 
-import javax.persistence.EntityManager;
-import javax.persistence.JoinColumn;
-import javax.persistence.StoredProcedureQuery;
-
 /**
  *
- * @author ddori
+ * @author neblgergo
  */
 @Entity
 @Table(name = "user_twofa")
@@ -50,11 +45,8 @@ import javax.persistence.StoredProcedureQuery;
     @NamedQuery(name = "UserTwofa.findByRecoveryCodes", query = "SELECT u FROM UserTwofa u WHERE u.recoveryCodes = :recoveryCodes"),
     @NamedQuery(name = "UserTwofa.findByCreatedAt", query = "SELECT u FROM UserTwofa u WHERE u.createdAt = :createdAt"),
     @NamedQuery(name = "UserTwofa.findByUpdatedAt", query = "SELECT u FROM UserTwofa u WHERE u.updatedAt = :updatedAt"),
-
-//manual
     @NamedQuery(name = "UserTwofa.findByIsDeleted", query = "SELECT u FROM UserTwofa u WHERE u.isDeleted = :isDeleted"),
-    @NamedQuery(name = "UserTwofa.findByDeletedAt", query = "SELECT u FROM UserTwofa u WHERE u.deletedAt = :deletedAt")
-})
+    @NamedQuery(name = "UserTwofa.findByDeletedAt", query = "SELECT u FROM UserTwofa u WHERE u.deletedAt = :deletedAt")})
 public class UserTwofa implements Serializable {
 
     private static final long serialVersionUID = 1L;
@@ -77,8 +69,6 @@ public class UserTwofa implements Serializable {
     @Column(name = "updated_at")
     @Temporal(TemporalType.TIMESTAMP)
     private Date updatedAt;
-
-    //manual
     @Column(name = "is_deleted")
     private Boolean isDeleted;
     @Column(name = "deleted_at")
@@ -87,7 +77,7 @@ public class UserTwofa implements Serializable {
     @JoinColumn(name = "user_id", referencedColumnName = "id")
     @ManyToOne(optional = false)
     private Users userId;
-
+    
     static EntityManagerFactory emf = Persistence.createEntityManagerFactory("com.mycompany_vizsgaremek_war_1.0-SNAPSHOTPU");
     public static SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
     public static AuthenticationService.userTwofaAuth userTwofaAuth = new AuthenticationService.userTwofaAuth();
@@ -104,7 +94,12 @@ public class UserTwofa implements Serializable {
         this.userId = userId;
     }
 
+
     public UserTwofa() {
+    }
+
+    public UserTwofa(Integer id) {
+        this.id = id;
     }
 
     public Integer getId() {
@@ -151,7 +146,10 @@ public class UserTwofa implements Serializable {
         return updatedAt;
     }
 
-//manual
+    public void setUpdatedAt(Date updatedAt) {
+        this.updatedAt = updatedAt;
+    }
+
     public Boolean getIsDeleted() {
         return isDeleted;
     }
@@ -171,7 +169,7 @@ public class UserTwofa implements Serializable {
     public Users getUserId() {
         return userId;
     }
-    
+
     public void setUserId(Users userId) {
         this.userId = userId;
     }
@@ -200,8 +198,8 @@ public class UserTwofa implements Serializable {
     public String toString() {
         return "com.mycompany.vizsgaremek.model.UserTwofa[ id=" + id + " ]";
     }
-
-    public static Boolean createUserTwofa(Integer userId, Boolean isEnabled, String secretKey, String recoveryCodes) {
+    
+        public static Boolean createUserTwofa(Integer userId, Boolean isEnabled, String secretKey, String recoveryCodes) {
         EntityManager em = emf.createEntityManager();
         try {
             StoredProcedureQuery spq = em.createStoredProcedureQuery("createUserTwoFa");
@@ -307,4 +305,5 @@ public class UserTwofa implements Serializable {
             em.close();
         }
     }
+    
 }

@@ -12,6 +12,8 @@ import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
+import javax.persistence.JoinColumn;
+import javax.persistence.ManyToOne;
 import javax.persistence.NamedQueries;
 import javax.persistence.NamedQuery;
 import javax.persistence.Table;
@@ -23,7 +25,7 @@ import javax.xml.bind.annotation.XmlRootElement;
 
 /**
  *
- * @author ddori
+ * @author neblgergo
  */
 @Entity
 @Table(name = "email_verifications")
@@ -56,6 +58,9 @@ public class EmailVerifications implements Serializable {
     @Column(name = "verified_at")
     @Temporal(TemporalType.TIMESTAMP)
     private Date verifiedAt;
+    @JoinColumn(name = "user_id", referencedColumnName = "id")
+    @ManyToOne(optional = false)
+    private Users userId;
 
     public EmailVerifications() {
     }
@@ -107,6 +112,14 @@ public class EmailVerifications implements Serializable {
 
     public void setVerifiedAt(Date verifiedAt) {
         this.verifiedAt = verifiedAt;
+    }
+
+    public Users getUserId() {
+        return userId;
+    }
+
+    public void setUserId(Users userId) {
+        this.userId = userId;
     }
 
     @Override

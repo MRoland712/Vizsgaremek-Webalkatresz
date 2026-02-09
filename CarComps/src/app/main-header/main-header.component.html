@@ -1,0 +1,333 @@
+<!-- Main Header - Teljes komponens -->
+<nav class="main-navbar">
+  <!-- Container wrapper -->
+  <div class="nav-container">
+    <!-- Logo bal oldalon -->
+    <div class="nav-logo">
+      <a routerLink="/">
+        <img src="{{ imgSrc }}" alt="CarComps main brand logo" />
+      </a>
+    </div>
+
+    <!-- Search bar középen -->
+    <div class="nav-search">
+      <form class="search-form" [class.has-results]="showDropdown()" (ngSubmit)="onSearchSubmit()">
+        <i class="fa-solid fa-magnifying-glass search-icon"></i>
+        <input
+          type="search"
+          class="search-input"
+          placeholder="Keresés autóalkatrészek között..."
+          [formControl]="searchControl"
+          (blur)="closeDropdown()"
+          autocomplete="off"
+        />
+
+        <!-- Loading spinner -->
+        @if (isSearching()) {
+          <i class="fa-solid fa-spinner fa-spin loading-icon"></i>
+        }
+
+        <!-- Search results dropdown -->
+        @if (showDropdown() && searchResults().length > 0) {
+          <div class="search-dropdown">
+            <ul class="search-results">
+              @for (result of searchResults(); track result.id) {
+                <li class="search-result-item" (mousedown)="selectResult(result)">
+                  <div class="result-info">
+                    <div class="result-name">{{ result.name }}</div>
+                    <div class="result-category">{{ result.category }}</div>
+                  </div>
+                  <div class="result-price">{{ result.price | number: '1.0-0' }} Ft</div>
+                </li>
+              }
+            </ul>
+          </div>
+        }
+
+        <!-- Nincs találat üzenet -->
+        @if (
+          showDropdown() &&
+          !isSearching() &&
+          searchResults().length === 0 &&
+          searchControl.value &&
+          searchControl.value.trim().length > 0
+        ) {
+          <div class="search-dropdown">
+            <div class="no-results">
+              <i class="fa-solid fa-circle-exclamation"></i>
+              <p>Nincs találat</p>
+            </div>
+          </div>
+        }
+      </form>
+    </div>
+
+    <!-- Ikonok jobb oldalon -->
+    <ul class="nav-icons">
+      <!-- GARAGE/WAREHOUSE ICON - MMT Hover Menu -->
+      <li class="nav-item garage-item">
+        <a
+          class="nav-link"
+          [routerLink]="isLoggedIn() ? '/profile/garage' : '/registration'"
+          title="Garázs"
+        >
+          <i class="fa-solid fa-warehouse"></i>
+        </a>
+
+        <!-- GARAGE HOVER DROPDOWN - MMT SELECTOR -->
+        <div class="garage-dropdown">
+          <!-- NINCS BEJELENTKEZVE -->
+          @if (!isLoggedIn()) {
+            <div class="garage-not-logged-in">
+              <i class="fa-solid fa-lock"></i>
+              <h3>Garázs</h3>
+              <p class="garage-message">Jelentkezz be a garázs eléréséhez</p>
+
+              <a routerLink="/login" class="garage-login-btn">Bejelentkezés</a>
+            </div>
+          }
+
+          <!-- BE VAN JELENTKEZVE - MMT SELECTOR -->
+          @else {
+            <div class="garage-logged-in">
+              <!-- Header -->
+              <div class="garage-header">
+                <i class="fa-solid fa-warehouse"></i>
+                <div class="garage-info">
+                  <h3>Válassz autót</h3>
+                  <p class="garage-subtitle">Garázsom</p>
+                </div>
+              </div>
+
+              <!-- MMT Selector -->
+              <div class="garage-box-selector">
+                <!-- Márka -->
+                <div class="garage-select-group">
+                  <label>Márka</label>
+                  <select class="garage-select" [formControl]="garageMakeControl">
+                    <option value="">Válassz márkát</option>
+                    <option value="1">Audi</option>
+                    <option value="2">BMW</option>
+                    <option value="3">Mercedes</option>
+                  </select>
+                  <i class="fa-solid fa-chevron-down garage-select-icon"></i>
+                </div>
+
+                <!-- Modell -->
+                <div class="garage-select-group">
+                  <label>Modell</label>
+                  <select class="garage-select" [formControl]="garageModelControl">
+                    <option value="">Válassz modellt</option>
+                    <option value="1">A4</option>
+                    <option value="2">A6</option>
+                  </select>
+                  <i class="fa-solid fa-chevron-down garage-select-icon"></i>
+                </div>
+
+                <!-- Évjárat -->
+                <div class="garage-select-group">
+                  <label>Évjárat</label>
+                  <select class="garage-select" [formControl]="garageYearControl">
+                    <option value="">Válassz évjáratot</option>
+                    <option value="2020">2020</option>
+                    <option value="2021">2021</option>
+                    <option value="2022">2022</option>
+                    <option value="2023">2023</option>
+                  </select>
+                  <i class="fa-solid fa-chevron-down garage-select-icon"></i>
+                </div>
+              </div>
+
+              <!-- Kiválasztás gomb -->
+              <div class="garage-box-actions">
+                <button
+                  class="garage-select-btn"
+                  (click)="selectGarageCar()"
+                  [disabled]="!garageYearControl.value"
+                >
+                  <i class="fa-solid fa-check"></i>
+                  Kiválasztás
+                </button>
+              </div>
+            </div>
+          }
+        </div>
+      </li>
+
+      <!-- ==========================================
+           CART HOVER MENU
+           ========================================== -->
+      <li class="nav-item cart-item">
+        <a class="nav-link" routerLink="/cart" title="Kosár">
+          <i class="fa-solid fa-cart-shopping"></i>
+          <!-- Badge - termékek száma -->
+          @if (isLoggedIn() && cartItemCount() > 0) {
+            <span class="cart-badge">{{ cartItemCount() }}</span>
+          }
+        </a>
+
+        <!-- CART HOVER DROPDOWN -->
+        <div class="cart-dropdown">
+          <!-- 1. NINCS BEJELENTKEZVE -->
+          @if (!isLoggedIn()) {
+            <div class="cart-empty-state">
+              <i class="fa-solid fa-user-lock"></i>
+              <p class="cart-message">Jelentkezz be a kosár használatához</p>
+              <a routerLink="/login" class="cart-login-btn">Bejelentkezés</a>
+            </div>
+          }
+
+          <!-- 2. ÜRES KOSÁR -->
+          @else if (cartItems().length === 0) {
+            <div class="cart-empty-state">
+              <i class="fa-solid fa-cart-shopping"></i>
+              <p class="cart-message">A kosár üres</p>
+              <a routerLink="/" class="cart-browse-btn">Böngészés</a>
+            </div>
+          }
+
+          <!-- 3. VAN TERMÉK A KOSÁRBAN -->
+          @else {
+            <div class="cart-content">
+              <!-- Header -->
+              <div class="cart-header">
+                <h3>Kosár ({{ cartItemCount() }} termék)</h3>
+              </div>
+
+              <!-- Termékek lista -->
+              <div class="cart-items">
+                @for (item of cartItems(); track item.id) {
+                  <div class="cart-item-row">
+                    <!-- Termék kép -->
+                    <div class="cart-item-image">
+                      <img [src]="item.imageUrl || '/assets/placeholder.png'" [alt]="item.name" />
+                    </div>
+
+                    <!-- Termék info -->
+                    <div class="cart-item-info">
+                      <div class="cart-item-name">{{ item.name }}</div>
+                      <div class="cart-item-quantity">{{ item.quantity }} db</div>
+                    </div>
+
+                    <!-- Ár -->
+                    <div class="cart-item-price">
+                      {{ item.price * item.quantity | number: '1.0-0' }} Ft
+                    </div>
+
+                    <!-- Törlés gomb -->
+                    <button
+                      class="cart-item-remove"
+                      (click)="removeFromCart(item.id)"
+                      title="Eltávolítás"
+                    >
+                      <i class="fa-solid fa-xmark"></i>
+                    </button>
+                  </div>
+                }
+              </div>
+
+              <!-- Footer - Összesen + Gombok -->
+              <div class="cart-footer">
+                <div class="cart-total">
+                  <span>Összesen:</span>
+                  <span class="cart-total-price">{{ cartTotal() | number: '1.0-0' }} Ft</span>
+                </div>
+
+                <div class="cart-actions">
+                  <a routerLink="/cart" class="cart-view-btn">Kosár megtekintése</a>
+                  <a routerLink="/checkout" class="cart-checkout-btn">Pénztár</a>
+                </div>
+              </div>
+            </div>
+          }
+        </div>
+      </li>
+      <!-- CART HOVER MENU VÉGE -->
+
+      <!-- PROFIL IKON -->
+      <!-- USER ICON - Hover Menu - VALÓDI USER ADATOK -->
+      <li class="nav-item user-item">
+        <a
+          class="nav-link"
+          [routerLink]="isLoggedIn() ? '/profile' : '/registration'"
+          title="Profil"
+          id="profil"
+        >
+          <i class="fa-solid fa-user"></i>
+        </a>
+
+        <!-- USER HOVER DROPDOWN -->
+        <div class="user-dropdown">
+          <!-- NINCS BEJELENTKEZVE -->
+          @if (!isLoggedIn()) {
+            <div class="user-not-logged-in">
+              <i class="fa-solid fa-user-circle"></i>
+              <h3>Üdvözlünk!</h3>
+              <p class="user-message">Jelentkezz be vagy regisztrálj</p>
+
+              <div class="user-actions">
+                <a routerLink="/login" class="user-login-btn">Bejelentkezés</a>
+                <a routerLink="/registration" class="user-register-btn">Regisztráció</a>
+              </div>
+            </div>
+          }
+
+          <!-- BE VAN JELENTKEZVE - VALÓDI ADATOK! -->
+          @else {
+            <div class="user-logged-in">
+              <div class="user-header">
+                <i class="fa-solid fa-user-check"></i>
+                <div class="user-info">
+                  <h3>{{ userName() || 'Felhasználó' }}</h3>
+
+                  <p class="user-email">{{ userEmail() || 'Nincs email' }}</p>
+                </div>
+              </div>
+
+              <div class="user-menu">
+                <a routerLink="/profile" class="user-menu-item">
+                  <i class="fa-solid fa-user"></i>
+                  <span>Profilom</span>
+                </a>
+                <a routerLink="/orders" class="user-menu-item">
+                  <i class="fa-solid fa-box"></i>
+                  <span>Rendeléseim</span>
+                </a>
+                <a routerLink="/settings" class="user-menu-item">
+                  <i class="fa-solid fa-gear"></i>
+                  <span>Beállítások</span>
+                </a>
+                <button (click)="logout()" class="user-menu-item logout-btn">
+                  <i class="fa-solid fa-right-from-bracket"></i>
+                  <span>Kijelentkezés</span>
+                </button>
+              </div>
+            </div>
+          }
+        </div>
+      </li>
+    </ul>
+  </div>
+
+  <!-- ==========================================
+       VEHICLE SELECTOR - Alsó rész
+       ========================================== -->
+  <div class="vehicle-selector-container">
+    <div class="vehicle-selector-body">
+      <ul>
+        <li>
+          <i class="fa-solid fa-car"></i>
+          <span>Személygépjármű</span>
+        </li>
+        <li>
+          <i class="fa-solid fa-motorcycle"></i>
+          <span>Motorkerékpár</span>
+        </li>
+        <li>
+          <i class="fa-solid fa-truck"></i>
+          <span>Tehergépjármű</span>
+        </li>
+      </ul>
+    </div>
+  </div>
+</nav>
