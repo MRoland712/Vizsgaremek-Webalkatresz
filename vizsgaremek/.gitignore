@@ -1,5 +1,0 @@
-# vizsgaremek/.gitignore
-target/
-*.war
-*.jar
-*.class
