@@ -147,4 +147,42 @@ public class MotorsController {
                 .type(MediaType.APPLICATION_JSON)
                 .build();
     }
+    
+    @PUT
+    @Path("updateMotors")
+    @Consumes(MediaType.APPLICATION_JSON)
+    public Response updateMotors(@QueryParam("id") Integer motorsId, String body) {
+
+        JSONObject bodyObject = new JSONObject(body);
+
+        Motors updatedMotors = new Motors();
+        updatedMotors.setId(motorsId); 
+
+        if (bodyObject.has("brand")) {
+            updatedMotors.setBrand(bodyObject.getString("brand"));
+        }
+
+        if (bodyObject.has("model")) {
+            updatedMotors.setModel(bodyObject.getString("model"));
+        }
+        
+        if (bodyObject.has("yearFrom")) {
+            updatedMotors.setYearFrom(bodyObject.getInt("yearFrom"));
+        }
+        
+        if (bodyObject.has("yearTo")) {
+            updatedMotors.setYearTo(bodyObject.getInt("yearTo"));
+        }
+        if (bodyObject.has("isDeleted")) {
+            updatedMotors.setIsDeleted(bodyObject.getBoolean("isDeleted"));
+        }
+
+        JSONObject toReturn = layer.updateMotors(updatedMotors);
+
+        int statusCode = toReturn.getInt("statusCode");
+        return Response.status(statusCode)
+                .entity(toReturn.toString())
+                .type(MediaType.APPLICATION_JSON)
+                .build();
+    }
 }

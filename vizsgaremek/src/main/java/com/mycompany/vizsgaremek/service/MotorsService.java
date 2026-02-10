@@ -14,7 +14,7 @@ import org.json.JSONObject;
  * @author neblgergo
  */
 public class MotorsService {
-    
+
     private final AuthenticationService.motorsAuth motorsAuth = new AuthenticationService.motorsAuth();
     private final AuthenticationService.errorAuth errorAuth = new AuthenticationService.errorAuth();
 
@@ -53,6 +53,12 @@ public class MotorsService {
 
         if (!motorsAuth.isDataMissing(createMotors.getYearTo()) && !motorsAuth.isValidYearTo(createMotors.getYearTo())) {
             errors.put("InvalidYearTo");
+        }
+
+        if (!motorsAuth.isDataMissing(createMotors.getYearFrom())
+                && !motorsAuth.isDataMissing(createMotors.getYearTo())
+                && !motorsAuth.isYearRangeValid(createMotors.getYearFrom(), createMotors.getYearTo())) {
+            errors.put("YearFromCannotBeGreaterThanYearTo");
         }
 
         if (errorAuth.hasErrors(errors)) {
@@ -116,7 +122,7 @@ public class MotorsService {
 
         return toReturn;
     }//getAllMotors
-    
+
     public JSONObject getMotorsById(Integer id) {
         JSONObject toReturn = new JSONObject();
         JSONArray errors = new JSONArray();
@@ -155,7 +161,7 @@ public class MotorsService {
 
         return toReturn;
     }//getMotorsById
-    
+
     public JSONObject getMotorsByBrand(String brand) {
         JSONObject toReturn = new JSONObject();
         JSONArray errors = new JSONArray();
@@ -194,7 +200,7 @@ public class MotorsService {
 
         return toReturn;
     }//getMotorsByBrand
-    
+
     public JSONObject getMotorsByModel(String model) {
         JSONObject toReturn = new JSONObject();
         JSONArray errors = new JSONArray();
@@ -233,7 +239,7 @@ public class MotorsService {
 
         return toReturn;
     }//getMotorsByModel
-    
+
     public JSONObject softDeleteMotors(Integer id) {
         JSONObject toReturn = new JSONObject();
         JSONArray errors = new JSONArray();
@@ -244,8 +250,8 @@ public class MotorsService {
         }
 
         //If id is Invalid
-        if (!motorsAuth.isDataMissing(id) && !motorsAuth.isValidId(id)) {  
-            
+        if (!motorsAuth.isDataMissing(id) && !motorsAuth.isValidId(id)) {
+
             errors.put("InvalidId");
         }
 
@@ -262,7 +268,6 @@ public class MotorsService {
             errors.put("MotorsNotFound");
         }
 
-
         if (errorAuth.hasErrors(errors)) {
             return errorAuth.createErrorResponse(errors, 404);
         }
@@ -270,7 +275,6 @@ public class MotorsService {
         if (modelResult.getIsDeleted() == true) {
             errors.put("MotorIsDeleted");
         }
-
 
         if (errorAuth.hasErrors(errors)) {
             return errorAuth.createErrorResponse(errors, 409);
@@ -292,5 +296,115 @@ public class MotorsService {
         toReturn.put("Message", "Deleted Motor Succesfully");
         return toReturn;
     }//softDeleteCars
-    
+
+    public JSONObject updateMotors(Motors updatedMotors) {
+        JSONObject toReturn = new JSONObject();
+        JSONArray errors = new JSONArray();
+
+        // VALIDÁCIÓK KERESÉSI PARAMÉTEREK 
+        // Ha nincs SEMMILYEN keresési paraméter id 
+        if (motorsAuth.isDataMissing(updatedMotors.getId())) {
+            errors.put("MissingSearchParameter");
+        }
+
+        // Ha carsId mint keresési paraméter NEM hiányzik ÉS ÉRVÉNYTELEN
+        if (!motorsAuth.isDataMissing(updatedMotors.getId())
+                && !motorsAuth.isValidId(updatedMotors.getId())) {
+            errors.put("InvalidId");
+        }
+
+        // Hiba ellenőrzés - keresési paraméterek
+        if (errorAuth.hasErrors(errors)) {
+            return errorAuth.createErrorResponse(errors, 400);
+        }
+
+        // CÍM LEKÉRDEZÉSE 
+        Motors existingMotors = null;
+
+        // ID alapján keresés
+        if (!motorsAuth.isDataMissing(updatedMotors.getId())) {
+            existingMotors = Motors.getMotorsById(updatedMotors.getId());
+        }
+
+        // Ha nem található a cím
+        if (motorsAuth.isDataMissing(existingMotors)) {
+            errors.put("MotorsNotFound");
+            return errorAuth.createErrorResponse(errors, 404);
+        }
+
+        //  MEZŐK MÓDOSÍTÁSA (csak a megadottak!)
+        if (!motorsAuth.isDataMissing(updatedMotors.getBrand())) {
+            if (motorsAuth.isValidBrand(updatedMotors.getBrand())) {
+                existingMotors.setBrand(updatedMotors.getBrand());
+            } else {
+                errors.put("InvalidBrand");
+            }
+        }
+
+        // Model CSAK ha meg van adva!
+        if (!motorsAuth.isDataMissing(updatedMotors.getModel())) {
+            if (motorsAuth.isValidModel(updatedMotors.getModel())) {
+                existingMotors.setModel(updatedMotors.getModel());
+            } else {
+                errors.put("InvalidModel");
+            }
+        }
+
+        // yearFrom CSAK ha meg van adva!
+        if (!motorsAuth.isDataMissing(updatedMotors.getYearFrom())) {
+            if (motorsAuth.isValidYearFrom(updatedMotors.getYearFrom())) {
+                existingMotors.setYearFrom(updatedMotors.getYearFrom());
+            } else {
+                errors.put("InvalidYearFrom");
+            }
+        }
+
+        // yearTo CSAK ha meg van adva!
+        if (!motorsAuth.isDataMissing(updatedMotors.getYearTo())) {
+            if (motorsAuth.isValidYearTo(updatedMotors.getYearTo())) {
+                existingMotors.setYearTo(updatedMotors.getYearTo());
+            } else {
+                errors.put("InvalidYearTo");
+            }
+        }
+
+        // isDeleted CSAK ha meg van adva!
+        if (!motorsAuth.isDataMissing(updatedMotors.getIsDeleted())) {
+            if (motorsAuth.isMotorsDeleted(updatedMotors.getIsDeleted())) {
+                existingMotors.setIsDeleted(updatedMotors.getIsDeleted());
+            } else {
+                errors.put("InvalidIsDeleted");
+            }
+        }
+
+        // Hiba ellenőrzés validációk
+        if (errorAuth.hasErrors(errors)) {
+            return errorAuth.createErrorResponse(errors, 400);
+        }
+
+        // ADATBÁZIS UPDATE 
+        try {
+            Boolean result = Motors.updateMotors(existingMotors);
+
+            if (!result) {
+                errors.put("ServerError");
+            }
+
+        } catch (Exception ex) {
+            errors.put("DatabaseError");
+            ex.printStackTrace();
+        }
+
+        if (errorAuth.hasErrors(errors)) {
+            return errorAuth.createErrorResponse(errors, 500);
+        }
+
+        // SIKERES VÁLASZ 
+        toReturn.put("success", true);
+        toReturn.put("message", "Motors updated successfully");
+        toReturn.put("statusCode", 200);
+
+        return toReturn;
+    }//updateMotors
+
 }

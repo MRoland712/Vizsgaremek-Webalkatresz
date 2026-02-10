@@ -330,12 +330,14 @@ public class Manufacturers implements Serializable {
             spq.registerStoredProcedureParameter("p_manufacturers_id", Integer.class, ParameterMode.IN);
             spq.registerStoredProcedureParameter("p_name", String.class, ParameterMode.IN);
             spq.registerStoredProcedureParameter("p_country", String.class, ParameterMode.IN);
+            spq.registerStoredProcedureParameter("isDeleted", Integer.class, ParameterMode.IN);
 
             
             
             spq.setParameter("p_manufacturers_id", updatedManufacturers.getId());
             spq.setParameter("p_name", updatedManufacturers.getName());
             spq.setParameter("p_country", updatedManufacturers.getCountry());
+            spq.setParameter("isDeleted", Boolean.TRUE.equals(updatedManufacturers.getIsDeleted()) ? 1 : 0);
             spq.execute();
 
             em.getTransaction().commit();

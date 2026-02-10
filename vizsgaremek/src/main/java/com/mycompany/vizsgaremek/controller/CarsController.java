@@ -145,4 +145,42 @@ public class CarsController {
                 .build();
     }
     
+    @PUT
+    @Path("updateCars")
+    @Consumes(MediaType.APPLICATION_JSON)
+    public Response updateCars(@QueryParam("id") Integer carsId, String body) {
+
+        JSONObject bodyObject = new JSONObject(body);
+
+        Cars updatedCars = new Cars();
+        updatedCars.setId(carsId); 
+
+        if (bodyObject.has("brand")) {
+            updatedCars.setBrand(bodyObject.getString("brand"));
+        }
+
+        if (bodyObject.has("model")) {
+            updatedCars.setModel(bodyObject.getString("model"));
+        }
+        
+        if (bodyObject.has("yearFrom")) {
+            updatedCars.setYearFrom(bodyObject.getInt("yearFrom"));
+        }
+        
+        if (bodyObject.has("yearTo")) {
+            updatedCars.setYearTo(bodyObject.getInt("yearTo"));
+        }
+        if (bodyObject.has("isDeleted")) {
+            updatedCars.setIsDeleted(bodyObject.getBoolean("isDeleted"));
+        }
+
+        JSONObject toReturn = layer.updateCars(updatedCars);
+
+        int statusCode = toReturn.getInt("statusCode");
+        return Response.status(statusCode)
+                .entity(toReturn.toString())
+                .type(MediaType.APPLICATION_JSON)
+                .build();
+    }
+    
 }

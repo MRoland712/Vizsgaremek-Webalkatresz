@@ -55,6 +55,12 @@ public class CarsService {
             errors.put("InvalidYearTo");
         }
 
+        if (!carsAuth.isDataMissing(createCars.getYearFrom())
+                && !carsAuth.isDataMissing(createCars.getYearTo())
+                && !carsAuth.isYearRangeValid(createCars.getYearFrom(), createCars.getYearTo())) {
+            errors.put("YearFromCannotBeGreaterThanYearTo");
+        }
+
         if (errorAuth.hasErrors(errors)) {
             return errorAuth.createErrorResponse(errors, 400);
         }
@@ -116,7 +122,7 @@ public class CarsService {
 
         return toReturn;
     }//getAllCars
-    
+
     public JSONObject getCarsById(Integer id) {
         JSONObject toReturn = new JSONObject();
         JSONArray errors = new JSONArray();
@@ -155,7 +161,7 @@ public class CarsService {
 
         return toReturn;
     }//getCarsById
-    
+
     public JSONObject getCarsByBrand(String brand) {
         JSONObject toReturn = new JSONObject();
         JSONArray errors = new JSONArray();
@@ -194,7 +200,7 @@ public class CarsService {
 
         return toReturn;
     }//getCarsByBrand
-    
+
     public JSONObject getCarsByModel(String model) {
         JSONObject toReturn = new JSONObject();
         JSONArray errors = new JSONArray();
@@ -233,7 +239,7 @@ public class CarsService {
 
         return toReturn;
     }//getCarsByModel
-    
+
     public JSONObject softDeleteCars(Integer id) {
         JSONObject toReturn = new JSONObject();
         JSONArray errors = new JSONArray();
@@ -244,8 +250,8 @@ public class CarsService {
         }
 
         //If id is Invalid
-        if (!carsAuth.isDataMissing(id) && !carsAuth.isValidId(id)) {  
-            
+        if (!carsAuth.isDataMissing(id) && !carsAuth.isValidId(id)) {
+
             errors.put("InvalidId");
         }
 
@@ -262,7 +268,6 @@ public class CarsService {
             errors.put("CarsNotFound");
         }
 
-
         if (errorAuth.hasErrors(errors)) {
             return errorAuth.createErrorResponse(errors, 404);
         }
@@ -270,7 +275,6 @@ public class CarsService {
         if (modelResult.getIsDeleted() == true) {
             errors.put("CarIsDeleted");
         }
-
 
         if (errorAuth.hasErrors(errors)) {
             return errorAuth.createErrorResponse(errors, 409);
@@ -292,6 +296,114 @@ public class CarsService {
         toReturn.put("Message", "Deleted Car Succesfully");
         return toReturn;
     }//softDeleteCars
+
+    public JSONObject updateCars(Cars updatedCars) {
+        JSONObject toReturn = new JSONObject();
+        JSONArray errors = new JSONArray();
+
+        // VALIDÁCIÓK KERESÉSI PARAMÉTEREK 
+        // Ha nincs SEMMILYEN keresési paraméter id 
+        if (carsAuth.isDataMissing(updatedCars.getId())) {
+            errors.put("MissingSearchParameter");
+        }
+
+        // Ha carsId mint keresési paraméter NEM hiányzik ÉS ÉRVÉNYTELEN
+        if (!carsAuth.isDataMissing(updatedCars.getId())
+                && !carsAuth.isValidId(updatedCars.getId())) {
+            errors.put("InvalidId");
+        }
+
+        // Hiba ellenőrzés - keresési paraméterek
+        if (errorAuth.hasErrors(errors)) {
+            return errorAuth.createErrorResponse(errors, 400);
+        }
+
+        // CÍM LEKÉRDEZÉSE 
+        Cars existingCars = null;
+
+        // ID alapján keresés
+        if (!carsAuth.isDataMissing(updatedCars.getId())) {
+            existingCars = Cars.getCarsById(updatedCars.getId());
+        }
+
+        // Ha nem található a cím
+        if (carsAuth.isDataMissing(existingCars)) {
+            errors.put("CarsNotFound");
+            return errorAuth.createErrorResponse(errors, 404);
+        }
+
+        //  MEZŐK MÓDOSÍTÁSA (csak a megadottak!)
+        if (!carsAuth.isDataMissing(updatedCars.getBrand())) {
+            if (carsAuth.isValidBrand(updatedCars.getBrand())) {
+                existingCars.setBrand(updatedCars.getBrand());
+            } else {
+                errors.put("InvalidBrand");
+            }
+        }
+
+        // Model CSAK ha meg van adva!
+        if (!carsAuth.isDataMissing(updatedCars.getModel())) {
+            if (carsAuth.isValidModel(updatedCars.getModel())) {
+                existingCars.setModel(updatedCars.getModel());
+            } else {
+                errors.put("InvalidModel");
+            }
+        }
+
+        // yearFrom CSAK ha meg van adva!
+        if (!carsAuth.isDataMissing(updatedCars.getYearFrom())) {
+            if (carsAuth.isValidYearFrom(updatedCars.getYearFrom())) {
+                existingCars.setYearFrom(updatedCars.getYearFrom());
+            } else {
+                errors.put("InvalidYearFrom");
+            }
+        }
+
+        // yearTo CSAK ha meg van adva!
+        if (!carsAuth.isDataMissing(updatedCars.getYearTo())) {
+            if (carsAuth.isValidYearTo(updatedCars.getYearTo())) {
+                existingCars.setYearTo(updatedCars.getYearTo());
+            } else {
+                errors.put("InvalidYearTo");
+            }
+        }
+
+        // isDeleted CSAK ha meg van adva!
+        if (!carsAuth.isDataMissing(updatedCars.getIsDeleted())) {
+            if (carsAuth.isCarsDeleted(updatedCars.getIsDeleted())) {
+                existingCars.setIsDeleted(updatedCars.getIsDeleted());
+            } else {
+                errors.put("InvalidIsDeleted");
+            }
+        }
+
+        // Hiba ellenőrzés validációk
+        if (errorAuth.hasErrors(errors)) {
+            return errorAuth.createErrorResponse(errors, 400);
+        }
+
+        // ADATBÁZIS UPDATE 
+        try {
+            Boolean result = Cars.updateCars(existingCars);
+
+            if (!result) {
+                errors.put("ServerError");
+            }
+
+        } catch (Exception ex) {
+            errors.put("DatabaseError");
+            ex.printStackTrace();
+        }
+
+        if (errorAuth.hasErrors(errors)) {
+            return errorAuth.createErrorResponse(errors, 500);
+        }
+
+        // SIKERES VÁLASZ 
+        toReturn.put("success", true);
+        toReturn.put("message", "Cars updated successfully");
+        toReturn.put("statusCode", 200);
+
+        return toReturn;
+    }//updateCars
 }
-
-

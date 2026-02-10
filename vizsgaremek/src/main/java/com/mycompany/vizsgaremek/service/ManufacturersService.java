@@ -235,6 +235,14 @@ public class ManufacturersService {
                 errors.put("InvalidCountry");
             }
         }
+        
+        if (!manufacturersAuth.isDataMissing(updatedManufacturers.getIsDeleted())) {
+            if (manufacturersAuth.isManufacturersDeleted(updatedManufacturers.getIsDeleted())) {
+                existingManufacturers.setIsDeleted(updatedManufacturers.getIsDeleted());
+            } else {
+                errors.put("InvalidIsDeleted");
+            }
+        }
 
         // Hiba ellenőrzés validációk
         if (errorAuth.hasErrors(errors)) {

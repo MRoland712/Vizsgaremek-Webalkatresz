@@ -411,5 +411,46 @@ public class Cars implements Serializable {
         }
     }
     
+    public static Boolean updateCars(Cars updatedCars) {
+        EntityManager em = emf.createEntityManager();
+
+        try {
+            em.getTransaction().begin();
+            StoredProcedureQuery spq = em.createStoredProcedureQuery("updateCars");
+            
+           
+            spq.registerStoredProcedureParameter("idIN", Integer.class, ParameterMode.IN);
+            spq.registerStoredProcedureParameter("brandIN", String.class, ParameterMode.IN);
+            spq.registerStoredProcedureParameter("modelIN", String.class, ParameterMode.IN);
+            spq.registerStoredProcedureParameter("yearFromIN", Integer.class, ParameterMode.IN);
+            spq.registerStoredProcedureParameter("yearToIN", Integer.class, ParameterMode.IN);
+            spq.registerStoredProcedureParameter("isDeleted", Integer.class, ParameterMode.IN);
+
+            
+            
+            spq.setParameter("idIN", updatedCars.getId());
+            spq.setParameter("modelIN", updatedCars.getModel());
+            spq.setParameter("brandIN", updatedCars.getBrand());
+            spq.setParameter("yearFromIN", updatedCars.getYearFrom());
+            spq.setParameter("yearToIN", updatedCars.getYearTo());
+            spq.setParameter("isDeleted", Boolean.TRUE.equals(updatedCars.getIsDeleted()) ? 1 : 0);
+            spq.execute();
+
+            em.getTransaction().commit();
+
+            return true;
+
+        } catch (Exception ex) {
+            if (em.getTransaction().isActive()) {
+                em.getTransaction().rollback(); 
+            }
+            ex.printStackTrace();
+            return false;
+        } finally {
+            em.clear();
+            em.close();
+        }
+    }
+    
 
 }

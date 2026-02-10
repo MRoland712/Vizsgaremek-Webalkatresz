@@ -401,5 +401,46 @@ public class Motors implements Serializable {
             em.close();
         }
     }
+    
+    public static Boolean updateMotors(Motors updatedMotors) {
+        EntityManager em = emf.createEntityManager();
+
+        try {
+            em.getTransaction().begin();
+            StoredProcedureQuery spq = em.createStoredProcedureQuery("updateMotors");
+            
+           
+            spq.registerStoredProcedureParameter("idIN", Integer.class, ParameterMode.IN);
+            spq.registerStoredProcedureParameter("brandIN", String.class, ParameterMode.IN);
+            spq.registerStoredProcedureParameter("modelIN", String.class, ParameterMode.IN);
+            spq.registerStoredProcedureParameter("yearFromIN", Integer.class, ParameterMode.IN);
+            spq.registerStoredProcedureParameter("yearToIN", Integer.class, ParameterMode.IN);
+            spq.registerStoredProcedureParameter("isDeleted", Integer.class, ParameterMode.IN);
+
+            
+            
+            spq.setParameter("idIN", updatedMotors.getId());
+            spq.setParameter("modelIN", updatedMotors.getModel());
+            spq.setParameter("brandIN", updatedMotors.getBrand());
+            spq.setParameter("yearFromIN", updatedMotors.getYearFrom());
+            spq.setParameter("yearToIN", updatedMotors.getYearTo());
+            spq.setParameter("isDeleted", Boolean.TRUE.equals(updatedMotors.getIsDeleted()) ? 1 : 0);
+            spq.execute();
+
+            em.getTransaction().commit();
+
+            return true;
+
+        } catch (Exception ex) {
+            if (em.getTransaction().isActive()) {
+                em.getTransaction().rollback(); 
+            }
+            ex.printStackTrace();
+            return false;
+        } finally {
+            em.clear();
+            em.close();
+        }
+    }
 
 }
