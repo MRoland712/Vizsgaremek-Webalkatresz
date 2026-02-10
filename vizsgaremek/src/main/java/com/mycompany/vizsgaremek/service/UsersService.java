@@ -330,7 +330,60 @@ public class UsersService {
 
     }
 
-    
+    public JSONObject getAdminByEmailService(String email) {
+        JSONObject toReturn = new JSONObject();
+        JSONArray errors = new JSONArray();
+
+        //if email is missing
+        if (userAuth.isDataMissing(email)) {
+            errors.put("MissingEmail");
+        }
+
+        //if email is invalid
+        if (!userAuth.isValidEmail(email) && !userAuth.isDataMissing(email)) {
+            errors.put("InvalidEmail");
+        }
+
+        //if email is invalid or missing
+        if (errorAuth.hasErrors(errors)) {
+            return errorAuth.createErrorResponse(errors, 400);
+        }
+
+        //get data from spq
+        Users modelResult = Users.getAdminByEmail(email);
+
+        //if spq gives null data
+        if (userAuth.isDataMissing(modelResult)) {
+            errors.put("AdminNotFound");
+        }
+
+        //if user is not found
+        if (errorAuth.hasErrors(errors)) {
+            return errorAuth.createErrorResponse(errors, 404);
+        }
+        JSONObject result = new JSONObject();
+
+        result.put("id", modelResult.getId());
+        result.put("guid", modelResult.getGuid());
+        result.put("email", modelResult.getEmail());
+        result.put("username", modelResult.getUsername());
+        result.put("password", modelResult.getPassword());
+        result.put("firstName", modelResult.getFirstName());
+        result.put("lastName", modelResult.getLastName());
+        result.put("phone", modelResult.getPhone());
+        result.put("isActive", modelResult.getIsActive());
+        result.put("isSubscribed", modelResult.getIsSubscribed());
+        result.put("role", modelResult.getRole());
+        result.put("createdAt", modelResult.getCreatedAt() == null ? "" : modelResult.getCreatedAt().toString());
+        result.put("updateAt", modelResult.getUpdatedAt() == null ? "" : modelResult.getUpdatedAt().toString());
+        result.put("lastLogin", modelResult.getLastLogin() == null ? "" : modelResult.getLastLogin().toString());
+        result.put("isDeleted", modelResult.getIsDeleted());
+        result.put("authSecret", modelResult.getAuthSecret());
+        result.put("registrationToken", modelResult.getRegistrationToken());
+
+        return errorAuth.createOKResponse(result);
+
+    }
 
     public JSONObject softDeleteUser(Integer id) {
         JSONObject toReturn = new JSONObject();
@@ -625,7 +678,128 @@ public class UsersService {
 
         return errorAuth.createOKResponse();
     }
+    
+    public JSONObject loginUser(Users logInUser) {
+        JSONObject toReturn = new JSONObject();
+        JSONArray errors = new JSONArray();
 
+        //IF DATA IS MISSING
+        if (userAuth.isDataMissing(logInUser.getEmail())) {
+            errors.put("MissingEmail");
+        }
+        if (userAuth.isDataMissing(logInUser.getPassword())) {
+            errors.put("MissingPassword");
+        }
+
+        //IF DATA IS INVALID
+        if (!userAuth.isValidEmail(logInUser.getEmail()) && !userAuth.isDataMissing(logInUser.getEmail())) {
+            errors.put("InvalidEmail");
+        }
+        if (!userAuth.isValidPassword(logInUser.getPassword()) && !userAuth.isDataMissing(logInUser.getPassword())) {
+            errors.put("InvalidPassword");
+        }
+
+        //error check if email or psw is invalid or missing
+        if (errorAuth.hasErrors(errors)) {
+            return errorAuth.createErrorResponse(errors, 400);
+        }
+
+        Users userData = Users.getUserByEmail(logInUser.getEmail());
+
+        if (userAuth.isDataMissing(userData)) {
+            errors.put("UserNotFound");
+        }
+
+        //error check for is userData missing
+        if (errorAuth.hasErrors(errors)) {
+            return errorAuth.createErrorResponse(errors, 404);
+        }
+
+        if (userAuth.isUserDeleted(userData.getIsDeleted())) {
+            errors.put("UserIsSoftDeleted");
+        }
+
+        //error check for is unauthorised to login
+        if (errorAuth.hasErrors(errors)) {
+            return errorAuth.createErrorResponse(errors, 409);
+        }
+
+        try {
+            if (!userAuth.isPasswordSame(logInUser.getPassword(), logInUser.getEmail())) {
+                errors.put("InvalidPassword");
+            }
+        } catch (Exception ex) {
+            ex.printStackTrace();
+            errors.put("EncryptionError");
+        }
+
+        //error check for is password same
+        if (errorAuth.hasErrors(errors)) {
+            return errorAuth.createErrorResponse(errors, 401);
+        }
+
+        //get data from spq
+        Boolean modelResult = Users.loginUser(userData);
+
+        //if spq gives null data
+        if (userAuth.isDataMissing(modelResult)) {
+            errors.put("ModelError");
+        }
+
+        //if ModelError
+        if (errorAuth.hasErrors(errors)) {
+            return errorAuth.createErrorResponse(errors, 500);
+        }
+
+        Users adminData = Users.getAdminByEmail(userData.getEmail());
+        if (adminData != null) {
+            UserLogs createdUserLog = new UserLogs();
+            createdUserLog.setAction("loginUser");
+            createdUserLog.setDetails("User " + userData.getUsername() + " logged in.");
+
+            Boolean userLog = UserLogs.createUserLogs(createdUserLog, userData.getId());
+
+            if (!userLog) {
+                errors.put("UserLogError");
+            }
+
+            if (errorAuth.hasErrors(errors)) {
+                toReturn.put("message", "Failed To Log User Action");
+            }
+
+            toReturn.put("JWTToken", JwtUtil.generateToken(userData.getId(), userData.getEmail(), userData.getRole(), userData.getUsername()));
+            toReturn.put("message", "Logged in User Successfully");
+            if (userData.getIsActive() == false) {
+                toReturn.put("message", "User Is Not Activated");
+            }
+        } else {
+            UserLogs createdUserLog = new UserLogs();
+            createdUserLog.setAction("loginAdmin");
+            createdUserLog.setDetails("Admin " + userData.getUsername() + " logged in.");
+
+            Boolean userLog = UserLogs.createUserLogs(createdUserLog, userData.getId());
+
+            if (!userLog) {
+                errors.put("AdminLogError");
+            }
+
+            if (errorAuth.hasErrors(errors)) {
+                toReturn.put("message", "Failed To Log Admin Action");
+            }
+
+            toReturn.put("JWTToken", JwtUtil.generateToken(userData.getId(), userData.getEmail(), userData.getRole(), userData.getUsername()));
+            toReturn.put("message", "Logged in Admin Successfully");
+            if (userData.getIsActive() == false) {
+                toReturn.put("message", "Admin Is Not Activated");
+            }
+        }
+        toReturn.put("username", userData.getUsername());
+        toReturn.put("firstName", userData.getFirstName());
+        toReturn.put("lastName", userData.getLastName());
+        toReturn.put("phone", userData.getPhone());
+        toReturn.put("role", userData.getRole());
+        return errorAuth.createOKResponse(toReturn);
+    }
     
 } // DONT DELETE, THIS IS THE CLASS CLOSER
 

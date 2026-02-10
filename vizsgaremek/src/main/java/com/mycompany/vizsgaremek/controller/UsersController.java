@@ -109,19 +109,35 @@ public class UsersController {
     }
 
     @GET
-    @Path("getUserByEmail")
+    @Path("getAdminByEmail")
     @Consumes(MediaType.APPLICATION_JSON)
-    public Response getUserByEmail(@QueryParam("email") String email, @HeaderParam("token") String jwtToken) {
+    public Response getAdminByEmailController(@QueryParam("email") String email, @HeaderParam("token") String jwtToken) {
         Response jwtError = jwt.validateJwtAndReturnError(jwtToken);
+        String jwtRole = jwt.extractRole(jwtToken);
+        JSONArray errors = new JSONArray();
         if (jwtError != null) {
             return jwtError;
+        }
+        
+        if (jwtRole.equals("admin")) {
+            errors.put("userNotAuthorised");
+
+            JSONObject errorResponse = new JSONObject();
+            errorResponse.put("errors", errors);
+            errorResponse.put("status", "failed");
+            errorResponse.put("statusCode", 402);
+
+            return Response.status(402)
+                    .entity(errorResponse.toString())
+                    .type(MediaType.APPLICATION_JSON)
+                    .build();
         }
 
         if (userAuth.isDataMissing(email)) {
             email = null;
         }
         
-        JSONObject toReturn = layer.getUserByEmail(email);
+        JSONObject toReturn = layer.getAdminByEmailService(email);
 
         return Response.status(Integer.parseInt(toReturn.get("statusCode").toString()))
                 .entity(toReturn.toString())

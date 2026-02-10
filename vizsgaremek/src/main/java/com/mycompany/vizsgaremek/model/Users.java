@@ -166,7 +166,7 @@ public class Users implements Serializable {
     private Collection<UserTwofa> userTwofaCollection;
     @OneToMany(cascade = CascadeType.ALL, mappedBy = "userId")
     private Collection<Orders> ordersCollection;
-    
+
     static EntityManagerFactory emf = Persistence.createEntityManagerFactory("com.mycompany_vizsgaremek_war_1.0-SNAPSHOTPU");
     public static SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
     static AuthenticationService.userAuth userAuth = new AuthenticationService.userAuth();
@@ -177,7 +177,7 @@ public class Users implements Serializable {
     public Users(Integer id) {
         this.id = id;
     }
-    
+
     //loginUser
     public Users(String email, String password) {
         this.email = email;
@@ -587,7 +587,7 @@ public class Users implements Serializable {
     public String toString() {
         return "com.mycompany.vizsgaremek.model.Users[ id=" + id + " ]";
     }
-    
+
     public static Boolean createUser(Users createdUser) {
         EntityManager em = emf.createEntityManager();
         try {
@@ -733,6 +733,57 @@ public class Users implements Serializable {
             StoredProcedureQuery spq = em.createStoredProcedureQuery("getUserByEmail");
             spq.registerStoredProcedureParameter("p_email", String.class, ParameterMode.IN);
             spq.setParameter("p_email", email);
+            spq.execute();
+
+            List<Object[]> resultList = spq.getResultList();
+
+            if (userAuth.isDataMissing(resultList)) {
+                return null;
+            }
+
+            Users toReturn = new Users();
+            for (Object[] record : resultList) {
+                Users u = new Users(
+                        Integer.valueOf(record[0].toString()),// id
+                        record[1].toString(),// email
+                        record[2].toString(),// username
+                        record[3].toString(),// firstname
+                        record[4].toString(),// lastname
+                        record[5].toString(),// phone
+                        record[6].toString(),// guid
+                        record[7].toString(),// role
+                        Boolean.valueOf(record[8].toString()),// isActive
+                        Boolean.valueOf(record[9].toString()), // isSubscibed
+                        record[10] == null ? null : formatter.parse(record[10].toString()),// lastLogin
+                        record[11] == null ? null : formatter.parse(record[11].toString()),// createdAt
+                        record[12] == null ? null : formatter.parse(record[12].toString()),// updatedAt
+                        record[13].toString(),// password
+                        Boolean.valueOf(record[14].toString()),// isDeleted
+                        record[15].toString(),// authSecret
+                        record[16].toString()// registrationToken
+
+                );
+                toReturn = u;
+            }
+            return toReturn;
+        } catch (Exception ex) {
+            if (em.getTransaction().isActive()) {
+                em.getTransaction().rollback(); // Ha hiba van, rollback
+            }
+            ex.printStackTrace();
+            return null;
+        } finally {
+            em.close();
+        }
+    }
+
+    public static Users getAdminByEmail(String email) {
+        EntityManager em = emf.createEntityManager();
+
+        try {
+            StoredProcedureQuery spq = em.createStoredProcedureQuery("getAdminById");
+            spq.registerStoredProcedureParameter("emailIN", String.class, ParameterMode.IN);
+            spq.setParameter("emailIN", email);
 
             spq.execute();
 
@@ -777,8 +828,6 @@ public class Users implements Serializable {
             em.close();
         }
     }
-    
-   
 
     public static Boolean softDeleteUser(Integer id) {
         EntityManager em = emf.createEntityManager();
@@ -806,6 +855,7 @@ public class Users implements Serializable {
             em.close();
         }
     }
+
     //ToDo: email verified, phone verified, failed login?
     public static Boolean updateUser(Users updatedUser) {
         EntityManager em = emf.createEntityManager();
@@ -879,5 +929,5 @@ public class Users implements Serializable {
             em.close();
         }
     }
-    
+
 }
