@@ -340,12 +340,12 @@ public class AuthenticationService {
          *
          * @param email Email that needs checking
          *
-         * @return true / false based if the email is existing in DB
+         * @return true / false based if the email is in use by an active user
          */
         public boolean isEmailSame(String email) {
             Users userdata = Users.getUserByEmail(email);
-            //if user is not found, return false
-            if (userdata == null) {
+            //if user is not found, or the found user is deleted = return false
+            if (userdata == null || userdata.getIsDeleted()) {
                 return false;
             }
             return true;
@@ -360,9 +360,9 @@ public class AuthenticationService {
          */
         public boolean isUsernameSame(String username) {
             ArrayList<Users> users = Users.getUsers();
-            //if user is not found, return false
+            //if user is found and not deleted = return true
             for (Users user : users) {
-                if (user.getUsername().equals(username)) {
+                if (user.getUsername().equals(username) && !user.getIsDeleted()) {
                     return true;
                 }
             }
@@ -378,9 +378,9 @@ public class AuthenticationService {
          */
         public boolean isPhoneSame(String phone) {
             ArrayList<Users> users = Users.getUsers();
-            //if user is not found, return false
+            //if user is found and is not deleted = return true
             for (Users user : users) {
-                if (user.getPhone().equals(phone)) {
+                if (user.getPhone().equals(phone) && !user.getIsDeleted()) {
                     return true;
                 }
             }

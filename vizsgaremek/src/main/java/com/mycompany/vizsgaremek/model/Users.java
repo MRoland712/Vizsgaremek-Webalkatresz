@@ -781,7 +781,7 @@ public class Users implements Serializable {
         EntityManager em = emf.createEntityManager();
 
         try {
-            StoredProcedureQuery spq = em.createStoredProcedureQuery("getAdminById");
+            StoredProcedureQuery spq = em.createStoredProcedureQuery("getAdminByEmail");
             spq.registerStoredProcedureParameter("emailIN", String.class, ParameterMode.IN);
             spq.setParameter("emailIN", email);
 
