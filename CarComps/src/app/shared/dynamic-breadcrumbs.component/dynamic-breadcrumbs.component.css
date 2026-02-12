@@ -1,0 +1,83 @@
+.breadcrumbs-container {
+  padding: 16px 0;
+  max-width: 1400px;
+  margin: 0 auto;
+}
+
+.breadcrumbs-list {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  list-style: none;
+  padding: 0px;
+  margin: 0px;
+}
+
+.breadcrumb-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+}
+
+.breadcrumb-current {
+  color: #ff6600;
+  font-weight: 600;
+  padding: 6px 10px;
+}
+
+.breadcrumb-link {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: #2b2b2b;
+  text-decoration: none;
+  padding: 6px 10px;
+  border-radius: 6px;
+  transition: all 0.2s ease;
+  font-weight: 500;
+}
+.breadcrumb-link:hover {
+  color: #ff6600;
+  background: rgba(255, 102, 0, 0.1);
+}
+.breadcrumb-link i {
+  font-size: 13px;
+}
+
+.breadcrumb-separator {
+  font-size: 10px;
+  color: #ccc;
+}
+
+@keyframes breadcrumbSlideIn {
+  from {
+    opacity: 0;
+    transform: translateX(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+.breadcrumb-item {
+  animation: breadcrumbSlideIn 0.3s ease forwards;
+}
+
+.breadcrumb-item:nth-child(1) {
+  animation-delay: 0s;
+}
+
+.breadcrumb-item:nth-child(2) {
+  animation-delay: 0.05s;
+}
+
+.breadcrumb-item:nth-child(3) {
+  animation-delay: 0.1s;
+}
+
+.breadcrumb-item:nth-child(4) {
+  animation-delay: 0.15s;
+}

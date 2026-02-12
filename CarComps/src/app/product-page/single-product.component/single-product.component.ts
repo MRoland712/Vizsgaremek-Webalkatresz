@@ -4,13 +4,14 @@ import { forkJoin } from 'rxjs';
 import { CommonModule } from '@angular/common';
 import { GetallpartsService } from '../../services/getallparts.service';
 import { GetallpartimgagesService } from '../../services/getallpartimages.service';
+import { GetallmanufacturersService } from '../../services/getallmanufacturers.service';
+import { BreadcrumbService } from '../../services/breadcrumb.service';
 import { PartsModel } from '../../models/parts.model';
 import { MainHeaderComponent } from '../../main-header/main-header.component';
 import { MmtContainerComponent } from '../../mmt-container/mmt-container.component';
-import { GetallmanufacturersService } from '../../services/getallmanufacturers.service';
+import { DynamicBreadcrumbsComponent } from '../../shared/dynamic-breadcrumbs.component/dynamic-breadcrumbs.component';
 import { ManufacturersModel } from '../../models/manufacturers.model';
 
-// ⭐ Review interface
 interface Review {
   id: number;
   userName: string;
@@ -22,7 +23,12 @@ interface Review {
 @Component({
   selector: 'app-product-detail',
   standalone: true,
-  imports: [MainHeaderComponent, MmtContainerComponent, CommonModule],
+  imports: [
+    MainHeaderComponent,
+    MmtContainerComponent,
+    DynamicBreadcrumbsComponent, // ⭐ IMPORT
+    CommonModule,
+  ],
   templateUrl: './single-product.component.html',
   styleUrl: './single-product.component.css',
 })
@@ -32,23 +38,18 @@ export class ProductDetailComponent implements OnInit {
   private partsService = inject(GetallpartsService);
   private partImagesService = inject(GetallpartimgagesService);
   private manufacturersService = inject(GetallmanufacturersService);
+  private breadcrumbService = inject(BreadcrumbService); // ⭐ INJECT
 
-  // State
   product = signal<PartsModel | null>(null);
   images = signal<string[]>([]);
   selectedImage = signal<string>('');
   quantity = signal(1);
   isLoading = signal(true);
   manufacturer = signal<ManufacturersModel | null>(null);
-
-  // Rating
   rating = signal(4.5);
   reviewCount = signal(128);
-
-  // ⭐ Tab state
   activeTab = signal<'description' | 'reviews'>('description');
 
-  // ⭐ Reviews (mock data - később API-ból)
   reviews = signal<Review[]>([
     {
       id: 1,
@@ -72,22 +73,6 @@ export class ProductDetailComponent implements OnInit {
       comment:
         'Professzionális csomagolás, tökéletes állapotban érkezett. A szerelő is dicsérte a minőséget.',
       date: '2024. január 8.',
-    },
-    {
-      id: 4,
-      userName: 'Tóth Anna',
-      rating: 4,
-      comment:
-        'Megfelel az elvárásoknak, bár az ár kicsit magasnak tűnt elsőre. Viszont a tartósság kompenzálja.',
-      date: '2024. január 5.',
-    },
-    {
-      id: 5,
-      userName: 'Kiss Gábor',
-      rating: 5,
-      comment:
-        'Második alkalommal rendelek innen, most is elégedett vagyok. Gyors ügyfélszolgálat!',
-      date: '2024. január 3.',
     },
   ]);
 
@@ -138,8 +123,10 @@ export class ProductDetailComponent implements OnInit {
         this.manufacturer.set(foundManufacturer || null);
         this.isLoading.set(false);
 
+        // ⭐ BREADCRUMB termék név frissítése
+        this.breadcrumbService.updateProductName(productId, foundProduct.name);
+
         console.log('✅ Termék betöltve:', foundProduct);
-        console.log('✅ Manufacturer:', foundManufacturer);
       },
       error: (err) => {
         console.error('❌ Termék betöltési hiba:', err);
@@ -164,7 +151,6 @@ export class ProductDetailComponent implements OnInit {
   addToCart(): void {
     const prod = this.product();
     if (!prod) return;
-
     console.log('🛒 Kosárba helyezés:', {
       product: prod.name,
       quantity: this.quantity(),
