@@ -286,9 +286,6 @@ public class ReviewsService {
         JSONArray errors = new JSONArray();
 
         // VALIDÁCIÓ
-        if (reviewsAuth.isDataMissing(updateReviews.getId())) {
-            errors.put("MissingId");
-        }
 
         if (!reviewsAuth.isDataMissing(updateReviews.getId()) && !reviewsAuth.isValidId(updateReviews.getId())) {
             errors.put("InvalidId");

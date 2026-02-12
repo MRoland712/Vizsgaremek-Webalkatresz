@@ -39,6 +39,7 @@ com/mycompany/vizsgaremek/model/LoginLogs.class
 com/mycompany/vizsgaremek/service/AuthenticationService$manufacturersAuth.class
 com/mycompany/vizsgaremek/service/AuthenticationService$motorsAuth.class
 com/mycompany/vizsgaremek/model/StockLogs.class
+com/mycompany/vizsgaremek/service/OrdersService.class
 com/mycompany/vizsgaremek/model/EmailInfo.class
 com/mycompany/vizsgaremek/model/PartVariants.class
 com/mycompany/vizsgaremek/config/createInvoicePDF.class
@@ -51,6 +52,7 @@ com/mycompany/vizsgaremek/config/base64Converters.class
 com/mycompany/vizsgaremek/controller/TFAController.class
 com/mycompany/vizsgaremek/config/SendEmail$2.class
 com/mycompany/vizsgaremek/model/UserTwofa.class
+com/mycompany/vizsgaremek/service/AuthenticationService$ordersAuth.class
 com/mycompany/vizsgaremek/model/Motors.class
 com/mycompany/vizsgaremek/model/Warehouses.class
 com/mycompany/vizsgaremek/model/Users.class
@@ -72,6 +74,7 @@ com/mycompany/vizsgaremek/service/AuthenticationService$trucksAuth.class
 com/mycompany/vizsgaremek/service/MotorsService.class
 com/mycompany/vizsgaremek/service/UserLogsService.class
 com/mycompany/vizsgaremek/service/AuthenticationService$errorAuth.class
+com/mycompany/vizsgaremek/controller/OrdersController.class
 com/mycompany/vizsgaremek/service/AuthenticationService$partImagesAuth.class
 com/mycompany/vizsgaremek/model/OrderItems.class
 com/mycompany/vizsgaremek/service/CarsService.class

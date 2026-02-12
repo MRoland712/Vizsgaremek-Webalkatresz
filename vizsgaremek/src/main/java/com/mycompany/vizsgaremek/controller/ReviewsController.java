@@ -108,7 +108,7 @@ public class ReviewsController {
     @GET
     @Path("getReviewsById")
     @Consumes(MediaType.APPLICATION_JSON)
-    public Response getReviewsById(@QueryParam("Id") Integer Id) {
+    public Response getReviewsById(@QueryParam("id") Integer Id) {
         ReviewsService reviewsService = new ReviewsService();
 
         JSONObject toReturn = reviewsService.getReviewsById(Id);
@@ -165,7 +165,7 @@ public class ReviewsController {
     @Path("updateReviews")
     @Consumes(MediaType.APPLICATION_JSON)
     public Response updateReviews(
-            @QueryParam("Id") Integer reviewId, String body) {
+            @QueryParam("id") Integer reviewId, String body) {
         JSONObject bodyObject = new JSONObject(body);
 
         Reviews updatedReviews = new Reviews();

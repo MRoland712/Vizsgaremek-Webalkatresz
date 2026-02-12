@@ -10,6 +10,7 @@ import com.mycompany.vizsgaremek.model.Addresses;
 import com.mycompany.vizsgaremek.model.Cars;
 import com.mycompany.vizsgaremek.model.Manufacturers;
 import com.mycompany.vizsgaremek.model.Motors;
+import com.mycompany.vizsgaremek.model.Orders;
 import com.mycompany.vizsgaremek.model.PartImages;
 import com.mycompany.vizsgaremek.model.PartVariants;
 import com.mycompany.vizsgaremek.model.Parts;
@@ -1043,6 +1044,62 @@ public class AuthenticationService {
         }
 
     } //Reviews Auth Class closer
+    
+    
+    public static class ordersAuth {
+
+        public boolean isDataMissing(String data) {
+            return (data == null || data.trim().isEmpty());
+        }
+
+        public boolean isDataMissing(Users data) {
+            return (data == null);
+        }
+        
+        
+        public boolean isDataMissing(Orders data) {
+            return (data == null);
+        }
+
+
+        public boolean isDataMissing(Integer data) {
+            return (data == null);
+        }
+        
+        public boolean isDataMissing(Boolean data) {
+            return (data == null);
+        }
+
+        public boolean isDataMissing(ArrayList<Orders> data) {
+            return (data == null || data.isEmpty());
+        }
+        
+        public boolean isDataMissing(List<Object[]> data) {
+            return (data == null || data.isEmpty());
+        }
+
+        public boolean isValidId(Integer id) {
+            return id > 0 && id.toString().length() <= 11;
+        }
+
+        public boolean isValidUserId(Users user) {
+            Integer manufacturerId = user.getId();
+            return manufacturerId > 0 && manufacturerId.toString().length() <= 11;
+        }
+
+        public boolean isValidUserId(Integer userId) {
+            return userId > 0 && userId.toString().length() <= 11;
+        }
+
+        public boolean isValidStatus(String status) {
+            return status.length() <= 20;
+        }
+
+        public boolean isOrdersDeleted(Boolean isDeleted) {
+            return (isDeleted == true);
+        }
+
+    } //Orders Auth Class closer
 
 }//Auth Service Class closer
 
