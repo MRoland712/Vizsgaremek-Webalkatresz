@@ -1,11 +1,11 @@
 /* profile-sidenav.component.css */
 
 /* ==========================================
-   SIDE NAVBAR - Bal oldal, függőleges
+   SIDE NAVBAR - Összecsukható, hover-re nyílik
    ========================================== */
 
 .profile-sidenav {
-  width: 280px;
+  width: 80px; /* ⭐ Alapértelmezett: csak ikonok */
   height: 100vh;
   background: linear-gradient(180deg, #2b2b2b 0%, #1f1f1f 100%);
   border-right: 1px solid rgba(255, 102, 0, 0.2);
@@ -17,6 +17,13 @@
   left: 0;
   z-index: 900;
   overflow-y: auto;
+  overflow-x: hidden;
+  transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1); /* ⭐ Smooth animation */
+}
+
+/* ⭐ HOVER STATE - Kinyílik */
+.profile-sidenav:hover {
+  width: 280px;
 }
 
 /* ==========================================
@@ -24,19 +31,23 @@
    ========================================== */
 
 .sidenav-logo {
-  padding: 32px 24px;
+  padding: 24px 16px;
   text-align: center;
   border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 80px;
 }
 
 .sidenav-logo img {
-  width: 80px;
+  width: 48px; /* ⭐ Kisebb logo összecsukva */
   height: auto;
-  transition: transform 0.3s ease;
+  transition: all 0.3s ease;
 }
 
-.sidenav-logo img:hover {
-  transform: scale(1.05);
+.profile-sidenav:hover .sidenav-logo img {
+  width: 80px; /* ⭐ Nagyobb hover-re */
 }
 
 /* ==========================================
@@ -46,48 +57,58 @@
 .sidenav-menu {
   list-style: none;
   margin: 0;
-  padding: 24px 16px;
+  padding: 24px 0;
 }
 
 .sidenav-secondary {
   padding-top: 0;
+  margin-top: auto; /* ⭐ Lent lesz */
 }
 
 .sidenav-item {
-  margin-bottom: 8px;
+  margin-bottom: 4px;
 }
 
 .sidenav-link {
   display: flex;
   align-items: center;
   gap: 16px;
-  padding: 14px 20px;
+  padding: 14px 16px;
   color: rgba(255, 255, 255, 0.7);
   text-decoration: none;
-  border-radius: 12px;
   font-size: 15px;
   font-weight: 500;
   transition: all 0.3s ease;
   position: relative;
+  white-space: nowrap; /* ⭐ Egy sorban marad */
 }
 
 .sidenav-link i {
-  font-size: 18px;
-  width: 24px;
+  font-size: 20px;
+  width: 48px; /* ⭐ Fix szélesség (összecsukva centrált) */
   text-align: center;
   color: rgba(255, 255, 255, 0.6);
   transition: all 0.3s ease;
+  flex-shrink: 0;
 }
 
 .sidenav-link span {
+  opacity: 0; /* ⭐ Alapból rejtett */
+  transform: translateX(-10px);
+  transition: all 0.3s ease;
   flex: 1;
+}
+
+/* ⭐ HOVER - Szöveg megjelenik */
+.profile-sidenav:hover .sidenav-link span {
+  opacity: 1;
+  transform: translateX(0);
 }
 
 /* Hover state */
 .sidenav-link:hover {
   background: rgba(255, 102, 0, 0.1);
   color: #ff6600;
-  transform: translateX(4px);
 }
 
 .sidenav-link:hover i {
@@ -99,15 +120,13 @@
 .sidenav-link.active {
   background: linear-gradient(90deg, rgba(255, 102, 0, 0.15) 0%, rgba(255, 102, 0, 0.05) 100%);
   color: #ff6600;
-  border-left: 3px solid #ff6600;
-  padding-left: 17px;
 }
 
 .sidenav-link.active i {
   color: #ff6600;
 }
 
-/* Active indicator */
+/* Active indicator bar */
 .sidenav-link.active::before {
   content: '';
   position: absolute;
@@ -132,7 +151,13 @@
     rgba(255, 255, 255, 0.1) 50%,
     rgba(255, 255, 255, 0) 100%
   );
-  margin: 16px 24px;
+  margin: 16px 12px;
+  opacity: 0; /* ⭐ Rejtett összecsukva */
+  transition: opacity 0.3s ease;
+}
+
+.profile-sidenav:hover .sidenav-divider {
+  opacity: 1; /* ⭐ Látható hover-re */
 }
 
 /* ==========================================
@@ -157,30 +182,58 @@
 }
 
 /* ==========================================
+   TOOLTIP (opcionális - összecsukott állapotban)
+   ========================================== */
+
+.sidenav-link::after {
+  content: attr(data-tooltip);
+  position: absolute;
+  left: 80px;
+  top: 50%;
+  transform: translateY(-50%) translateX(-10px);
+  background: #2b2b2b;
+  color: white;
+  padding: 8px 12px;
+  border-radius: 6px;
+  font-size: 13px;
+  white-space: nowrap;
+  opacity: 0;
+  pointer-events: none;
+  transition: all 0.2s ease;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  z-index: 1000;
+}
+
+/* ⭐ Tooltip csak összecsukott állapotban (nem hover) */
+.profile-sidenav:not(:hover) .sidenav-link:hover::after {
+  opacity: 1;
+  transform: translateY(-50%) translateX(0);
+}
+
+/* ==========================================
    RESPONSIVE - TABLET
    ========================================== */
 
 @media (max-width: 992px) {
   .profile-sidenav {
+    width: 70px;
+  }
+
+  .profile-sidenav:hover {
     width: 240px;
   }
 
-  .sidenav-logo {
-    padding: 24px 20px;
-  }
-
   .sidenav-logo img {
-    width: 60px;
+    width: 40px;
   }
 
-  .sidenav-link {
-    padding: 12px 16px;
-    font-size: 14px;
+  .profile-sidenav:hover .sidenav-logo img {
+    width: 60px;
   }
 }
 
 /* ==========================================
-   RESPONSIVE - MOBIL (hamburger később)
+   RESPONSIVE - MOBIL
    ========================================== */
 
 @media (max-width: 768px) {
@@ -192,12 +245,16 @@
     border-bottom: 1px solid rgba(255, 102, 0, 0.2);
   }
 
+  .profile-sidenav:hover {
+    width: 100%; /* Mobil: nincs hover expand */
+  }
+
   .sidenav-logo {
-    display: none; /* Főoldalon már van logo */
+    display: none;
   }
 
   .sidenav-menu {
-    padding: 16px;
+    padding: 12px;
     display: flex;
     flex-direction: row;
     overflow-x: auto;
@@ -214,11 +271,21 @@
     gap: 4px;
     padding: 12px 16px;
     text-align: center;
-    min-width: 80px;
+    min-width: 70px;
+  }
+
+  .sidenav-link i {
+    width: auto;
   }
 
   .sidenav-link span {
+    opacity: 1; /* Mobil: mindig látható */
+    transform: translateX(0);
     font-size: 12px;
+  }
+
+  .sidenav-link::after {
+    display: none; /* Mobil: nincs tooltip */
   }
 
   .sidenav-divider {
@@ -226,6 +293,6 @@
   }
 
   .sidenav-secondary {
-    display: none; /* Mobil: csak főbb linkek */
+    display: none;
   }
 }

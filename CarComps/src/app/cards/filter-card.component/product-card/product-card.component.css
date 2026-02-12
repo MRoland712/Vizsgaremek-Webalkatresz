@@ -22,6 +22,11 @@
   align-items: center;
   justify-content: center;
   padding: 15px; /* 20px → 15px */
+  position: relative;
+  overflow: hidden;
+  border-radius: 12px;
+  border-top-right-radius: 0px;
+  border-bottom-right-radius: 0px;
 }
 
 .left img {
@@ -56,6 +61,12 @@
   display: -webkit-box;
   -webkit-line-clamp: 2; /* Maximum 2 sor */
   -webkit-box-orient: vertical;
+  cursor: pointer;
+  transition: color 0.2s ease;
+  position: relative;
+}
+.product-desc h2:hover {
+  color: #ff6600;
 }
 
 .product-desc h3 {
@@ -171,6 +182,75 @@
 
 .add-to-cart-btn i {
   font-size: 16px; /* 20px → 16px */
+}
+/* Existing styles... */
+
+/* ==========================================
+   CLICKABLE IMAGE
+   ========================================== */
+
+.left.clickable {
+  cursor: pointer;
+}
+
+.left img {
+  transition: transform 0.3s ease;
+}
+
+.left.clickable:hover img {
+  transform: scale(1.05);
+}
+
+/* Image Overlay */
+.image-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(43, 43, 43, 0.8);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  gap: 8px;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  color: white;
+}
+
+.left.clickable:hover .image-overlay {
+  opacity: 1;
+}
+
+.image-overlay i {
+  font-size: 32px;
+  color: #ff6600;
+}
+
+.image-overlay span {
+  font-size: 16px;
+  font-weight: 600;
+  color: white;
+}
+
+/* ==========================================
+   CLICKABLE TITLE
+   ========================================== */
+
+.product-desc::after {
+  content: '';
+  position: absolute;
+  bottom: -2px;
+  left: 0;
+  width: 0;
+  height: 2px;
+  background: #ff6600;
+  transition: width 0.3s ease;
+}
+
+.clickable-title:hover::after {
+  width: 100%;
 }
 
 /* Responsive design */

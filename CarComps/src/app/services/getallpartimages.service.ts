@@ -8,7 +8,7 @@ import { GetAllPartImagesResponse } from '../models/partimages.model';
 })
 export class GetallpartimgagesService {
   private httpClient = inject(HttpClient);
-  private readonly baseUrl = 'http://api.carcomps.hu/vizsgaremek-1.0-SNAPSHOT/webresources/';
+  private readonly baseUrl = 'https://api.carcomps.hu/vizsgaremek-1.0-SNAPSHOT/webresources/';
   private readonly partImagesUrl = this.baseUrl + 'partimages/getAllPartImages';
   getAllPartImages(): Observable<GetAllPartImagesResponse> {
     return this.httpClient.get<GetAllPartImagesResponse>(this.partImagesUrl);

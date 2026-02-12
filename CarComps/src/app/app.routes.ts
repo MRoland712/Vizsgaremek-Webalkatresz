@@ -6,7 +6,6 @@ import { RegistrationComponent } from './registration/registration.component';
 import { HomepageComponent } from './homepage.component/homepage.component';
 import { ProductPageComponent } from './product-page.component/product-page.component';
 import { authGuard } from './services/guard';
-import { UserProfileComponent } from './profile-page/user-profile.component/user-profile.component';
 
 export const routes: Routes = [
   // ==========================================
@@ -50,6 +49,21 @@ export const routes: Routes = [
         (m) => m.UserProfileComponent,
       ),
     canActivate: [authGuard], // ← VÉDETT! Login kell
+  },
+  {
+    path: 'mygarage',
+    loadComponent: () =>
+      import('./profile-page/user-mygarage.component/user-mygarage.component').then(
+        (m) => m.UserMygarageComponent,
+      ),
+    canActivate: [authGuard], // ← VÉDETT! Login kell
+  },
+  {
+    path: 'product/:id',
+    loadComponent: () =>
+      import('./product-page/single-product.component/single-product.component').then(
+        (m) => m.ProductDetailComponent,
+      ),
   },
 
   // ==========================================

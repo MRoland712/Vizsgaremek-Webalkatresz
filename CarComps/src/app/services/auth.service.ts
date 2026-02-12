@@ -1,5 +1,6 @@
 import { Injectable, signal } from '@angular/core';
 import { Router } from '@angular/router';
+import { first } from 'rxjs';
 
 @Injectable({
   providedIn: 'root',
@@ -8,10 +9,16 @@ export class AuthService {
   private _isLoggedIn = signal(false);
   private _userEmail = signal('');
   private _userName = signal('');
+  private _lastName = signal('');
+  private _firstName = signal('');
+  private _phone = signal('');
 
   isLoggedIn = this._isLoggedIn.asReadonly();
   userEmail = this._userEmail.asReadonly();
   userName = this._userName.asReadonly();
+  userFirstName = this._firstName.asReadonly();
+  userLastName = this._lastName.asReadonly();
+  userPhone = this._phone.asReadonly();
 
   constructor(private router: Router) {
     this.checkLoginStatus();
@@ -22,6 +29,9 @@ export class AuthService {
     const email = localStorage.getItem('userEmail');
     const name = localStorage.getItem('userName');
     const isUserData = localStorage.getItem('isUserData');
+    const firstName = localStorage.getItem('firstName');
+    const lastName = localStorage.getItem('lastName');
+    const phone = localStorage.getItem('phone');
 
     console.log('🔐 AuthService checkLoginStatus:');
     console.log('  token:', token);
@@ -43,10 +53,22 @@ export class AuthService {
     if (name) {
       this._userName.set(name);
     }
+    if (firstName) {
+      this._firstName.set(firstName);
+    }
+    if (lastName) {
+      this._lastName.set(lastName);
+    }
+    if (phone) {
+      this._phone.set(phone);
+    }
 
     console.log('  _isLoggedIn:', this._isLoggedIn());
     console.log('  _userEmail:', this._userEmail());
     console.log('  _userName:', this._userName());
+    console.log('  userFirstName:', this.userFirstName());
+    console.log('  userLastName:', this.userLastName());
+    console.log('  userPhone:', this.userPhone());
   }
 
   // ⭐ ÚJ METÓDUS: Signal-ok frissítése localStorage-ból
@@ -55,6 +77,9 @@ export class AuthService {
     const name = localStorage.getItem('userName');
     const token = localStorage.getItem('jwt');
     const isUserData = localStorage.getItem('isUserData');
+    const firstName = localStorage.getItem('firstName');
+    const lastName = localStorage.getItem('lastName');
+    const phone = localStorage.getItem('phone');
 
     console.log('🔄 refreshUserData meghívva:');
     console.log('  email:', email);
@@ -77,12 +102,31 @@ export class AuthService {
       console.log('✅ UserName signal frissítve:', name);
     }
 
+    if (firstName) {
+      this._firstName.set(firstName);
+    }
+    if (lastName) {
+      this._lastName.set(lastName);
+    }
+    if (phone) {
+      this._phone.set(phone);
+    }
+
     console.log('🔄 Signals után:');
     console.log('  userName():', this._userName());
     console.log('  userEmail():', this._userEmail());
+    console.log('  userFirstName():', this.userFirstName());
+    console.log('  userLastName():', this.userLastName());
+    console.log('  userPhone():', this.userPhone());
   }
 
-  setLoggedIn(email?: string, userName?: string) {
+  setLoggedIn(
+    email?: string,
+    userName?: string,
+    firstName?: string,
+    lastName?: string,
+    phone?: string,
+  ) {
     this._isLoggedIn.set(true);
 
     // Email mentése (mindig van)
@@ -99,6 +143,24 @@ export class AuthService {
       console.log('✅ userName mentve:', userName);
     }
 
+    // FirstName mentése
+    if (firstName !== undefined && firstName !== '') {
+      this._firstName.set(firstName);
+      localStorage.setItem('firstName', firstName);
+    }
+
+    // LastName mentése
+    if (lastName !== undefined && lastName !== '') {
+      this._lastName.set(lastName);
+      localStorage.setItem('lastName', lastName);
+    }
+
+    // Phone mentése
+    if (phone !== undefined && phone !== '') {
+      this._phone.set(phone);
+      localStorage.setItem('phone', phone);
+    }
+
     // Az oldal újratöltés után is tudja, hogy van adat
     localStorage.setItem('isUserData', 'true');
 
@@ -113,6 +175,9 @@ export class AuthService {
     localStorage.removeItem('userEmail');
     localStorage.removeItem('userName');
     localStorage.removeItem('isUserData');
+    localStorage.removeItem('firstName');
+    localStorage.removeItem('lastName');
+    localStorage.removeItem('phone');
 
     this._isLoggedIn.set(false);
     this._userEmail.set('');

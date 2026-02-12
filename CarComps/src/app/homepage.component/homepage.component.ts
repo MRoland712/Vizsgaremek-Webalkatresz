@@ -7,6 +7,7 @@ import { ProductListComponent } from '../cards/filter-card.component/product-lis
 import { CategoryCardComponent } from '../cards/filter-card.component/filter-card.component';
 import { PaymentForwardButtonComponent } from '../shared/payment-forward-button.component/payment-forward-button.component';
 import { ProfileSidenavComponent } from '../side-navbar.component/side-navbar.component';
+import { DynamicBreadcrumbsComponent } from '../shared/dynamic-breadcrumbs.component/dynamic-breadcrumbs.component';
 
 @Component({
   selector: 'app-homepage',
@@ -19,6 +20,7 @@ import { ProfileSidenavComponent } from '../side-navbar.component/side-navbar.co
     CategoryCardComponent,
     PaymentForwardButtonComponent,
     ProfileSidenavComponent,
+    DynamicBreadcrumbsComponent,
   ],
   templateUrl: './homepage.component.html',
   styleUrl: './homepage.component.css',

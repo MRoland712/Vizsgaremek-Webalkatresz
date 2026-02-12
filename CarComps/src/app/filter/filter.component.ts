@@ -3,11 +3,12 @@ import { PartsModel } from '../models/parts.model';
 import { GetallpartsService } from '../services/getallparts.service';
 import { ManufacturersModel } from '../models/manufacturers.model';
 import { GetallmanufacturersService } from '../services/getallmanufacturers.service';
+import { DynamicBreadcrumbsComponent } from '../shared/dynamic-breadcrumbs.component/dynamic-breadcrumbs.component';
 
 @Component({
   selector: 'app-filter',
   standalone: true,
-  imports: [],
+  imports: [DynamicBreadcrumbsComponent],
   templateUrl: './filter.component.html',
   styleUrls: ['./filter.component.css'],
 })

@@ -8,7 +8,7 @@ import { GetAllPartsResponse } from '../models/parts.model';
 })
 export class GetallpartsService {
   private httpClient = inject(HttpClient);
-  private readonly baseUrl = 'http://api.carcomps.hu/vizsgaremek-1.0-SNAPSHOT/webresources/';
+  private readonly baseUrl = 'https://api.carcomps.hu/vizsgaremek-1.0-SNAPSHOT/webresources/';
   private readonly partsUrl = this.baseUrl + 'parts/getAllParts';
   getAllParts(): Observable<GetAllPartsResponse> {
     return this.httpClient.get<GetAllPartsResponse>(this.partsUrl);

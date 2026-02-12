@@ -1,10 +1,12 @@
-import { Component, DestroyRef, inject, OnInit, signal } from '@angular/core';
+import { Component, DestroyRef, inject, OnInit, signal, ViewChild } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { debounceTime } from 'rxjs';
 import { HttpErrorResponse } from '@angular/common/http';
 import { LoginService } from './login.service';
 import { AuthService } from '../services/auth.service';
+
+import { OtpComponent } from '../verifications/otp.component/otp.component';
 
 let initialEmailValue = '';
 let initialPasswordValue = '';
@@ -17,7 +19,7 @@ if (savedForm) {
 
 @Component({
   selector: 'app-login',
-  imports: [ReactiveFormsModule, RouterLink],
+  imports: [ReactiveFormsModule, RouterLink, OtpComponent],
   templateUrl: './login.component.html',
   styleUrl: './login.component.css',
 })
@@ -28,6 +30,9 @@ export class LoginComponent implements OnInit {
 
   fb = inject(FormBuilder);
   loginService = inject(LoginService);
+
+  // ⭐ OTP Dialog reference
+  @ViewChild(OtpComponent) otpDialog!: OtpComponent;
 
   // Login failed signal
   loginFailed = signal(false);
@@ -57,40 +62,36 @@ export class LoginComponent implements OnInit {
     this.loginService.login(finalLoginData).subscribe({
       next: (res) => {
         console.log('✅ Sikeres bejelentkezés!', res);
-        console.log('📦 Response tartalma:', JSON.stringify(res, null, 2));
 
         // JWT token mentése
         localStorage.setItem('jwt', res.result.JWTToken!);
+        localStorage.setItem('userEmail', finalLoginData.email);
 
-        // ⭐ Username kinyerése - HELYES útvonal
-        const username = res.result.username || res.result.Message || finalLoginData.email;
+        // Username a response-ból
+        const username = res.result.username || finalLoginData.email;
+        const firstname = res.result.firstName || '';
+        const lastname = res.result.lastName || '';
+        const phone = res.result.phone || '';
 
-        console.log('👤 Username a response-ból:', res.result.username);
-        console.log('👤 Használt username:', username);
-
-        // LocalStorage mentés
         localStorage.setItem('userName', username);
+        localStorage.setItem('firstName', firstname);
+        localStorage.setItem('lastName', lastname);
+        localStorage.setItem('phone', phone || '');
+        // AuthService setLoggedIn()
+        this.authService.setLoggedIn(finalLoginData.email, username);
 
-        // ⭐ AuthService setLoggedIn() hívása
-        this.authService.setLoggedIn(
-          finalLoginData.email, // Email
-          username, // Username (result.username!)
-        );
+        console.log('✅ AuthService frissítve');
 
-        console.log('✅ AuthService frissítve:');
-        console.log('  Email:', finalLoginData.email);
-        console.log('  Username:', username);
-
-        // Átirányítás főoldalra
-        this.router.navigate(['/']);
+        // ⭐ OTP Dialog megnyitása
+        console.log('📧 OTP Dialog megnyitása...');
+        setTimeout(() => {
+          this.otpDialog.open(finalLoginData.email);
+        }, 100);
       },
       error: (err: HttpErrorResponse) => {
         console.error('❌ Bejelentkezési hiba:', err);
-
-        // Login failed státusz
         this.loginFailed.set(true);
 
-        // Különböző HTTP hibák kezelése
         if (err.status === 401) {
           console.log('⚠️ Hibás email vagy jelszó');
         } else if (err.status === 0) {
@@ -100,6 +101,25 @@ export class LoginComponent implements OnInit {
         }
       },
     });
+  }
+
+  // ⭐ OTP sikeres verifikáció után
+  onOTPVerified() {
+    console.log('✅ OTP sikeresen megerősítve!');
+
+    // Mark user as verified in localStorage
+    localStorage.setItem('emailVerified', 'true');
+
+    // Navigáció főoldalra
+    this.router.navigate(['/']);
+  }
+
+  // ⭐ OTP dialog bezárása (skip)
+  onOTPCancelled() {
+    console.log('⚠️ OTP megerősítés kihagyva');
+
+    // Navigáció főoldalra (OTP nélkül is)
+    this.router.navigate(['/']);
   }
 
   ngOnInit() {

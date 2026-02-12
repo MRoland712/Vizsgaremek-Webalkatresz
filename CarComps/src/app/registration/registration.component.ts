@@ -140,15 +140,10 @@ export class RegistrationComponent {
   // ==========================================
 
   onSignUpSubmit() {
-    // ==========================================
-    // RESET email hiba submit előtt
-    // ==========================================
+    // Reset email hiba
     this.emailAlreadyExists.set(false);
 
-    // DEBUG: Form value vizsgálata
-    console.log('📝 Form value:', this.signupForm.value);
-    console.log('  firstname:', this.signupForm.value.firstname);
-    console.log('  lastname:', this.signupForm.value.lastname);
+    console.log('📋 Form value:', this.signupForm.value);
 
     const finalRegisterData = {
       firstName: this.signupForm.value.firstname || 'User',
@@ -160,55 +155,29 @@ export class RegistrationComponent {
       phone: this.signupForm.value.phone!,
     };
 
-    console.log('📤 Regisztráció küldése...');
-    console.log('  finalRegisterData:', finalRegisterData);
+    console.log('📤 Regisztráció küldése...', finalRegisterData);
 
     this.registerService.register(finalRegisterData).subscribe({
       next: (res) => {
-        console.log('✅ Sikeres regisztráció!');
+        console.log('✅ Sikeres regisztráció!', res);
 
-        // JWT token mentése
-        localStorage.setItem('jwt', res.result.JWTToken!);
+        // ⭐ NEM mentjük JWT-t
+        // ⭐ NEM hívjuk setLoggedIn()-t
+        // ⭐ CSAK login-ra irányítunk
 
-        // ==========================================
-        // TELJES NÉV összeállítása
-        // ==========================================
-        let displayName = `${finalRegisterData.username}`;
+        console.log('🔄 Átirányítás login oldalra...');
 
-        // Ha üres vagy "User User", akkor username
-        if (!displayName || displayName === 'User User') {
-          displayName = finalRegisterData.username;
-        }
+        // ⭐ Opcionális: Success message localStorage-ban (login-on megjelenítéshez)
+        localStorage.setItem('registrationSuccess', 'true');
+        localStorage.setItem('registeredEmail', finalRegisterData.email);
 
-        console.log('👤 User adatok:');
-        console.log('  Email:', finalRegisterData.email);
-        console.log('  Teljes név:', displayName);
-
-        // ==========================================
-        // AuthService setLoggedIn() hívása
-        // ==========================================
-        this.authService.setLoggedIn(
-          finalRegisterData.email, // Email
-          displayName, // Teljes név vagy username
-        );
-
-        console.log('✅ LocalStorage mentve:');
-        console.log('  userEmail:', localStorage.getItem('userEmail'));
-        console.log('  userName:', localStorage.getItem('userName'));
-        console.log('  isUserData:', localStorage.getItem('isUserData'));
-
-        // ==========================================
-        // ⭐ JAVÍTVA: FŐOLDALRA irányít (nem login-ra!)
-        // ==========================================
-        console.log('🔄 Átirányítás főoldalra...');
-        this.router.navigate(['/']);
+        // Átirányítás login-ra
+        this.router.navigate(['/login']);
       },
       error: (err: HttpErrorResponse) => {
         console.error('❌ Regisztráció hiba:', err);
 
-        // ==========================================
         // 409 = Email már létezik
-        // ==========================================
         if (err.status === 409) {
           const errorResponse = err.error as RegisterErrorResponse;
 
