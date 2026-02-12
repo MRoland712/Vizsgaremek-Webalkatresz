@@ -4,12 +4,12 @@ import { forkJoin } from 'rxjs';
 import { CommonModule } from '@angular/common';
 import { GetallpartsService } from '../../services/getallparts.service';
 import { GetallpartimgagesService } from '../../services/getallpartimages.service';
-import { GetallmanufacturersService } from '../../services/getallmanufacturers.service';
-import { BreadcrumbService } from '../../services/breadcrumb.service';
 import { PartsModel } from '../../models/parts.model';
 import { MainHeaderComponent } from '../../main-header/main-header.component';
 import { MmtContainerComponent } from '../../mmt-container/mmt-container.component';
 import { DynamicBreadcrumbsComponent } from '../../shared/dynamic-breadcrumbs.component/dynamic-breadcrumbs.component';
+import { GetallmanufacturersService } from '../../services/getallmanufacturers.service';
+import { BreadcrumbService } from '../../services/breadcrumb.service';
 import { ManufacturersModel } from '../../models/manufacturers.model';
 
 interface Review {
@@ -23,12 +23,7 @@ interface Review {
 @Component({
   selector: 'app-product-detail',
   standalone: true,
-  imports: [
-    MainHeaderComponent,
-    MmtContainerComponent,
-    DynamicBreadcrumbsComponent, // ⭐ IMPORT
-    CommonModule,
-  ],
+  imports: [MainHeaderComponent, MmtContainerComponent, DynamicBreadcrumbsComponent, CommonModule],
   templateUrl: './single-product.component.html',
   styleUrl: './single-product.component.css',
 })
@@ -38,7 +33,7 @@ export class ProductDetailComponent implements OnInit {
   private partsService = inject(GetallpartsService);
   private partImagesService = inject(GetallpartimgagesService);
   private manufacturersService = inject(GetallmanufacturersService);
-  private breadcrumbService = inject(BreadcrumbService); // ⭐ INJECT
+  private breadcrumbService = inject(BreadcrumbService);
 
   product = signal<PartsModel | null>(null);
   images = signal<string[]>([]);
@@ -123,10 +118,18 @@ export class ProductDetailComponent implements OnInit {
         this.manufacturer.set(foundManufacturer || null);
         this.isLoading.set(false);
 
-        // ⭐ BREADCRUMB termék név frissítése
+        // ⭐ KATEGÓRIA beállítása breadcrumb-ban
+        // Kategória URL-ből (pl: "tires", "brakes")
+        const categoryFromProduct = foundProduct.category.toLowerCase();
+        this.breadcrumbService.setLastCategory(categoryFromProduct);
+
+        console.log('✅ Termék kategória:', categoryFromProduct);
+
+        // ⭐ TERMÉK NÉV frissítése breadcrumb-ban
         this.breadcrumbService.updateProductName(productId, foundProduct.name);
 
         console.log('✅ Termék betöltve:', foundProduct);
+        console.log('✅ Breadcrumb kategória:', this.breadcrumbService.getLastCategory());
       },
       error: (err) => {
         console.error('❌ Termék betöltési hiba:', err);
@@ -156,10 +159,6 @@ export class ProductDetailComponent implements OnInit {
       quantity: this.quantity(),
       totalPrice: prod.price * this.quantity(),
     });
-  }
-
-  goBack(): void {
-    this.router.navigate(['/']);
   }
 
   getStars(): boolean[] {

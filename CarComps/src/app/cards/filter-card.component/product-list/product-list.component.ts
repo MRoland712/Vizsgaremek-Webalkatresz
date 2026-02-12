@@ -6,6 +6,7 @@ import { GetallpartsService } from '../../../services/getallparts.service';
 import { PartsModel } from '../../../models/parts.model';
 import { PartImagesModel } from '../../../models/partimages.model';
 import { GetallpartimgagesService } from '../../../services/getallpartimages.service';
+import { BreadcrumbService } from '../../../services/breadcrumb.service';
 
 @Component({
   selector: 'app-product-list',
@@ -17,23 +18,27 @@ export class ProductListComponent implements OnInit {
   private route = inject(ActivatedRoute);
   private productsService = inject(GetallpartsService);
   private partImagesService = inject(GetallpartimgagesService);
+  private breadcrumbService = inject(BreadcrumbService); // ⭐ INJECT
 
   parts: PartsModel[] = [];
   currentCategory: string = '';
 
   ngOnInit(): void {
-    // Query param figyelése
     this.route.params.subscribe((params) => {
       this.currentCategory = params['category'] || '';
       console.log('📦 Kategória szűrő:', this.currentCategory);
 
-      // Termékek betöltése KÉPEKKEL
+      // ⭐ Kategória mentése breadcrumb service-be
+      if (this.currentCategory) {
+        this.breadcrumbService.setLastCategory(this.currentCategory);
+        console.log('✅ Kategória mentve breadcrumb-ba:', this.currentCategory);
+      }
+
       this.loadPartCategories();
     });
   }
 
   loadPartCategories() {
-    // ⭐ Párhuzamos betöltés - forkJoin
     forkJoin({
       parts: this.productsService.getAllParts(),
       images: this.partImagesService.getAllPartImages(),
@@ -43,10 +48,8 @@ export class ProductListComponent implements OnInit {
         console.log('✅ Images betöltve:', images.partImages.length);
 
         if (parts.success && images.success) {
-          // Képek hozzárendelése
           const partsWithImages = this.assignImagesToParts(parts.parts, images.partImages);
 
-          // Szűrés kategóriára
           if (this.currentCategory) {
             this.parts = partsWithImages.filter(
               (part) => part.category.toLowerCase() === this.currentCategory.toLowerCase(),
@@ -64,28 +67,23 @@ export class ProductListComponent implements OnInit {
     });
   }
 
-  /**
-   * ⭐ Képek hozzárendelése part ID alapján
-   */
   private assignImagesToParts(parts: PartsModel[], images: PartImagesModel[]): PartsModel[] {
-    // Kép Map létrehozása gyors kereséshez
     const imageMap = new Map<number, string>();
 
-    // Primary képek Map-be
+    // Primary képek
     images.forEach((image) => {
       if (image.isPrimary) {
         imageMap.set(image.partId, image.url);
       }
     });
 
-    // Ha nincs primary, akkor első kép
+    // Első kép ha nincs primary
     images.forEach((image) => {
       if (!imageMap.has(image.partId)) {
         imageMap.set(image.partId, image.url);
       }
     });
 
-    // Parts + imageUrl
     return parts.map((part) => ({
       ...part,
       imageUrl: imageMap.get(part.id) || 'assets/placeholder.jpg',
