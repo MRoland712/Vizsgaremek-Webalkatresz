@@ -1,0 +1,172 @@
+<div class="analytic-wrapper">
+  <!-- Dashboard Header -->
+  <div class="dashboard-header">
+    <h1 class="dashboard-title">
+      <i class="fa-solid fa-chart-line"></i>
+      Analitika Dashboard
+    </h1>
+    <div class="header-actions">
+      <button class="refresh-btn">
+        <i class="fa-solid fa-rotate"></i>
+        Frissítés
+      </button>
+      <button class="export-btn">
+        <i class="fa-solid fa-download"></i>
+        Export
+      </button>
+    </div>
+  </div>
+
+  <!-- Stats Container -->
+  <div class="stat-container">
+    <div class="stat-card">
+      <div class="stat-icon eye">
+        <i class="fa-solid fa-eye"></i>
+      </div>
+      <div class="stat-content">
+        <p class="stat-label">Összes látogatás</p>
+        <h3 class="stat-value">12,845</h3>
+      </div>
+    </div>
+
+    <div class="stat-card">
+      <div class="stat-icon clock">
+        <i class="fa-solid fa-clock"></i>
+      </div>
+      <div class="stat-content">
+        <p class="stat-label">Átlagos látogatási idő</p>
+        <h3 class="stat-value">4:32</h3>
+      </div>
+    </div>
+
+    <div class="stat-card">
+      <div class="stat-icon users">
+        <i class="fa-solid fa-users"></i>
+      </div>
+      <div class="stat-content">
+        <p class="stat-label">Összes felhasználó</p>
+        <h3 class="stat-value">3,428</h3>
+      </div>
+    </div>
+
+    <div class="stat-card">
+      <div class="stat-icon new-users">
+        <i class="fa-solid fa-user-plus"></i>
+      </div>
+      <div class="stat-content">
+        <p class="stat-label">Új felhasználók</p>
+        <h3 class="stat-value">847</h3>
+      </div>
+    </div>
+  </div>
+
+  <!-- Active Users Section -->
+  <div class="active-user-wrapper">
+    <div class="active-header">
+      <h2>
+        <i class="fa-solid fa-circle pulse"></i>
+        Aktív felhasználók
+      </h2>
+    </div>
+    <div class="active-content">
+      <div class="active-number">247</div>
+      <p class="active-label">aktív felhasználó most</p>
+      <div class="active-graph">
+        <div class="sparkline">
+          <div class="spark-bar" style="height: 30%"></div>
+          <div class="spark-bar" style="height: 50%"></div>
+          <div class="spark-bar" style="height: 40%"></div>
+          <div class="spark-bar" style="height: 70%"></div>
+          <div class="spark-bar" style="height: 60%"></div>
+          <div class="spark-bar" style="height: 90%"></div>
+          <div class="spark-bar" style="height: 80%"></div>
+          <div class="spark-bar" style="height: 95%"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Visitor Chart Section -->
+  <div class="visitor-chart">
+    <div class="chart-header">
+      <h2>
+        <i class="fa-solid fa-chart-area"></i>
+        Látogatók analitikája
+      </h2>
+      <div class="chart-controls">
+        <button class="time-filter active">7 nap</button>
+        <button class="time-filter">30 nap</button>
+        <button class="time-filter">90 nap</button>
+      </div>
+    </div>
+    <div class="chart-subtitle">Elmúlt 30 nap teljesítménye</div>
+    <div class="chart">
+      <!-- Chart.js vagy más chart library ide jön -->
+      <canvas id="visitorChart"></canvas>
+    </div>
+    <div class="chart-legend">
+      <div class="legend-item">
+        <span class="legend-dot visitors"></span>
+        Látogatók
+      </div>
+      <div class="legend-item">
+        <span class="legend-dot new-users"></span>
+        Új felhasználók
+      </div>
+      <div class="legend-item">
+        <span class="legend-dot returning"></span>
+        Visszatérő
+      </div>
+    </div>
+  </div>
+
+  <!-- Top Pages Table -->
+  <div class="top-pages">
+    <h2>
+      <i class="fa-solid fa-ranking-star"></i>
+      Top 5 Leglátogatottabb Oldal
+    </h2>
+    <table class="pages-table">
+      <thead>
+        <tr>
+          <th>#</th>
+          <th>Oldal</th>
+          <th>Látogatások</th>
+          <th>Átlagos idő</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>1</td>
+          <td><i class="fa-solid fa-house"></i> Főoldal</td>
+          <td>4,832</td>
+          <td>3:24</td>
+        </tr>
+        <tr>
+          <td>2</td>
+          <td><i class="fa-solid fa-box"></i> Termékek</td>
+          <td>3,241</td>
+          <td>5:12</td>
+        </tr>
+        <tr>
+          <td>3</td>
+          <td><i class="fa-solid fa-cart-shopping"></i> Kosár</td>
+          <td>2,156</td>
+          <td>2:45</td>
+        </tr>
+        <tr>
+          <td>4</td>
+          <td><i class="fa-solid fa-user"></i> Profil</td>
+          <td>1,892</td>
+          <td>4:08</td>
+        </tr>
+        <tr>
+          <td>5</td>
+          <td><i class="fa-solid fa-circle-info"></i> Rólunk</td>
+          <td>1,234</td>
+          <td>2:18</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>
