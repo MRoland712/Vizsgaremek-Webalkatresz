@@ -7,6 +7,7 @@ com\mycompany\vizsgaremek\model\Cars.class
 com\mycompany\vizsgaremek\service\PartsService.class
 com\mycompany\vizsgaremek\service\AuthenticationService.class
 com\mycompany\vizsgaremek\model\Warehouses.class
+com\mycompany\vizsgaremek\util\CloudflareAnalitics.class
 com\mycompany\vizsgaremek\model\LoginLogs.class
 com\mycompany\vizsgaremek\model\Motors.class
 com\mycompany\vizsgaremek\model\PartVariants.class
