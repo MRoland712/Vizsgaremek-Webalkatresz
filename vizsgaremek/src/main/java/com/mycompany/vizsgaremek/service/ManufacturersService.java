@@ -34,6 +34,12 @@ public class ManufacturersService {
         if (errorAuth.hasErrors(errors)) {
             return errorAuth.createErrorResponse(errors, 400);
         }
+        
+        Manufacturers existingManufacturer = Manufacturers.getManufacturersByName(createManufacturers.getName());
+        if(existingManufacturer != null){
+            errors.put("nameAlreadyExist");
+            return errorAuth.createErrorResponse(errors, 409);
+        }
 
         // MODEL HÍVÁS
         if (Manufacturers.createManufacturers(createManufacturers)) {  // ← Static metódus hívás!
@@ -106,7 +112,7 @@ public class ManufacturersService {
 
         // Validáció - Nem található
         if (manufacturersAuth.isDataMissing(manufacturer)) {
-            errors.put("AddressNotFound");
+            errors.put("ManufacturersNotFound");
             return errorAuth.createErrorResponse(errors, 404);
         }
 
@@ -156,7 +162,7 @@ public class ManufacturersService {
         }
 
         if (modelResult.getIsDeleted() == true) {
-            errors.put("UserIsSoftDeleted");
+            errors.put("ManufacturersIsDeleted");
         }
 
         //if manufacturers is soft deleted
@@ -229,6 +235,14 @@ public class ManufacturersService {
                 errors.put("InvalidCountry");
             }
         }
+        
+        if (!manufacturersAuth.isDataMissing(updatedManufacturers.getIsDeleted())) {
+            if (manufacturersAuth.isManufacturersDeleted(updatedManufacturers.getIsDeleted())) {
+                existingManufacturers.setIsDeleted(updatedManufacturers.getIsDeleted());
+            } else {
+                errors.put("InvalidIsDeleted");
+            }
+        }
 
         // Hiba ellenőrzés validációk
         if (errorAuth.hasErrors(errors)) {
@@ -260,5 +274,40 @@ public class ManufacturersService {
         return toReturn;
         
     }//updateManufacturers
+    
+    public JSONObject getManufacturersByName(String name) {
+        JSONObject toReturn = new JSONObject();
+        JSONArray errors = new JSONArray();
+
+        // Validáció - ID hiányzik
+        if (manufacturersAuth.isDataMissing(name)) {
+            errors.put("MissingName");
+        }
+
+        if (errorAuth.hasErrors(errors)) {
+            return errorAuth.createErrorResponse(errors, 400);
+        }
+
+        // MODEL HÍVÁS
+        Manufacturers manufacturer = Manufacturers.getManufacturersByName(name);
+
+        // Validáció - Nem található
+        if (manufacturersAuth.isDataMissing(manufacturer)) {
+            errors.put("ManufacturersNotFound");
+            return errorAuth.createErrorResponse(errors, 404);
+        }
+
+        JSONObject manufacturersObj = new JSONObject();
+        manufacturersObj.put("id", manufacturer.getId());
+        manufacturersObj.put("name", manufacturer.getName());
+        manufacturersObj.put("country", manufacturer.getCountry());
+        manufacturersObj.put("createdAt", manufacturer.getCreatedAt());
+
+        toReturn.put("success", true);
+        toReturn.put("Manufacturer", manufacturersObj);
+        toReturn.put("statusCode", 200);
+
+        return toReturn;
+    }//getManufacturersByName
 
 }

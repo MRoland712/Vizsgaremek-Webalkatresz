@@ -5,7 +5,6 @@
 package com.mycompany.vizsgaremek.service;
 
 import com.mycompany.vizsgaremek.model.Parts;
-import com.mycompany.vizsgaremek.service.AuthenticationService.addressAuth;
 import java.util.ArrayList;
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -82,9 +81,15 @@ public class PartsService {
         if (errorAuth.hasErrors(errors)) {
             return errorAuth.createErrorResponse(errors, 400);
         }
+        
+        Parts existingPart = Parts.getPartsBySku(createParts.getSku());
+        if (existingPart != null) {
+            errors.put("SkuAlreadyExists");
+            return errorAuth.createErrorResponse(errors, 409);
+        }
 
         // MODEL HÍVÁS
-        if (Parts.createParts(createParts)) {  // ← Static metódus hívás!
+        if (Parts.createParts(createParts)) {
             toReturn.put("message", "Part Created Successfully");
             toReturn.put("statusCode", 201);
             toReturn.put("success", true);
@@ -96,8 +101,11 @@ public class PartsService {
             error.put("success", false);
             return error;
         }
-    } // createParts Closer
 
+
+    }
+
+// createParts Closer
     public JSONObject getAllParts() {
         JSONObject toReturn = new JSONObject();
         JSONArray errors = new JSONArray();
@@ -307,7 +315,7 @@ public class PartsService {
 
         return toReturn;
     }//softDelete
-    
+
     public JSONObject updateParts(Parts updatedParts) {
         JSONObject toReturn = new JSONObject();
         JSONArray errors = new JSONArray();
@@ -410,7 +418,7 @@ public class PartsService {
                 errors.put("InvalidIsActive");
             }
         }
-        
+
         // isDeleted CSAK ha meg van adva!
         if (!partsAuth.isDataMissing(updatedParts.getIsDeleted())) {
             if (partsAuth.isPartsDeleted(updatedParts.getIsDeleted())) {
@@ -449,7 +457,7 @@ public class PartsService {
 
         return toReturn;
     }//updateParts
-    
+
     public JSONObject getPartsBySku(String sku) {
         JSONObject toReturn = new JSONObject();
         JSONArray errors = new JSONArray();

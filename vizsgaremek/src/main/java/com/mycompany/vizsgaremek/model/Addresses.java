@@ -33,7 +33,7 @@ import javax.xml.bind.annotation.XmlRootElement;
 
 /**
  *
- * @author ddori
+ * @author neblgergo
  */
 @Entity
 @Table(name = "addresses")
@@ -110,7 +110,7 @@ public class Addresses implements Serializable {
     @JoinColumn(name = "user_id", referencedColumnName = "id")
     @ManyToOne(optional = false)
     private Users userId;
-
+    
     static EntityManagerFactory emf = Persistence.createEntityManagerFactory("com.mycompany_vizsgaremek_war_1.0-SNAPSHOTPU");
     public static SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 
@@ -128,6 +128,7 @@ public class Addresses implements Serializable {
         this.zipCode = zipCode;
         this.street = street;
     }
+    
     //createAddress
 
     public Addresses(Users userId, String firstName, String lastName, String company, String taxNumber, String country, String city, String zipCode, String street, Boolean isDefault) {
@@ -177,7 +178,6 @@ public class Addresses implements Serializable {
         this.isDefault = isDefault;
         this.isDeleted = isDeleted;
     }
-    
 
     public Integer getId() {
         return id;
@@ -295,10 +295,10 @@ public class Addresses implements Serializable {
         return userId;
     }
 
-    
     public void setUserId(Users userId) {
         this.userId = userId;
     }
+
     @Override
     public int hashCode() {
         int hash = 0;
@@ -323,7 +323,7 @@ public class Addresses implements Serializable {
     public String toString() {
         return "com.mycompany.vizsgaremek.model.Addresses[ id=" + id + " ]";
     }
-
+    
     public static Boolean createAddress(Addresses createdAddress) {
         EntityManager em = emf.createEntityManager();
         try {
@@ -585,4 +585,5 @@ public class Addresses implements Serializable {
             em.close();
         }
     }
+    
 }

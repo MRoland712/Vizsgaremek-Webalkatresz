@@ -25,8 +25,6 @@ import com.mycompany.vizsgaremek.model.EmailInfo;
 import java.io.IOException;
 import javax.mail.BodyPart;
 import javax.mail.Flags;
-import javax.mail.search.SearchTerm;
-import javax.mail.search.MessageIDTerm;
 
 /**
  *

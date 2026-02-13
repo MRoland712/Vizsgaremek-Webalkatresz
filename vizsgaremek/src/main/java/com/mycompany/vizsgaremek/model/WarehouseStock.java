@@ -23,7 +23,7 @@ import javax.xml.bind.annotation.XmlRootElement;
 
 /**
  *
- * @author neblg
+ * @author neblgergo
  */
 @Entity
 @Table(name = "warehouse_stock")
@@ -57,12 +57,12 @@ public class WarehouseStock implements Serializable {
     @Column(name = "deleted_at")
     @Temporal(TemporalType.TIMESTAMP)
     private Date deletedAt;
-    @JoinColumn(name = "warehouse_id", referencedColumnName = "id")
-    @ManyToOne(optional = false)
-    private Warehouses warehouseId;
     @JoinColumn(name = "part_id", referencedColumnName = "id")
     @ManyToOne(optional = false)
     private Parts partId;
+    @JoinColumn(name = "warehouse_id", referencedColumnName = "id")
+    @ManyToOne(optional = false)
+    private Warehouses warehouseId;
 
     public WarehouseStock() {
     }
@@ -119,20 +119,20 @@ public class WarehouseStock implements Serializable {
         this.deletedAt = deletedAt;
     }
 
-    public Warehouses getWarehouseId() {
-        return warehouseId;
-    }
-
-    public void setWarehouseId(Warehouses warehouseId) {
-        this.warehouseId = warehouseId;
-    }
-
     public Parts getPartId() {
         return partId;
     }
 
     public void setPartId(Parts partId) {
         this.partId = partId;
+    }
+
+    public Warehouses getWarehouseId() {
+        return warehouseId;
+    }
+
+    public void setWarehouseId(Warehouses warehouseId) {
+        this.warehouseId = warehouseId;
     }
 
     @Override

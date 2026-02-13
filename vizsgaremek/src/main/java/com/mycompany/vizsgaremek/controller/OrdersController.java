@@ -4,8 +4,9 @@
  */
 package com.mycompany.vizsgaremek.controller;
 
-import com.mycompany.vizsgaremek.model.Manufacturers;
-import com.mycompany.vizsgaremek.service.ManufacturersService;
+import com.mycompany.vizsgaremek.model.Orders;
+import com.mycompany.vizsgaremek.model.Users;
+import com.mycompany.vizsgaremek.service.OrdersService;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.UriInfo;
 import javax.ws.rs.Produces;
@@ -23,24 +24,24 @@ import org.json.JSONObject;
 /**
  * REST Web Service
  *
- * @author neblg
+ * @author neblgergo
  */
-@Path("manufacturers")
-public class ManufacturersController {
+@Path("orders")
+public class OrdersController {
 
     @Context
     private UriInfo context;
-    private ManufacturersService layer = new ManufacturersService();
+    private OrdersService layer = new OrdersService();
 
     /**
-     * Creates a new instance of ManufacturersController
+     * Creates a new instance of OrdersController
      */
-    public ManufacturersController() {
+    public OrdersController() {
     }
 
     /**
      * Retrieves representation of an instance of
-     * com.mycompany.vizsgaremek.controller.ManufacturersController
+     * com.mycompany.vizsgaremek.controller.OrdersController
      *
      * @return an instance of java.lang.String
      */
@@ -52,43 +53,44 @@ public class ManufacturersController {
     }
 
     /**
-     * PUT method for updating or creating an instance of
-     * ManufacturersController
+     * PUT method for updating or creating an instance of OrdersController
      *
      * @param content representation for the resource
      */
-    /*@PUT
+    @PUT
     @Consumes(MediaType.APPLICATION_JSON)
     public void putJson(String content) {
-    }*/
+    }
 
     @POST
-    @Path("createManufacturers")
+    @Path("createOrders")
     @Consumes(MediaType.APPLICATION_JSON)
-    public Response createManufacturers(String body) {
+    public Response createOrders(String body) {
 
         JSONObject bodyObject = new JSONObject(body);
 
-        Manufacturers createdManufacturers = new Manufacturers(
-                bodyObject.has("name") ? bodyObject.getString("name") : null,
-                bodyObject.has("country") ? bodyObject.getString("country") : null
+        Users user = new Users();
+        user.setId(bodyObject.has("userId") ? bodyObject.getInt("userId") : null);
+
+        Orders createdOrders = new Orders(
+                bodyObject.has("status") ? bodyObject.getString("status") : null,
+                user
         );
 
-        JSONObject toReturn = layer.createManufacturers(createdManufacturers);
+        JSONObject toReturn = layer.createOrders(createdOrders);
 
         return Response.status(Integer.parseInt(toReturn.get("statusCode").toString()))
                 .entity(toReturn.toString())
                 .type(MediaType.APPLICATION_JSON)
                 .build();
-
     }
 
     @GET
-    @Path("getAllManufacturers")
+    @Path("getAllOrders")
     @Consumes(MediaType.APPLICATION_JSON)
-    public Response getAllManufacturers() {
-        ManufacturersService ManufacturersService = new ManufacturersService();
-        JSONObject toReturn = ManufacturersService.getAllManufacturers();
+    public Response getAllOrders() {
+        OrdersService ordersService = new OrdersService();
+        JSONObject toReturn = ordersService.getAllOrders();
 
         return Response.status(Integer.parseInt(toReturn.get("statusCode").toString()))
                 .entity(toReturn.toString())
@@ -97,11 +99,24 @@ public class ManufacturersController {
     }
 
     @GET
-    @Path("getManufacturersById")
+    @Path("getOrdersById")
     @Produces(MediaType.APPLICATION_JSON)
-    public Response getManufacturersById(@QueryParam("id") Integer id) {
+    public Response getOrdersById(@QueryParam("id") Integer id) {
 
-        JSONObject toReturn = layer.getManufacturersById(id);
+        JSONObject toReturn = layer.getOrdersById(id);
+
+        return Response.status(Integer.parseInt(toReturn.get("statusCode").toString()))
+                .entity(toReturn.toString())
+                .type(MediaType.APPLICATION_JSON)
+                .build();
+    }
+
+    @GET
+    @Path("getOrdersByUserId")
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response getOrdersByUserId(@QueryParam("id") Integer id) {
+
+        JSONObject toReturn = layer.getOrdersByUserId(id);
 
         return Response.status(Integer.parseInt(toReturn.get("statusCode").toString()))
                 .entity(toReturn.toString())
@@ -110,11 +125,11 @@ public class ManufacturersController {
     }
 
     @DELETE
-    @Path("softDeleteManufacturers")
+    @Path("softDeleteOrders")
     @Consumes(MediaType.APPLICATION_JSON)
-    public Response softDeleteManufacturers(@QueryParam("id") Integer manufacturersId) {
+    public Response softDeleteOrders(@QueryParam("id") Integer idIN) {
 
-        JSONObject toReturn = layer.softDeleteManufacturers(manufacturersId);
+        JSONObject toReturn = layer.softDeleteOrders(idIN);
 
         return Response.status(Integer.parseInt(toReturn.get("statusCode").toString()))
                 .entity(toReturn.toString())
@@ -122,41 +137,30 @@ public class ManufacturersController {
                 .build();
     }
 
-    
-    
     @PUT
-    @Path("updateManufacturers")
+    @Path("updateOrders")
     @Consumes(MediaType.APPLICATION_JSON)
-    public Response updateManufacturers(@QueryParam("id") Integer manufacturersId, String body) {
+    public Response updateOrders(
+            @QueryParam("id") Integer idIN,
+            String body) {
 
         JSONObject bodyObject = new JSONObject(body);
 
-        Manufacturers updatedManufacturers = new Manufacturers();
-        updatedManufacturers.setId(manufacturersId); 
+        Orders updatedOrders = new Orders();
 
-        if (bodyObject.has("name")) {
-            updatedManufacturers.setName(bodyObject.getString("name"));
+        if (idIN != null) {
+            updatedOrders.setId(idIN);
+        }
+        
+        if (bodyObject.has("status")) {
+            updatedOrders.setStatus(bodyObject.getString("status"));
         }
 
-        if (bodyObject.has("country")) {
-            updatedManufacturers.setCountry(bodyObject.getString("country"));
+        if (bodyObject.has("isDeleted")) {
+            updatedOrders.setIsDeleted(bodyObject.getBoolean("isDeleted"));
         }
 
-        JSONObject toReturn = layer.updateManufacturers(updatedManufacturers);
-
-        int statusCode = toReturn.getInt("statusCode");
-        return Response.status(statusCode)
-                .entity(toReturn.toString())
-                .type(MediaType.APPLICATION_JSON)
-                .build();
-    }
-    
-    @GET
-    @Path("getManufacturersByName")
-    @Produces(MediaType.APPLICATION_JSON)
-    public Response getManufacturersByName(@QueryParam("name") String name) {
-
-        JSONObject toReturn = layer.getManufacturersByName(name);
+        JSONObject toReturn = layer.updateOrders(updatedOrders);
 
         return Response.status(Integer.parseInt(toReturn.get("statusCode").toString()))
                 .entity(toReturn.toString())

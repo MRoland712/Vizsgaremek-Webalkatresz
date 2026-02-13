@@ -5,8 +5,8 @@
 package com.mycompany.vizsgaremek.controller;
 
 import com.mycompany.vizsgaremek.model.Manufacturers;
-import com.mycompany.vizsgaremek.model.Parts;
 import com.mycompany.vizsgaremek.service.PartsService;
+import com.mycompany.vizsgaremek.model.Parts;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.UriInfo;
 import javax.ws.rs.Produces;
