@@ -54,6 +54,12 @@ public class TrucksService {
         if (!trucksAuth.isDataMissing(createTrucks.getYearTo()) && !trucksAuth.isValidYearTo(createTrucks.getYearTo())) {
             errors.put("InvalidYearTo");
         }
+        
+        if (!trucksAuth.isDataMissing(createTrucks.getYearFrom())
+                && !trucksAuth.isDataMissing(createTrucks.getYearTo())
+                && !trucksAuth.isYearRangeValid(createTrucks.getYearFrom(), createTrucks.getYearTo())) {
+            errors.put("YearFromCannotBeGreaterThanYearTo");
+        }
 
         if (errorAuth.hasErrors(errors)) {
             return errorAuth.createErrorResponse(errors, 400);
@@ -290,5 +296,115 @@ public class TrucksService {
         toReturn.put("Message", "Deleted Truck Succesfully");
         return toReturn;
     }//softDeleteTrucks
+    
+    public JSONObject updateTrucks(Trucks updatedTrucks) {
+        JSONObject toReturn = new JSONObject();
+        JSONArray errors = new JSONArray();
+
+        // VALIDÁCIÓK KERESÉSI PARAMÉTEREK 
+        // Ha nincs SEMMILYEN keresési paraméter id 
+        if (trucksAuth.isDataMissing(updatedTrucks.getId())){
+            errors.put("MissingSearchParameter");
+        }
+
+        // Ha carsId mint keresési paraméter NEM hiányzik ÉS ÉRVÉNYTELEN
+        if (!trucksAuth.isDataMissing(updatedTrucks.getId())
+                && !trucksAuth.isValidId(updatedTrucks.getId())) {
+            errors.put("InvalidId");
+        }
+
+        // Hiba ellenőrzés - keresési paraméterek
+        if (errorAuth.hasErrors(errors)) {
+            return errorAuth.createErrorResponse(errors, 400);
+        }
+
+        // CÍM LEKÉRDEZÉSE 
+        Trucks existingTrucks = null;
+
+        // ID alapján keresés
+        if (!trucksAuth.isDataMissing(updatedTrucks.getId())) {
+            existingTrucks = Trucks.getTrucksById(updatedTrucks.getId());
+        } 
+
+        // Ha nem található a cím
+        if (trucksAuth.isDataMissing(existingTrucks)) {
+            errors.put("CarsNotFound");
+            return errorAuth.createErrorResponse(errors, 404);
+        }
+
+        //  MEZŐK MÓDOSÍTÁSA (csak a megadottak!)
+        if (!trucksAuth.isDataMissing(updatedTrucks.getBrand())) {
+            if (trucksAuth.isValidBrand(updatedTrucks.getBrand())) {
+                existingTrucks.setBrand(updatedTrucks.getBrand());
+            } else {
+                errors.put("InvalidBrand");
+            }
+        }
+
+        // Model CSAK ha meg van adva!
+        if (!trucksAuth.isDataMissing(updatedTrucks.getModel())) {
+            if (trucksAuth.isValidModel(updatedTrucks.getModel())) {
+                existingTrucks.setModel(updatedTrucks.getModel());
+            } else {
+                errors.put("InvalidModel");
+            }
+        }
+
+        // yearFrom CSAK ha meg van adva!
+        if (!trucksAuth.isDataMissing(updatedTrucks.getYearFrom())) {
+            if (trucksAuth.isValidYearFrom(updatedTrucks.getYearFrom())) {
+                existingTrucks.setYearFrom(updatedTrucks.getYearFrom());
+            } else {
+                errors.put("InvalidYearFrom");
+            }
+        }
+
+        // yearTo CSAK ha meg van adva!
+        if (!trucksAuth.isDataMissing(updatedTrucks.getYearTo())) {
+            if (trucksAuth.isValidYearTo(updatedTrucks.getYearTo())) {
+                existingTrucks.setYearTo(updatedTrucks.getYearTo());
+            } else {
+                errors.put("InvalidYearTo");
+            }
+        }
+
+        // isDeleted CSAK ha meg van adva!
+        if (!trucksAuth.isDataMissing(updatedTrucks.getIsDeleted())) {
+            if (trucksAuth.isTrucksDeleted(updatedTrucks.getIsDeleted())) {
+                existingTrucks.setIsDeleted(updatedTrucks.getIsDeleted());
+            } else {
+                errors.put("InvalidIsDeleted");
+            }
+        }
+
+        // Hiba ellenőrzés validációk
+        if (errorAuth.hasErrors(errors)) {
+            return errorAuth.createErrorResponse(errors, 400);
+        }
+
+        // ADATBÁZIS UPDATE 
+        try {
+            Boolean result = Trucks.updateTrucks(existingTrucks);
+
+            if (!result) {
+                errors.put("ServerError");
+            }
+
+        } catch (Exception ex) {
+            errors.put("DatabaseError");
+            ex.printStackTrace();
+        }
+
+        if (errorAuth.hasErrors(errors)) {
+            return errorAuth.createErrorResponse(errors, 500);
+        }
+
+        // SIKERES VÁLASZ 
+        toReturn.put("success", true);
+        toReturn.put("message", "Trucks updated successfully");
+        toReturn.put("statusCode", 200);
+
+        return toReturn;
+    }//updateTrucks
 
 }

@@ -1,13 +1,24 @@
 <div class="product-wrapper">
-  <div class="left">
-    <img src="" alt="product image" />
+  <!-- ⭐ BAL OLDAL - Kattintható kép -->
+  <div class="left clickable" (click)="viewProductDetails()">
+    <img [src]="product().imageUrl" [alt]="product().name" />
+    <!-- Hover overlay -->
+    <div class="image-overlay">
+      <i class="fa-solid fa-magnifying-glass"></i>
+      <span>Részletek</span>
+    </div>
   </div>
 
+  <!-- JOBB OLDAL - Infók -->
   <div class="right">
     <div class="product-desc">
-      <h2>{{ product().name }}</h2>
+      <!-- ⭐ Kattintható név -->
+      <h2 class="clickable-title" (click)="viewProductDetails()">
+        {{ product().name }}
+      </h2>
       <h3>Article Number: {{ product().sku }}</h3>
-      <!-- Termék részletek kiírása -->
+
+      <!-- Termék részletek -->
       <ul>
         @for (detail of productDetails(); track $index) {
           <li>{{ detail.label }}: {{ detail.value }}</li>
@@ -20,7 +31,7 @@
       <h3 class="price">{{ product().price }} HUF</h3>
     </div>
 
-    <!-- Gombok az ár alatt -->
+    <!-- Gombok -->
     <div class="button-container">
       <div class="quantity-controls">
         <button type="button" class="quantity-btn decrease" (click)="decreaseQuantity()">

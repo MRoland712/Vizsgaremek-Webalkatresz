@@ -1,5 +1,4 @@
 <!-- profile-sidenav.component.html -->
-
 <nav class="profile-sidenav">
   <!-- Logo felül -->
   <div class="sidenav-logo">
@@ -14,21 +13,19 @@
         routerLinkActive="active"
         [routerLinkActiveOptions]="{ exact: true }"
         class="sidenav-link"
+        data-tooltip="Profilom"
       >
         <i class="fa-solid fa-user"></i>
         <span>Profilom</span>
       </a>
     </li>
-
     <li class="sidenav-item">
-      <a routerLink="/profile/orders" routerLinkActive="active" class="sidenav-link">
-        <i class="fa-solid fa-box"></i>
-        <span>Rendeléseim</span>
-      </a>
-    </li>
-
-    <li class="sidenav-item">
-      <a routerLink="/profile/garage" routerLinkActive="active" class="sidenav-link">
+      <a
+        routerLink="/profile/garage"
+        routerLinkActive="active"
+        class="sidenav-link"
+        data-tooltip="Garázsom"
+      >
         <i class="fa-solid fa-warehouse"></i>
         <span>Garázsom</span>
       </a>
@@ -38,18 +35,22 @@
   <!-- Divider -->
   <div class="sidenav-divider"></div>
 
-  <!-- Extra linkek (opcionális) -->
+  <!-- Extra linkek -->
   <ul class="sidenav-menu sidenav-secondary">
     <li class="sidenav-item">
-      <a routerLink="/profile/settings" routerLinkActive="active" class="sidenav-link">
+      <a
+        routerLink="/profile/settings"
+        routerLinkActive="active"
+        class="sidenav-link"
+        data-tooltip="Beállítások"
+      >
         <i class="fa-solid fa-gear"></i>
         <span>Beállítások</span>
       </a>
     </li>
-
     <li class="sidenav-item">
-      <a routerLink="/" class="sidenav-link">
-        <i class="fa-solid fa-arrow-left"></i>
+      <a routerLink="/" class="sidenav-link" data-tooltip="Vissza a főoldalra">
+        <i class="fa-solid fa-house"></i>
         <span>Vissza a főoldalra</span>
       </a>
     </li>

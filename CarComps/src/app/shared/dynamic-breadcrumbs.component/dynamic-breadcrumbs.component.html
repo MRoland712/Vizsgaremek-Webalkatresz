@@ -1,0 +1,21 @@
+<nav class="breadcrumbs-container">
+  <ol class="breadcrumb-list">
+    @for (breadcrumb of breadcrumbs; track $index) {
+      <li class="breadcrumb-item">
+        @if ($index === breadcrumbs.length - 1) {
+          <!-- Utolsó elem - nem klikkelhetõ -->
+          <span class="breadcrumb-current">{{ breadcrumb.label }}</span>
+        } @else {
+          <!-- Klikkelhetõ link -->
+          <a [routerLink]="breadcrumb.url" class="breadcrumb-link">
+            @if ($index === 0) {
+              <i class="fa-solid fa-house"></i>
+            }
+            {{ breadcrumb.label }}
+          </a>
+          <i class="fa-solid fa-chevron-right breadcrumb-separator"></i>
+        }
+      </li>
+    }
+  </ol>
+</nav>

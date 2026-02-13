@@ -86,7 +86,7 @@ export function passwordMatchValidator(control: AbstractControl): ValidationErro
   providedIn: 'root',
 })
 export class RegisterService {
-  private readonly baseUrl = 'http://api.carcomps.hu/vizsgaremek-1.0-SNAPSHOT/webresources/';
+  private readonly baseUrl = 'https://api.carcomps.hu/vizsgaremek-1.0-SNAPSHOT/webresources/';
   private readonly registerUrl = this.baseUrl + 'user/createUser';
   private httpClient = inject(HttpClient);
   headers = {

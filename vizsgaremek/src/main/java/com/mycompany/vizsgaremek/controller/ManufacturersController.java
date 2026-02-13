@@ -150,4 +150,17 @@ public class ManufacturersController {
                 .type(MediaType.APPLICATION_JSON)
                 .build();
     }
+    
+    @GET
+    @Path("getManufacturersByName")
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response getManufacturersByName(@QueryParam("name") String name) {
+
+        JSONObject toReturn = layer.getManufacturersByName(name);
+
+        return Response.status(Integer.parseInt(toReturn.get("statusCode").toString()))
+                .entity(toReturn.toString())
+                .type(MediaType.APPLICATION_JSON)
+                .build();
+    }
 }

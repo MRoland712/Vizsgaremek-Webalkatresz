@@ -7,6 +7,7 @@ import { FooterComponent } from '../footer.component/footer.component';
 import { ActivatedRoute } from '@angular/router';
 import { GetallpartsService } from '../services/getallparts.service';
 import { PartsModel } from '../models/parts.model';
+import { DynamicBreadcrumbsComponent } from '../shared/dynamic-breadcrumbs.component/dynamic-breadcrumbs.component';
 
 @Component({
   selector: 'app-product-page.component',
@@ -16,6 +17,7 @@ import { PartsModel } from '../models/parts.model';
     MmtContainerComponent,
     Filter,
     FooterComponent,
+    DynamicBreadcrumbsComponent,
   ],
   templateUrl: './product-page.component.html',
   styleUrl: './product-page.component.css',
