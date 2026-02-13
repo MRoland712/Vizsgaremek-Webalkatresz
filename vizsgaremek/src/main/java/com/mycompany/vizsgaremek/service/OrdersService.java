@@ -267,7 +267,7 @@ public class OrdersService {
             if (ordersAuth.isValidStatus(updatedOrders.getStatus())) {
                 existingOrders.setStatus(updatedOrders.getStatus());
             } else {
-                errors.put("InvalidName");
+                errors.put("InvalidStatus");
             }
         }
 

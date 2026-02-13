@@ -420,6 +420,14 @@ public class Orders implements Serializable {
             em.getTransaction().begin();
             StoredProcedureQuery spq = em.createStoredProcedureQuery("updateOrders");
 
+            spq.registerStoredProcedureParameter("idIN", Integer.class, ParameterMode.IN);
+            spq.registerStoredProcedureParameter("statusIN", String.class, ParameterMode.IN);
+            spq.registerStoredProcedureParameter("isDeletedIN", Integer.class, ParameterMode.IN);
+
+            spq.setParameter("idIN", updatedOrders.getId());
+            spq.setParameter("statusIN", updatedOrders.getStatus());
+            spq.setParameter("isDeletedIN", Boolean.TRUE.equals(updatedOrders.getIsDeleted()) ? 1 : 0);
+
 
             spq.execute();
 

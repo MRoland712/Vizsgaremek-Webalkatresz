@@ -281,23 +281,23 @@ public class ReviewsService {
         return toReturn;
     }//getReviewsByRating
 
-    public JSONObject updateReviews(Reviews updateReviews) {
+    public JSONObject updateReviews(Reviews updatedReviews) {
         JSONObject toReturn = new JSONObject();
         JSONArray errors = new JSONArray();
 
         // VALIDÁCIÓ
 
-        if (!reviewsAuth.isDataMissing(updateReviews.getId()) && !reviewsAuth.isValidId(updateReviews.getId())) {
+        if (!reviewsAuth.isDataMissing(updatedReviews.getId()) && !reviewsAuth.isValidId(updatedReviews.getId())) {
             errors.put("InvalidId");
         }
 
    
-        if (!reviewsAuth.isDataMissing(updateReviews.getRating()) && !reviewsAuth.isValidRating(updateReviews.getRating())) {
+        if (!reviewsAuth.isDataMissing(updatedReviews.getRating()) && !reviewsAuth.isValidRating(updatedReviews.getRating())) {
             errors.put("InvalidRating");
         }
 
     
-        if (!reviewsAuth.isDataMissing(updateReviews.getComment()) && !reviewsAuth.isValidComment(updateReviews.getComment())) {
+        if (!reviewsAuth.isDataMissing(updatedReviews.getComment()) && !reviewsAuth.isValidComment(updatedReviews.getComment())) {
             errors.put("InvalidComment");
         }
 
@@ -306,7 +306,7 @@ public class ReviewsService {
         }
 
         // Ellenőrzés - létezik-e
-        Reviews existingReview = Reviews.getReviewsById(updateReviews.getId());
+        Reviews existingReview = Reviews.getReviewsById(updatedReviews.getId());
 
         if (reviewsAuth.isDataMissing(existingReview)) {
             errors.put("ReviewNotFound");
@@ -317,9 +317,36 @@ public class ReviewsService {
             errors.put("ReviewIsDeleted");
             return errorAuth.createErrorResponse(errors, 409);
         }
+        
+        // MEZŐK MÓDOSÍTÁSA (csak a megadottak!)
 
+        if (!reviewsAuth.isDataMissing(updatedReviews.getRating())) {
+            if (reviewsAuth.isValidRating(updatedReviews.getRating())) {
+                existingReview.setRating(updatedReviews.getRating());
+            } else {
+                errors.put("InvalidRating");
+            }
+        }
+        
+        if (!reviewsAuth.isDataMissing(updatedReviews.getComment())) {
+            if (reviewsAuth.isValidComment(updatedReviews.getComment())) {
+                existingReview.setComment(updatedReviews.getComment());
+            } else {
+                errors.put("InvalidComment");
+            }
+        }
+        
+        if (!reviewsAuth.isDataMissing(updatedReviews.getIsDeleted())) {
+            if (reviewsAuth.isReviewsDeleted(updatedReviews.getIsDeleted())) {
+                existingReview.setIsDeleted(updatedReviews.getIsDeleted());
+            } else {
+                errors.put("InvalidIsDeleted");
+            }
+        }
+
+        
         // MODEL HÍVÁS
-        if (Reviews.updateReviews(updateReviews)) {
+        if (Reviews.updateReviews(existingReview)) {
             toReturn.put("message", "Review Updated Successfully");
             toReturn.put("statusCode", 200);
             toReturn.put("success", true);

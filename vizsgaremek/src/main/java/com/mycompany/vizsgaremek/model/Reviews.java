@@ -317,8 +317,8 @@ public class Reviews implements Serializable {
         EntityManager em = emf.createEntityManager();
         try {
             StoredProcedureQuery spq = em.createStoredProcedureQuery("getReviewsByPartId");
-            spq.registerStoredProcedureParameter("part_IdIN", Integer.class, ParameterMode.IN);
-            spq.setParameter("part_IdIN", partId);
+            spq.registerStoredProcedureParameter("idIN", Integer.class, ParameterMode.IN);
+            spq.setParameter("idIN", partId);
             spq.execute();
 
             List<Object[]> resultList = spq.getResultList();
@@ -357,8 +357,8 @@ public class Reviews implements Serializable {
         EntityManager em = emf.createEntityManager();
         try {
             StoredProcedureQuery spq = em.createStoredProcedureQuery("getReviewsByUserId");
-            spq.registerStoredProcedureParameter("userIdIN", Integer.class, ParameterMode.IN);
-            spq.setParameter("userIdIN", userId);
+            spq.registerStoredProcedureParameter("idIN", Integer.class, ParameterMode.IN);
+            spq.setParameter("idIN", userId);
             spq.execute();
 
             List<Object[]> resultList = spq.getResultList();
@@ -393,12 +393,12 @@ public class Reviews implements Serializable {
         }
     }
 
-    public static ArrayList<Reviews> getReviewsByRating(Integer rating) {
+    public static ArrayList<Reviews> getReviewsByRating(Integer ratingIN) {
         EntityManager em = emf.createEntityManager();
         try {
             StoredProcedureQuery spq = em.createStoredProcedureQuery("getReviewsByRating");
             spq.registerStoredProcedureParameter("ratingIN", Integer.class, ParameterMode.IN);
-            spq.setParameter("ratingIN", rating);
+            spq.setParameter("ratingIN", ratingIN);
             spq.execute();
 
             List<Object[]> resultList = spq.getResultList();
@@ -441,12 +441,12 @@ public class Reviews implements Serializable {
 
             StoredProcedureQuery spq = em.createStoredProcedureQuery("updateReviews");
 
-            spq.registerStoredProcedureParameter("review_id", Integer.class, ParameterMode.IN);
+            spq.registerStoredProcedureParameter("idIN", Integer.class, ParameterMode.IN);
             spq.registerStoredProcedureParameter("ratingIN", Integer.class, ParameterMode.IN);
             spq.registerStoredProcedureParameter("commentIN", String.class, ParameterMode.IN);
             spq.registerStoredProcedureParameter("isDeletedIN", Integer.class, ParameterMode.IN);
 
-            spq.setParameter("review_id", updatedReviews.getId());
+            spq.setParameter("idIN", updatedReviews.getId());
             spq.setParameter("ratingIN", updatedReviews.getRating());
             spq.setParameter("commentIN", updatedReviews.getComment());
             spq.setParameter("isDeletedIN", Boolean.TRUE.equals(updatedReviews.getIsDeleted()) ? 1 : 0);

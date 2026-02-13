@@ -114,7 +114,7 @@ public class OrdersController {
     @GET
     @Path("getOrdersByUserId")
     @Produces(MediaType.APPLICATION_JSON)
-    public Response getOrdersByUserId(@QueryParam("idIN") Integer id) {
+    public Response getOrdersByUserId(@QueryParam("id") Integer id) {
 
         JSONObject toReturn = layer.getOrdersByUserId(id);
 
@@ -141,15 +141,15 @@ public class OrdersController {
     @Path("updateOrders")
     @Consumes(MediaType.APPLICATION_JSON)
     public Response updateOrders(
-            @QueryParam("id") Integer ordersId,
+            @QueryParam("id") Integer idIN,
             String body) {
 
         JSONObject bodyObject = new JSONObject(body);
 
         Orders updatedOrders = new Orders();
 
-        if (ordersId != null) {
-            updatedOrders.setId(ordersId);
+        if (idIN != null) {
+            updatedOrders.setId(idIN);
         }
         
         if (bodyObject.has("status")) {

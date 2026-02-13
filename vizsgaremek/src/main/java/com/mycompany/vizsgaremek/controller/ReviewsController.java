@@ -77,8 +77,8 @@ public class ReviewsController {
         part.setId(bodyObject.has("partId") ? bodyObject.getInt("partId") : null);
 
         Reviews createdReviews = new Reviews(
-                bodyObject.has("ratingIN") ? bodyObject.getInt("ratingIN") : null,
-                bodyObject.has("commentIN") ? bodyObject.getString("commentIN") : null
+                (bodyObject.has("ratingIN") ? bodyObject.getInt("ratingIN") : null),
+                (bodyObject.has("commentIN") ? bodyObject.getString("commentIN") : null)
         );
 
         createdReviews.setUserId(user);
@@ -165,13 +165,13 @@ public class ReviewsController {
     @Path("updateReviews")
     @Consumes(MediaType.APPLICATION_JSON)
     public Response updateReviews(
-            @QueryParam("id") Integer reviewId, String body) {
+            @QueryParam("id") Integer idIN, String body) {
         JSONObject bodyObject = new JSONObject(body);
 
         Reviews updatedReviews = new Reviews();
 
-        if (reviewId != null) {
-            updatedReviews.setId(reviewId);
+        if (idIN != null) {
+            updatedReviews.setId(idIN);
         }
 
         if (bodyObject.has("rating")) {

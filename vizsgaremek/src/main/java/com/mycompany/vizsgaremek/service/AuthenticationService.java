@@ -1040,7 +1040,11 @@ public class AuthenticationService {
         }
 
         public boolean isValidRating(Integer rating) {
-            return rating >= 5;
+            return rating <= 5;
+        }
+        
+         public boolean isReviewsDeleted(Boolean isDeleted) {
+            return (isDeleted == true);
         }
 
     } //Reviews Auth Class closer
