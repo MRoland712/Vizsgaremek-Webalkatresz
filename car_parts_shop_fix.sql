@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Gép: localhost:8889
--- Létrehozás ideje: 2026. Feb 03. 19:50
+-- Létrehozás ideje: 2026. Feb 16. 17:15
 -- Kiszolgáló verziója: 8.0.44
 -- PHP verzió: 8.3.28
 
@@ -55,6 +55,84 @@ CREATE DEFINER=`root`@`localhost` PROCEDURE `admin_login` (IN `emailIN` VARCHAR(
     WHERE email = emailIN
         AND role = 'admin'
         AND is_deleted = 0;
+END$$
+
+DROP PROCEDURE IF EXISTS `checkoutCart`$$
+CREATE DEFINER=`root`@`localhost` PROCEDURE `checkoutCart` (IN `userIdIN` INT)   BEGIN
+    DECLARE newOrderId INT;
+    DECLARE cartItemCount INT;
+    DECLARE calculatedTotal DECIMAL(10,2);
+    
+    DECLARE EXIT HANDLER FOR SQLEXCEPTION
+    BEGIN
+        ROLLBACK;
+        SELECT 'ERROR: Checkout failed' AS error_message;
+    END;
+    
+    START TRANSACTION;
+    
+    -- Kosár elemek számának ellenőrzése
+    SELECT COUNT(*) INTO cartItemCount
+    FROM cart_items
+    WHERE user_id = userIdIN AND is_deleted = 0;
+    
+    IF cartItemCount = 0 THEN
+        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'Cart is empty';
+    END IF;
+    
+    -- Stock ellenőrzés ZÁROLÁSSAL
+    -- ci = cart_items, p = parts (table aliases)
+    IF EXISTS (
+        SELECT 1 
+        FROM cart_items ci
+        INNER JOIN parts p ON ci.part_id = p.id
+        WHERE ci.user_id = userIdIN 
+            AND ci.is_deleted = 0
+            AND p.stock < ci.quantity
+        FOR UPDATE
+    ) THEN
+        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'Insufficient stock for some items';
+    END IF;
+    
+    -- Végösszeg számítása
+    SELECT SUM(p.price * ci.quantity) INTO calculatedTotal
+    FROM cart_items ci
+    INNER JOIN parts p ON ci.part_id = p.id
+    WHERE ci.user_id = userIdIN AND ci.is_deleted = 0;
+    
+    -- 1. Order létrehozása
+    INSERT INTO orders (user_id, status, created_at, is_deleted, deleted_at)
+    VALUES (userIdIN, 'pending', NOW(), 0, NULL);
+    SET newOrderId = LAST_INSERT_ID();
+    
+    -- 2. Cart items → Order items
+    INSERT INTO order_items (order_id, part_id, quantity, price, created_at, is_deleted, deleted_at)
+    SELECT newOrderId, ci.part_id, ci.quantity, p.price, NOW(), 0, NULL
+    FROM cart_items ci
+    INNER JOIN parts p ON ci.part_id = p.id
+    WHERE ci.user_id = userIdIN AND ci.is_deleted = 0;
+    
+    -- 3. Stock csökkentése
+    UPDATE parts p
+    INNER JOIN cart_items ci ON p.id = ci.part_id
+    SET p.stock = p.stock - ci.quantity,
+        p.updated_at = NOW()
+    WHERE ci.user_id = userIdIN AND ci.is_deleted = 0;
+    
+    -- 4. Stock log rögzítése
+    INSERT INTO stock_logs (part_id, change_amount, reason, created_at)
+    SELECT ci.part_id, -ci.quantity, CONCAT('Order #', newOrderId), NOW()
+    FROM cart_items ci
+    WHERE ci.user_id = userIdIN AND ci.is_deleted = 0;
+    
+    -- 5. Cart ürítése (soft delete)
+    UPDATE cart_items 
+    SET is_deleted = 1, deleted_at = NOW()
+    WHERE user_id = userIdIN AND is_deleted = 0;
+    
+    COMMIT;
+    
+    SELECT newOrderId AS new_order_id, calculatedTotal AS total_amount;
 END$$
 
 DROP PROCEDURE IF EXISTS `checkUserTwoFaEnabled`$$
@@ -133,6 +211,37 @@ CREATE DEFINER=`root`@`localhost` PROCEDURE `createCars` (IN `brandIN` VARCHAR(1
     SELECT LAST_INSERT_ID()AS new_cars_id;
 END$$
 
+DROP PROCEDURE IF EXISTS `createCartItmes`$$
+CREATE DEFINER=`root`@`localhost` PROCEDURE `createCartItmes` (IN `userIdIN` INT(11), IN `partIdIN` INT(11), IN `quantityIN` INT(11))   BEGIN
+    INSERT INTO cart_items 
+	(
+        user_id, 
+        part_id, 
+        quantity, 
+        added_at, 
+        is_deleted, 
+        deleted_at
+    )
+    VALUES (
+        userIdIN, 
+        partIdIN, 
+        COALESCE(quantityIN, 1),
+        NOW(),
+        0,
+        NULL
+    );
+    
+    SELECT LAST_INSERT_ID() AS new_cart_item_id;
+END$$
+
+DROP PROCEDURE IF EXISTS `createInvoice`$$
+CREATE DEFINER=`root`@`localhost` PROCEDURE `createInvoice` (IN `orderIdIN` INT, IN `pdfUrlIN` VARCHAR(255))   BEGIN
+    INSERT INTO invoices (order_id, pdf_url, created_at, is_deleted, deleted_at)
+    VALUES (orderIdIN, pdfUrlIN, NOW(), 0, NULL);
+    
+    SELECT LAST_INSERT_ID() AS new_invoice_id;
+END$$
+
 DROP PROCEDURE IF EXISTS `createManufacturers`$$
 CREATE DEFINER=`root`@`localhost` PROCEDURE `createManufacturers` (IN `p_name` VARCHAR(100), IN `p_country` VARCHAR(50))   BEGIN
 	INSERT INTO manufacturers(
@@ -167,16 +276,18 @@ CREATE DEFINER=`root`@`localhost` PROCEDURE `createMotors` (IN `brandIN` VARCHAR
 END$$
 
 DROP PROCEDURE IF EXISTS `createOrders`$$
-CREATE DEFINER=`root`@`localhost` PROCEDURE `createOrders` (IN `p_user_id` INT)   BEGIN
+CREATE DEFINER=`root`@`localhost` PROCEDURE `createOrders` (IN `userIdIN` INT(11), IN `statusIN` VARCHAR(20))   BEGIN
 	START TRANSACTION;
     
     INSERT INTO orders(
         user_id,
+        status,
         created_at,
         is_deleted,
         deleted_at
     ) VALUES (
-        p_user_id,
+        userIdIN,
+        statusIN,
         NOW(),
         0,
         NULL
@@ -184,6 +295,59 @@ CREATE DEFINER=`root`@`localhost` PROCEDURE `createOrders` (IN `p_user_id` INT) 
          SELECT LAST_INSERT_ID() AS new_orders_id;
          
    COMMIT;
+END$$
+
+DROP PROCEDURE IF EXISTS `createOrderWithItems`$$
+CREATE DEFINER=`root`@`localhost` PROCEDURE `createOrderWithItems` (IN `userIdIN` INT, IN `partIdIN` INT, IN `quantityIN` INT)   BEGIN
+    DECLARE newOrderId INT;
+    DECLARE currentPrice DECIMAL(10,2);
+    DECLARE availableStock INT;
+    DECLARE totalAmount DECIMAL(10,2);
+    
+    DECLARE EXIT HANDLER FOR SQLEXCEPTION
+    BEGIN
+        ROLLBACK;
+        SELECT 'ERROR: Transaction rolled back' AS error_message;
+    END;
+    
+    START TRANSACTION;
+    
+    -- Stock és ár lekérése ZÁROLÁSSAL
+    SELECT price, stock INTO currentPrice, availableStock 
+    FROM parts 
+    WHERE id = partIdIN AND is_deleted = 0
+    FOR UPDATE;
+    
+    -- Stock ellenőrzés
+    IF availableStock IS NULL OR availableStock < quantityIN THEN
+        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'Insufficient stock';
+    END IF;
+    
+    -- Végösszeg számítás
+    SET totalAmount = currentPrice * quantityIN;
+    
+    -- 1. Order létrehozása
+    INSERT INTO orders (user_id, status, created_at, is_deleted, deleted_at)
+    VALUES (userIdIN, 'pending', NOW(), 0, NULL);
+    SET newOrderId = LAST_INSERT_ID();
+    
+    -- 2. Order item hozzáadása
+    INSERT INTO order_items (order_id, part_id, quantity, price, created_at, is_deleted, deleted_at)
+    VALUES (newOrderId, partIdIN, quantityIN, currentPrice, NOW(), 0, NULL);
+    
+    -- 3. Stock csökkentése
+    UPDATE parts 
+    SET stock = stock - quantityIN,
+        updated_at = NOW()
+    WHERE id = partIdIN;
+    
+    -- 4. Stock log
+    INSERT INTO stock_logs (part_id, change_amount, reason, created_at)
+    VALUES (partIdIN, -quantityIN, CONCAT('Order #', newOrderId), NOW());
+    
+    COMMIT;
+    
+    SELECT newOrderId AS new_order_id, totalAmount AS total_amount;
 END$$
 
 DROP PROCEDURE IF EXISTS `createPartImages`$$
@@ -255,6 +419,32 @@ CREATE DEFINER=`root`@`localhost` PROCEDURE `createPartVariants` (IN `partIdIN` 
            
          SELECT LAST_INSERT_ID()AS new_part_variants;
          COMMIT;
+END$$
+
+DROP PROCEDURE IF EXISTS `createPayments`$$
+CREATE DEFINER=`root`@`localhost` PROCEDURE `createPayments` (IN `orderIdIN` INT(11), IN `amountIN` DECIMAL(10,2), IN `methodIN` VARCHAR(50), IN `statusIN` VARCHAR(20), IN `paidAtIN` DATETIME)   BEGIN
+    INSERT INTO payments (
+        order_id,
+        amount,
+        method,
+        status,
+        paid_at,
+        created_at,
+        is_deleted,
+        deleted_at
+    )
+    VALUES (
+        orderIdIN,
+        amountIN,
+        methodIN,
+        COALESCE(statusIN, 'pending'),
+        paidAtIN,
+        NOW(),
+        0,
+        NULL
+    );
+    
+    SELECT LAST_INSERT_ID() AS new_payment_id;
 END$$
 
 DROP PROCEDURE IF EXISTS `createReviews`$$
@@ -384,6 +574,21 @@ CREATE DEFINER=`root`@`localhost` PROCEDURE `createUserTwoFa` (IN `user_idIN` IN
     COMMIT;
 END$$
 
+DROP PROCEDURE IF EXISTS `createWarehouses`$$
+CREATE DEFINER=`root`@`localhost` PROCEDURE `createWarehouses` (IN `nameIN` VARCHAR(50), IN `locationIN` VARCHAR(255))   BEGIN
+    INSERT INTO warehouses (
+        name,
+        location,
+        created_at
+    ) VALUES (
+        nameIN,
+        locationIN,
+        NOW()
+    );
+    
+    SELECT LAST_INSERT_ID() AS new_warehouse_id;
+END$$
+
 DROP PROCEDURE IF EXISTS `getAddressById`$$
 CREATE DEFINER=`root`@`localhost` PROCEDURE `getAddressById` (IN `p_address_id` INT)   BEGIN
     SELECT 
@@ -492,6 +697,35 @@ CREATE DEFINER=`root`@`localhost` PROCEDURE `getAllCars` ()   BEGIN
         ORDER BY id;
 END$$
 
+DROP PROCEDURE IF EXISTS `getAllCartItems`$$
+CREATE DEFINER=`root`@`localhost` PROCEDURE `getAllCartItems` ()   BEGIN
+    SELECT
+        id,
+        user_id,
+        part_id,
+        quantity,
+        added_at,
+        is_deleted,
+        deleted_at
+    FROM cart_items
+    WHERE is_deleted = 0
+    ORDER BY added_at DESC;
+END$$
+
+DROP PROCEDURE IF EXISTS `getAllInvoices`$$
+CREATE DEFINER=`root`@`localhost` PROCEDURE `getAllInvoices` ()   BEGIN
+    SELECT
+        id,
+        order_id,
+        pdf_url,
+        created_at,
+        is_deleted,
+        deleted_at
+    FROM invoices
+    WHERE is_deleted = 0
+    ORDER BY created_at DESC;
+END$$
+
 DROP PROCEDURE IF EXISTS `getAllManufacturers`$$
 CREATE DEFINER=`root`@`localhost` PROCEDURE `getAllManufacturers` ()   BEGIN
 	SELECT
@@ -530,6 +764,7 @@ CREATE DEFINER=`root`@`localhost` PROCEDURE `getAllOrders` ()   BEGIN
         user_id,
         status,
         created_at,
+        updated_at,
         is_deleted,
         deleted_at
      FROM orders
@@ -577,6 +812,23 @@ DROP PROCEDURE IF EXISTS `getAllPartVariants`$$
 CREATE DEFINER=`root`@`localhost` PROCEDURE `getAllPartVariants` ()   SELECT id, part_id, name, value, additional_price, created_at, is_deleted, deleted_at
 FROM part_variants
 WHERE is_deleted = 0$$
+
+DROP PROCEDURE IF EXISTS `getAllPayments`$$
+CREATE DEFINER=`root`@`localhost` PROCEDURE `getAllPayments` ()   BEGIN
+    SELECT
+        id,
+        order_id,
+        amount,
+        method,
+        status,
+        paid_at,
+        created_at,
+        is_deleted,
+        deleted_at
+    FROM payments
+    WHERE is_deleted = 0
+    ORDER BY created_at DESC;
+END$$
 
 DROP PROCEDURE IF EXISTS `getAllReviews`$$
 CREATE DEFINER=`root`@`localhost` PROCEDURE `getAllReviews` ()   BEGIN
@@ -626,6 +878,20 @@ CREATE DEFINER=`root`@`localhost` PROCEDURE `getAllUserTwoFa` ()   BEGIN
     FROM user_twofa
     WHERE is_deleted = 0
     ORDER BY id DESC;
+END$$
+
+DROP PROCEDURE IF EXISTS `getAllWarehouses`$$
+CREATE DEFINER=`root`@`localhost` PROCEDURE `getAllWarehouses` ()   BEGIN
+    SELECT 
+        id,
+        name,
+        location,
+        created_at,
+        is_deleted,
+        deleted_at
+    FROM warehouses
+    WHERE is_deleted = 0
+    ORDER BY id;
 END$$
 
 DROP PROCEDURE IF EXISTS `getCarsByBrand`$$
@@ -679,6 +945,33 @@ CREATE DEFINER=`root`@`localhost` PROCEDURE `getCarsByModel` (IN `modelIN` VARCH
     ORDER BY brand;
 END$$
 
+DROP PROCEDURE IF EXISTS `getCartItemById`$$
+CREATE DEFINER=`root`@`localhost` PROCEDURE `getCartItemById` (IN `idIN` INT)   BEGIN
+    SELECT
+        id,
+        user_id,
+        part_id,
+        quantity,
+        added_at,
+        is_deleted,
+        deleted_at
+    FROM cart_items
+    WHERE id = idIN;
+END$$
+
+DROP PROCEDURE IF EXISTS `getInvoiceById`$$
+CREATE DEFINER=`root`@`localhost` PROCEDURE `getInvoiceById` (IN `idIN` INT)   BEGIN
+    SELECT
+        id,
+        order_id,
+        pdf_url,
+        created_at,
+        is_deleted,
+        deleted_at
+    FROM invoices
+    WHERE id = idIN;
+END$$
+
 DROP PROCEDURE IF EXISTS `getManufacturersById`$$
 CREATE DEFINER=`root`@`localhost` PROCEDURE `getManufacturersById` (IN `p_manufacturers_id` INT)   BEGIN
     SELECT 
@@ -691,6 +984,18 @@ CREATE DEFINER=`root`@`localhost` PROCEDURE `getManufacturersById` (IN `p_manufa
     FROM manufacturers
     WHERE id = p_manufacturers_id;
 END$$
+
+DROP PROCEDURE IF EXISTS `getManufacturersByName`$$
+CREATE DEFINER=`root`@`localhost` PROCEDURE `getManufacturersByName` (IN `nameIN` VARCHAR(100))   SELECT
+	id,
+    name,
+    country,
+    created_at,
+    deleted_at,
+    is_deleted
+FROM manufacturers
+WHERE name = nameIN
+ORDER BY name$$
 
 DROP PROCEDURE IF EXISTS `getMotorsByBrand`$$
 CREATE DEFINER=`root`@`localhost` PROCEDURE `getMotorsByBrand` (IN `brandIN` VARCHAR(100))   BEGIN
@@ -744,29 +1049,31 @@ CREATE DEFINER=`root`@`localhost` PROCEDURE `getMotorsByModel` (IN `modelIN` VAR
 END$$
 
 DROP PROCEDURE IF EXISTS `getOrdersById`$$
-CREATE DEFINER=`root`@`localhost` PROCEDURE `getOrdersById` (IN `p_id` INT)   BEGIN
+CREATE DEFINER=`root`@`localhost` PROCEDURE `getOrdersById` (IN `idIN` INT(11))   BEGIN
 	SELECT
         id,
         user_id,
         status,
         created_at,
+        updated_at,
         is_deleted,
         deleted_at
      FROM orders
-     WHERE id = p_id;
+     WHERE id = idIN;
 END$$
 
 DROP PROCEDURE IF EXISTS `getOrdersByUserId`$$
-CREATE DEFINER=`root`@`localhost` PROCEDURE `getOrdersByUserId` (IN `p_user_id` INT)   BEGIN
+CREATE DEFINER=`root`@`localhost` PROCEDURE `getOrdersByUserId` (IN `idIN` INT(11))   BEGIN
 	SELECT
     	id,
         user_id,
         status,
         created_at,
+        updated_at,
         is_deleted,
         deleted_at
      FROM orders
-     WHERE user_id = p_user_id;
+     WHERE user_id = idIN;
 END$$
 
 DROP PROCEDURE IF EXISTS `getPartImagesById`$$
@@ -923,8 +1230,24 @@ CREATE DEFINER=`root`@`localhost` PROCEDURE `getPartVariantsByValue` (IN `partVa
     WHERE value = partVariantsValue;
 END$$
 
+DROP PROCEDURE IF EXISTS `getPaymentById`$$
+CREATE DEFINER=`root`@`localhost` PROCEDURE `getPaymentById` (IN `idIN` INT)   BEGIN
+    SELECT
+        id,
+        order_id,
+        amount,
+        method,
+        status,
+        paid_at,
+        created_at,
+        is_deleted,
+        deleted_at
+    FROM payments
+    WHERE id = idIN;
+END$$
+
 DROP PROCEDURE IF EXISTS `getReviewsById`$$
-CREATE DEFINER=`root`@`localhost` PROCEDURE `getReviewsById` (IN `review_id` INT)   BEGIN
+CREATE DEFINER=`root`@`localhost` PROCEDURE `getReviewsById` (IN `idIN` INT)   BEGIN
 	SELECT
     	id,
         user_id,
@@ -935,11 +1258,11 @@ CREATE DEFINER=`root`@`localhost` PROCEDURE `getReviewsById` (IN `review_id` INT
         is_deleted,
         deleted_at
      FROM reviews
-     WHERE id = review_id;
+     WHERE id = idIN;
 END$$
 
 DROP PROCEDURE IF EXISTS `getReviewsByPartId`$$
-CREATE DEFINER=`root`@`localhost` PROCEDURE `getReviewsByPartId` (IN `part_IdIN` INT)   BEGIN
+CREATE DEFINER=`root`@`localhost` PROCEDURE `getReviewsByPartId` (IN `idIN` INT)   BEGIN
     SELECT 
         id,
         user_id,
@@ -950,7 +1273,7 @@ CREATE DEFINER=`root`@`localhost` PROCEDURE `getReviewsByPartId` (IN `part_IdIN`
         is_deleted,
         deleted_at
     FROM reviews
-    WHERE part_id = part_IdIN
+    WHERE part_id = idIN
         AND is_deleted = 0
     ORDER BY created_at DESC;
 END$$
@@ -963,7 +1286,9 @@ CREATE DEFINER=`root`@`localhost` PROCEDURE `getReviewsByRating` (IN `ratingIN` 
         part_id,
         rating,
         comment,
-        created_at
+        created_at,
+        is_deleted,
+        deleted_at
     FROM reviews
     WHERE rating = ratingIN
         AND is_deleted = 0
@@ -971,7 +1296,7 @@ CREATE DEFINER=`root`@`localhost` PROCEDURE `getReviewsByRating` (IN `ratingIN` 
 END$$
 
 DROP PROCEDURE IF EXISTS `getReviewsByUserId`$$
-CREATE DEFINER=`root`@`localhost` PROCEDURE `getReviewsByUserId` (IN `userIdIN` INT)   BEGIN
+CREATE DEFINER=`root`@`localhost` PROCEDURE `getReviewsByUserId` (IN `idIN` INT)   BEGIN
     SELECT 
         id,
         user_id,
@@ -982,7 +1307,7 @@ CREATE DEFINER=`root`@`localhost` PROCEDURE `getReviewsByUserId` (IN `userIdIN` 
         is_deleted,
         deleted_at
     FROM reviews
-    WHERE user_id = userIdIN
+    WHERE user_id = idIN
         AND is_deleted = 0
     ORDER BY created_at DESC;
 END$$
@@ -1095,6 +1420,164 @@ CREATE DEFINER=`root`@`localhost` PROCEDURE `getUserTwoFaByUserId` (IN `user_idI
         AND is_deleted = 0;
 END$$
 
+DROP PROCEDURE IF EXISTS `getWarehousesById`$$
+CREATE DEFINER=`root`@`localhost` PROCEDURE `getWarehousesById` (IN `idIN` INT(11))   BEGIN
+    SELECT 
+        id,
+        name,
+        location,
+        created_at,
+        is_deleted,
+        deleted_at
+    FROM warehouses
+    WHERE id = idIN;
+END$$
+
+DROP PROCEDURE IF EXISTS `increasePageViewers`$$
+CREATE DEFINER=`root`@`localhost` PROCEDURE `increasePageViewers` (IN `pageNameIN` VARCHAR(255))   BEGIN
+    DECLARE pageExists INT;
+    
+    DECLARE EXIT HANDLER FOR SQLEXCEPTION
+    BEGIN
+        ROLLBACK;
+        SELECT 'ERROR: Failed to increase page viewers' AS error_message;
+    END;
+    
+    START TRANSACTION;
+    
+    SELECT COUNT(*) INTO pageExists
+    FROM page_statistics
+    WHERE pageName = pageNameIN AND is_deleted = 0
+    FOR UPDATE;
+    
+    IF pageExists > 0 THEN
+        UPDATE page_statistics
+        SET viewersCount = viewersCount + 1,
+            updated_at = NOW()
+        WHERE pageName = pageNameIN AND is_deleted = 0;
+    ELSE
+        INSERT INTO page_statistics (pageName, viewersCount, created_at, updated_at, is_deleted, deleted_at)
+        VALUES (pageNameIN, 1, NOW(), NOW(), 0, NULL);
+    END IF;
+    
+    COMMIT;
+    
+    SELECT viewersCount 
+    FROM page_statistics 
+    WHERE pageName = pageNameIN AND is_deleted = 0;
+END$$
+
+DROP PROCEDURE IF EXISTS `processPayment`$$
+CREATE DEFINER=`root`@`localhost` PROCEDURE `processPayment` (IN `orderIdIN` INT, IN `amountIN` DECIMAL(10,2), IN `methodIN` VARCHAR(50))   BEGIN
+    DECLARE newPaymentId INT;
+    DECLARE newInvoiceId INT;
+    DECLARE currentOrderStatus VARCHAR(20);
+    
+    DECLARE EXIT HANDLER FOR SQLEXCEPTION
+    BEGIN
+        ROLLBACK;
+        SELECT 'ERROR: Payment processing failed' AS error_message;
+    END;
+    
+    START TRANSACTION;
+    
+    -- Order státusz lekérése ZÁROLÁSSAL
+    SELECT status INTO currentOrderStatus 
+    FROM orders 
+    WHERE id = orderIdIN AND is_deleted = 0
+    FOR UPDATE;
+    
+    -- Validációk
+    IF currentOrderStatus IS NULL THEN
+        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'Order not found';
+    END IF;
+    
+    IF currentOrderStatus != 'pending' THEN
+        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'Order already processed';
+    END IF;
+    
+    -- 1. Payment rögzítése
+    INSERT INTO payments (order_id, amount, method, status, paid_at, created_at, is_deleted, deleted_at)
+    VALUES (orderIdIN, amountIN, methodIN, 'completed', NOW(), NOW(), 0, NULL);
+    SET newPaymentId = LAST_INSERT_ID();
+    
+    -- 2. Order státusz frissítése
+    UPDATE orders 
+    SET status = 'paid'
+    WHERE id = orderIdIN;
+    
+    -- 3. Invoice létrehozása
+    INSERT INTO invoices (order_id, created_at, is_deleted, deleted_at)
+    VALUES (orderIdIN, NOW(), 0, NULL);
+    SET newInvoiceId = LAST_INSERT_ID();
+    
+    COMMIT;
+    
+    SELECT newPaymentId AS new_payment_id, newInvoiceId AS new_invoice_id;
+END$$
+
+DROP PROCEDURE IF EXISTS `processRefund`$$
+CREATE DEFINER=`root`@`localhost` PROCEDURE `processRefund` (IN `paymentIdIN` INT, IN `amountIN` DECIMAL(10,2), IN `reasonIN` VARCHAR(255))   BEGIN
+    DECLARE relatedOrderId INT;
+    DECLARE newRefundId INT;
+    DECLARE currentPaymentStatus VARCHAR(20);
+    
+    DECLARE EXIT HANDLER FOR SQLEXCEPTION
+    BEGIN
+        ROLLBACK;
+        SELECT 'ERROR: Refund processing failed' AS error_message;
+    END;
+    
+    START TRANSACTION;
+    
+    -- Payment és Order ID lekérése ZÁROLÁSSAL
+    SELECT order_id, status INTO relatedOrderId, currentPaymentStatus
+    FROM payments 
+    WHERE id = paymentIdIN AND is_deleted = 0
+    FOR UPDATE;
+    
+    -- Validációk
+    IF relatedOrderId IS NULL THEN
+        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'Payment not found';
+    END IF;
+    
+    IF currentPaymentStatus = 'refunded' THEN
+        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'Payment already refunded';
+    END IF;
+    
+    -- 1. Refund rögzítése
+    INSERT INTO refunds (payment_id, amount, reason, refunded_at, is_deleted, deleted_at)
+    VALUES (paymentIdIN, amountIN, reasonIN, NOW(), 0, NULL);
+    SET newRefundId = LAST_INSERT_ID();
+    
+    -- 2. Payment státusz frissítése
+    UPDATE payments 
+    SET status = 'refunded'
+    WHERE id = paymentIdIN;
+    
+    -- 3. Order státusz frissítése
+    UPDATE orders 
+    SET status = 'refunded'
+    WHERE id = relatedOrderId;
+    
+    -- 4. Stock visszaállítása
+    UPDATE parts p
+    INNER JOIN order_items oi ON p.id = oi.part_id
+    SET p.stock = p.stock + oi.quantity,
+        p.updated_at = NOW()
+    WHERE oi.order_id = relatedOrderId AND oi.is_deleted = 0;
+    
+    -- 5. Stock log rögzítése
+    INSERT INTO stock_logs (part_id, change_amount, reason, created_at)
+    SELECT oi.part_id, oi.quantity, CONCAT('Refund #', newRefundId), NOW()
+    FROM order_items oi
+    WHERE oi.order_id = relatedOrderId AND oi.is_deleted = 0;
+    
+    COMMIT;
+    
+    SELECT newRefundId AS new_refund_id;
+END$$
+
 DROP PROCEDURE IF EXISTS `softDeleteAddress`$$
 CREATE DEFINER=`root`@`localhost` PROCEDURE `softDeleteAddress` (IN `p_address_id` INT)   BEGIN
     UPDATE addresses
@@ -1107,6 +1590,24 @@ END$$
 DROP PROCEDURE IF EXISTS `softDeleteCars`$$
 CREATE DEFINER=`root`@`localhost` PROCEDURE `softDeleteCars` (IN `idIN` INT(11))   BEGIN
     UPDATE cars
+    SET 
+        is_deleted = 1,
+        deleted_at = NOW()
+    WHERE id = idIN;
+END$$
+
+DROP PROCEDURE IF EXISTS `softDeleteCartItem`$$
+CREATE DEFINER=`root`@`localhost` PROCEDURE `softDeleteCartItem` (IN `idIN` INT)   BEGIN
+    UPDATE cart_items
+    SET 
+        is_deleted = 1,
+        deleted_at = NOW()
+    WHERE id = idIN;
+END$$
+
+DROP PROCEDURE IF EXISTS `softDeleteInvoice`$$
+CREATE DEFINER=`root`@`localhost` PROCEDURE `softDeleteInvoice` (IN `idIN` INT)   BEGIN
+    UPDATE invoices
     SET 
         is_deleted = 1,
         deleted_at = NOW()
@@ -1132,11 +1633,57 @@ CREATE DEFINER=`root`@`localhost` PROCEDURE `softDeleteMotors` (IN `idIN` INT(11
 END$$
 
 DROP PROCEDURE IF EXISTS `softDeleteOrders`$$
-CREATE DEFINER=`root`@`localhost` PROCEDURE `softDeleteOrders` (IN `p_orders_id` INT)   BEGIN
+CREATE DEFINER=`root`@`localhost` PROCEDURE `softDeleteOrders` (IN `idIN` INT(11))   BEGIN
     UPDATE orders
     SET is_deleted = TRUE,
         deleted_at = NOW()
-    WHERE id = p_orders_id;
+    WHERE id = idIN;
+END$$
+
+DROP PROCEDURE IF EXISTS `softDeletePartComplete`$$
+CREATE DEFINER=`root`@`localhost` PROCEDURE `softDeletePartComplete` (IN `partIdIN` INT)   BEGIN
+    DECLARE partExists INT;
+    
+    DECLARE EXIT HANDLER FOR SQLEXCEPTION
+    BEGIN
+        ROLLBACK;
+        SELECT 'ERROR: Part deletion failed' AS error_message;
+    END;
+    
+    START TRANSACTION;
+    
+    -- Part létezésének ellenőrzése
+    SELECT COUNT(*) INTO partExists
+    FROM parts
+    WHERE id = partIdIN AND is_deleted = 0;
+    
+    IF partExists = 0 THEN
+        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'Part not found or already deleted';
+    END IF;
+    
+    -- 1. Part törlése
+    UPDATE parts 
+    SET is_deleted = 1, deleted_at = NOW()
+    WHERE id = partIdIN;
+    
+    -- 2. Part Images törlése
+    UPDATE part_images 
+    SET is_deleted = 1, deleted_at = NOW()
+    WHERE part_id = partIdIN AND is_deleted = 0;
+    
+    -- 3. Part Variants törlése
+    UPDATE part_variants 
+    SET is_deleted = 1, deleted_at = NOW()
+    WHERE part_id = partIdIN AND is_deleted = 0;
+    
+    -- 4. Reviews törlése
+    UPDATE reviews
+    SET is_deleted = 1, deleted_at = NOW()
+    WHERE part_id = partIdIN AND is_deleted = 0;
+    
+    COMMIT;
+    
+    SELECT partIdIN AS deleted_part_id;
 END$$
 
 DROP PROCEDURE IF EXISTS `softDeletePartImages`$$
@@ -1166,6 +1713,15 @@ CREATE DEFINER=`root`@`localhost` PROCEDURE `softDeletePartVariants` (IN `partVa
     WHERE id = partVaraintsId;
 END$$
 
+DROP PROCEDURE IF EXISTS `softDeletePayment`$$
+CREATE DEFINER=`root`@`localhost` PROCEDURE `softDeletePayment` (IN `idIN` INT)   BEGIN
+    UPDATE payments
+    SET 
+        is_deleted = 1,
+        deleted_at = NOW()
+    WHERE id = idIN;
+END$$
+
 DROP PROCEDURE IF EXISTS `softDeleteReviews`$$
 CREATE DEFINER=`root`@`localhost` PROCEDURE `softDeleteReviews` (IN `review_IdIN` INT(11))   BEGIN
     UPDATE reviews
@@ -1193,27 +1749,67 @@ CREATE DEFINER=`root`@`localhost` PROCEDURE `softDeleteUser` (IN `p_user_id` INT
 END$$
 
 DROP PROCEDURE IF EXISTS `softDeleteUserAndAddresses`$$
-CREATE DEFINER=`root`@`localhost` PROCEDURE `softDeleteUserAndAddresses` (IN `p_user_id` INT)   BEGIN
-
+CREATE DEFINER=`root`@`localhost` PROCEDURE `softDeleteUserAndAddresses` (IN `userIdIN` INT)   BEGIN
+    DECLARE userExists INT;
+    
+    DECLARE EXIT HANDLER FOR SQLEXCEPTION
+    BEGIN
+        ROLLBACK;
+        SELECT 'ERROR: User deletion failed' AS error_message;
+    END;
+    
+    START TRANSACTION;
+    
+    -- User létezésének ellenőrzése
+    SELECT COUNT(*) INTO userExists
+    FROM users
+    WHERE id = userIdIN AND is_deleted = 0;
+    
+    IF userExists = 0 THEN
+        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'User not found or already deleted';
+    END IF;
+    
+    -- 1. User törlése
     UPDATE users
-    SET is_deleted = TRUE,
-        deleted_at = NOW()
-    WHERE id = p_user_id;
-
-
+    SET is_deleted = 1, deleted_at = NOW()
+    WHERE id = userIdIN;
+    
+    -- 2. Addresses törlése
     UPDATE addresses
-    SET is_deleted = TRUE,
-        deleted_at = NOW()
-    WHERE user_id = p_user_id;
+    SET is_deleted = 1, deleted_at = NOW()
+    WHERE user_id = userIdIN AND is_deleted = 0;
+    
+    -- 3. Cart items törlése
+    UPDATE cart_items
+    SET is_deleted = 1, deleted_at = NOW()
+    WHERE user_id = userIdIN AND is_deleted = 0;
+    
+    -- 4. User 2FA törlése
+    UPDATE user_twofa
+    SET is_deleted = 1, deleted_at = NOW()
+    WHERE user_id = userIdIN AND is_deleted = 0;
+    
+    COMMIT;
+    
+    SELECT userIdIN AS deleted_user_id;
 END$$
 
 DROP PROCEDURE IF EXISTS `softDeleteUserTwoFa`$$
-CREATE DEFINER=`root`@`localhost` PROCEDURE `softDeleteUserTwoFa` (IN `twofa_idIN` INT(11))   BEGIN
+CREATE DEFINER=`root`@`localhost` PROCEDURE `softDeleteUserTwoFa` (IN `idIN` INT(11))   BEGIN
     UPDATE user_twofa
     SET 
         is_deleted = 1,
         deleted_at = NOW()
-    WHERE id = twofa_idIN;
+    WHERE id = idIN;
+END$$
+
+DROP PROCEDURE IF EXISTS `softDeleteWarehouses`$$
+CREATE DEFINER=`root`@`localhost` PROCEDURE `softDeleteWarehouses` (IN `idIN` INT(11))   BEGIN
+    UPDATE warehouses
+    SET 
+        is_deleted = 1,
+        deleted_at = NOW()
+    WHERE id = idiN;
 END$$
 
 DROP PROCEDURE IF EXISTS `updateAddress`$$
@@ -1266,12 +1862,36 @@ CREATE DEFINER=`root`@`localhost` PROCEDURE `updateCars` (IN `idIN` INT(11), IN 
 
 END$$
 
+DROP PROCEDURE IF EXISTS `updateCartItem`$$
+CREATE DEFINER=`root`@`localhost` PROCEDURE `updateCartItem` (IN `idIN` INT, IN `userIdIN` INT, IN `partIdIN` INT, IN `quantityIN` INT, IN `isDeletedIN` TINYINT)   BEGIN
+    UPDATE cart_items
+    SET 
+        user_id = userIdIN,
+        part_id = partIdIN,
+        quantity = quantityIN,
+        is_deleted = isDeletedIN,
+        deleted_at = IF(isDeletedIN = 1, NOW(), NULL)
+    WHERE id = idIN;
+END$$
+
+DROP PROCEDURE IF EXISTS `updateInvoice`$$
+CREATE DEFINER=`root`@`localhost` PROCEDURE `updateInvoice` (IN `idIN` INT, IN `orderIdIN` INT, IN `pdfUrlIN` VARCHAR(255), IN `isDeletedIN` TINYINT)   BEGIN
+    UPDATE invoices
+    SET 
+        order_id = orderIdIN,
+        pdf_url = pdfUrlIN,
+        is_deleted = isDeletedIN,
+        deleted_at = IF(isDeletedIN = 1, NOW(), NULL)
+    WHERE id = idIN;
+END$$
+
 DROP PROCEDURE IF EXISTS `updateManufacturers`$$
-CREATE DEFINER=`root`@`localhost` PROCEDURE `updateManufacturers` (IN `p_manufacturers_id` INT, IN `p_name` VARCHAR(255), IN `p_country` VARCHAR(100))   BEGIN
+CREATE DEFINER=`root`@`localhost` PROCEDURE `updateManufacturers` (IN `p_manufacturers_id` INT, IN `p_name` VARCHAR(255), IN `p_country` VARCHAR(100), IN `IsDeleted` TINYINT)   BEGIN
   START TRANSACTION;
     UPDATE manufacturers
     SET name = p_name,
-        country = p_country
+        country = p_country,
+        is_deleted = IsDeleted
     WHERE id = p_manufacturers_id;
   COMMIT;
 END$$
@@ -1285,6 +1905,18 @@ CREATE DEFINER=`root`@`localhost` PROCEDURE `updateMotors` (IN `idIN` INT(11), I
         model = modelIN,
         year_from = yearFromIN,
         year_to = yearToIN,
+        updated_at = NOW(),
+        is_deleted = isDeleted
+    WHERE id = idIN;
+
+END$$
+
+DROP PROCEDURE IF EXISTS `updateOrders`$$
+CREATE DEFINER=`root`@`localhost` PROCEDURE `updateOrders` (IN `idIN` INT(11), IN `statusIN` VARCHAR(20), IN `isDeleted` TINYINT)   BEGIN
+
+    UPDATE orders
+    SET 
+        status = statusIN,
         updated_at = NOW(),
         is_deleted = isDeleted
     WHERE id = idIN;
@@ -1337,14 +1969,28 @@ CREATE DEFINER=`root`@`localhost` PROCEDURE `updatePartVariants` (IN `idIN` INT(
     WHERE id = idIN;
 END$$
 
+DROP PROCEDURE IF EXISTS `updatePayment`$$
+CREATE DEFINER=`root`@`localhost` PROCEDURE `updatePayment` (IN `idIN` INT, IN `orderIdIN` INT, IN `amountIN` DECIMAL(10,2), IN `methodIN` VARCHAR(50), IN `statusIN` VARCHAR(20), IN `paidAtIN` DATETIME, IN `isDeletedIN` TINYINT)   BEGIN
+    UPDATE payments
+    SET 
+        order_id = orderIdIN,
+        amount = amountIN,
+        method = methodIN,
+        status = statusIN,
+        paid_at = paidAtIN,
+        is_deleted = isDeletedIN,
+        deleted_at = IF(isDeletedIN = 1, NOW(), NULL)
+    WHERE id = idIN;
+END$$
+
 DROP PROCEDURE IF EXISTS `updateReviews`$$
-CREATE DEFINER=`root`@`localhost` PROCEDURE `updateReviews` (IN `review_id` INT, IN `ratingIN` INT, IN `commentIN` TEXT, IN `isDeletedIN` TINYINT)   BEGIN
+CREATE DEFINER=`root`@`localhost` PROCEDURE `updateReviews` (IN `idIN` INT, IN `ratingIN` INT, IN `commentIN` TEXT, IN `isDeletedIN` TINYINT)   BEGIN
     UPDATE reviews
     SET 
         rating = ratingIN,
         comment = commentIN,
         is_deleted = isDeletedIN
-    WHERE id = review_id;
+    WHERE id = idIN;
 END$$
 
 DROP PROCEDURE IF EXISTS `updateTrucks`$$
@@ -1407,6 +2053,18 @@ CREATE DEFINER=`root`@`localhost` PROCEDURE `updateUserTwoFa` (IN `idIN` INT(11)
     WHERE id = idIN;
     
     COMMIT;
+END$$
+
+DROP PROCEDURE IF EXISTS `updateWarehouses`$$
+CREATE DEFINER=`root`@`localhost` PROCEDURE `updateWarehouses` (IN `idIN` INT(11), IN `nameIN` VARCHAR(100), IN `locationIN` VARCHAR(255), IN `isDeleted` INT(11))   BEGIN
+
+    UPDATE warehouses
+    SET 
+    	name = nameIN,
+        location = locationIN,
+        is_deleted = isDeleted
+    WHERE id = idIN;
+
 END$$
 
 DROP PROCEDURE IF EXISTS `user_login`$$
@@ -1578,8 +2236,9 @@ DROP TABLE IF EXISTS `orders`;
 CREATE TABLE `orders` (
   `id` int NOT NULL,
   `user_id` int NOT NULL,
-  `status` varchar(20) DEFAULT 'pending',
+  `status` enum('pending','paid','shipped','delivered','cancelled','refunded') DEFAULT 'pending',
   `created_at` datetime DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` datetime DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   `is_deleted` tinyint(1) DEFAULT '0',
   `deleted_at` datetime DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3;
@@ -1615,6 +2274,23 @@ CREATE TABLE `order_logs` (
   `old_status` varchar(20) DEFAULT NULL,
   `new_status` varchar(20) DEFAULT NULL,
   `changed_at` datetime DEFAULT CURRENT_TIMESTAMP
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3;
+
+-- --------------------------------------------------------
+
+--
+-- Tábla szerkezet ehhez a táblához `page_statistics`
+--
+
+DROP TABLE IF EXISTS `page_statistics`;
+CREATE TABLE `page_statistics` (
+  `id` int NOT NULL,
+  `pageName` varchar(255) NOT NULL,
+  `viewersCount` int NOT NULL,
+  `created_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` datetime DEFAULT NULL ON UPDATE CURRENT_TIMESTAMP,
+  `is_deleted` tinyint DEFAULT '0',
+  `deleted_at` datetime DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3;
 
 -- --------------------------------------------------------
@@ -1721,7 +2397,7 @@ CREATE TABLE `payments` (
   `order_id` int NOT NULL,
   `amount` decimal(10,2) DEFAULT NULL,
   `method` varchar(50) DEFAULT NULL,
-  `status` varchar(20) DEFAULT NULL,
+  `status` enum('pending','completed','failed','refunded','cancelled') DEFAULT 'pending',
   `paid_at` datetime DEFAULT NULL,
   `created_at` datetime DEFAULT CURRENT_TIMESTAMP,
   `is_deleted` tinyint(1) DEFAULT '0',
@@ -1987,6 +2663,7 @@ ALTER TABLE `email_verifications`
 --
 ALTER TABLE `invoices`
   ADD PRIMARY KEY (`id`),
+  ADD KEY `order_id` (`order_id`),
   ADD KEY `invoices_ibfk_1` (`order_id`);
 
 --
@@ -2031,6 +2708,13 @@ ALTER TABLE `order_items`
 ALTER TABLE `order_logs`
   ADD PRIMARY KEY (`id`),
   ADD KEY `order_id` (`order_id`);
+
+--
+-- A tábla indexei `page_statistics`
+--
+ALTER TABLE `page_statistics`
+  ADD PRIMARY KEY (`id`),
+  ADD UNIQUE KEY `pageName` (`pageName`);
 
 --
 -- A tábla indexei `parts`
@@ -2237,6 +2921,12 @@ ALTER TABLE `order_items`
 -- AUTO_INCREMENT a táblához `order_logs`
 --
 ALTER TABLE `order_logs`
+  MODIFY `id` int NOT NULL AUTO_INCREMENT;
+
+--
+-- AUTO_INCREMENT a táblához `page_statistics`
+--
+ALTER TABLE `page_statistics`
   MODIFY `id` int NOT NULL AUTO_INCREMENT;
 
 --
