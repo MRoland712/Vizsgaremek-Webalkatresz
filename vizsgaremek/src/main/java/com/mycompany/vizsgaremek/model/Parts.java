@@ -442,7 +442,7 @@ public class Parts implements Serializable {
 
                 Parts p = new Parts(
                         Integer.valueOf(record[0].toString()), // 1. id
-                        record[2] != null ? record[2].toString() : null, // 2. sku
+                        record[2] != null ? record[2].toString() : null, // 2.
                         record[3] != null ? record[3].toString() : null, // 3. name
                         record[4] != null ? record[4].toString() : null, // 4. category 
                         record[5] != null ? new BigDecimal(record[5].toString()) : null, // 5. price 

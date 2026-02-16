@@ -781,6 +781,10 @@ public class AuthenticationService {
             return data.isEmpty() || data == null;
         }
 
+        public static boolean isDataMissing(ArrayList<UserTwofa> data) {
+            return (data == null || data.isEmpty());
+        }
+
         public static boolean isDataMissing(Integer data) {
             return (data == null);
         }
@@ -790,7 +794,7 @@ public class AuthenticationService {
         }
 
         public static boolean isDataMissing(UserTwofa data) {
-            return data == null;
+            return (data == null);
         }
 
         public static boolean isValidEmail(String email) {
@@ -800,6 +804,7 @@ public class AuthenticationService {
         public static boolean isValidUserId(Integer userId) {
             return userId > 0 && userId.toString().trim().length() <= 11;
         }
+
     } //userTwofaAuth
 
     public static class carsAuth {
@@ -851,13 +856,13 @@ public class AuthenticationService {
         public boolean isCarsDeleted(Boolean isDeleted) {
             return (isDeleted == true);
         }
-        
+
         public boolean isYearRangeValid(Integer yearFrom, Integer yearTo) {
-        if (yearFrom == null || yearTo == null) {
-            return true; 
+            if (yearFrom == null || yearTo == null) {
+                return true;
+            }
+            return yearFrom <= yearTo;
         }
-        return yearFrom <= yearTo;
-    }
 
     } //Cars Auth Class closer
 
@@ -910,13 +915,13 @@ public class AuthenticationService {
         public boolean isMotorsDeleted(Boolean isDeleted) {
             return (isDeleted == true);
         }
-        
+
         public boolean isYearRangeValid(Integer yearFrom, Integer yearTo) {
-        if (yearFrom == null || yearTo == null) {
-            return true; 
+            if (yearFrom == null || yearTo == null) {
+                return true;
+            }
+            return yearFrom <= yearTo;
         }
-        return yearFrom <= yearTo;
-    }
 
     } //Motors Auth Class closer
 
@@ -969,13 +974,13 @@ public class AuthenticationService {
         public boolean isTrucksDeleted(Boolean isDeleted) {
             return (isDeleted == true);
         }
-        
+
         public boolean isYearRangeValid(Integer yearFrom, Integer yearTo) {
-        if (yearFrom == null || yearTo == null) {
-            return true; 
+            if (yearFrom == null || yearTo == null) {
+                return true;
+            }
+            return yearFrom <= yearTo;
         }
-        return yearFrom <= yearTo;
-    }
 
     } //Trucks Auth Class closer
 
@@ -1042,14 +1047,13 @@ public class AuthenticationService {
         public boolean isValidRating(Integer rating) {
             return rating <= 5;
         }
-        
-         public boolean isReviewsDeleted(Boolean isDeleted) {
+
+        public boolean isReviewsDeleted(Boolean isDeleted) {
             return (isDeleted == true);
         }
 
     } //Reviews Auth Class closer
-    
-    
+
     public static class ordersAuth {
 
         public boolean isDataMissing(String data) {
@@ -1059,17 +1063,15 @@ public class AuthenticationService {
         public boolean isDataMissing(Users data) {
             return (data == null);
         }
-        
-        
+
         public boolean isDataMissing(Orders data) {
             return (data == null);
         }
 
-
         public boolean isDataMissing(Integer data) {
             return (data == null);
         }
-        
+
         public boolean isDataMissing(Boolean data) {
             return (data == null);
         }
@@ -1077,7 +1079,7 @@ public class AuthenticationService {
         public boolean isDataMissing(ArrayList<Orders> data) {
             return (data == null || data.isEmpty());
         }
-        
+
         public boolean isDataMissing(List<Object[]> data) {
             return (data == null || data.isEmpty());
         }
