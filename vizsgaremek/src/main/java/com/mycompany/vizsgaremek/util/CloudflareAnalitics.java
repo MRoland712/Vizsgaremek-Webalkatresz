@@ -223,6 +223,15 @@ public class CloudflareAnalitics {
 
         return 0;
     }
+    
+    public static JSONObject getPageViewsAndUniqueVisitors(int days) {
+        JSONObject toReturn = new JSONObject();
+        
+        toReturn.put("uniqueVisitors", getUniqueVisitors(days));
+        toReturn.put("pageViews", getPageViews(days));
+        
+        return toReturn;
+    }
 
     public static void main(String[] args) {
         System.out.println("Last Day Statistics" + "\n"

@@ -161,7 +161,7 @@ public class SendEmailController {
     }
 
     @POST
-    @Path("sendOTP")
+    @Path("getALLStats")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     public Response sendOTPEmailAndSetAuthSecretController(@QueryParam("email") String email) {

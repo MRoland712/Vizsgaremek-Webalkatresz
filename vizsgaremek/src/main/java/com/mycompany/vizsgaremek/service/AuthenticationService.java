@@ -1096,7 +1096,7 @@ public class AuthenticationService {
         }
 
         public boolean isValidStatus(String status) {
-            return status.length() <= 20;
+            return status.length() <= 20 && (status.equals("delivered") || status.equals("pending") || status.equals("inTransit"));
         }
 
         public boolean isOrdersDeleted(Boolean isDeleted) {
