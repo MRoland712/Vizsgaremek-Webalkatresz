@@ -13,6 +13,7 @@ import javax.ws.rs.core.Context;
 import javax.ws.rs.core.UriInfo;
 import javax.ws.rs.Produces;
 import javax.ws.rs.Consumes;
+import javax.ws.rs.DELETE;
 import javax.ws.rs.GET;
 import javax.ws.rs.HeaderParam;
 import javax.ws.rs.QueryParam;
@@ -94,7 +95,7 @@ public class UserTwofaController {
     @GET
     @Path("getUserTwofaByUserId")
     @Consumes(MediaType.APPLICATION_JSON)
-    public Response getUserTwofaByUserIdController(@QueryParam("userId") Integer userId,@HeaderParam("token") String jwtToken) {
+    public Response getUserTwofaByUserIdController(@QueryParam("userId") Integer userId, @HeaderParam("token") String jwtToken) {
         Response jwtError = jwt.validateJwtAndReturnError(jwtToken);
         if (jwtError != null) {
             return jwtError;
@@ -107,7 +108,7 @@ public class UserTwofaController {
                 .type(MediaType.APPLICATION_JSON)
                 .build();
     }
-    
+
     @PUT
     @Path("updateUserTwofa")
     @Consumes(MediaType.APPLICATION_JSON)
@@ -127,23 +128,23 @@ public class UserTwofaController {
         if (id != null) {
             updatedUserTwofa.setId(id);
         }
-        
+
         if (bodyObject.has("userId") && userId == null) {
-            
+
             Users user = new Users();
             user.setId(bodyObject.getInt("userId"));
-            
+
             updatedUserTwofa.setUserId(user);
         }
-        
+
         if (bodyObject.has("TFAEnabled")) {
             updatedUserTwofa.setTwofaEnabled(bodyObject.getBoolean("TFAEnabled"));
         }
-        
+
         if (bodyObject.has("TFASecret")) {
             updatedUserTwofa.setTwofaSecret(bodyObject.getString("TFASecret"));
         }
-        
+
         if (bodyObject.has("recoveryCodes")) {
             updatedUserTwofa.setRecoveryCodes(bodyObject.getString("recoveryCodes"));
         }
@@ -155,4 +156,61 @@ public class UserTwofaController {
                 .type(MediaType.APPLICATION_JSON)
                 .build();
     }
+
+    @GET
+    @Path("getAllUserTwofa")
+    @Consumes(MediaType.APPLICATION_JSON)
+    public Response getAllUserTwoFaController() {
+        UserTwofaService userTwofaService = new UserTwofaService();
+
+        JSONObject toReturn = userTwofaService.getAllUserTwoFaService();
+
+        return Response.status(Integer.parseInt(toReturn.get("statusCode").toString()))
+                .entity(toReturn.toString())
+                .type(MediaType.APPLICATION_JSON)
+                .build();
+    }
+
+    @GET
+    @Path("getUserTwofaById")
+    @Consumes(MediaType.APPLICATION_JSON)
+    public Response getUserTwofaByIdController(@QueryParam("id") Integer idIN, @HeaderParam("token") String jwtToken) {
+        Response jwtError = jwt.validateJwtAndReturnError(jwtToken);
+        if (jwtError != null) {
+            return jwtError;
+        }
+
+        JSONObject toReturn = layer.getUserTwofaByIdService(idIN);
+
+        return Response.status(Integer.parseInt(toReturn.get("statusCode").toString()))
+                .entity(toReturn.toString())
+                .type(MediaType.APPLICATION_JSON)
+                .build();
+    }
+
+    @DELETE
+    @Path("softDeleteUserTwofa")
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response softDeleteUserTwofaController(@QueryParam("id") Integer idIN) {
+        UserTwofaService userTwofaService = new UserTwofaService();
+        JSONObject toReturn = userTwofaService.softDeleteUserTwofaService(idIN);
+
+        return Response.status(Integer.parseInt(toReturn.get("statusCode").toString()))
+                .entity(toReturn.toString())
+                .type(MediaType.APPLICATION_JSON)
+                .build();
+    } // softDeleteUserTwofaController
+
+    @GET
+    @Path("checkUserTwoFaEnabled")
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response checkUserTwoFaEnabledController(@QueryParam("userId") Integer userId) {
+        UserTwofaService userTwofaService = new UserTwofaService();
+        JSONObject toReturn = userTwofaService.checkUserTwoFaEnabledService(userId);
+
+        return Response.status(Integer.parseInt(toReturn.get("statusCode").toString()))
+                .entity(toReturn.toString())
+                .type(MediaType.APPLICATION_JSON)
+                .build();
+    }//checkUserTwoFaEnabledController
 }
