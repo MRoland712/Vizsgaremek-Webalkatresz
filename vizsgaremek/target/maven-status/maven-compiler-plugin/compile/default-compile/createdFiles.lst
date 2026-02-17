@@ -1,4 +1,5 @@
 com/mycompany/vizsgaremek/config/CorsFilter.class
+com/mycompany/vizsgaremek/service/CartItemsService.class
 com/mycompany/vizsgaremek/model/Orders.class
 com/mycompany/vizsgaremek/config/OTPVerifyer.class
 com/mycompany/vizsgaremek/model/Manufacturers.class
@@ -46,6 +47,7 @@ com/mycompany/vizsgaremek/config/createInvoicePDF.class
 com/mycompany/vizsgaremek/model/Sessions.class
 com/mycompany/vizsgaremek/controller/JWTController.class
 com/mycompany/vizsgaremek/service/PartImagesService.class
+com/mycompany/vizsgaremek/controller/CartItemsController.class
 com/mycompany/vizsgaremek/controller/UserLogsController.class
 com/mycompany/vizsgaremek/model/PartImages.class
 com/mycompany/vizsgaremek/config/base64Converters.class
@@ -54,6 +56,7 @@ com/mycompany/vizsgaremek/config/SendEmail$2.class
 com/mycompany/vizsgaremek/model/UserTwofa.class
 com/mycompany/vizsgaremek/service/AuthenticationService$ordersAuth.class
 com/mycompany/vizsgaremek/model/Motors.class
+com/mycompany/vizsgaremek/service/AuthenticationService$cartItemsAuth.class
 com/mycompany/vizsgaremek/model/Warehouses.class
 com/mycompany/vizsgaremek/model/Users.class
 com/mycompany/vizsgaremek/controller/PartVariantsController.class

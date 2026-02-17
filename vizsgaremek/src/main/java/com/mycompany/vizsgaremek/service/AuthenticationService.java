@@ -8,6 +8,7 @@ import com.mycompany.vizsgaremek.model.Users;
 import com.mycompany.vizsgaremek.config.Encrypt;
 import com.mycompany.vizsgaremek.model.Addresses;
 import com.mycompany.vizsgaremek.model.Cars;
+import com.mycompany.vizsgaremek.model.CartItems;
 import com.mycompany.vizsgaremek.model.Manufacturers;
 import com.mycompany.vizsgaremek.model.Motors;
 import com.mycompany.vizsgaremek.model.Orders;
@@ -1106,6 +1107,73 @@ public class AuthenticationService {
         }
 
     } //Orders Auth Class closer
+    
+    //CartItems
+    public static class cartItemsAuth {
+
+        public boolean isDataMissing(String data) {
+            return (data == null || data.trim().isEmpty());
+        }
+
+        public boolean isDataMissing(Users data) {
+            return (data == null);
+        }
+        
+        public boolean isDataMissing(Parts data) {
+            return (data == null);
+        }
+        
+        public boolean isDataMissing(CartItems data) {
+            return (data == null);
+        }
+
+        public boolean isDataMissing(Integer data) {
+            return (data == null);
+        }
+
+        public boolean isDataMissing(ArrayList<CartItems> data) {
+            return (data == null || data.isEmpty());
+        }
+
+        public boolean isDataMissing(Boolean data) {
+            return (data == null);
+        }
+
+        public boolean isDataMissing(List<Object[]> data) {
+            return (data == null || data.isEmpty());
+        }
+
+        public boolean isValidId(Integer id) {
+            return id > 0 && id.toString().length() <= 11;
+        }
+
+        public boolean isValidUserId(Users user) {
+            Integer userId = user.getId();
+            return userId > 0 && userId.toString().length() <= 11;
+        }
+
+        public boolean isValidUserId(Integer userId) {
+            return userId > 0 && userId.toString().length() <= 11;
+        }
+        
+        public boolean isValidPartId(Parts part) {
+            Integer partId = part.getId();
+            return partId > 0 && partId.toString().length() <= 11;
+        }
+
+        public boolean isValidPartId(Integer partId) {
+            return partId > 0 && partId.toString().length() <= 11;
+        }
+
+        public boolean isValidQuantity(Integer quantity) {
+            return quantity > 0 && quantity.toString().length() <= 11;
+        }
+
+        public boolean isCartItemsDeleted(Boolean isDeleted) {
+            return (isDeleted == true);
+        }
+
+    } //cartItems Auth Class closer
 
 }//Auth Service Class closer
 

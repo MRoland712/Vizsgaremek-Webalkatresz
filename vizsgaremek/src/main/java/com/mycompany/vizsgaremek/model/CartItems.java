@@ -5,10 +5,15 @@
 package com.mycompany.vizsgaremek.model;
 
 import java.io.Serializable;
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 import javax.persistence.Basic;
 import javax.persistence.Column;
 import javax.persistence.Entity;
+import javax.persistence.EntityManager;
+import javax.persistence.EntityManagerFactory;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
@@ -16,6 +21,9 @@ import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 import javax.persistence.NamedQueries;
 import javax.persistence.NamedQuery;
+import javax.persistence.ParameterMode;
+import javax.persistence.Persistence;
+import javax.persistence.StoredProcedureQuery;
 import javax.persistence.Table;
 import javax.persistence.Temporal;
 import javax.persistence.TemporalType;
@@ -59,6 +67,9 @@ public class CartItems implements Serializable {
     @JoinColumn(name = "user_id", referencedColumnName = "id")
     @ManyToOne(optional = false)
     private Users userId;
+
+    static EntityManagerFactory emf = Persistence.createEntityManagerFactory("com.mycompany_vizsgaremek_war_1.0-SNAPSHOTPU");
+    public static SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 
     public CartItems() {
     }
@@ -130,6 +141,22 @@ public class CartItems implements Serializable {
         return hash;
     }
 
+    public CartItems(Integer id, Integer quantity, Date addedAt, Date deletedAt, Boolean isDeleted, Parts partId, Users userId) {
+        this.id = id;
+        this.quantity = quantity;
+        this.addedAt = addedAt;
+        this.deletedAt = deletedAt;
+        this.isDeleted = isDeleted;
+        this.partId = partId;
+        this.userId = userId;
+    }
+
+    public CartItems(Integer quantity, Parts partId, Users userId) {
+        this.quantity = quantity;
+        this.partId = partId;
+        this.userId = userId;
+    }
+
     @Override
     public boolean equals(Object object) {
         // TODO: Warning - this method won't work in the case the id fields are not set
@@ -147,5 +174,260 @@ public class CartItems implements Serializable {
     public String toString() {
         return "com.mycompany.vizsgaremek.model.CartItems[ id=" + id + " ]";
     }
-    
+
+    public static Boolean createCartItems(CartItems createdCartItems) {
+        EntityManager em = emf.createEntityManager();
+        try {
+            StoredProcedureQuery spq = em.createStoredProcedureQuery("createCartItems");
+
+            spq.registerStoredProcedureParameter("userIdIN", Integer.class, ParameterMode.IN);
+            spq.registerStoredProcedureParameter("partIdIN", Integer.class, ParameterMode.IN);
+            spq.registerStoredProcedureParameter("quantityIN", Integer.class, ParameterMode.IN);
+
+            spq.setParameter("userIdIN", createdCartItems.getUserId().getId());
+            spq.setParameter("partIdIN", createdCartItems.getPartId().getId());
+            spq.setParameter("quantityIN", createdCartItems.getQuantity());
+
+            spq.execute();
+
+            return true;
+
+        } catch (Exception ex) {
+            ex.printStackTrace();
+            return false;
+        } finally {
+            em.close();
+        }
+    }
+
+    public static ArrayList<CartItems> getAllCartItems() {
+        EntityManager em = emf.createEntityManager();
+
+        try {
+            //eljárást meghívjuk
+            StoredProcedureQuery spq = em.createStoredProcedureQuery("getAllCartItems");
+            spq.execute();
+
+            List<Object[]> resultList = spq.getResultList();
+
+            ArrayList<CartItems> toReturn = new ArrayList();
+
+            for (Object[] record : resultList) {
+                Users user = new Users();
+                user.setId(Integer.valueOf(record[1].toString()));
+
+                Parts part = new Parts();
+                part.setId(Integer.valueOf(record[2].toString()));
+
+                CartItems ci = new CartItems(
+                        Integer.valueOf(record[0].toString()), // 1. id
+                        Integer.valueOf(record[3] != null ? record[3].toString() : null), // 2. quantity
+                        record[4] == null ? null : formatter.parse(record[4].toString()), // 4. added_At
+                        record[5] == null ? null : formatter.parse(record[5].toString()), // 5. deletedAt
+                        Boolean.FALSE, // isDeleted
+                        part,
+                        user
+                );
+
+                toReturn.add(ci);
+            }
+            return toReturn;
+        } catch (Exception ex) {
+            if (em.getTransaction().isActive()) {
+                em.getTransaction().rollback();
+            }
+            ex.printStackTrace();
+            return null;
+        } finally {
+            em.clear();
+            em.close();
+        }
+    }
+
+    public static CartItems getCartItemById(Integer id) {
+        EntityManager em = emf.createEntityManager();
+        try {
+            StoredProcedureQuery spq = em.createStoredProcedureQuery("getCartItemById");
+            spq.registerStoredProcedureParameter("idIN", Integer.class, ParameterMode.IN);
+            spq.setParameter("idIN", id);
+            spq.execute();
+
+            List<Object[]> resultList = spq.getResultList();
+
+            //  Üres lista ellenőrzés!
+            if (resultList == null || resultList.isEmpty()) {
+                return null;
+            }
+
+            Object[] record = resultList.get(0);
+
+            Users user = new Users();
+            user.setId(Integer.valueOf(record[1].toString()));
+
+            Parts part = new Parts();
+            part.setId(Integer.valueOf(record[2].toString()));
+
+            CartItems ci = new CartItems(
+                    Integer.valueOf(record[0].toString()), // id
+                    record[3] == null ? null : Integer.valueOf(record[3].toString()), // quantity 
+                    record[4] == null ? null : formatter.parse(record[4].toString()), // added_at 
+                    record[6] == null ? null : formatter.parse(record[6].toString()), // deleted_at 
+                    record[5] != null && Boolean.parseBoolean(record[5].toString()), // is_deleted 
+                    part,
+                    user
+            );
+            return ci;
+        } catch (Exception ex) {
+            ex.printStackTrace();
+            return null;
+        } finally {
+            em.close();
+        }
+    }
+
+    public static Boolean softDeleteCartItem(Integer id) {
+        EntityManager em = emf.createEntityManager();
+
+        try {
+            em.getTransaction().begin();
+
+            StoredProcedureQuery spq = em.createStoredProcedureQuery("softDeleteCartItem");
+            spq.registerStoredProcedureParameter("idIN", Integer.class, ParameterMode.IN);
+            spq.setParameter("idIN", id);
+
+            spq.execute();
+            em.getTransaction().commit();
+
+            return true;
+        } catch (Exception e) {
+            if (em.getTransaction().isActive()) {
+                em.getTransaction().rollback();
+            }
+            return false;
+        } finally {
+            em.clear();
+            em.close();
+        }
+    }
+
+    public static Boolean updateCartItem(CartItems updatedCartItems) {
+        EntityManager em = emf.createEntityManager();
+
+        try {
+            em.getTransaction().begin();
+            StoredProcedureQuery spq = em.createStoredProcedureQuery("updateCartItem");
+
+            spq.registerStoredProcedureParameter("idIN", Integer.class, ParameterMode.IN);
+            spq.registerStoredProcedureParameter("userId", Integer.class, ParameterMode.IN);
+            spq.registerStoredProcedureParameter("partId", Integer.class, ParameterMode.IN);
+            spq.registerStoredProcedureParameter("quantityIN", Integer.class, ParameterMode.IN);
+            spq.registerStoredProcedureParameter("isDeleted", Integer.class, ParameterMode.IN);
+
+            
+            spq.setParameter("idIN", updatedCartItems.getId());
+            spq.setParameter("userId", updatedCartItems.getUserId().getId());
+            spq.setParameter("partId", updatedCartItems.getPartId().getId());
+            spq.setParameter("quantityIN", updatedCartItems.getQuantity());
+            spq.setParameter("isDeleted", Boolean.TRUE.equals(updatedCartItems.getIsDeleted()) ? 1 : 0);
+
+            spq.execute();
+
+            em.getTransaction().commit();
+
+            return true;
+
+        } catch (Exception ex) {
+            if (em.getTransaction().isActive()) {
+                em.getTransaction().rollback();
+            }
+            ex.printStackTrace();
+            return false;
+        } finally {
+            em.clear();
+            em.close();
+        }
+    }
+
+    public static CartItems getCartItemsByUserId(Integer userId) {
+        EntityManager em = emf.createEntityManager();
+        try {
+            StoredProcedureQuery spq = em.createStoredProcedureQuery("getCartItemsByUserId");
+            spq.registerStoredProcedureParameter("userIdIN", Integer.class, ParameterMode.IN);
+            spq.setParameter("userIdIN", userId);
+            spq.execute();
+
+            List<Object[]> resultList = spq.getResultList();
+
+            // Csak EGY rekord van (getById)
+            Object[] record = resultList.get(0);
+
+            // Users objektum létrehozása
+            Users user = new Users();
+            user.setId(Integer.valueOf(record[1].toString()));
+
+            Parts part = new Parts();
+            part.setId(Integer.valueOf(record[2].toString()));
+
+            // Parts objektum létrehozása
+            CartItems ci = new CartItems(
+                    Integer.valueOf(record[0].toString()), // id
+                    record[3] == null ? null : Integer.valueOf(record[3].toString()), // quantity 
+                    record[4] == null ? null : formatter.parse(record[4].toString()), // added_at 
+                    record[6] == null ? null : formatter.parse(record[6].toString()), // deleted_at 
+                    record[5] != null && Boolean.parseBoolean(record[5].toString()), // is_deleted 
+                    part,
+                    user
+            );
+
+            return ci;
+
+        } catch (Exception ex) {
+            ex.printStackTrace();
+            return null;
+        } finally {
+            em.close();
+        }
+    }
+
+    public static CartItems getCartItemsByPartId(Integer partId) {
+        EntityManager em = emf.createEntityManager();
+        try {
+            StoredProcedureQuery spq = em.createStoredProcedureQuery("getCartItemsByPartId");
+            spq.registerStoredProcedureParameter("partIdIN", Integer.class, ParameterMode.IN);
+            spq.setParameter("partIdIN", partId);
+            spq.execute();
+
+            List<Object[]> resultList = spq.getResultList();
+
+            // Csak EGY rekord van (getById)
+            Object[] record = resultList.get(0);
+
+            // Users objektum létrehozása
+            Users user = new Users();
+            user.setId(Integer.valueOf(record[1].toString()));
+
+            Parts part = new Parts();
+            part.setId(Integer.valueOf(record[2].toString()));
+
+            // Parts objektum létrehozása
+            CartItems ci = new CartItems(
+                    Integer.valueOf(record[0].toString()), // id
+                    record[3] == null ? null : Integer.valueOf(record[3].toString()), // quantity 
+                    record[4] == null ? null : formatter.parse(record[4].toString()), // added_at 
+                    record[6] == null ? null : formatter.parse(record[6].toString()), // deleted_at 
+                    record[5] != null && Boolean.parseBoolean(record[5].toString()), // is_deleted 
+                    part,
+                    user
+            );
+
+            return ci;
+
+        } catch (Exception ex) {
+            ex.printStackTrace();
+            return null;
+        } finally {
+            em.close();
+        }
+    }
+
 }
