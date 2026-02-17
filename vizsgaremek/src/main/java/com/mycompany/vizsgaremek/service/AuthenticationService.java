@@ -15,12 +15,14 @@ import com.mycompany.vizsgaremek.model.Orders;
 import com.mycompany.vizsgaremek.model.PartImages;
 import com.mycompany.vizsgaremek.model.PartVariants;
 import com.mycompany.vizsgaremek.model.Parts;
+import com.mycompany.vizsgaremek.model.Payments;
 import com.mycompany.vizsgaremek.model.Reviews;
 import com.mycompany.vizsgaremek.model.Trucks;
 import com.mycompany.vizsgaremek.model.UserTwofa;
 import io.jsonwebtoken.Claims;
 import java.math.BigDecimal;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.regex.Pattern;
 import javax.mail.Address;
@@ -1107,7 +1109,7 @@ public class AuthenticationService {
         }
 
     } //Orders Auth Class closer
-    
+
     //CartItems
     public static class cartItemsAuth {
 
@@ -1118,11 +1120,11 @@ public class AuthenticationService {
         public boolean isDataMissing(Users data) {
             return (data == null);
         }
-        
+
         public boolean isDataMissing(Parts data) {
             return (data == null);
         }
-        
+
         public boolean isDataMissing(CartItems data) {
             return (data == null);
         }
@@ -1155,7 +1157,7 @@ public class AuthenticationService {
         public boolean isValidUserId(Integer userId) {
             return userId > 0 && userId.toString().length() <= 11;
         }
-        
+
         public boolean isValidPartId(Parts part) {
             Integer partId = part.getId();
             return partId > 0 && partId.toString().length() <= 11;
@@ -1174,6 +1176,82 @@ public class AuthenticationService {
         }
 
     } //cartItems Auth Class closer
+
+    //Payments
+    public static class paymentsAuth {
+
+        public boolean isDataMissing(String data) {
+            return (data == null || data.trim().isEmpty());
+        }
+
+        public boolean isDataMissing(Orders data) {
+            return (data == null);
+        }
+
+        public boolean isDataMissing(Payments data) {
+            return (data == null);
+        }
+
+        public boolean isDataMissing(Integer data) {
+            return (data == null);
+        }
+        
+        public boolean isDataMissing(BigDecimal data) {
+            return (data == null);
+        }
+
+        public boolean isDataMissing(ArrayList<Payments> data) {
+            return (data == null || data.isEmpty());
+        }
+
+        public boolean isDataMissing(Boolean data) {
+            return (data == null);
+        }
+
+        public boolean isDataMissing(List<Object[]> data) {
+            return (data == null || data.isEmpty());
+        }
+
+        public boolean isValidId(Integer id) {
+            return id > 0 && id.toString().length() <= 11;
+        }
+
+        public boolean isValidOrderId(Orders order) {
+            Integer orderId = order.getId();
+            return orderId > 0 && orderId.toString().length() <= 11;
+        }
+
+        public boolean isValidOrderId(Integer orderId) {
+            return orderId > 0 && orderId.toString().length() <= 11;
+        }
+
+        private static final List<String> AllowedPaymentStatuses = Arrays.asList(
+                "pending", "completed", "failed", "refunded", "cancelled"
+        );
+
+        public static boolean isValidStatus(String status) {
+            return status != null && AllowedPaymentStatuses.contains(status);
+        }
+
+        private static final List<String> AllowedPaymentMethods = Arrays.asList(
+                "credit_card", "debit_card", "paypal", "cash_on_delivery", "bank_transfer"
+        );
+
+        public static boolean isValidMethod(String method) {
+            return method != null && AllowedPaymentMethods.contains(method);
+        }
+
+        //BigDecimal 
+        public boolean isValidAmount(BigDecimal amount) {
+            return amount.compareTo(new BigDecimal("0.00")) > 0;
+        }
+
+        public boolean isPaymentsDeleted(Boolean isDeleted) {
+            return (isDeleted == true);
+
+        }
+
+    } //Payments Auth Class closer
 
 }//Auth Service Class closer
 

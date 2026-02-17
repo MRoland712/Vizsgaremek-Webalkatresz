@@ -99,7 +99,7 @@ public class CartItemsService {
         }
 
         toReturn.put("success", true);
-        toReturn.put("parts", carItemsArray);
+        toReturn.put("CartItems", carItemsArray);
         toReturn.put("count", modelResult.size());
         toReturn.put("statusCode", 200);
 
