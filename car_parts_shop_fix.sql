@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Gép: localhost:8889
--- Létrehozás ideje: 2026. Feb 16. 17:15
+-- Létrehozás ideje: 2026. Feb 18. 17:38
 -- Kiszolgáló verziója: 8.0.44
 -- PHP verzió: 8.3.28
 
@@ -211,8 +211,8 @@ CREATE DEFINER=`root`@`localhost` PROCEDURE `createCars` (IN `brandIN` VARCHAR(1
     SELECT LAST_INSERT_ID()AS new_cars_id;
 END$$
 
-DROP PROCEDURE IF EXISTS `createCartItmes`$$
-CREATE DEFINER=`root`@`localhost` PROCEDURE `createCartItmes` (IN `userIdIN` INT(11), IN `partIdIN` INT(11), IN `quantityIN` INT(11))   BEGIN
+DROP PROCEDURE IF EXISTS `createCartItems`$$
+CREATE DEFINER=`root`@`localhost` PROCEDURE `createCartItems` (IN `userIdIN` INT(11), IN `partIdIN` INT(11), IN `quantityIN` INT(11))   BEGIN
     INSERT INTO cart_items 
 	(
         user_id, 
@@ -273,6 +273,29 @@ CREATE DEFINER=`root`@`localhost` PROCEDURE `createMotors` (IN `brandIN` VARCHAR
     );
     
     SELECT LAST_INSERT_ID()AS new_motors_id;
+END$$
+
+DROP PROCEDURE IF EXISTS `createOrderItems`$$
+CREATE DEFINER=`root`@`localhost` PROCEDURE `createOrderItems` (IN `orderIdIN` INT(11), IN `partIdIN` INT(11), IN `quantityIN` INT(10), IN `priceIN` DECIMAL(10,2))   BEGIN
+    
+    INSERT INTO order_items(
+        order_id,
+        part_id,
+        quantity,
+        price,
+        created_at,
+        is_deleted,
+        deleted_at
+    ) VALUES (
+        orderIdIN,
+        partIdIN,
+        quantityIN,
+        priceIN,
+        NOW(),
+        0,
+        NULL
+    );
+       SELECT LAST_INSERT_ID() AS new_orders_id;
 END$$
 
 DROP PROCEDURE IF EXISTS `createOrders`$$
@@ -422,13 +445,12 @@ CREATE DEFINER=`root`@`localhost` PROCEDURE `createPartVariants` (IN `partIdIN` 
 END$$
 
 DROP PROCEDURE IF EXISTS `createPayments`$$
-CREATE DEFINER=`root`@`localhost` PROCEDURE `createPayments` (IN `orderIdIN` INT(11), IN `amountIN` DECIMAL(10,2), IN `methodIN` VARCHAR(50), IN `statusIN` VARCHAR(20), IN `paidAtIN` DATETIME)   BEGIN
+CREATE DEFINER=`root`@`localhost` PROCEDURE `createPayments` (IN `orderIdIN` INT(11), IN `amountIN` DECIMAL(10,2), IN `methodIN` VARCHAR(50), IN `statusIN` VARCHAR(20))   BEGIN
     INSERT INTO payments (
         order_id,
         amount,
         method,
         status,
-        paid_at,
         created_at,
         is_deleted,
         deleted_at
@@ -438,7 +460,6 @@ CREATE DEFINER=`root`@`localhost` PROCEDURE `createPayments` (IN `orderIdIN` INT
         amountIN,
         methodIN,
         COALESCE(statusIN, 'pending'),
-        paidAtIN,
         NOW(),
         0,
         NULL
@@ -705,8 +726,8 @@ CREATE DEFINER=`root`@`localhost` PROCEDURE `getAllCartItems` ()   BEGIN
         part_id,
         quantity,
         added_at,
-        is_deleted,
-        deleted_at
+        deleted_at,
+        is_deleted
     FROM cart_items
     WHERE is_deleted = 0
     ORDER BY added_at DESC;
@@ -756,6 +777,25 @@ CREATE DEFINER=`root`@`localhost` PROCEDURE `getAllMotors` ()   BEGIN
         WHERE is_deleted = 0
         ORDER BY id;
 END$$
+
+DROP PROCEDURE IF EXISTS `getAllOrderItems`$$
+CREATE DEFINER=`root`@`localhost` PROCEDURE `getAllOrderItems` ()   BEGIN
+    SELECT
+        id,
+        order_id,
+        part_id,
+        quantity,
+        price,
+        created_at,
+        is_deleted,
+        deleted_at
+    FROM cart_items
+    WHERE is_deleted = 0
+    ORDER BY created_at DESC;
+END$$
+
+DROP PROCEDURE IF EXISTS `getAllOrderItemsAdmin`$$
+CREATE DEFINER=`root`@`localhost` PROCEDURE `getAllOrderItemsAdmin` ()   SELECT * FROM `order_items`$$
 
 DROP PROCEDURE IF EXISTS `getAllOrders`$$
 CREATE DEFINER=`root`@`localhost` PROCEDURE `getAllOrders` ()   BEGIN
@@ -823,8 +863,8 @@ CREATE DEFINER=`root`@`localhost` PROCEDURE `getAllPayments` ()   BEGIN
         status,
         paid_at,
         created_at,
-        is_deleted,
-        deleted_at
+        deleted_at,
+        is_deleted
     FROM payments
     WHERE is_deleted = 0
     ORDER BY created_at DESC;
@@ -959,6 +999,34 @@ CREATE DEFINER=`root`@`localhost` PROCEDURE `getCartItemById` (IN `idIN` INT)   
     WHERE id = idIN;
 END$$
 
+DROP PROCEDURE IF EXISTS `getCartItemsByPartId`$$
+CREATE DEFINER=`root`@`localhost` PROCEDURE `getCartItemsByPartId` (IN `partIdIN` INT(11))   BEGIN
+    SELECT
+        id,
+        user_id,
+        part_id,
+        quantity,
+        added_at,
+        is_deleted,
+        deleted_at
+    FROM cart_items
+    WHERE part_id = partIdIN AND is_deleted = 0;
+END$$
+
+DROP PROCEDURE IF EXISTS `getCartItemsByUserId`$$
+CREATE DEFINER=`root`@`localhost` PROCEDURE `getCartItemsByUserId` (IN `userIdIN` INT(11))   BEGIN
+    SELECT
+        id,
+        user_id,
+        part_id,
+        quantity,
+        added_at,
+        is_deleted,
+        deleted_at
+    FROM cart_items
+    WHERE user_id = userIdIN AND is_deleted = 0;
+END$$
+
 DROP PROCEDURE IF EXISTS `getInvoiceById`$$
 CREATE DEFINER=`root`@`localhost` PROCEDURE `getInvoiceById` (IN `idIN` INT)   BEGIN
     SELECT
@@ -970,6 +1038,19 @@ CREATE DEFINER=`root`@`localhost` PROCEDURE `getInvoiceById` (IN `idIN` INT)   B
         deleted_at
     FROM invoices
     WHERE id = idIN;
+END$$
+
+DROP PROCEDURE IF EXISTS `getInvoicesByOrderId`$$
+CREATE DEFINER=`root`@`localhost` PROCEDURE `getInvoicesByOrderId` (IN `orderId` INT(11))   BEGIN
+    SELECT
+        id,
+        order_id,
+        pdf_url,
+        created_at,
+        is_deleted,
+        deleted_at
+    FROM invoices
+    WHERE order_id = orderId;
 END$$
 
 DROP PROCEDURE IF EXISTS `getManufacturersById`$$
@@ -1046,6 +1127,51 @@ CREATE DEFINER=`root`@`localhost` PROCEDURE `getMotorsByModel` (IN `modelIN` VAR
 	FROM motors
     WHERE model = modelIN
     ORDER BY brand;
+END$$
+
+DROP PROCEDURE IF EXISTS `getOrderItemById`$$
+CREATE DEFINER=`root`@`localhost` PROCEDURE `getOrderItemById` (IN `idIN` INT(11))   BEGIN
+	SELECT
+        id,
+        order_id,
+        part_id,
+        quantity,
+        price,
+        created_at,
+        is_deleted,
+        deleted_at
+     FROM order_items
+     WHERE id = idIN;
+END$$
+
+DROP PROCEDURE IF EXISTS `getOrderItemsByOrderId`$$
+CREATE DEFINER=`root`@`localhost` PROCEDURE `getOrderItemsByOrderId` (IN `orderId` INT(11))   BEGIN
+	SELECT
+        id,
+        order_id,
+        part_id,
+        quantity,
+        price,
+        created_at,
+        is_deleted,
+        deleted_at
+     FROM order_items
+     WHERE order_id = orderId;
+END$$
+
+DROP PROCEDURE IF EXISTS `getOrderItemsByPartId`$$
+CREATE DEFINER=`root`@`localhost` PROCEDURE `getOrderItemsByPartId` (IN `partidIN` INT(11))   BEGIN
+	SELECT
+        id,
+        order_id,
+        part_id,
+        quantity,
+        price,
+        created_at,
+        is_deleted,
+        deleted_at
+     FROM order_items
+     WHERE part_id = partId;
 END$$
 
 DROP PROCEDURE IF EXISTS `getOrdersById`$$
@@ -1240,10 +1366,26 @@ CREATE DEFINER=`root`@`localhost` PROCEDURE `getPaymentById` (IN `idIN` INT)   B
         status,
         paid_at,
         created_at,
-        is_deleted,
-        deleted_at
+        deleted_at,
+        is_deleted
     FROM payments
     WHERE id = idIN;
+END$$
+
+DROP PROCEDURE IF EXISTS `getPaymentsByOrderId`$$
+CREATE DEFINER=`root`@`localhost` PROCEDURE `getPaymentsByOrderId` (IN `orderId` INT(11))   BEGIN
+    SELECT
+        id,
+        order_id,
+        amount,
+        method,
+        status,
+        paid_at,
+        created_at,
+        deleted_at,
+        is_deleted
+    FROM payments
+    WHERE order_id = orderId;
 END$$
 
 DROP PROCEDURE IF EXISTS `getReviewsById`$$
@@ -1632,6 +1774,15 @@ CREATE DEFINER=`root`@`localhost` PROCEDURE `softDeleteMotors` (IN `idIN` INT(11
     WHERE id = idIN;
 END$$
 
+DROP PROCEDURE IF EXISTS `softDeleteOrderItem`$$
+CREATE DEFINER=`root`@`localhost` PROCEDURE `softDeleteOrderItem` (IN `idIN` INT(11))   BEGIN
+    UPDATE cart_items
+    SET 
+        is_deleted = 1,
+        deleted_at = NOW()
+    WHERE id = idIN;
+END$$
+
 DROP PROCEDURE IF EXISTS `softDeleteOrders`$$
 CREATE DEFINER=`root`@`localhost` PROCEDURE `softDeleteOrders` (IN `idIN` INT(11))   BEGIN
     UPDATE orders
@@ -1863,19 +2014,19 @@ CREATE DEFINER=`root`@`localhost` PROCEDURE `updateCars` (IN `idIN` INT(11), IN 
 END$$
 
 DROP PROCEDURE IF EXISTS `updateCartItem`$$
-CREATE DEFINER=`root`@`localhost` PROCEDURE `updateCartItem` (IN `idIN` INT, IN `userIdIN` INT, IN `partIdIN` INT, IN `quantityIN` INT, IN `isDeletedIN` TINYINT)   BEGIN
+CREATE DEFINER=`root`@`localhost` PROCEDURE `updateCartItem` (IN `idIN` INT(11), IN `userIdIN` INT(11), IN `partIdIN` INT(11), IN `quantityIN` INT(11), IN `isDeleted` TINYINT)   BEGIN
     UPDATE cart_items
     SET 
         user_id = userIdIN,
         part_id = partIdIN,
         quantity = quantityIN,
-        is_deleted = isDeletedIN,
-        deleted_at = IF(isDeletedIN = 1, NOW(), NULL)
+        is_deleted = isDeleted,
+        deleted_at = IF(isDeleted = 1, NOW(), NULL)
     WHERE id = idIN;
 END$$
 
 DROP PROCEDURE IF EXISTS `updateInvoice`$$
-CREATE DEFINER=`root`@`localhost` PROCEDURE `updateInvoice` (IN `idIN` INT, IN `orderIdIN` INT, IN `pdfUrlIN` VARCHAR(255), IN `isDeletedIN` TINYINT)   BEGIN
+CREATE DEFINER=`root`@`localhost` PROCEDURE `updateInvoice` (IN `idIN` INT(11), IN `orderIdIN` INT(11), IN `pdfUrlIN` VARCHAR(255), IN `isDeletedIN` TINYINT)   BEGIN
     UPDATE invoices
     SET 
         order_id = orderIdIN,
@@ -1909,6 +2060,19 @@ CREATE DEFINER=`root`@`localhost` PROCEDURE `updateMotors` (IN `idIN` INT(11), I
         is_deleted = isDeleted
     WHERE id = idIN;
 
+END$$
+
+DROP PROCEDURE IF EXISTS `updateOrderItem`$$
+CREATE DEFINER=`root`@`localhost` PROCEDURE `updateOrderItem` (IN `orderIdIN` INT(11), IN `partIdIN` INT(11), IN `quantityIN` INT(11), IN `priceIN` DECIMAL(10,2))   BEGIN
+    UPDATE order_items
+    SET 
+        order_id = orderIdIN,
+        part_id = partIdIN,
+        quantity = quantityIN,
+        price = priceIN,
+        is_deleted = isDeleted,
+        deleted_at = IF(isDeleted = 1, NOW(), NULL)
+    WHERE id = idIN;
 END$$
 
 DROP PROCEDURE IF EXISTS `updateOrders`$$
@@ -1970,14 +2134,13 @@ CREATE DEFINER=`root`@`localhost` PROCEDURE `updatePartVariants` (IN `idIN` INT(
 END$$
 
 DROP PROCEDURE IF EXISTS `updatePayment`$$
-CREATE DEFINER=`root`@`localhost` PROCEDURE `updatePayment` (IN `idIN` INT, IN `orderIdIN` INT, IN `amountIN` DECIMAL(10,2), IN `methodIN` VARCHAR(50), IN `statusIN` VARCHAR(20), IN `paidAtIN` DATETIME, IN `isDeletedIN` TINYINT)   BEGIN
+CREATE DEFINER=`root`@`localhost` PROCEDURE `updatePayment` (IN `idIN` INT(11), IN `orderIdIN` INT(11), IN `amountIN` DECIMAL(10,2), IN `methodIN` VARCHAR(50), IN `statusIN` VARCHAR(20), IN `isDeletedIN` TINYINT)   BEGIN
     UPDATE payments
     SET 
         order_id = orderIdIN,
         amount = amountIN,
         method = methodIN,
         status = statusIN,
-        paid_at = paidAtIN,
         is_deleted = isDeletedIN,
         deleted_at = IF(isDeletedIN = 1, NOW(), NULL)
     WHERE id = idIN;
@@ -2396,7 +2559,7 @@ CREATE TABLE `payments` (
   `id` int NOT NULL,
   `order_id` int NOT NULL,
   `amount` decimal(10,2) DEFAULT NULL,
-  `method` varchar(50) DEFAULT NULL,
+  `method` enum('credit_card','debit_card','paypal','cash_on_delivery','bank_transfer','apple_pay','google_pay') DEFAULT NULL,
   `status` enum('pending','completed','failed','refunded','cancelled') DEFAULT 'pending',
   `paid_at` datetime DEFAULT NULL,
   `created_at` datetime DEFAULT CURRENT_TIMESTAMP,
