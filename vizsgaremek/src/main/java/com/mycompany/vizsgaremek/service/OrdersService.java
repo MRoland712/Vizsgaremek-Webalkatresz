@@ -71,7 +71,7 @@ public class OrdersService {
         // MODEL HÍVÁS
         ArrayList<Orders> modelResult = Orders.getAllOrders();
 
-        // VALIDÁCIÓ - If no data in DB
+        // VALIDÁCIÓ If no data in DB
         if (ordersAuth.isDataMissing(modelResult)) {
             errors.put("ModelException");
         }
@@ -142,34 +142,39 @@ public class OrdersService {
         JSONArray errors = new JSONArray();
 
         if (ordersAuth.isDataMissing(userId)) {
-            errors.put("MissingId");
+            errors.put("MissingUserId");
         }
 
-        // If modelexeption
         if (errorAuth.hasErrors(errors)) {
             return errorAuth.createErrorResponse(errors, 400);
         }
 
-        Orders order = Orders.getOrdersById(userId);
+        ArrayList<Orders> ordersList = Orders.getOrdersByUserId(userId); 
 
-        if (ordersAuth.isDataMissing(order)) {
-            errors.put("OrderNotFound");
+        if (ordersAuth.isDataMissing(ordersList)) { 
+            errors.put("OrdersNotFound");
             return errorAuth.createErrorResponse(errors, 404);
         }
 
-        JSONObject orderObj = new JSONObject();
-        orderObj.put("id", order.getId());
-        orderObj.put("userId", order.getUserId().getId());
-        orderObj.put("status", order.getStatus());
-        orderObj.put("createdAt", order.getCreatedAt());
-        orderObj.put("updatedAt", order.getUpdatedAt());
+        JSONArray ordersArray = new JSONArray();
+        for (Orders order : ordersList) {
+            JSONObject orderObj = new JSONObject();
+            orderObj.put("id", order.getId());
+            orderObj.put("userId", order.getUserId().getId());
+            orderObj.put("status", order.getStatus());
+            orderObj.put("createdAt", order.getCreatedAt());
+            orderObj.put("updatedAt", order.getUpdatedAt());
+            orderObj.put("isDeleted", order.getIsDeleted());
+            orderObj.put("deletedAt", order.getDeletedAt());
+            ordersArray.put(orderObj);
+        }
 
         toReturn.put("success", true);
-        toReturn.put("orders", orderObj);
+        toReturn.put("orders", ordersArray);  
+        toReturn.put("count", ordersList.size()); 
         toReturn.put("statusCode", 200);
-
         return toReturn;
-    }//getOrdersByUserId
+    }
 
     public JSONObject softDeleteOrders(Integer id) {
         JSONObject toReturn = new JSONObject();
@@ -181,7 +186,7 @@ public class OrdersService {
         }
 
         //If id is Invalid
-        if (!ordersAuth.isDataMissing(id) && !ordersAuth.isValidId(id)) { 
+        if (!ordersAuth.isDataMissing(id) && !ordersAuth.isValidId(id)) {
             errors.put("InvalidId");
         }
 
@@ -198,7 +203,6 @@ public class OrdersService {
             errors.put("OrdersNotFound");
         }
 
-
         if (errorAuth.hasErrors(errors)) {
             return errorAuth.createErrorResponse(errors, 404);
         }
@@ -207,7 +211,6 @@ public class OrdersService {
             errors.put("OrdersIsSoftDeleted");
         }
 
-     
         if (errorAuth.hasErrors(errors)) {
             return errorAuth.createErrorResponse(errors, 409);
         }
@@ -243,7 +246,6 @@ public class OrdersService {
             errors.put("InvalidId");
         }
 
-
         if (errorAuth.hasErrors(errors)) {
             return errorAuth.createErrorResponse(errors, 400);
         }
@@ -251,17 +253,14 @@ public class OrdersService {
         // CÍM LEKÉRDEZÉSE 
         Orders existingOrders = null;
 
-
         if (!ordersAuth.isDataMissing(updatedOrders.getId())) {
             existingOrders = Orders.getOrdersById(updatedOrders.getId());
         }
 
-        
         if (ordersAuth.isDataMissing(existingOrders)) {
             errors.put("OrdersNotFound");
             return errorAuth.createErrorResponse(errors, 404);
         }
-
 
         if (!ordersAuth.isDataMissing(updatedOrders.getStatus())) {
             if (ordersAuth.isValidStatus(updatedOrders.getStatus())) {

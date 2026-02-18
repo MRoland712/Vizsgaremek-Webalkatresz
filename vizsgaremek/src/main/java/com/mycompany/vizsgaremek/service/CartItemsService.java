@@ -141,11 +141,11 @@ public class CartItemsService {
         return toReturn;
     }//getCartItemById
 
-    public JSONObject getCartItemsByPartIdService(Integer id) {
+    public JSONObject getCartItemsByPartIdService(Integer partId) {
         JSONObject toReturn = new JSONObject();
         JSONArray errors = new JSONArray();
 
-        if (cartItemsAuth.isDataMissing(id)) {
+        if (cartItemsAuth.isDataMissing(partId)) {
             errors.put("MissingId");
         }
 
@@ -154,33 +154,38 @@ public class CartItemsService {
             return errorAuth.createErrorResponse(errors, 400);
         }
 
-        CartItems cartItems = CartItems.getCartItemsByPartId(id);
+        ArrayList<CartItems> cartItemsList = CartItems.getCartItemsByPartId(partId);
 
-        if (cartItemsAuth.isDataMissing(cartItems)) {
+        if (cartItemsAuth.isDataMissing(cartItemsList)) {
             errors.put("CartItemsNotFound");
             return errorAuth.createErrorResponse(errors, 404);
         }
 
-        JSONObject cartItemsObj = new JSONObject();
-        cartItemsObj.put("id", cartItems.getId());
-        cartItemsObj.put("userId", cartItems.getUserId().getId());
-        cartItemsObj.put("partId", cartItems.getPartId().getId());
-        cartItemsObj.put("quantity", cartItems.getQuantity());
-        cartItemsObj.put("addedAt", cartItems.getAddedAt());
-        cartItemsObj.put("isDeleted", cartItems.getIsDeleted());
+        JSONArray cartItemsArray = new JSONArray();
+        for (CartItems item : cartItemsList) {
+            JSONObject cartItemsObj = new JSONObject();
+            cartItemsObj.put("id", item.getId());
+            cartItemsObj.put("userId", item.getUserId().getId());
+            cartItemsObj.put("partId", item.getPartId().getId());
+            cartItemsObj.put("quantity", item.getQuantity());
+            cartItemsObj.put("addedAt", item.getAddedAt());
+            cartItemsObj.put("isDeleted", item.getIsDeleted());
+
+        }
 
         toReturn.put("success", true);
-        toReturn.put("CartItems", cartItemsObj);
+        toReturn.put("CartItems", cartItemsArray);
+        toReturn.put("count", cartItemsList.size());
         toReturn.put("statusCode", 200);
 
         return toReturn;
     }//getCartItemsByPartId
-    
-    public JSONObject getCartItemsByUserIdService(Integer id) {
+
+    public JSONObject getCartItemsByUserIdService(Integer userId) {
         JSONObject toReturn = new JSONObject();
         JSONArray errors = new JSONArray();
 
-        if (cartItemsAuth.isDataMissing(id)) {
+        if (cartItemsAuth.isDataMissing(userId)) {
             errors.put("MissingId");
         }
 
@@ -189,23 +194,29 @@ public class CartItemsService {
             return errorAuth.createErrorResponse(errors, 400);
         }
 
-        CartItems cartItems = CartItems.getCartItemsByPartId(id);
+        ArrayList<CartItems> cartItemsList = CartItems.getCartItemsByUserId(userId);
 
-        if (cartItemsAuth.isDataMissing(cartItems)) {
+        if (cartItemsAuth.isDataMissing(cartItemsList)) {
             errors.put("CartItemsNotFound");
             return errorAuth.createErrorResponse(errors, 404);
         }
 
-        JSONObject cartItemsObj = new JSONObject();
-        cartItemsObj.put("id", cartItems.getId());
-        cartItemsObj.put("userId", cartItems.getUserId().getId());
-        cartItemsObj.put("partId", cartItems.getPartId().getId());
-        cartItemsObj.put("quantity", cartItems.getQuantity());
-        cartItemsObj.put("addedAt", cartItems.getAddedAt());
-        cartItemsObj.put("isDeleted", cartItems.getIsDeleted());
+        JSONArray cartItemsArray = new JSONArray();
+        for (CartItems item : cartItemsList) {
+            JSONObject cartItemsObj = new JSONObject();
+            cartItemsObj.put("id", item.getId());
+            cartItemsObj.put("userId", item.getUserId().getId());
+            cartItemsObj.put("partId", item.getPartId().getId());
+            cartItemsObj.put("quantity", item.getQuantity());
+            cartItemsObj.put("addedAt", item.getAddedAt());
+            cartItemsObj.put("isDeleted", item.getIsDeleted());
+            cartItemsArray.put(cartItemsObj);
+
+        }
+
 
         toReturn.put("success", true);
-        toReturn.put("CartItems", cartItemsObj);
+        toReturn.put("CartItems", cartItemsArray);
         toReturn.put("statusCode", 200);
 
         return toReturn;
@@ -311,7 +322,7 @@ public class CartItemsService {
                 errors.put("InvalidQuantity");
             }
         }
-        
+
         if (!cartItemsAuth.isDataMissing(updatedCartItems.getIsDeleted())) {
             if (cartItemsAuth.isCartItemsDeleted(updatedCartItems.getIsDeleted())) {
                 existingCartItems.setIsDeleted(updatedCartItems.getIsDeleted());

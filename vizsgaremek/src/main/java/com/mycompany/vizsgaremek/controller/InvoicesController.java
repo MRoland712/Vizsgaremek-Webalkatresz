@@ -4,14 +4,14 @@
  */
 package com.mycompany.vizsgaremek.controller;
 
+import com.mycompany.vizsgaremek.model.Invoices;
 import com.mycompany.vizsgaremek.model.Orders;
-import com.mycompany.vizsgaremek.model.Users;
-import com.mycompany.vizsgaremek.service.OrdersService;
+import com.mycompany.vizsgaremek.service.InvoicesService;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.UriInfo;
-import javax.ws.rs.Produces;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
+import javax.ws.rs.Produces;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
@@ -26,23 +26,21 @@ import org.json.JSONObject;
  *
  * @author neblgergo
  */
-@Path("orders")
-public class OrdersController {
+@Path("invoices")
+public class InvoicesController {
 
     @Context
     private UriInfo context;
-    private OrdersService layer = new OrdersService();
+    private InvoicesService layer = new InvoicesService();
 
     /**
-     * Creates a new instance of OrdersController
+     * Creates a new instance of InvoicesController
      */
-    public OrdersController() {
+    public InvoicesController() {
     }
 
     /**
-     * Retrieves representation of an instance of
-     * com.mycompany.vizsgaremek.controller.OrdersController
-     *
+     * Retrieves representation of an instance of com.mycompany.vizsgaremek.controller.InvoicesController
      * @return an instance of java.lang.String
      */
     @GET
@@ -53,31 +51,30 @@ public class OrdersController {
     }
 
     /**
-     * PUT method for updating or creating an instance of OrdersController
-     *
+     * PUT method for updating or creating an instance of InvoicesController
      * @param content representation for the resource
      */
     @PUT
     @Consumes(MediaType.APPLICATION_JSON)
     public void putJson(String content) {
     }
-
+    
     @POST
-    @Path("createOrders")
+    @Path("createInvoice")
     @Consumes(MediaType.APPLICATION_JSON)
-    public Response createOrders(String body) {
+    public Response createInvoiceController(String body) {
 
         JSONObject bodyObject = new JSONObject(body);
 
-        Users user = new Users();
-        user.setId(bodyObject.has("userId") ? bodyObject.getInt("userId") : null);
+        Orders order = new Orders();
+        order.setId(bodyObject.has("orderId") ? bodyObject.getInt("orderId") : null);
 
-        Orders createdOrders = new Orders(
-                bodyObject.has("status") ? bodyObject.getString("status") : null,
-                user
+        Invoices createdInvoices = new Invoices(
+                bodyObject.has("pdfUrl") ? bodyObject.getString("pdfUrl") : null,
+                order
         );
 
-        JSONObject toReturn = layer.createOrders(createdOrders);
+        JSONObject toReturn = layer.createInvoiceService(createdInvoices);
 
         return Response.status(Integer.parseInt(toReturn.get("statusCode").toString()))
                 .entity(toReturn.toString())
@@ -86,11 +83,11 @@ public class OrdersController {
     }
 
     @GET
-    @Path("getAllOrders")
+    @Path("getAllInvoices")
     @Consumes(MediaType.APPLICATION_JSON)
-    public Response getAllOrders() {
-        OrdersService ordersService = new OrdersService();
-        JSONObject toReturn = ordersService.getAllOrders();
+    public Response getAllInvoicesController() {
+        InvoicesService invoicesService = new InvoicesService();
+        JSONObject toReturn = invoicesService.getAllInvoicesService();
 
         return Response.status(Integer.parseInt(toReturn.get("statusCode").toString()))
                 .entity(toReturn.toString())
@@ -99,11 +96,11 @@ public class OrdersController {
     }
 
     @GET
-    @Path("getOrdersById")
+    @Path("getInvoiceById")
     @Produces(MediaType.APPLICATION_JSON)
-    public Response getOrdersById(@QueryParam("id") Integer id) {
+    public Response getInvoiceByIdController(@QueryParam("id") Integer id) {
 
-        JSONObject toReturn = layer.getOrdersById(id);
+        JSONObject toReturn = layer.getInvoiceByIdService(id);
 
         return Response.status(Integer.parseInt(toReturn.get("statusCode").toString()))
                 .entity(toReturn.toString())
@@ -112,11 +109,11 @@ public class OrdersController {
     }
 
     @GET
-    @Path("getOrdersByUserId")
+    @Path("getInvoicesByOrderId")
     @Produces(MediaType.APPLICATION_JSON)
-    public Response getOrdersByUserId(@QueryParam("id") Integer userId) {
+    public Response getInvoicesByOrderIdController(@QueryParam("orderId") Integer orderId) {
 
-        JSONObject toReturn = layer.getOrdersByUserId(userId);
+        JSONObject toReturn = layer.getInvoicesByOrderIdService(orderId);
 
         return Response.status(Integer.parseInt(toReturn.get("statusCode").toString()))
                 .entity(toReturn.toString())
@@ -125,11 +122,11 @@ public class OrdersController {
     }
 
     @DELETE
-    @Path("softDeleteOrders")
+    @Path("softDeleteInvoice")
     @Consumes(MediaType.APPLICATION_JSON)
-    public Response softDeleteOrders(@QueryParam("id") Integer idIN) {
+    public Response softDeleteInvoiceController(@QueryParam("id") Integer id) {
 
-        JSONObject toReturn = layer.softDeleteOrders(idIN);
+        JSONObject toReturn = layer.softDeleteInvoiceService(id);
 
         return Response.status(Integer.parseInt(toReturn.get("statusCode").toString()))
                 .entity(toReturn.toString())
@@ -138,29 +135,29 @@ public class OrdersController {
     }
 
     @PUT
-    @Path("updateOrders")
+    @Path("updateInvoice")
     @Consumes(MediaType.APPLICATION_JSON)
-    public Response updateOrders(
+    public Response updateInvoiceController(
             @QueryParam("id") Integer idIN,
             String body) {
 
         JSONObject bodyObject = new JSONObject(body);
 
-        Orders updatedOrders = new Orders();
+        Invoices updatedInvoice = new Invoices();
 
         if (idIN != null) {
-            updatedOrders.setId(idIN);
+            updatedInvoice.setId(idIN);
         }
         
-        if (bodyObject.has("status")) {
-            updatedOrders.setStatus(bodyObject.getString("status"));
+        if (bodyObject.has("pdfUrl")) {
+            updatedInvoice.setPdfUrl(bodyObject.getString("pdfUrl"));
         }
 
         if (bodyObject.has("isDeleted")) {
-            updatedOrders.setIsDeleted(bodyObject.getBoolean("isDeleted"));
+            updatedInvoice.setIsDeleted(bodyObject.getBoolean("isDeleted"));
         }
 
-        JSONObject toReturn = layer.updateOrders(updatedOrders);
+        JSONObject toReturn = layer.updateInvoiceService(updatedInvoice);
 
         return Response.status(Integer.parseInt(toReturn.get("statusCode").toString()))
                 .entity(toReturn.toString())

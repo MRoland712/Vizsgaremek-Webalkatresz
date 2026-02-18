@@ -9,6 +9,7 @@ import com.mycompany.vizsgaremek.config.Encrypt;
 import com.mycompany.vizsgaremek.model.Addresses;
 import com.mycompany.vizsgaremek.model.Cars;
 import com.mycompany.vizsgaremek.model.CartItems;
+import com.mycompany.vizsgaremek.model.Invoices;
 import com.mycompany.vizsgaremek.model.Manufacturers;
 import com.mycompany.vizsgaremek.model.Motors;
 import com.mycompany.vizsgaremek.model.Orders;
@@ -1195,7 +1196,7 @@ public class AuthenticationService {
         public boolean isDataMissing(Integer data) {
             return (data == null);
         }
-        
+
         public boolean isDataMissing(BigDecimal data) {
             return (data == null);
         }
@@ -1252,6 +1253,61 @@ public class AuthenticationService {
         }
 
     } //Payments Auth Class closer
+
+    //Invoices
+    public static class invoicesAuth {
+
+        public boolean isDataMissing(String data) {
+            return (data == null || data.trim().isEmpty());
+        }
+
+        public boolean isDataMissing(Orders data) {
+            return (data == null);
+        }
+
+        public boolean isDataMissing(Invoices data) {
+            return (data == null);
+        }
+
+        public boolean isDataMissing(Integer data) {
+            return (data == null);
+        }
+
+        public boolean isDataMissing(ArrayList<Invoices> data) {
+            return (data == null || data.isEmpty());
+        }
+        
+        public boolean isDataMissing(Boolean data) {
+            return (data == null);
+        }
+
+        public boolean isDataMissing(List<Object[]> data) {
+            return (data == null || data.isEmpty());
+        }
+
+        public boolean isValidId(Integer id) {
+            return id > 0 && id.toString().length() <= 11;
+        }
+
+        public boolean isValidOrderId(Orders order) {
+            Integer orderId = order.getId();
+            return orderId > 0 && orderId.toString().length() <= 11;
+        }
+
+        public boolean isValidOrderId(Integer orderId) {
+            return orderId > 0 && orderId.toString().length() <= 11;
+        }
+
+        public boolean isValidPdfUrl(String pdfUrl) {
+            return pdfUrl.length() <= 255;
+        }
+
+        public boolean isInvoicesDeleted(Boolean isDeleted) {
+            return (isDeleted == true);
+
+        }
+
+    } //Invoices Auth Class closer
 
 }//Auth Service Class closer
 

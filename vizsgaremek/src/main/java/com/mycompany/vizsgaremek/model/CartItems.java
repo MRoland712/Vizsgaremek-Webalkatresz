@@ -323,7 +323,6 @@ public class CartItems implements Serializable {
             spq.registerStoredProcedureParameter("quantityIN", Integer.class, ParameterMode.IN);
             spq.registerStoredProcedureParameter("isDeleted", Integer.class, ParameterMode.IN);
 
-            
             spq.setParameter("idIN", updatedCartItems.getId());
             spq.setParameter("userId", updatedCartItems.getUserId().getId());
             spq.setParameter("partId", updatedCartItems.getPartId().getId());
@@ -348,7 +347,7 @@ public class CartItems implements Serializable {
         }
     }
 
-    public static CartItems getCartItemsByUserId(Integer userId) {
+    public static ArrayList<CartItems> getCartItemsByUserId(Integer userId) {
         EntityManager em = emf.createEntityManager();
         try {
             StoredProcedureQuery spq = em.createStoredProcedureQuery("getCartItemsByUserId");
@@ -358,29 +357,32 @@ public class CartItems implements Serializable {
 
             List<Object[]> resultList = spq.getResultList();
 
-            // Csak EGY rekord van (getById)
-            Object[] record = resultList.get(0);
+            if (resultList == null || resultList.isEmpty()) {
+                return null;
+            }
 
-            // Users objektum létrehozása
-            Users user = new Users();
-            user.setId(Integer.valueOf(record[1].toString()));
+            ArrayList<CartItems> cartItemsList = new ArrayList<>();
 
-            Parts part = new Parts();
-            part.setId(Integer.valueOf(record[2].toString()));
+            for (Object[] record : resultList) {  
+                Users user = new Users();
+                user.setId(Integer.valueOf(record[1].toString()));
 
-            // Parts objektum létrehozása
-            CartItems ci = new CartItems(
-                    Integer.valueOf(record[0].toString()), // id
-                    record[3] == null ? null : Integer.valueOf(record[3].toString()), // quantity 
-                    record[4] == null ? null : formatter.parse(record[4].toString()), // added_at 
-                    record[6] == null ? null : formatter.parse(record[6].toString()), // deleted_at 
-                    record[5] != null && Boolean.parseBoolean(record[5].toString()), // is_deleted 
-                    part,
-                    user
-            );
+                Parts part = new Parts();
+                part.setId(Integer.valueOf(record[2].toString()));
 
-            return ci;
+                CartItems ci = new CartItems(
+                        Integer.valueOf(record[0].toString()),
+                        record[3] == null ? null : Integer.valueOf(record[3].toString()),
+                        record[4] == null ? null : formatter.parse(record[4].toString()),
+                        record[6] == null ? null : formatter.parse(record[6].toString()),
+                        record[5] != null && Boolean.parseBoolean(record[5].toString()),
+                        part,
+                        user
+                );
+                cartItemsList.add(ci);  
+            }
 
+            return cartItemsList;  
         } catch (Exception ex) {
             ex.printStackTrace();
             return null;
@@ -389,7 +391,7 @@ public class CartItems implements Serializable {
         }
     }
 
-    public static CartItems getCartItemsByPartId(Integer partId) {
+    public static ArrayList<CartItems> getCartItemsByPartId(Integer partId) {
         EntityManager em = emf.createEntityManager();
         try {
             StoredProcedureQuery spq = em.createStoredProcedureQuery("getCartItemsByPartId");
@@ -399,29 +401,32 @@ public class CartItems implements Serializable {
 
             List<Object[]> resultList = spq.getResultList();
 
-            // Csak EGY rekord van (getById)
-            Object[] record = resultList.get(0);
+            if (resultList == null || resultList.isEmpty()) {
+                return null;
+            }
 
-            // Users objektum létrehozása
-            Users user = new Users();
-            user.setId(Integer.valueOf(record[1].toString()));
+            ArrayList<CartItems> cartItemsList = new ArrayList<>();
 
-            Parts part = new Parts();
-            part.setId(Integer.valueOf(record[2].toString()));
+            for (Object[] record : resultList) {
+                Users user = new Users();
+                user.setId(Integer.valueOf(record[1].toString()));
 
-            // Parts objektum létrehozása
-            CartItems ci = new CartItems(
-                    Integer.valueOf(record[0].toString()), // id
-                    record[3] == null ? null : Integer.valueOf(record[3].toString()), // quantity 
-                    record[4] == null ? null : formatter.parse(record[4].toString()), // added_at 
-                    record[6] == null ? null : formatter.parse(record[6].toString()), // deleted_at 
-                    record[5] != null && Boolean.parseBoolean(record[5].toString()), // is_deleted 
-                    part,
-                    user
-            );
+                Parts part = new Parts();
+                part.setId(Integer.valueOf(record[2].toString()));
 
-            return ci;
+                CartItems ci = new CartItems(
+                        Integer.valueOf(record[0].toString()),
+                        record[3] == null ? null : Integer.valueOf(record[3].toString()),
+                        record[4] == null ? null : formatter.parse(record[4].toString()),
+                        record[6] == null ? null : formatter.parse(record[6].toString()),
+                        record[5] != null && Boolean.parseBoolean(record[5].toString()),
+                        part,
+                        user
+                );
+                cartItemsList.add(ci);
+            }
 
+            return cartItemsList;
         } catch (Exception ex) {
             ex.printStackTrace();
             return null;

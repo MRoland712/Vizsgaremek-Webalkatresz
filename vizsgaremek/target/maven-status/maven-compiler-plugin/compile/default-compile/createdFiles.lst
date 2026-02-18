@@ -68,6 +68,7 @@ com/mycompany/vizsgaremek/config/KvFetcher.class
 com/mycompany/vizsgaremek/controller/MotorsController.class
 com/mycompany/vizsgaremek/controller/ReviewsController.class
 com/mycompany/vizsgaremek/service/AuthenticationService$addressAuth.class
+com/mycompany/vizsgaremek/controller/InvoicesController.class
 com/mycompany/vizsgaremek/service/AuthenticationService$motorsAuth.class
 com/mycompany/vizsgaremek/model/EmailInfo.class
 com/mycompany/vizsgaremek/controller/JWTController.class
@@ -76,6 +77,7 @@ com/mycompany/vizsgaremek/config/base64Converters.class
 com/mycompany/vizsgaremek/controller/TFAController.class
 com/mycompany/vizsgaremek/config/SendEmail$2.class
 com/mycompany/vizsgaremek/model/UserTwofa.class
+com/mycompany/vizsgaremek/service/AuthenticationService$invoicesAuth.class
 com/mycompany/vizsgaremek/controller/PaymentsController.class
 com/mycompany/vizsgaremek/model/Users.class
 com/mycompany/vizsgaremek/controller/PartVariantsController.class
@@ -87,6 +89,7 @@ com/mycompany/vizsgaremek/model/Trucks.class
 com/mycompany/vizsgaremek/service/AuthenticationService.class
 com/mycompany/vizsgaremek/model/Refunds.class
 com/mycompany/vizsgaremek/service/ImageUploadService.class
+com/mycompany/vizsgaremek/service/InvoicesService.class
 com/mycompany/vizsgaremek/service/AuthenticationService$errorAuth.class
 com/mycompany/vizsgaremek/controller/OrdersController.class
 com/mycompany/vizsgaremek/model/OrderItems.class
