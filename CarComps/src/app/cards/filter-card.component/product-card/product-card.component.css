@@ -2,9 +2,9 @@
   display: flex;
   border: 1px solid #fffafa;
   border-radius: 15px;
-  max-width: 500px; /* 600px → 500px */
+  max-width: 500px;
   width: 100%;
-  height: 260px; /* 500px → 260px KOMPAKT! */
+  height: 260px;
   margin: auto;
   margin-bottom: 50px;
   overflow: hidden;
@@ -14,14 +14,13 @@
   background-color: #fffafa;
 }
 
-/* Bal oldal - kép */
 .left {
-  flex: 0 0 180px; /* Fix szélesség 180px */
+  flex: 0 0 180px;
   background-color: #2b2b2b;
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 15px; /* 20px → 15px */
+  padding: 15px;
   position: relative;
   overflow: hidden;
   border-radius: 12px;
@@ -33,63 +32,63 @@
   max-width: 100%;
   max-height: 100%;
   object-fit: contain;
+  transition: transform 0.3s ease;
 }
 
-/* Jobb oldal - termék info */
 .right {
   flex: 1;
   display: flex;
   flex-direction: column;
-  padding: 18px 16px; /* 30px 25px → 18px 16px */
+  padding: 18px 16px;
   color: #2b2b2b;
 }
 
-/* Termék leírás - KOMPAKT */
 .product-desc {
   flex: 1;
-  margin-bottom: 10px; /* 20px → 10px */
+  margin-bottom: 10px;
 }
 
 .product-desc h2 {
-  font-size: 20px; /* 20px → 15px */
+  font-size: 20px;
   font-weight: 700;
-  margin-bottom: 4px; /* 8px → 4px */
+  margin-bottom: 4px;
   color: #2b2b2b;
   line-height: 1.3;
   overflow: hidden;
   text-overflow: ellipsis;
   display: -webkit-box;
-  -webkit-line-clamp: 2; /* Maximum 2 sor */
+  -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
   cursor: pointer;
   transition: color 0.2s ease;
   position: relative;
 }
+
 .product-desc h2:hover {
   color: #ff6600;
 }
 
 .product-desc h3 {
-  font-size: 11px; /* 14px → 11px */
+  font-size: 11px;
   font-weight: 400;
   color: #666;
-  margin-bottom: 6px; /* 12px → 6px */
+  margin-bottom: 6px;
 }
+
 .product-desc ul {
   list-style: none;
   padding: 0;
   margin: 0;
-  font-size: 12px; /* 14px → 12px */
+  font-size: 12px;
   color: #444;
 }
 
-/* Ár szekció - KOMPAKT */
 .price-section {
-  margin-bottom: 10px; /* 20px → 10px */
+  margin-bottom: 10px;
 }
 
 .price {
-  font-size: 20px; /* 28px → 20px */
+  font-size: 20px;
   font-weight: 700;
   display: flex;
   flex: 1;
@@ -99,28 +98,26 @@
   justify-content: right;
 }
 
-/* Gombok container - KOMPAKT */
 .button-container {
   display: flex;
   align-items: center;
-  gap: 10px; /* 12px → 10px */
+  gap: 10px;
   margin-top: auto;
 }
 
-/* Quantity controls - KISEBB GOMBOK */
 .quantity-controls {
   display: flex;
   align-items: center;
   gap: 0;
-  border-radius: 12px; /* 15px → 12px */
+  border-radius: 12px;
   overflow: hidden;
   background-color: #2b2b2b;
   color: #fffafa;
 }
 
 .quantity-btn {
-  width: 32px; /* 40px → 32px */
-  height: 42px; /* 61px → 42px */
+  width: 32px;
+  height: 42px;
   border: none;
   background-color: transparent;
   color: #ff6600;
@@ -128,7 +125,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 13px; /* 14px → 13px */
+  font-size: 13px;
 }
 
 .quantity-btn.decrease:hover {
@@ -139,41 +136,33 @@
   background: linear-gradient(to left, #2b2b2b, #4a4949);
 }
 
-.quantity-btn.decrease {
-  border-right: transparent;
-}
-
-.quantity-btn.increase {
-  border-left: transparent;
-}
-
 .quantity-display {
-  min-width: 40px; /* 50px → 40px */
+  min-width: 40px;
   height: 42px;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 14px; /* 16px → 14px */
+  font-size: 14px;
   font-weight: 600;
   color: #fffafa;
   user-select: none;
 }
 
-/* Kosárba gomb - KOMPAKT */
 .add-to-cart-btn {
   flex: 1;
-  height: 42px; /* 61px → 42px */
+  height: 42px;
   border: none;
   background-color: #2b2b2b;
   color: #ff6600;
-  border-radius: 12px; /* 15px → 12px */
+  border-radius: 12px;
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 6px; /* 8px → 6px */
-  font-size: 14px; /* 16px → 14px */
+  gap: 6px;
+  font-size: 14px;
   font-weight: 600;
+  transition: background 0.2s;
 }
 
 .add-to-cart-btn:hover {
@@ -181,27 +170,18 @@
 }
 
 .add-to-cart-btn i {
-  font-size: 16px; /* 20px → 16px */
+  font-size: 16px;
 }
-/* Existing styles... */
 
-/* ==========================================
-   CLICKABLE IMAGE
-   ========================================== */
-
+/* Clickable image */
 .left.clickable {
   cursor: pointer;
-}
-
-.left img {
-  transition: transform 0.3s ease;
 }
 
 .left.clickable:hover img {
   transform: scale(1.05);
 }
 
-/* Image Overlay */
 .image-overlay {
   position: absolute;
   top: 0;
@@ -234,52 +214,18 @@
   color: white;
 }
 
-/* ==========================================
-   CLICKABLE TITLE
-   ========================================== */
-
-.product-desc::after {
-  content: '';
-  position: absolute;
-  bottom: -2px;
-  left: 0;
-  width: 0;
-  height: 2px;
-  background: #ff6600;
-  transition: width 0.3s ease;
-}
-
 .clickable-title:hover::after {
   width: 100%;
-} /* ⭐ Kosárba gomb - visszajelzés animáció */
-.add-to-cart-btn.added {
-  background-color: #4caf50 !important;
-  transform: scale(1.1);
-  transition: all 0.2s ease;
 }
 
-.add-to-cart-btn.added i {
-  animation: popIn 0.3s ease;
-}
+/* ⭐ NINCS ANIMÁCIÓ - .added és @keyframes törölve */
 
-@keyframes popIn {
-  0% {
-    transform: scale(0.5);
-  }
-  70% {
-    transform: scale(1.2);
-  }
-  100% {
-    transform: scale(1);
-  }
-}
-
-/* Responsive design */
+/* Responsive */
 @media (max-width: 768px) {
   .product-wrapper {
     flex-direction: column;
     height: auto;
-    max-width: 350px; /* 400px → 350px */
+    max-width: 350px;
   }
 
   .left {

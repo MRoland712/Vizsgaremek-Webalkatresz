@@ -1,48 +1,52 @@
-/* ==========================================
-   PRODUCT GRID - 2 OSZLOP
-   ========================================== */
-
-.product-grid {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr); /* ← 2 oszlop! */
-  gap: 24px;
-  padding: 40px;
-  max-width: 1400px;
-  margin: 0 auto;
+.product-list-container {
+  width: 100%;
+  min-height: 400px;
 }
 
-/* ==========================================
-   RESPONSIVE - 1 OSZLOP MOBILON
-   ========================================== */
+.products-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(480px, 1fr));
+  gap: 20px;
+  padding: 0;
+}
 
-@media (max-width: 992px) {
-  .product-grid {
-    padding: 30px;
-    gap: 20px;
-  }
+.loading-state,
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 400px;
+  gap: 16px;
+  color: #666;
+}
+
+.loading-state i {
+  font-size: 48px;
+  color: #ff6600;
+}
+
+.empty-state i {
+  font-size: 64px;
+  color: #ccc;
+}
+
+.empty-state h3 {
+  font-size: 24px;
+  color: #2b2b2b;
+  margin: 0;
+}
+
+.empty-state p {
+  font-size: 16px;
+  color: #666;
+  margin: 0;
+  text-align: center;
 }
 
 @media (max-width: 768px) {
-  .product-grid {
-    grid-template-columns: 1fr; /* ← 1 oszlop mobilon */
-    padding: 20px;
+  .products-grid {
+    grid-template-columns: 1fr;
     gap: 16px;
-  }
-}
-
-@media (max-width: 480px) {
-  .product-grid {
-    padding: 16px;
-    gap: 12px;
-  }
-}
-
-/* ==========================================
-   OPCIONÁLIS - 3 OSZLOP NAGY KÉPERNYŐN
-   ========================================== */
-
-@media (min-width: 1600px) {
-  .product-grid {
-    grid-template-columns: repeat(3, 1fr); /* 3 oszlop extra wide */
   }
 }

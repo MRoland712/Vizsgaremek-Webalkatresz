@@ -11,6 +11,7 @@ import { DynamicBreadcrumbsComponent } from '../../shared/dynamic-breadcrumbs.co
 import { GetallmanufacturersService } from '../../services/getallmanufacturers.service';
 import { BreadcrumbService } from '../../services/breadcrumb.service';
 import { ManufacturersModel } from '../../models/manufacturers.model';
+import { CartService } from '../../services/cart.service'; // ⭐
 
 interface Review {
   id: number;
@@ -34,6 +35,7 @@ export class ProductDetailComponent implements OnInit {
   private partImagesService = inject(GetallpartimgagesService);
   private manufacturersService = inject(GetallmanufacturersService);
   private breadcrumbService = inject(BreadcrumbService);
+  private cartService = inject(CartService); // ⭐
 
   product = signal<PartsModel | null>(null);
   images = signal<string[]>([]);
@@ -74,7 +76,6 @@ export class ProductDetailComponent implements OnInit {
   ngOnInit(): void {
     this.route.params.subscribe((params) => {
       const productId = +params['id'];
-      console.log('📦 Product ID:', productId);
       this.loadProductDetails(productId);
     });
   }
@@ -91,7 +92,6 @@ export class ProductDetailComponent implements OnInit {
         const foundProduct = parts.parts.find((p) => p.id === productId);
 
         if (!foundProduct) {
-          console.error('❌ Termék nem található:', productId);
           this.router.navigate(['/']);
           return;
         }
@@ -118,18 +118,9 @@ export class ProductDetailComponent implements OnInit {
         this.manufacturer.set(foundManufacturer || null);
         this.isLoading.set(false);
 
-        // ⭐ KATEGÓRIA beállítása breadcrumb-ban
-        // Kategória URL-ből (pl: "tires", "brakes")
         const categoryFromProduct = foundProduct.category.toLowerCase();
         this.breadcrumbService.setLastCategory(categoryFromProduct);
-
-        console.log('✅ Termék kategória:', categoryFromProduct);
-
-        // ⭐ TERMÉK NÉV frissítése breadcrumb-ban
         this.breadcrumbService.updateProductName(productId, foundProduct.name);
-
-        console.log('✅ Termék betöltve:', foundProduct);
-        console.log('✅ Breadcrumb kategória:', this.breadcrumbService.getLastCategory());
       },
       error: (err) => {
         console.error('❌ Termék betöltési hiba:', err);
@@ -151,14 +142,22 @@ export class ProductDetailComponent implements OnInit {
     this.quantity.update((q) => (q > 1 ? q - 1 : 1));
   }
 
+  // ⭐ CartService használata
   addToCart(): void {
     const prod = this.product();
     if (!prod) return;
-    console.log('🛒 Kosárba helyezés:', {
-      product: prod.name,
+
+    this.cartService.addToCart({
+      id: prod.id,
+      name: prod.name,
+      price: prod.price,
       quantity: this.quantity(),
-      totalPrice: prod.price * this.quantity(),
+      imageUrl: prod.imageUrl,
+      sku: prod.sku,
     });
+
+    // Quantity visszaállítása 1-re
+    this.quantity.set(1);
   }
 
   getStars(): boolean[] {

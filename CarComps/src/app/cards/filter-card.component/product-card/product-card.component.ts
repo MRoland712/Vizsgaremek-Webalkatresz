@@ -11,13 +11,10 @@ import { CartService } from '../../../services/cart.service';
 })
 export class ProductCardComponent {
   private router = inject(Router);
-  private cartService = inject(CartService); // ⭐ CartService inject
+  private cartService = inject(CartService);
 
   product = input.required<PartsModel>();
-  quantity = signal(1); // ⭐ Alapértelmezett 1
-
-  // Vizuális visszajelzés
-  addedToCart = signal(false);
+  quantity = signal(1);
 
   productDetails = computed(() => [
     { label: 'Kategória', value: this.product().category },
@@ -34,7 +31,6 @@ export class ProductCardComponent {
   }
 
   decreaseQuantity(): void {
-    // ⭐ Minimum 1
     this.quantity.update((current) => (current > 1 ? current - 1 : 1));
   }
 
@@ -42,7 +38,6 @@ export class ProductCardComponent {
     const product = this.product();
     const qty = this.quantity();
 
-    // ⭐ CartService-en keresztül - Header automatikusan frissül
     this.cartService.addToCart({
       id: product.id,
       name: product.name,
@@ -52,11 +47,7 @@ export class ProductCardComponent {
       sku: product.sku,
     });
 
-    // ⭐ Vizuális visszajelzés - gomb zöldre vált 1.5mp-re
-    this.addedToCart.set(true);
-    setTimeout(() => this.addedToCart.set(false), 1500);
-
-    // Quantity visszaállítása 1-re
+    // Quantity visszaállítása 1-re (NINCS animáció)
     this.quantity.set(1);
   }
 

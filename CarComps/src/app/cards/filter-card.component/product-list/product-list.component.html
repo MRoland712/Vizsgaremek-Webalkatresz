@@ -1,10 +1,20 @@
-<div class="product-grid-container">
-  <!-- <h1>{{ match }} találat a(z) {{ CurrentCatname }} termékre</h1> -->
-
-  <!-- GRID LAYOUT - 2 kártya egy sorban -->
-  <div class="product-grid">
-    @for (product of parts; track $index) {
-      <app-product-card [product]="product"></app-product-card>
-    }
-  </div>
+<div class="product-list-container">
+  @if (isLoading()) {
+    <div class="loading-state">
+      <i class="fa-solid fa-spinner fa-spin"></i>
+      <p>Termékek betöltése...</p>
+    </div>
+  } @else if (filteredProducts().length === 0) {
+    <div class="empty-state">
+      <i class="fa-solid fa-filter-circle-xmark"></i>
+      <h3>Nincs találat</h3>
+      <p>Próbálj más szűrőket vagy töröld a jelenlegi szűrőket.</p>
+    </div>
+  } @else {
+    <div class="products-grid">
+      @for (product of filteredProducts(); track product.id) {
+        <app-product-card [product]="product" />
+      }
+    </div>
+  }
 </div>

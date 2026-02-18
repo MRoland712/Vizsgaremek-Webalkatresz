@@ -1,7 +1,7 @@
 <div class="product-wrapper">
   <!-- BAL OLDAL - Kattintható kép -->
   <div class="left clickable" (click)="viewProductDetails()">
-    <img [src]="product().imageUrl" [alt]="product().name" (error)="onImageError($event)" />
+    <img [src]="product().imageUrl" [alt]="product().name" />
     <div class="image-overlay">
       <i class="fa-solid fa-magnifying-glass"></i>
       <span>Részletek</span>
@@ -37,19 +37,9 @@
         </button>
       </div>
 
-      <!-- ⭐ Kosárba gomb - visszajelzéssel -->
-      <button
-        type="button"
-        class="add-to-cart-btn"
-        [class.added]="addedToCart()"
-        (click)="addToCart()"
-        [title]="addedToCart() ? 'Hozzáadva!' : 'Kosárba'"
-      >
-        @if (addedToCart()) {
-          <i class="fa-solid fa-check"></i>
-        } @else {
-          <i class="fa-solid fa-cart-shopping"></i>
-        }
+      <!-- ⭐ Sima kosárba gomb - NINCS animáció -->
+      <button type="button" class="add-to-cart-btn" (click)="addToCart()" title="Kosárba">
+        <i class="fa-solid fa-cart-shopping"></i>
       </button>
     </div>
   </div>

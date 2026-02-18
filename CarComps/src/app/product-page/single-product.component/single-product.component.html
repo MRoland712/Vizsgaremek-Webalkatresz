@@ -1,15 +1,12 @@
 <app-main-header></app-main-header>
 <app-dynamic-breadcrumbs></app-dynamic-breadcrumbs>
 @if (isLoading()) {
-  <!-- Loading State -->
   <div class="loading-container">
     <i class="fa-solid fa-spinner fa-spin"></i>
     <p>Termék betöltése...</p>
   </div>
 } @else if (product()) {
-  <!-- Product Detail -->
   <div class="product-detail-page">
-    <!-- ⭐ PRODUCT CARD STYLE - Nagy verzió -->
     <div class="product-card-large">
       <!-- BAL OLDAL - Kép -->
       <div class="product-image-section">
@@ -17,7 +14,6 @@
           <img [src]="selectedImage()" [alt]="product()!.name" />
         </div>
 
-        <!-- Thumbnail képek -->
         @if (images().length > 1) {
           <div class="thumbnail-gallery">
             @for (imageUrl of images(); track $index) {
@@ -33,15 +29,12 @@
         }
       </div>
 
-      <!-- JOBB OLDAL - Részletek -->
+      <!-- JOBB OLDAL - Info -->
       <div class="product-info-section">
-        <!-- Termék név -->
         <h1 class="product-name">{{ product()!.name }}</h1>
-
-        <!-- Cikkszám -->
         <p class="product-sku">Cikkszám: {{ product()!.sku }}</p>
 
-        <!-- ⭐ Rating -->
+        <!-- Rating -->
         <div class="rating-display">
           <div class="stars">
             @for (isFull of getStars(); track $index) {
@@ -54,7 +47,7 @@
           <span class="rating-text">{{ rating() }} ({{ reviewCount() }} értékelés)</span>
         </div>
 
-        <!-- Kategória + Manufacturer badges -->
+        <!-- Badges -->
         <div class="product-badges">
           <span class="badge category">
             <i class="fa-solid fa-tag"></i>
@@ -68,7 +61,7 @@
           }
         </div>
 
-        <!-- Specifikációk -->
+        <!-- Specs -->
         <div class="product-specs">
           <ul>
             <li>
@@ -99,7 +92,7 @@
           <span class="price">{{ product()!.price }} HUF</span>
         </div>
 
-        <!-- Kosár vezérlők -->
+        <!-- Cart Actions -->
         <div class="cart-actions">
           <div class="quantity-controls">
             <button class="quantity-btn decrease" (click)="decreaseQuantity()">
@@ -117,15 +110,11 @@
           </button>
         </div>
 
-        <!-- Összesen -->
-        <div class="total-price">
-          <span>Összesen:</span>
-          <strong>{{ product()!.price * quantity() }} HUF</strong>
-        </div>
+        <!-- ⭐ Összesen rész TÖRÖLVE -->
       </div>
     </div>
 
-    <!-- ⭐ TABS - Leírás / Vélemények -->
+    <!-- TABS -->
     <div class="product-tabs">
       <div class="tab-buttons">
         <button
@@ -147,22 +136,18 @@
       </div>
 
       <div class="tab-content">
-        <!-- ⭐ LEÍRÁS TAB -->
         @if (activeTab() === 'description') {
           <div class="description-content">
             <h3>Termék leírás</h3>
             <p>
-              {{
-                'Nincs elérhető leírás ehhez a termékhez. További információért kérjük, vegye fel velünk a kapcsolatot.'
-              }}
+              Nincs elérhető leírás ehhez a termékhez. További információért kérjük, vegye fel
+              velünk a kapcsolatot.
             </p>
           </div>
         }
 
-        <!-- ⭐ VÉLEMÉNYEK TAB -->
         @if (activeTab() === 'reviews') {
           <div class="reviews-content">
-            <!-- Értékelés összesítő -->
             <div class="reviews-summary">
               <div class="rating-overview">
                 <div class="rating-big">{{ rating() }}</div>
@@ -183,7 +168,6 @@
               </button>
             </div>
 
-            <!-- Vélemények lista -->
             <div class="reviews-list">
               @for (review of reviews(); track review.id) {
                 <div class="review-card">
@@ -213,7 +197,6 @@
     </div>
   </div>
 } @else {
-  <!-- Not Found -->
   <div class="not-found-container">
     <i class="fa-solid fa-box-open"></i>
     <h2>Termék nem található</h2>
