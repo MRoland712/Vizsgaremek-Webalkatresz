@@ -5,6 +5,7 @@
 /Users/neblgergo/Documents/GitHub/Vizsgaremek-Webalkatresz/vizsgaremek/src/main/java/com/mycompany/vizsgaremek/controller/MotorsController.java
 /Users/neblgergo/Documents/GitHub/Vizsgaremek-Webalkatresz/vizsgaremek/src/main/java/com/mycompany/vizsgaremek/controller/UserTwofaController.java
 /Users/neblgergo/Documents/GitHub/Vizsgaremek-Webalkatresz/vizsgaremek/src/main/java/com/mycompany/vizsgaremek/config/OTPVerifyer.java
+/Users/neblgergo/Documents/GitHub/Vizsgaremek-Webalkatresz/vizsgaremek/src/main/java/com/mycompany/vizsgaremek/controller/OrderItemsController.java
 /Users/neblgergo/Documents/GitHub/Vizsgaremek-Webalkatresz/vizsgaremek/src/main/java/com/mycompany/vizsgaremek/model/WarehouseStock.java
 /Users/neblgergo/Documents/GitHub/Vizsgaremek-Webalkatresz/vizsgaremek/src/main/java/com/mycompany/vizsgaremek/service/MotorsService.java
 /Users/neblgergo/Documents/GitHub/Vizsgaremek-Webalkatresz/vizsgaremek/src/main/java/com/mycompany/vizsgaremek/controller/JWTController.java
@@ -76,4 +77,5 @@
 /Users/neblgergo/Documents/GitHub/Vizsgaremek-Webalkatresz/vizsgaremek/src/main/java/com/mycompany/vizsgaremek/config/KvFetcher.java
 /Users/neblgergo/Documents/GitHub/Vizsgaremek-Webalkatresz/vizsgaremek/src/main/java/com/mycompany/vizsgaremek/config/CorsFilter.java
 /Users/neblgergo/Documents/GitHub/Vizsgaremek-Webalkatresz/vizsgaremek/src/main/java/com/mycompany/vizsgaremek/controller/PartsController.java
+/Users/neblgergo/Documents/GitHub/Vizsgaremek-Webalkatresz/vizsgaremek/src/main/java/com/mycompany/vizsgaremek/service/OrderItemsService.java
 /Users/neblgergo/Documents/GitHub/Vizsgaremek-Webalkatresz/vizsgaremek/src/main/java/com/mycompany/vizsgaremek/config/SendEmail.java

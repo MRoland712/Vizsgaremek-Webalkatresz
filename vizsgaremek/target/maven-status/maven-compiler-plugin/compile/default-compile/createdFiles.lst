@@ -60,6 +60,8 @@ com/mycompany/vizsgaremek/model/Reviews.class
 com/mycompany/vizsgaremek/controller/UserTwofaController.class
 com/mycompany/vizsgaremek/controller/PartImagesController.class
 com/mycompany/vizsgaremek/model/Payments.class
+com/mycompany/vizsgaremek/service/OrderItemsService.class
+com/mycompany/vizsgaremek/controller/OrderItemsController.class
 com/mycompany/vizsgaremek/service/AuthenticationService$userAuth.class
 com/mycompany/vizsgaremek/model/ShippingMethods.class
 com/mycompany/vizsgaremek/config/SendEmail$3.class
@@ -84,6 +86,7 @@ com/mycompany/vizsgaremek/controller/PartVariantsController.class
 com/mycompany/vizsgaremek/config/SendEmail.class
 com/mycompany/vizsgaremek/service/UsersService.class
 com/mycompany/vizsgaremek/controller/ManufacturersController.class
+com/mycompany/vizsgaremek/service/AuthenticationService$orderItemsAuth.class
 com/mycompany/vizsgaremek/model/Addresses.class
 com/mycompany/vizsgaremek/model/Trucks.class
 com/mycompany/vizsgaremek/service/AuthenticationService.class

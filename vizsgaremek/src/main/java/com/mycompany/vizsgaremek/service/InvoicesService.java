@@ -81,7 +81,7 @@ public class InvoicesService {
             return errorAuth.createErrorResponse(errors, 500);
         }
 
-        // KONVERZIÓ ArrayList --> JSONArray
+        // KONVERZIÓ ArrayList
         JSONArray invociesArray = new JSONArray();
 
         for (Invoices invoice : modelResult) {

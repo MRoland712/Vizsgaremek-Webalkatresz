@@ -12,6 +12,7 @@ import com.mycompany.vizsgaremek.model.CartItems;
 import com.mycompany.vizsgaremek.model.Invoices;
 import com.mycompany.vizsgaremek.model.Manufacturers;
 import com.mycompany.vizsgaremek.model.Motors;
+import com.mycompany.vizsgaremek.model.OrderItems;
 import com.mycompany.vizsgaremek.model.Orders;
 import com.mycompany.vizsgaremek.model.PartImages;
 import com.mycompany.vizsgaremek.model.PartVariants;
@@ -1276,7 +1277,7 @@ public class AuthenticationService {
         public boolean isDataMissing(ArrayList<Invoices> data) {
             return (data == null || data.isEmpty());
         }
-        
+
         public boolean isDataMissing(Boolean data) {
             return (data == null);
         }
@@ -1308,6 +1309,82 @@ public class AuthenticationService {
         }
 
     } //Invoices Auth Class closer
+
+    //OrderItems
+    public static class orderItemsAuth {
+
+        public boolean isDataMissing(String data) {
+            return (data == null || data.trim().isEmpty());
+        }
+
+        public boolean isDataMissing(Orders data) {
+            return (data == null);
+        }
+
+        public boolean isDataMissing(Parts data) {
+            return (data == null);
+        }
+
+        public boolean isDataMissing(OrderItems data) {
+            return (data == null);
+        }
+
+        public boolean isDataMissing(Integer data) {
+            return (data == null);
+        }
+
+        public boolean isDataMissing(ArrayList<OrderItems> data) {
+            return (data == null || data.isEmpty());
+        }
+
+        public boolean isDataMissing(Boolean data) {
+            return (data == null);
+        }
+        
+        public boolean isDataMissing(BigDecimal data) {
+            return (data == null);
+        }
+
+        public boolean isDataMissing(List<Object[]> data) {
+            return (data == null || data.isEmpty());
+        }
+
+        public boolean isValidId(Integer id) {
+            return id > 0 && id.toString().length() <= 11;
+        }
+
+        public boolean isValidOrderId(Orders order) {
+            Integer orderId = order.getId();
+            return orderId > 0 && orderId.toString().length() <= 11;
+        }
+
+        public boolean isValidOrderId(Integer orderId) {
+            return orderId > 0 && orderId.toString().length() <= 11;
+        }
+
+        public boolean isValidPartId(Parts part) {
+            Integer partId = part.getId();
+            return partId > 0 && partId.toString().length() <= 11;
+        }
+
+        public boolean isValidPartId(Integer partId) {
+            return partId > 0 && partId.toString().length() <= 11;
+        }
+
+        public boolean isValidQuantity(Integer quantity) {
+            return quantity > 0 && quantity.toString().length() <= 11;
+        }
+
+        public boolean isValidPrice(BigDecimal price) {
+            return price.compareTo(new BigDecimal("0.00")) > 0;
+        }
+
+        public boolean isOrderItemsDeleted(Boolean isDeleted) {
+            return (isDeleted == true);
+
+        }
+
+    } //OrderItems Auth Class closer
 
 }//Auth Service Class closer
 
