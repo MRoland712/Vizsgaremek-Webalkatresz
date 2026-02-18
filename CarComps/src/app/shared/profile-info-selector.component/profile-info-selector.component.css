@@ -189,99 +189,323 @@ form {
   font-size: 12px;
 }
 
-/* Info Message (for 2FA) */
-.info-message {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  padding: 16px;
-  background: rgba(255, 102, 0, 0.1);
-  border-radius: 8px;
-  border-left: 4px solid #ff6600;
-  margin-bottom: 20px;
+/* ==========================================
+   2FA CARD STÁTUSZ
+   ========================================== */
+
+.tfa-active-row {
+  border-color: #4caf50 !important;
 }
 
-.info-message i {
-  font-size: 24px;
-  color: #ff6600;
+.tfa-active-row:hover {
+  border-color: #4caf50 !important;
 }
 
-.info-message p {
-  margin: 0;
-  color: #2b2b2b;
+.icon-active {
+  background-color: #4caf50 !important;
+}
+
+.text-active {
+  color: #4caf50 !important;
+  font-weight: 600;
+}
+
+/* ==========================================
+   2FA DIALOG
+   ========================================== */
+
+.tfa-dialog {
+  max-width: 420px !important;
+}
+
+.tfa-step {
+  padding: 8px 0;
+}
+
+.tfa-description {
+  text-align: center;
+  color: #666;
   font-size: 14px;
+  line-height: 1.6;
+  margin-bottom: 24px;
 }
 
-/* Success Message */
-.success-message {
+/* ⭐ QR KÉP - valódi kép megjelenítés */
+.qr-image-container {
+  display: flex;
+  justify-content: center;
+  margin: 0 auto 24px;
+  padding: 20px;
+  background: #f5f5f5;
+  border-radius: 12px;
+  width: fit-content;
+}
+
+.qr-real-image {
+  width: 220px;
+  height: 220px;
+  display: block;
+  image-rendering: pixelated; /* QR kód élesebb */
+}
+
+/* Secret Key */
+.secret-key-section {
+  margin-bottom: 24px;
+}
+
+.secret-key-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+  gap: 12px;
+}
+
+.secret-key-header span {
+  font-size: 13px;
+  color: #666;
+}
+
+.btn-toggle-secret {
+  padding: 6px 12px;
+  background: transparent;
+  border: 2px solid #ff6600;
+  border-radius: 6px;
+  color: #ff6600;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
   display: flex;
   align-items: center;
-  gap: 12px;
-  padding: 12px 16px;
-  background: rgba(76, 175, 80, 0.1);
-  border-radius: 8px;
-  border-left: 4px solid #4caf50;
-  margin-bottom: 20px;
-  animation: slideIn 0.3s ease;
+  gap: 6px;
+  white-space: nowrap;
+  transition: all 0.2s;
+  flex-shrink: 0;
 }
 
-.success-message i {
-  font-size: 20px;
+.btn-toggle-secret:hover {
+  background: #ff6600;
+  color: white;
+}
+
+.secret-key-display {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 14px;
+  background: #f5f5f5;
+  border: 2px solid #e0e0e0;
+  border-radius: 8px;
+}
+
+.secret-key-display code {
+  flex: 1;
+  font-family: 'Courier New', monospace;
+  font-size: 13px;
+  color: #2b2b2b;
+  letter-spacing: 1px;
+  word-break: break-all; /* ⭐ Nem törik ki a dobozból */
+  overflow-wrap: break-word;
+}
+
+.btn-copy-mini {
+  padding: 8px 10px;
+  background: #ff6600;
+  border: none;
+  border-radius: 6px;
+  color: white;
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: all 0.2s;
+}
+
+.btn-copy-mini:hover {
+  background: #e65a00;
+}
+
+/* Verification Input */
+.verification-code-input {
+  width: 100%;
+  padding: 16px;
+  font-size: 28px;
+  text-align: center;
+  letter-spacing: 8px;
+  border: 3px solid #e0e0e0;
+  border-radius: 12px;
+  outline: none;
+  font-family: 'Courier New', monospace;
+  transition: all 0.3s;
+  box-sizing: border-box;
+}
+
+.verification-code-input:focus {
+  border-color: #ff6600;
+  box-shadow: 0 0 0 4px rgba(255, 102, 0, 0.1);
+}
+
+/* 2FA Buttons */
+.btn-tfa-full {
+  width: 100%;
+  padding: 14px;
+  background: #ff6600;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  transition: all 0.2s;
+  margin-top: 8px;
+}
+
+.btn-tfa-full:hover {
+  background: #e65a00;
+  transform: translateY(-1px);
+}
+
+.tfa-btn-row {
+  display: flex;
+  gap: 12px;
+  margin: 16px 0 8px;
+}
+
+.btn-tfa-back {
+  flex: 1;
+  padding: 12px;
+  background: #e0e0e0;
+  color: #2b2b2b;
+  border: none;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  transition: all 0.2s;
+}
+
+.btn-tfa-back:hover {
+  background: #d0d0d0;
+}
+
+.btn-tfa-primary {
+  flex: 2;
+  padding: 12px;
+  background: #ff6600;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  transition: all 0.2s;
+}
+
+.btn-tfa-primary:hover:not(:disabled) {
+  background: #e65a00;
+}
+
+.btn-tfa-primary:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* Success Header */
+.tfa-success-header {
+  text-align: center;
+  margin-bottom: 20px;
+}
+
+.tfa-success-header i {
+  font-size: 56px;
   color: #4caf50;
+  display: block;
+  margin-bottom: 12px;
 }
 
-.success-message p {
-  margin: 0;
+.tfa-success-header h3 {
+  font-size: 20px;
   color: #2b2b2b;
-  font-weight: 500;
+  margin: 0;
 }
 
-/* Error Message */
-.error-message {
+/* Warning Box */
+.warning-box {
+  display: flex;
+  gap: 14px;
+  padding: 16px;
+  background: rgba(255, 152, 0, 0.1);
+  border: 2px solid #ff9800;
+  border-radius: 10px;
+  margin-bottom: 20px;
+}
+
+.warning-box > i {
+  font-size: 22px;
+  color: #ff9800;
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+.warning-box strong {
+  display: block;
+  color: #2b2b2b;
+  margin-bottom: 4px;
+}
+
+.warning-box p {
+  color: #666;
+  font-size: 13px;
+  line-height: 1.5;
+  margin: 0;
+}
+
+/* Recovery Codes */
+.recovery-codes-container h4 {
+  font-size: 15px;
+  color: #2b2b2b;
+  margin-bottom: 12px;
+}
+
+.recovery-codes-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.recovery-code-item {
   display: flex;
   align-items: center;
-  gap: 12px;
-  padding: 12px 16px;
-  background: rgba(255, 68, 68, 0.1);
-  border-radius: 8px;
-  border-left: 4px solid #ff4444;
-  margin-bottom: 20px;
-  animation: shake 0.5s ease;
+  gap: 8px;
+  padding: 10px 12px;
+  background: #f9f9f9;
+  border: 1px solid #e0e0e0;
+  border-radius: 6px;
 }
 
-.error-message i {
-  font-size: 20px;
-  color: #ff4444;
+.code-number {
+  font-weight: 700;
+  color: #ff6600;
+  font-size: 12px;
+  min-width: 20px;
 }
 
-.error-message p {
-  margin: 0;
+.recovery-code-item code {
+  font-family: 'Courier New', monospace;
+  font-size: 11px;
   color: #2b2b2b;
-  font-weight: 500;
-}
-
-@keyframes slideIn {
-  from {
-    opacity: 0;
-    transform: translateY(-10px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-@keyframes shake {
-  0%,
-  100% {
-    transform: translateX(0);
-  }
-  25% {
-    transform: translateX(-8px);
-  }
-  75% {
-    transform: translateX(8px);
-  }
+  word-break: break-all;
 }
 
 /* Dialog Footer */
@@ -367,7 +591,425 @@ form {
 .wide-dialog {
   max-width: 700px !important;
 }
+/* ==========================================
+   2FA DIALOG STYLES
+   ========================================== */
 
+.tfa-step {
+  padding: 10px 0;
+}
+
+.tfa-info {
+  text-align: center;
+  margin-bottom: 24px;
+}
+
+.tfa-icon {
+  font-size: 64px;
+  color: #ff6600;
+  margin-bottom: 16px;
+  display: block;
+}
+
+.tfa-info p {
+  color: #666;
+  line-height: 1.6;
+  font-size: 15px;
+  margin: 0;
+}
+
+/* QR Section */
+.qr-section {
+  text-align: center;
+  margin: 32px 0;
+}
+
+.qr-icon-display {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  padding: 40px;
+  background: linear-gradient(135deg, #f5f5f5, #e8e8e8);
+  border-radius: 16px;
+  margin-bottom: 20px;
+}
+
+.qr-icon-display i {
+  font-size: 120px;
+  color: #2b2b2b;
+}
+
+.qr-icon-display p {
+  font-size: 18px;
+  font-weight: 600;
+  color: #2b2b2b;
+  margin: 0;
+}
+
+.btn-show-qr {
+  padding: 14px 32px;
+  background: #ff6600;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  transition: all 0.3s ease;
+}
+
+.btn-show-qr:hover {
+  background: #e65a00;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(255, 102, 0, 0.3);
+}
+
+/* Secret Key Section */
+.secret-key-section {
+  margin: 24px 0;
+}
+
+.secret-key-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+.secret-key-header span {
+  font-size: 14px;
+  color: #666;
+  font-weight: 500;
+}
+
+.btn-toggle-secret {
+  padding: 6px 14px;
+  background: transparent;
+  border: 2px solid #ff6600;
+  border-radius: 6px;
+  color: #ff6600;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  transition: all 0.2s;
+}
+
+.btn-toggle-secret:hover {
+  background: #ff6600;
+  color: white;
+}
+
+.secret-key-display {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 16px;
+  background: #f9f9f9;
+  border: 2px solid #e0e0e0;
+  border-radius: 8px;
+  animation: slideDown 0.3s ease;
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    max-height: 0;
+    padding: 0 16px;
+  }
+  to {
+    opacity: 1;
+    max-height: 100px;
+    padding: 14px 16px;
+  }
+}
+
+.secret-key-display code {
+  flex: 1;
+  font-family: 'Courier New', monospace;
+  font-size: 16px;
+  color: #2b2b2b;
+  letter-spacing: 2px;
+  word-break: break-all;
+}
+
+.btn-copy-mini {
+  padding: 8px 12px;
+  background: #ff6600;
+  border: none;
+  border-radius: 6px;
+  color: white;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.btn-copy-mini:hover {
+  background: #e65a00;
+}
+
+/* Verification Input */
+.verification-input-wrapper {
+  margin: 24px 0;
+}
+
+.verification-input-wrapper label {
+  display: block;
+  margin-bottom: 8px;
+  font-weight: 600;
+  color: #2b2b2b;
+}
+
+.verification-code-input {
+  width: 100%;
+  padding: 16px;
+  font-size: 28px;
+  text-align: center;
+  letter-spacing: 8px;
+  border: 3px solid #e0e0e0;
+  border-radius: 12px;
+  outline: none;
+  font-family: 'Courier New', monospace;
+  transition: all 0.3s;
+}
+
+.verification-code-input:focus {
+  border-color: #ff6600;
+  box-shadow: 0 0 0 4px rgba(255, 102, 0, 0.1);
+}
+
+.error-message.small {
+  padding: 10px 14px;
+  font-size: 13px;
+  margin: 16px 0;
+}
+
+/* Verification Actions */
+.verification-actions {
+  display: flex;
+  gap: 12px;
+  margin-top: 24px;
+}
+
+.btn-back-step,
+.btn-verify-code {
+  flex: 1;
+  padding: 12px 24px;
+  border: none;
+  border-radius: 8px;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  transition: all 0.2s;
+}
+
+.btn-back-step {
+  background: #e0e0e0;
+  color: #2b2b2b;
+}
+
+.btn-back-step:hover {
+  background: #d0d0d0;
+}
+
+.btn-verify-code {
+  background: #ff6600;
+  color: white;
+}
+
+.btn-verify-code:hover:not(:disabled) {
+  background: #e65a00;
+}
+
+.btn-verify-code:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* Success Header */
+.tfa-success-header {
+  text-align: center;
+  margin-bottom: 24px;
+}
+
+.tfa-success-header i {
+  font-size: 72px;
+  color: #4caf50;
+  margin-bottom: 16px;
+  display: block;
+}
+
+.tfa-success-header h3 {
+  font-size: 24px;
+  color: #2b2b2b;
+  margin: 0;
+}
+
+/* Warning Box */
+.warning-box {
+  display: flex;
+  gap: 16px;
+  padding: 20px;
+  background: rgba(255, 152, 0, 0.1);
+  border: 2px solid #ff9800;
+  border-radius: 12px;
+  margin: 24px 0;
+}
+
+.warning-box i {
+  font-size: 28px;
+  color: #ff9800;
+  flex-shrink: 0;
+}
+
+.warning-box strong {
+  display: block;
+  color: #2b2b2b;
+  margin-bottom: 8px;
+  font-size: 16px;
+}
+
+.warning-box p {
+  color: #666;
+  font-size: 14px;
+  line-height: 1.6;
+  margin: 0;
+}
+
+/* Recovery Codes */
+.recovery-codes-container {
+  margin: 24px 0;
+}
+
+.recovery-codes-container h4 {
+  font-size: 18px;
+  color: #2b2b2b;
+  margin-bottom: 16px;
+}
+
+.recovery-codes-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 10px;
+  margin-bottom: 20px;
+}
+
+.recovery-code-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 14px;
+  background: #f9f9f9;
+  border: 2px solid #e0e0e0;
+  border-radius: 8px;
+}
+
+.code-number {
+  font-weight: 700;
+  color: #ff6600;
+  min-width: 28px;
+}
+
+.recovery-code-item code {
+  font-family: 'Courier New', monospace;
+  font-size: 14px;
+  color: #2b2b2b;
+  letter-spacing: 1px;
+}
+
+/* Recovery Actions */
+.recovery-actions {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 20px;
+}
+
+.btn-download-codes,
+.btn-copy-codes {
+  flex: 1;
+  padding: 12px 20px;
+  border: 2px solid #2b2b2b;
+  border-radius: 8px;
+  background: transparent;
+  color: #2b2b2b;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  transition: all 0.2s;
+}
+
+.btn-download-codes:hover,
+.btn-copy-codes:hover {
+  background: #2b2b2b;
+  color: white;
+}
+
+/* Navigation Buttons */
+.btn-next-step,
+.btn-finish-2fa,
+.btn-retry {
+  width: 100%;
+  padding: 14px 32px;
+  background: #ff6600;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  transition: all 0.3s;
+  margin-top: 20px;
+}
+
+.btn-next-step:hover,
+.btn-finish-2fa:hover,
+.btn-retry:hover {
+  background: #e65a00;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(255, 102, 0, 0.3);
+}
+
+/* Responsive */
+@media (max-width: 480px) {
+  .qr-icon-display {
+    padding: 30px;
+  }
+
+  .qr-icon-display i {
+    font-size: 80px;
+  }
+
+  .recovery-codes-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .verification-code-input {
+    font-size: 24px;
+    letter-spacing: 6px;
+  }
+
+  .recovery-actions,
+  .verification-actions {
+    flex-direction: column;
+  }
+}
 /* ==========================================
    ORDERS LIST
    ========================================== */

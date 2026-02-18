@@ -251,6 +251,27 @@
 
 .clickable-title:hover::after {
   width: 100%;
+} /* ⭐ Kosárba gomb - visszajelzés animáció */
+.add-to-cart-btn.added {
+  background-color: #4caf50 !important;
+  transform: scale(1.1);
+  transition: all 0.2s ease;
+}
+
+.add-to-cart-btn.added i {
+  animation: popIn 0.3s ease;
+}
+
+@keyframes popIn {
+  0% {
+    transform: scale(0.5);
+  }
+  70% {
+    transform: scale(1.2);
+  }
+  100% {
+    transform: scale(1);
+  }
 }
 
 /* Responsive design */

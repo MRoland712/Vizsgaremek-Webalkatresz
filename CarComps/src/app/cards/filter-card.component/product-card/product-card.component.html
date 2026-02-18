@@ -1,8 +1,7 @@
 <div class="product-wrapper">
-  <!-- ⭐ BAL OLDAL - Kattintható kép -->
+  <!-- BAL OLDAL - Kattintható kép -->
   <div class="left clickable" (click)="viewProductDetails()">
-    <img [src]="product().imageUrl" [alt]="product().name" />
-    <!-- Hover overlay -->
+    <img [src]="product().imageUrl" [alt]="product().name" (error)="onImageError($event)" />
     <div class="image-overlay">
       <i class="fa-solid fa-magnifying-glass"></i>
       <span>Részletek</span>
@@ -12,13 +11,10 @@
   <!-- JOBB OLDAL - Infók -->
   <div class="right">
     <div class="product-desc">
-      <!-- ⭐ Kattintható név -->
       <h2 class="clickable-title" (click)="viewProductDetails()">
         {{ product().name }}
       </h2>
       <h3>Article Number: {{ product().sku }}</h3>
-
-      <!-- Termék részletek -->
       <ul>
         @for (detail of productDetails(); track $index) {
           <li>{{ detail.label }}: {{ detail.value }}</li>
@@ -26,12 +22,10 @@
       </ul>
     </div>
 
-    <!-- Ár -->
     <div class="price-section">
-      <h3 class="price">{{ product().price }} HUF</h3>
+      <h3 class="price">{{ product().price }} Ft</h3>
     </div>
 
-    <!-- Gombok -->
     <div class="button-container">
       <div class="quantity-controls">
         <button type="button" class="quantity-btn decrease" (click)="decreaseQuantity()">
@@ -42,8 +36,20 @@
           <i class="fa-solid fa-angle-up"></i>
         </button>
       </div>
-      <button type="button" class="add-to-cart-btn" (click)="addToCart()">
-        <i class="fa-solid fa-cart-shopping"></i>
+
+      <!-- ⭐ Kosárba gomb - visszajelzéssel -->
+      <button
+        type="button"
+        class="add-to-cart-btn"
+        [class.added]="addedToCart()"
+        (click)="addToCart()"
+        [title]="addedToCart() ? 'Hozzáadva!' : 'Kosárba'"
+      >
+        @if (addedToCart()) {
+          <i class="fa-solid fa-check"></i>
+        } @else {
+          <i class="fa-solid fa-cart-shopping"></i>
+        }
       </button>
     </div>
   </div>

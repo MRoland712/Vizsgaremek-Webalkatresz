@@ -1,6 +1,3 @@
-// src/app/main-header/main-header.component.ts
-// ⭐ JAVÍTVA: refreshUserData() hívás
-
 import { Component, DestroyRef, inject, signal } from '@angular/core';
 import { FormControl, ReactiveFormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
@@ -8,14 +5,7 @@ import { RouterLink } from '@angular/router';
 import { debounceTime, distinctUntilChanged } from 'rxjs';
 import { SearchResult } from './search.service';
 import { AuthService } from '../services/auth.service';
-
-export interface CartItem {
-  id: number;
-  name: string;
-  price: number;
-  quantity: number;
-  imageUrl?: string;
-}
+import { CartService } from '../services/cart.service'; // ⭐
 
 @Component({
   selector: 'app-main-header',
@@ -26,6 +16,7 @@ export interface CartItem {
 export class MainHeaderComponent {
   private destroyRef = inject(DestroyRef);
   authService = inject(AuthService);
+  cartService = inject(CartService); // ⭐
 
   imgSrc = '/assets/CarComps_Logo_BigassC.png';
   searchControl = new FormControl('');
@@ -37,16 +28,16 @@ export class MainHeaderComponent {
   userName = this.authService.userName;
   userEmail = this.authService.userEmail;
 
-  cartItems = signal<CartItem[]>([]);
-  cartItemCount = signal(0);
-  cartTotal = signal(0);
+  // ⭐ CartService computed signals - automatikusan frissülnek
+  cartItems = this.cartService.cartItems;
+  cartItemCount = this.cartService.cartItemCount;
+  cartTotal = this.cartService.cartTotal;
 
   garageMakeControl = new FormControl('');
   garageModelControl = new FormControl({ value: '', disabled: true });
   garageYearControl = new FormControl({ value: '', disabled: true });
 
   constructor() {
-    // ⭐ JAVÍTÁS: Signal-ok frissítése
     this.authService.refreshUserData();
 
     const searchSubscription = this.searchControl.valueChanges
@@ -87,33 +78,10 @@ export class MainHeaderComponent {
       garageMakeSubscription.unsubscribe();
       garageModelSubscription.unsubscribe();
     });
-
-    this.loadCartData();
-
-    console.log('👤 Main Header:');
-    console.log('  Név:', this.userName());
-    console.log('  Email:', this.userEmail());
-  }
-
-  loadCartData() {
-    if (this.isLoggedIn()) {
-      this.cartItems.set([]);
-      this.updateCartCalculations();
-    }
-  }
-
-  updateCartCalculations() {
-    const items = this.cartItems();
-    const totalCount = items.reduce((sum, item) => sum + item.quantity, 0);
-    this.cartItemCount.set(totalCount);
-    const total = items.reduce((sum, item) => sum + item.price * item.quantity, 0);
-    this.cartTotal.set(total);
   }
 
   removeFromCart(itemId: number) {
-    const updatedItems = this.cartItems().filter((item) => item.id !== itemId);
-    this.cartItems.set(updatedItems);
-    this.updateCartCalculations();
+    this.cartService.removeFromCart(itemId); // ⭐
   }
 
   performSearch(searchTerm: string) {
@@ -157,6 +125,7 @@ export class MainHeaderComponent {
   }
 
   logout() {
+    this.cartService.clearCart(); // ⭐ Kijelentkezéskor kosár ürítése
     this.authService.logout();
   }
 }
