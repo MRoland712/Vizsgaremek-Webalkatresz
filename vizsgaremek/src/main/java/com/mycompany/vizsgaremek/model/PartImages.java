@@ -6,9 +6,9 @@ package com.mycompany.vizsgaremek.model;
 
 import java.io.Serializable;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
-import java.util.ArrayList;
 import javax.persistence.Basic;
 import javax.persistence.Column;
 import javax.persistence.Entity;
@@ -33,7 +33,7 @@ import javax.xml.bind.annotation.XmlRootElement;
 
 /**
  *
- * @author neblg
+ * @author neblgergo
  */
 @Entity
 @Table(name = "part_images")
@@ -72,7 +72,7 @@ public class PartImages implements Serializable {
     @JoinColumn(name = "part_id", referencedColumnName = "id")
     @ManyToOne(optional = false)
     private Parts partId;
-
+    
     static EntityManagerFactory emf = Persistence.createEntityManagerFactory("com.mycompany_vizsgaremek_war_1.0-SNAPSHOTPU");
     public static SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 
@@ -143,14 +143,7 @@ public class PartImages implements Serializable {
     public void setPartId(Parts partId) {
         this.partId = partId;
     }
-
-    @Override
-    public int hashCode() {
-        int hash = 0;
-        hash += (id != null ? id.hashCode() : 0);
-        return hash;
-    }
-
+    
     //getAll
     public PartImages(Integer id, String url, Boolean isPrimary, Date createdAt, Boolean isDeleted, Date deletedAt, Parts partId) {
         this.id = id;
@@ -170,6 +163,13 @@ public class PartImages implements Serializable {
     }
 
     @Override
+    public int hashCode() {
+        int hash = 0;
+        hash += (id != null ? id.hashCode() : 0);
+        return hash;
+    }
+
+    @Override
     public boolean equals(Object object) {
         // TODO: Warning - this method won't work in the case the id fields are not set
         if (!(object instanceof PartImages)) {
@@ -186,7 +186,7 @@ public class PartImages implements Serializable {
     public String toString() {
         return "com.mycompany.vizsgaremek.model.PartImages[ id=" + id + " ]";
     }
-
+    
     public static Integer createPartImages(PartImages newImage) {
         EntityManager em = emf.createEntityManager();
         try {
@@ -448,5 +448,5 @@ public class PartImages implements Serializable {
             em.close();
         }
     }
-
+    
 }

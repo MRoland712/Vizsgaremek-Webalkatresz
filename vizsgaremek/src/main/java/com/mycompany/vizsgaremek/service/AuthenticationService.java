@@ -7,10 +7,15 @@ package com.mycompany.vizsgaremek.service;
 import com.mycompany.vizsgaremek.model.Users;
 import com.mycompany.vizsgaremek.config.Encrypt;
 import com.mycompany.vizsgaremek.model.Addresses;
+import com.mycompany.vizsgaremek.model.Cars;
 import com.mycompany.vizsgaremek.model.Manufacturers;
+import com.mycompany.vizsgaremek.model.Motors;
+import com.mycompany.vizsgaremek.model.Orders;
 import com.mycompany.vizsgaremek.model.PartImages;
 import com.mycompany.vizsgaremek.model.PartVariants;
 import com.mycompany.vizsgaremek.model.Parts;
+import com.mycompany.vizsgaremek.model.Reviews;
+import com.mycompany.vizsgaremek.model.Trucks;
 import com.mycompany.vizsgaremek.model.UserTwofa;
 import io.jsonwebtoken.Claims;
 import java.math.BigDecimal;
@@ -600,7 +605,6 @@ public class AuthenticationService {
             return (isDeleted == true);
         }
 
-
     } //Parts Auth Class closer
 
     //Manufacturers
@@ -705,7 +709,7 @@ public class AuthenticationService {
         }
 
     } //PartsVariants Auth Class closer
-    
+
     //PartImages
     public static class partImagesAuth {
 
@@ -732,7 +736,7 @@ public class AuthenticationService {
         public boolean isDataMissing(Parts data) {
             return (data == null);
         }
-        
+
         public boolean isDataMissing(List<Object[]> data) {
             return (data == null || data.isEmpty());
         }
@@ -772,11 +776,15 @@ public class AuthenticationService {
         public static boolean isDataMissing(String data) {
             return (data == null || data.trim().isEmpty());
         }
-        
+
         public static boolean isDataMissing(List<Object[]> data) {
             return data.isEmpty() || data == null;
         }
-        
+
+        public static boolean isDataMissing(ArrayList<UserTwofa> data) {
+            return (data == null || data.isEmpty());
+        }
+
         public static boolean isDataMissing(Integer data) {
             return (data == null);
         }
@@ -784,19 +792,320 @@ public class AuthenticationService {
         public static boolean isDataMissing(Users data) {
             return (data == null);
         }
-        
+
         public static boolean isDataMissing(UserTwofa data) {
-            return data == null;
+            return (data == null);
         }
 
         public static boolean isValidEmail(String email) {
             return EMAIL_PATTERN.matcher(email).matches();
         }
-        
+
         public static boolean isValidUserId(Integer userId) {
             return userId > 0 && userId.toString().trim().length() <= 11;
         }
+
     } //userTwofaAuth
+
+    public static class carsAuth {
+
+        public boolean isDataMissing(String data) {
+            return (data == null || data.trim().isEmpty());
+        }
+
+        public boolean isDataMissing(Cars data) {
+            return (data == null);
+        }
+
+        public boolean isDataMissing(Integer data) {
+            return (data == null);
+        }
+
+        public boolean isDataMissing(ArrayList<Cars> data) {
+            return (data == null || data.isEmpty());
+        }
+
+        public boolean isDataMissing(Boolean data) {
+            return (data == null);
+        }
+
+        public boolean isDataMissing(List<Object[]> data) {
+            return (data == null || data.isEmpty());
+        }
+
+        public boolean isValidId(Integer id) {
+            return id > 0 && id.toString().length() <= 11;
+        }
+
+        public boolean isValidBrand(String brand) {
+            return brand.length() <= 50;
+        }
+
+        public boolean isValidModel(String model) {
+            return model.length() <= 50;
+        }
+
+        public boolean isValidYearFrom(Integer yearFrom) {
+            return yearFrom != null && yearFrom >= 1990 && yearFrom <= 2035;
+        }
+
+        public boolean isValidYearTo(Integer yearTo) {
+            return yearTo != null && yearTo >= 1990 && yearTo <= 2035;
+        }
+
+        public boolean isCarsDeleted(Boolean isDeleted) {
+            return (isDeleted == true);
+        }
+
+        public boolean isYearRangeValid(Integer yearFrom, Integer yearTo) {
+            if (yearFrom == null || yearTo == null) {
+                return true;
+            }
+            return yearFrom <= yearTo;
+        }
+
+    } //Cars Auth Class closer
+
+    public static class motorsAuth {
+
+        public boolean isDataMissing(String data) {
+            return (data == null || data.trim().isEmpty());
+        }
+
+        public boolean isDataMissing(Motors data) {
+            return (data == null);
+        }
+
+        public boolean isDataMissing(Integer data) {
+            return (data == null);
+        }
+
+        public boolean isDataMissing(ArrayList<Motors> data) {
+            return (data == null || data.isEmpty());
+        }
+
+        public boolean isDataMissing(Boolean data) {
+            return (data == null);
+        }
+
+        public boolean isDataMissing(List<Object[]> data) {
+            return (data == null || data.isEmpty());
+        }
+
+        public boolean isValidId(Integer id) {
+            return id > 0 && id.toString().length() <= 11;
+        }
+
+        public boolean isValidBrand(String brand) {
+            return brand.length() <= 50;
+        }
+
+        public boolean isValidModel(String model) {
+            return model.length() <= 50;
+        }
+
+        public boolean isValidYearFrom(Integer yearFrom) {
+            return yearFrom != null && yearFrom >= 1990 && yearFrom <= 2035;
+        }
+
+        public boolean isValidYearTo(Integer yearTo) {
+            return yearTo != null && yearTo >= 1990 && yearTo <= 2035;
+        }
+
+        public boolean isMotorsDeleted(Boolean isDeleted) {
+            return (isDeleted == true);
+        }
+
+        public boolean isYearRangeValid(Integer yearFrom, Integer yearTo) {
+            if (yearFrom == null || yearTo == null) {
+                return true;
+            }
+            return yearFrom <= yearTo;
+        }
+
+    } //Motors Auth Class closer
+
+    public static class trucksAuth {
+
+        public boolean isDataMissing(String data) {
+            return (data == null || data.trim().isEmpty());
+        }
+
+        public boolean isDataMissing(Trucks data) {
+            return (data == null);
+        }
+
+        public boolean isDataMissing(Integer data) {
+            return (data == null);
+        }
+
+        public boolean isDataMissing(ArrayList<Trucks> data) {
+            return (data == null || data.isEmpty());
+        }
+
+        public boolean isDataMissing(Boolean data) {
+            return (data == null);
+        }
+
+        public boolean isDataMissing(List<Object[]> data) {
+            return (data == null || data.isEmpty());
+        }
+
+        public boolean isValidId(Integer id) {
+            return id > 0 && id.toString().length() <= 11;
+        }
+
+        public boolean isValidBrand(String brand) {
+            return brand.length() <= 50;
+        }
+
+        public boolean isValidModel(String model) {
+            return model.length() <= 50;
+        }
+
+        public boolean isValidYearFrom(Integer yearFrom) {
+            return yearFrom != null && yearFrom >= 1990 && yearFrom <= 2035;
+        }
+
+        public boolean isValidYearTo(Integer yearTo) {
+            return yearTo != null && yearTo >= 1990 && yearTo <= 2035;
+        }
+
+        public boolean isTrucksDeleted(Boolean isDeleted) {
+            return (isDeleted == true);
+        }
+
+        public boolean isYearRangeValid(Integer yearFrom, Integer yearTo) {
+            if (yearFrom == null || yearTo == null) {
+                return true;
+            }
+            return yearFrom <= yearTo;
+        }
+
+    } //Trucks Auth Class closer
+
+    public static class reviewsAuth {
+
+        public boolean isDataMissing(String data) {
+            return (data == null || data.trim().isEmpty());
+        }
+
+        public boolean isDataMissing(Reviews data) {
+            return (data == null);
+        }
+
+        public boolean isDataMissing(Parts data) {
+            return (data == null);
+        }
+
+        public boolean isDataMissing(Users data) {
+            return (data == null);
+        }
+
+        public boolean isDataMissing(Integer data) {
+            return (data == null);
+        }
+
+        public boolean isDataMissing(ArrayList<Reviews> data) {
+            return (data == null || data.isEmpty());
+        }
+
+        public boolean isDataMissing(Boolean data) {
+            return (data == null);
+        }
+
+        public boolean isDataMissing(List<Object[]> data) {
+            return (data == null || data.isEmpty());
+        }
+
+        public boolean isValidId(Integer id) {
+            return id > 0 && id.toString().length() <= 11;
+        }
+
+        public boolean isValidUserId(Users users) {
+            Integer usersId = users.getId();
+            return usersId > 0 && usersId.toString().length() <= 11;
+        }
+
+        public boolean isValidUserId(Integer usersId) {
+            return usersId > 0 && usersId.toString().length() <= 11;
+        }
+
+        public boolean isValidPartId(Parts parts) {
+            Integer partsId = parts.getId();
+            return partsId > 0 && partsId.toString().length() <= 11;
+        }
+
+        public boolean isValidPartId(Integer partsId) {
+            return partsId > 0 && partsId.toString().length() <= 11;
+        }
+
+        public boolean isValidComment(String comment) {
+            return comment.length() <= 200;
+        }
+
+        public boolean isValidRating(Integer rating) {
+            return rating <= 5;
+        }
+
+        public boolean isReviewsDeleted(Boolean isDeleted) {
+            return (isDeleted == true);
+        }
+
+    } //Reviews Auth Class closer
+
+    public static class ordersAuth {
+
+        public boolean isDataMissing(String data) {
+            return (data == null || data.trim().isEmpty());
+        }
+
+        public boolean isDataMissing(Users data) {
+            return (data == null);
+        }
+
+        public boolean isDataMissing(Orders data) {
+            return (data == null);
+        }
+
+        public boolean isDataMissing(Integer data) {
+            return (data == null);
+        }
+
+        public boolean isDataMissing(Boolean data) {
+            return (data == null);
+        }
+
+        public boolean isDataMissing(ArrayList<Orders> data) {
+            return (data == null || data.isEmpty());
+        }
+
+        public boolean isDataMissing(List<Object[]> data) {
+            return (data == null || data.isEmpty());
+        }
+
+        public boolean isValidId(Integer id) {
+            return id > 0 && id.toString().length() <= 11;
+        }
+
+        public boolean isValidUserId(Users user) {
+            Integer manufacturerId = user.getId();
+            return manufacturerId > 0 && manufacturerId.toString().length() <= 11;
+        }
+
+        public boolean isValidUserId(Integer userId) {
+            return userId > 0 && userId.toString().length() <= 11;
+        }
+
+        public boolean isValidStatus(String status) {
+            return status.length() <= 20;
+        }
+
+        public boolean isOrdersDeleted(Boolean isDeleted) {
+            return (isDeleted == true);
+        }
+
+    } //Orders Auth Class closer
 
 }//Auth Service Class closer
 

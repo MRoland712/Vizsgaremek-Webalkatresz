@@ -4,25 +4,23 @@
  */
 package com.mycompany.vizsgaremek.model;
 
+import com.mycompany.vizsgaremek.service.AuthenticationService;
 import java.io.Serializable;
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Date;
-import java.util.List;
 import javax.persistence.Basic;
-import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
-import javax.persistence.EntityTransaction;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
+import javax.persistence.JoinColumn;
+import javax.persistence.Lob;
+import javax.persistence.ManyToOne;
 import javax.persistence.NamedQueries;
 import javax.persistence.NamedQuery;
-import javax.persistence.OneToMany;
 import javax.persistence.ParameterMode;
 import javax.persistence.Persistence;
 import javax.persistence.StoredProcedureQuery;
@@ -32,18 +30,11 @@ import javax.persistence.TemporalType;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
 import javax.xml.bind.annotation.XmlRootElement;
-import javax.xml.bind.annotation.XmlTransient;
-import com.mycompany.vizsgaremek.service.AuthenticationService;
-import javax.persistence.JoinColumn;
-import javax.persistence.Lob;
-import javax.persistence.ManyToOne;
-
 
 /**
  *
- * @author ddori
+ * @author neblgergo
  */
-
 @Entity
 @Table(name = "user_logs")
 @XmlRootElement
@@ -94,29 +85,6 @@ public class UserLogs implements Serializable {
         this.action = action;
         this.createdAt = createdAt;
     }
-    
-    public UserLogs(String action, String details) {
-        this.action = action;
-        this.details = details;
-    }
-    
-    //updateUserLog
-    public UserLogs(String action, String details, Users userId) {
-        this.action = action;
-        this.details = details;
-        this.userId = userId;
-    }
-    
-    //getUserLogById
-    public UserLogs(Integer id, String action, String details, Date createdAt, Users userId) {
-        this.id = id;
-        this.action = action;
-        this.details = details;
-        this.createdAt = createdAt;
-        this.userId = userId;
-    }
-    
-    
 
     public Integer getId() {
         return id;
@@ -155,6 +123,27 @@ public class UserLogs implements Serializable {
     }
 
     public void setUserId(Users userId) {
+        this.userId = userId;
+    }
+
+    public UserLogs(String action, String details) {
+        this.action = action;
+        this.details = details;
+    }
+
+    //updateUserLog
+    public UserLogs(String action, String details, Users userId) {
+        this.action = action;
+        this.details = details;
+        this.userId = userId;
+    }
+
+    //getUserLogById
+    public UserLogs(Integer id, String action, String details, Date createdAt, Users userId) {
+        this.id = id;
+        this.action = action;
+        this.details = details;
+        this.createdAt = createdAt;
         this.userId = userId;
     }
 

@@ -26,7 +26,7 @@ import javax.xml.bind.annotation.XmlTransient;
 
 /**
  *
- * @author neblg
+ * @author neblgergo
  */
 @Entity
 @Table(name = "warehouses")

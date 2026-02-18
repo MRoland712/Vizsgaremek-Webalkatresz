@@ -5,39 +5,35 @@
 package com.mycompany.vizsgaremek.model;
 
 import com.mycompany.vizsgaremek.service.AuthenticationService;
-
 import java.io.Serializable;
 import java.text.SimpleDateFormat;
-
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import javax.persistence.Basic;
 import javax.persistence.Column;
 import javax.persistence.Entity;
+import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
+import javax.persistence.JoinColumn;
+import javax.persistence.ManyToOne;
 import javax.persistence.NamedQueries;
 import javax.persistence.NamedQuery;
-import javax.persistence.ManyToOne;
 import javax.persistence.ParameterMode;
 import javax.persistence.Persistence;
-
+import javax.persistence.StoredProcedureQuery;
 import javax.persistence.Table;
 import javax.persistence.Temporal;
 import javax.persistence.TemporalType;
-
 import javax.validation.constraints.Size;
 import javax.xml.bind.annotation.XmlRootElement;
 
-import javax.persistence.EntityManager;
-import javax.persistence.JoinColumn;
-import javax.persistence.StoredProcedureQuery;
-
 /**
  *
- * @author ddori
+ * @author neblgergo
  */
 @Entity
 @Table(name = "user_twofa")
@@ -50,11 +46,8 @@ import javax.persistence.StoredProcedureQuery;
     @NamedQuery(name = "UserTwofa.findByRecoveryCodes", query = "SELECT u FROM UserTwofa u WHERE u.recoveryCodes = :recoveryCodes"),
     @NamedQuery(name = "UserTwofa.findByCreatedAt", query = "SELECT u FROM UserTwofa u WHERE u.createdAt = :createdAt"),
     @NamedQuery(name = "UserTwofa.findByUpdatedAt", query = "SELECT u FROM UserTwofa u WHERE u.updatedAt = :updatedAt"),
-
-//manual
     @NamedQuery(name = "UserTwofa.findByIsDeleted", query = "SELECT u FROM UserTwofa u WHERE u.isDeleted = :isDeleted"),
-    @NamedQuery(name = "UserTwofa.findByDeletedAt", query = "SELECT u FROM UserTwofa u WHERE u.deletedAt = :deletedAt")
-})
+    @NamedQuery(name = "UserTwofa.findByDeletedAt", query = "SELECT u FROM UserTwofa u WHERE u.deletedAt = :deletedAt")})
 public class UserTwofa implements Serializable {
 
     private static final long serialVersionUID = 1L;
@@ -77,8 +70,6 @@ public class UserTwofa implements Serializable {
     @Column(name = "updated_at")
     @Temporal(TemporalType.TIMESTAMP)
     private Date updatedAt;
-
-    //manual
     @Column(name = "is_deleted")
     private Boolean isDeleted;
     @Column(name = "deleted_at")
@@ -105,6 +96,10 @@ public class UserTwofa implements Serializable {
     }
 
     public UserTwofa() {
+    }
+
+    public UserTwofa(Integer id) {
+        this.id = id;
     }
 
     public Integer getId() {
@@ -151,7 +146,10 @@ public class UserTwofa implements Serializable {
         return updatedAt;
     }
 
-//manual
+    public void setUpdatedAt(Date updatedAt) {
+        this.updatedAt = updatedAt;
+    }
+
     public Boolean getIsDeleted() {
         return isDeleted;
     }
@@ -171,7 +169,7 @@ public class UserTwofa implements Serializable {
     public Users getUserId() {
         return userId;
     }
-    
+
     public void setUserId(Users userId) {
         this.userId = userId;
     }
@@ -228,11 +226,11 @@ public class UserTwofa implements Serializable {
             em.close();
         }
     }
-    
+
     public static Boolean updateUserTwofa(UserTwofa updatedUserTwofa) {
         EntityManager em = emf.createEntityManager();
         try {
-            StoredProcedureQuery spq = em.createStoredProcedureQuery("createUserTwoFa");
+            StoredProcedureQuery spq = em.createStoredProcedureQuery("updateUserTwofa");
 
             spq.registerStoredProcedureParameter("idIN", Integer.class, ParameterMode.IN);
             spq.registerStoredProcedureParameter("user_IdIN", Integer.class, ParameterMode.IN);
@@ -270,16 +268,16 @@ public class UserTwofa implements Serializable {
             spq.execute();
 
             List<Object[]> resultList = spq.getResultList();
-            
+
             if (resultList == null || resultList.isEmpty()) {
                 return null;
             }
-            
+
             //Integer id, Boolean twofaEnabled, String twofaSecret, String recoveryCodes, Date createdAt, 
             //Date updatedAt, Boolean isDeleted, Date deletedAt
             UserTwofa toReturn = new UserTwofa();
             for (Object[] record : resultList) {
-                
+
                 Users users = new Users();
                 users.setId(Integer.valueOf(record[1].toString())); //userId
 
@@ -307,4 +305,157 @@ public class UserTwofa implements Serializable {
             em.close();
         }
     }
+
+    public static ArrayList<UserTwofa> getAllUserTwoFa() {
+        EntityManager em = emf.createEntityManager();
+
+        try {
+
+            StoredProcedureQuery spq = em.createStoredProcedureQuery("getAllUserTwofa");
+            spq.execute();
+
+            List<Object[]> resultList = spq.getResultList();
+
+            ArrayList<UserTwofa> toReturn = new ArrayList();
+
+            for (Object[] record : resultList) {
+                // user_id Users objektum létrehozása
+                Users user = new Users();
+                user.setId(Integer.valueOf(record[1].toString()));
+
+                UserTwofa twofa = new UserTwofa(
+                        Integer.valueOf(record[0].toString()),// id
+                        Boolean.valueOf(record[2].toString()),// twofaEnabled
+                        record[3].toString(),// twofaSecret
+                        record[4].toString(),// recoveryCodes
+                        record[5] == null ? null : formatter.parse(record[5].toString()), // createdAt
+                        record[6] == null ? null : formatter.parse(record[6].toString()),// updatedAt
+                        Boolean.valueOf(record[7].toString()),// isDeleted
+                        record[8] == null ? null : formatter.parse(record[8].toString()),// deletedAt
+                        user
+                );
+
+                toReturn.add(twofa);
+            }
+            return toReturn;
+        } catch (Exception ex) {
+            if (em.getTransaction().isActive()) {
+                em.getTransaction().rollback();
+            }
+            ex.printStackTrace();
+            return null;
+        } finally {
+            em.clear();
+            em.close();
+        }
+    }
+
+    public static UserTwofa getUserTwofaById(Integer id) {
+        EntityManager em = emf.createEntityManager();
+
+        try {
+            StoredProcedureQuery spq = em.createStoredProcedureQuery("getUserTwofaById");
+            spq.registerStoredProcedureParameter("idIN", Integer.class, ParameterMode.IN);
+            spq.setParameter("idIN", id);
+
+            spq.execute();
+
+            List<Object[]> resultList = spq.getResultList();
+
+            if (resultList == null || resultList.isEmpty()) {
+                return null;
+            }
+
+            UserTwofa toReturn = new UserTwofa();
+            for (Object[] record : resultList) {
+
+                Users users = new Users();
+                users.setId(Integer.valueOf(record[1].toString())); //userId
+
+                UserTwofa ufa = new UserTwofa(
+                        Integer.valueOf(record[0].toString()),// id
+                        Boolean.valueOf(record[2].toString()),// twofaEnabled
+                        record[3].toString(),// twofaSecret
+                        record[4].toString(),// recoveryCodes
+                        record[5] == null ? null : formatter.parse(record[5].toString()), // createdAt
+                        record[6] == null ? null : formatter.parse(record[6].toString()),// updatedAt
+                        Boolean.valueOf(record[7].toString()),// isDeleted
+                        record[8] == null ? null : formatter.parse(record[8].toString()),// deletedAt
+                        users
+                );
+                toReturn = ufa;
+            }
+            return toReturn;
+        } catch (Exception ex) {
+            if (em.getTransaction().isActive()) {
+                em.getTransaction().rollback();
+            }
+            ex.printStackTrace();
+            return null;
+        } finally {
+            em.close();
+        }
+    }
+
+    public static Boolean softDeleteUserTwofa(Integer idIN) {
+        EntityManager em = emf.createEntityManager();
+        try {
+            StoredProcedureQuery spq = em.createStoredProcedureQuery("softDeleteUserTwoFa");
+
+            spq.registerStoredProcedureParameter("idIN", Integer.class, ParameterMode.IN);
+            spq.setParameter("idIN", idIN);
+
+            spq.execute();
+
+            return true;
+
+        } catch (Exception ex) {
+            ex.printStackTrace();
+            return false;
+        } finally {
+            em.clear();
+            em.close();
+        }
+    }
+
+    public static UserTwofa checkUserTwoFaEnabled(Integer userId) {
+        EntityManager em = emf.createEntityManager();
+
+        try {
+            StoredProcedureQuery spq = em.createStoredProcedureQuery("checkUserTwoFaEnabled");
+            spq.registerStoredProcedureParameter("user_IdIN", Integer.class, ParameterMode.IN);
+            spq.setParameter("user_IdIN", userId);
+
+            spq.execute();
+
+            List<Object[]> resultList = spq.getResultList();
+
+            if (resultList == null || resultList.isEmpty()) {
+                return null; // Nincs aktív 2FA vagy már törölve van
+            }
+
+            UserTwofa toReturn = null;
+            for (Object[] record : resultList) {
+                Users user = new Users();
+                user.setId(userId);
+
+                toReturn = new UserTwofa();
+                toReturn.setUserId(user);
+                toReturn.setTwofaEnabled(Boolean.valueOf(record[0].toString())); // twofa_enabled
+                toReturn.setTwofaSecret(record[1].toString()); // twofa_secret
+            }
+
+            return toReturn;
+
+        } catch (Exception ex) {
+            if (em.getTransaction().isActive()) {
+                em.getTransaction().rollback();
+            }
+            ex.printStackTrace();
+            return null;
+        } finally {
+            em.close();
+        }
+    }
+
 }
