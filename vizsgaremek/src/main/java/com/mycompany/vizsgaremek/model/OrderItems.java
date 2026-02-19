@@ -81,17 +81,6 @@ public class OrderItems implements Serializable {
         this.quantity = quantity;
         this.partId = partId;
     }
-
-    public OrderItems(Integer id, Integer quantity, BigDecimal price, Date createdAt, Boolean isDeleted, Date deletedAt, Orders orderId, Parts partId) {
-        this.id = id;
-        this.quantity = quantity;
-        this.price = price;
-        this.createdAt = createdAt;
-        this.isDeleted = isDeleted;
-        this.deletedAt = deletedAt;
-        this.orderId = orderId;
-        this.partId = partId;
-    }
     
     public OrderItems() {
     }

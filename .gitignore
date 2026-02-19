@@ -1,4 +1,0 @@
-# API kulcs file-át ebbe a gitignoreba rakjad 
-.env
-\node_modules
-\target

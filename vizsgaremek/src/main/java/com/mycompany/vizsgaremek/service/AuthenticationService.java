@@ -1119,7 +1119,7 @@ public class AuthenticationService {
         }
 
     } //Order Items Auth Class closer
-    public static class orderItemsAuth {
+   /* public static class orderItemsAuth {
 
         public boolean isDataMissing(String data) {
             return (data == null || data.trim().isEmpty());
@@ -1178,7 +1178,7 @@ public class AuthenticationService {
             return (isDeleted == true);
         }
 
-    } //OrderItems Auth Class closer
+    } //OrderItems Auth Class closer*/
     
     
 
