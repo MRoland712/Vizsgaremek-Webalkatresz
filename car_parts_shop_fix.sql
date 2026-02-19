@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Gép: localhost:8889
--- Létrehozás ideje: 2026. Feb 18. 17:38
+-- Létrehozás ideje: 2026. Feb 19. 21:30
 -- Kiszolgáló verziója: 8.0.44
 -- PHP verzió: 8.3.28
 
@@ -276,7 +276,7 @@ CREATE DEFINER=`root`@`localhost` PROCEDURE `createMotors` (IN `brandIN` VARCHAR
 END$$
 
 DROP PROCEDURE IF EXISTS `createOrderItems`$$
-CREATE DEFINER=`root`@`localhost` PROCEDURE `createOrderItems` (IN `orderIdIN` INT(11), IN `partIdIN` INT(11), IN `quantityIN` INT(10), IN `priceIN` DECIMAL(10,2))   BEGIN
+CREATE DEFINER=`root`@`localhost` PROCEDURE `createOrderItems` (IN `orderIdIN` INT(11), IN `partIdIN` INT(11), IN `quantityIN` INT(11), IN `priceIN` DECIMAL(10,2))   BEGIN
     
     INSERT INTO order_items(
         order_id,
@@ -371,6 +371,25 @@ CREATE DEFINER=`root`@`localhost` PROCEDURE `createOrderWithItems` (IN `userIdIN
     COMMIT;
     
     SELECT newOrderId AS new_order_id, totalAmount AS total_amount;
+END$$
+
+DROP PROCEDURE IF EXISTS `createPartCompatibility`$$
+CREATE DEFINER=`root`@`localhost` PROCEDURE `createPartCompatibility` (IN `partIdIN` INT(11), IN `vehicleTypeIN` VARCHAR(255), IN `vehicleIdIN` INT(11))   BEGIN
+
+    INSERT INTO part_compatibility(
+        part_id,
+        vehicle_type,
+        vehicle_id,
+        created_at
+        )VALUES(
+            partIdIN,
+            vehicleTypeIN,
+            vehicleIdIN,    
+            NOW()
+           );
+           
+         SELECT LAST_INSERT_ID()AS new_part_compatibility;
+         
 END$$
 
 DROP PROCEDURE IF EXISTS `createPartImages`$$
@@ -489,6 +508,23 @@ INSERT INTO reviews(
         NULL
         );
      SELECT LAST_INSERT_ID() AS new_review_id;
+END$$
+
+DROP PROCEDURE IF EXISTS `createStockLogsAdmin`$$
+CREATE DEFINER=`root`@`localhost` PROCEDURE `createStockLogsAdmin` (IN `partIdIN` INT(11), IN `changeAmountIN` INT(11), IN `reasonIN` VARCHAR(255))   BEGIN
+    INSERT INTO stock_logs(
+        part_id,
+        change_amount,
+        reason,
+        created_at
+    ) VALUES (
+        partIdIN,
+        changeAmountIN,
+        reasonIN,
+        NOW()
+    );
+    
+    SELECT LAST_INSERT_ID() AS new_stock_log_id;
 END$$
 
 DROP PROCEDURE IF EXISTS `createTrucks`$$
@@ -789,7 +825,7 @@ CREATE DEFINER=`root`@`localhost` PROCEDURE `getAllOrderItems` ()   BEGIN
         created_at,
         is_deleted,
         deleted_at
-    FROM cart_items
+    FROM order_items
     WHERE is_deleted = 0
     ORDER BY created_at DESC;
 END$$
@@ -811,6 +847,19 @@ CREATE DEFINER=`root`@`localhost` PROCEDURE `getAllOrders` ()   BEGIN
      WHERE is_deleted = 0
      ORDER BY id;
 END$$
+
+DROP PROCEDURE IF EXISTS `getAllPartCompatibility`$$
+CREATE DEFINER=`root`@`localhost` PROCEDURE `getAllPartCompatibility` ()   SELECT
+	id,
+    part_id,
+    vehicle_type,
+    vehicle_id,
+    created_at,
+    updated_at,
+    deleted_at,
+    is_deleted
+FROM part_compatibility
+WHERE is_deleted = 0$$
 
 DROP PROCEDURE IF EXISTS `getAllPartImages`$$
 CREATE DEFINER=`root`@`localhost` PROCEDURE `getAllPartImages` ()   BEGIN
@@ -884,6 +933,18 @@ CREATE DEFINER=`root`@`localhost` PROCEDURE `getAllReviews` ()   BEGIN
      FROM reviews
      WHERE is_deleted = 0
      ORDER BY id;
+END$$
+
+DROP PROCEDURE IF EXISTS `getAllStockLogsAdmin`$$
+CREATE DEFINER=`root`@`localhost` PROCEDURE `getAllStockLogsAdmin` ()   BEGIN
+    SELECT
+        id,
+        part_id,
+        change_amount,
+        reason,
+        created_at
+    FROM stock_logs
+    ORDER BY created_at DESC;
 END$$
 
 DROP PROCEDURE IF EXISTS `getAllTrucks`$$
@@ -1160,7 +1221,7 @@ CREATE DEFINER=`root`@`localhost` PROCEDURE `getOrderItemsByOrderId` (IN `orderI
 END$$
 
 DROP PROCEDURE IF EXISTS `getOrderItemsByPartId`$$
-CREATE DEFINER=`root`@`localhost` PROCEDURE `getOrderItemsByPartId` (IN `partidIN` INT(11))   BEGIN
+CREATE DEFINER=`root`@`localhost` PROCEDURE `getOrderItemsByPartId` (IN `partId` INT(11))   BEGIN
 	SELECT
         id,
         order_id,
@@ -1201,6 +1262,50 @@ CREATE DEFINER=`root`@`localhost` PROCEDURE `getOrdersByUserId` (IN `idIN` INT(1
      FROM orders
      WHERE user_id = idIN;
 END$$
+
+DROP PROCEDURE IF EXISTS `getPartCompatibilityById`$$
+CREATE DEFINER=`root`@`localhost` PROCEDURE `getPartCompatibilityById` (IN `idIN` INT(11))   SELECT
+	id,
+    part_id,
+    vehicle_type,
+    vehicle_id,
+    created_at,
+    updated_at,
+    deleted_at,
+    is_deleted
+FROM part_compatibility
+WHERE id = idIN
+ORDER BY id$$
+
+DROP PROCEDURE IF EXISTS `getPartCompatibilityByVehicleId`$$
+CREATE DEFINER=`root`@`localhost` PROCEDURE `getPartCompatibilityByVehicleId` (IN `vehicleidIN` INT(11))   SELECT 
+        id,
+        part_id,
+        vehicle_type,
+        vehicle_id,
+        created_at,
+        updated_at,
+        is_deleted,
+        deleted_at
+    FROM part_compatibility
+    WHERE vehicle_id = vehicleidIN
+        AND is_deleted = 0
+    ORDER BY id DESC$$
+
+DROP PROCEDURE IF EXISTS `getPartCompatibilityByVehicleType`$$
+CREATE DEFINER=`root`@`localhost` PROCEDURE `getPartCompatibilityByVehicleType` (IN `vehicleTypeIN` VARCHAR(255))   SELECT 
+        id,
+        part_id,
+        vehicle_type,
+        vehicle_id,
+        created_at,
+        updated_at,
+        is_deleted,
+        deleted_at
+    FROM part_compatibility
+    WHERE vehicle_type = vehicleTypeIN
+        AND is_deleted = 0
+    ORDER BY id DESC$$
 
 DROP PROCEDURE IF EXISTS `getPartImagesById`$$
 CREATE DEFINER=`root`@`localhost` PROCEDURE `getPartImagesById` (IN `partImages_id` INT(11))   BEGIN
@@ -1451,6 +1556,31 @@ CREATE DEFINER=`root`@`localhost` PROCEDURE `getReviewsByUserId` (IN `idIN` INT)
     FROM reviews
     WHERE user_id = idIN
         AND is_deleted = 0
+    ORDER BY created_at DESC;
+END$$
+
+DROP PROCEDURE IF EXISTS `getStockLogsById`$$
+CREATE DEFINER=`root`@`localhost` PROCEDURE `getStockLogsById` (IN `idIN` INT(11))   BEGIN
+    SELECT
+        id,
+        part_id,
+        change_amount,
+        reason,
+        created_at
+    FROM stock_logs
+    WHERE id = idIN;
+END$$
+
+DROP PROCEDURE IF EXISTS `getStockLogsByPartId`$$
+CREATE DEFINER=`root`@`localhost` PROCEDURE `getStockLogsByPartId` (IN `partIdIN` INT(11))   BEGIN
+    SELECT
+        id,
+        part_id,
+        change_amount,
+        reason,
+        created_at
+    FROM stock_logs
+    WHERE part_id = partIdIN
     ORDER BY created_at DESC;
 END$$
 
@@ -1776,7 +1906,7 @@ END$$
 
 DROP PROCEDURE IF EXISTS `softDeleteOrderItem`$$
 CREATE DEFINER=`root`@`localhost` PROCEDURE `softDeleteOrderItem` (IN `idIN` INT(11))   BEGIN
-    UPDATE cart_items
+    UPDATE order_items
     SET 
         is_deleted = 1,
         deleted_at = NOW()
@@ -1788,6 +1918,15 @@ CREATE DEFINER=`root`@`localhost` PROCEDURE `softDeleteOrders` (IN `idIN` INT(11
     UPDATE orders
     SET is_deleted = TRUE,
         deleted_at = NOW()
+    WHERE id = idIN;
+END$$
+
+DROP PROCEDURE IF EXISTS `softDeletePartCompatibility`$$
+CREATE DEFINER=`root`@`localhost` PROCEDURE `softDeletePartCompatibility` (IN `idIN` INT(11))   BEGIN
+	UPDATE part_compatibility
+    SET 
+		is_deleted = 1,
+		deleted_at = NOW()
     WHERE id = idIN;
 END$$
 
@@ -2063,9 +2202,10 @@ CREATE DEFINER=`root`@`localhost` PROCEDURE `updateMotors` (IN `idIN` INT(11), I
 END$$
 
 DROP PROCEDURE IF EXISTS `updateOrderItem`$$
-CREATE DEFINER=`root`@`localhost` PROCEDURE `updateOrderItem` (IN `orderIdIN` INT(11), IN `partIdIN` INT(11), IN `quantityIN` INT(11), IN `priceIN` DECIMAL(10,2))   BEGIN
+CREATE DEFINER=`root`@`localhost` PROCEDURE `updateOrderItem` (IN `idIN` INT(11), IN `orderIdIN` INT(11), IN `partIdIN` INT(11), IN `quantityIN` INT(11), IN `priceIN` DECIMAL(10,2), IN `isDeleted` TINYINT)   BEGIN
     UPDATE order_items
     SET 
+    	id = idIN,
         order_id = orderIdIN,
         part_id = partIdIN,
         quantity = quantityIN,
@@ -2082,6 +2222,21 @@ CREATE DEFINER=`root`@`localhost` PROCEDURE `updateOrders` (IN `idIN` INT(11), I
     SET 
         status = statusIN,
         updated_at = NOW(),
+        is_deleted = isDeleted
+    WHERE id = idIN;
+
+END$$
+
+DROP PROCEDURE IF EXISTS `updatePartCompatibility`$$
+CREATE DEFINER=`root`@`localhost` PROCEDURE `updatePartCompatibility` (IN `idIN` INT(11), IN `partIdIN` INT(11), IN `vehicleTypeIN` VARCHAR(255), IN `vehicleIdIN` INT(11), IN `isDeleted` TINYINT)   BEGIN
+
+    UPDATE part_compatibility
+    SET 
+        part_id = partIdIN,
+        vehicle_type = vehicleTypeIN,
+        vehicle_id = vehicleIdIN,
+        updated_at = NOW(),
+        deleted_at = IF(isDeleted = 1, NOW(), NULL),
         is_deleted = isDeleted
     WHERE id = idIN;
 
