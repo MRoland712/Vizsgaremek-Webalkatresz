@@ -271,6 +271,31 @@ public class Orders implements Serializable {
             em.close();
         }
     }
+    
+    public static Boolean createOrderWithItem(OrderItems createdOrderWithItem, Integer userId) {
+        EntityManager em = emf.createEntityManager();
+        try {
+            StoredProcedureQuery spq = em.createStoredProcedureQuery("createOrderWithItems");
+
+            spq.registerStoredProcedureParameter("userIdIN", Integer.class, ParameterMode.IN);
+            spq.registerStoredProcedureParameter("partIdIN", Integer.class, ParameterMode.IN);
+            spq.registerStoredProcedureParameter("quantityIN", Integer.class, ParameterMode.IN);
+
+            spq.setParameter("userIdIN", userId);
+            spq.setParameter("partIdIN", createdOrderWithItem.getPartId().getId());
+            spq.setParameter("quantityIN", createdOrderWithItem.getQuantity());
+
+            spq.execute();
+
+            return true;
+
+        } catch (Exception ex) {
+            ex.printStackTrace();
+            return false;
+        } finally {
+            em.close();
+        }
+    }
 
     public static ArrayList<Orders> getAllOrders() {
         EntityManager em = emf.createEntityManager();

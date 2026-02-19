@@ -5,7 +5,9 @@
 package com.mycompany.vizsgaremek.controller;
 
 import com.mycompany.vizsgaremek.model.Orders;
+import com.mycompany.vizsgaremek.model.OrderItems;
 import com.mycompany.vizsgaremek.model.Users;
+import com.mycompany.vizsgaremek.model.Parts;
 import com.mycompany.vizsgaremek.service.OrdersService;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.UriInfo;
@@ -78,6 +80,33 @@ public class OrdersController {
         );
 
         JSONObject toReturn = layer.createOrders(createdOrders);
+
+        return Response.status(Integer.parseInt(toReturn.get("statusCode").toString()))
+                .entity(toReturn.toString())
+                .type(MediaType.APPLICATION_JSON)
+                .build();
+    }
+    
+    @POST
+    @Path("createOrderWithItem")
+    @Consumes(MediaType.APPLICATION_JSON)
+    public Response createOrderWithItemsController(String body) {
+
+        JSONObject bodyObject = new JSONObject(body);
+
+        Integer id = null;
+        id = (bodyObject.has("userId") ? bodyObject.getInt("userId") : null);
+        
+        
+        Parts part = new Parts();
+        part.setId(bodyObject.has("partId") ? bodyObject.getInt("partId") : null);
+        
+        OrderItems createdOrderWithItems = new OrderItems(
+                bodyObject.has("quantity") ? bodyObject.getInt("quantity") : null,
+                part
+        );
+
+        JSONObject toReturn = layer.createOrderWithItemsService(createdOrderWithItems, id);
 
         return Response.status(Integer.parseInt(toReturn.get("statusCode").toString()))
                 .entity(toReturn.toString())

@@ -9,7 +9,12 @@ import com.mycompany.vizsgaremek.util.CloudflareAnalitics;
 import com.mycompany.vizsgaremek.model.Orders;
 import com.mycompany.vizsgaremek.model.Users;
 import com.mycompany.vizsgaremek.model.Payments;
+import com.mycompany.vizsgaremek.model.OrderItems;
+import com.mycompany.vizsgaremek.model.Parts;
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.UriInfo;
 import javax.ws.rs.Consumes;
@@ -70,7 +75,7 @@ public class AnaliticsController {
     @GET
     @Path("getAllStat")
     @Consumes(MediaType.APPLICATION_JSON)
-    public Response sendOTPEmailAndSetAuthSecretController(@QueryParam("days") Integer days, @HeaderParam("token") String jwtToken) {
+    public Response getAllStats(@QueryParam("days") Integer days, @HeaderParam("token") String jwtToken) {
         Response jwtError = jwt.validateJwtAndReturnError(jwtToken);
         String jwtRole = jwt.extractRole(jwtToken);
         JSONArray errors = new JSONArray();
@@ -93,24 +98,17 @@ public class AnaliticsController {
         }
 
         /**
-         * ✔ ️❌
-         * total visitors ✔
-         * page views ✔
-         * total visit duration ❌
-         * total customer (aki vásárolt/vásárló) ✔
-         * getAllOrders ✔
-         * active users (ez lehet komplikált és nemis nektek kell nemtudom nézzétek meg) ✔
-         * getAllTransaction ❌
-         * getAllDeliveredOrders ✔
-         * Delivery vehicles (a carcompsnak saját kiszállítása van) és légyszi legyen id a usernek a faszán is ❌
-         * regisztrált felhasználók száma ✔
-         * legkeresetebb termékek ❌
-         * legvásárolt termékek ❌ 
-         * vásárlók (user) keresése pl ügyfélszolgálathoz ✔ (ha kell pl username vagy valami alapjan akkor szolj de amugy van getUserByEmail)
-         * jó vélmények keresése termékek alapján ezis ügyfélgecihez jó ✔ (kivéve ha egy range kell pl 3-5 csillagig)
-         * promóció kiküldése kezelése ? (ig megvan??? clarify please hogy mi kell ezen belul)
+         * ✔ ️❌ total visitors ✔ page views ✔ total customer (aki
+         * vásárolt/vásárló) ✔ getAllOrders ✔ active users (ez lehet komplikált
+         * és nemis nektek kell nemtudom nézzétek meg) ✔ getAllTransaction ❌ -
+         * getAllDeliveredOrders ✔ regisztrált felhasználók száma ✔
+         * legkeresetebb termékek ❌ legvásárolt termékek ❌ vásárlók (user)
+         * keresése pl ügyfélszolgálathoz ✔ (ha kell pl username vagy valami
+         * alapjan akkor szolj de amugy van getUserByEmail) jó vélmények
+         * keresése termékek alapján ezis ügyfélgecihez jó ✔ (kivéve ha egy
+         * range kell pl 3-5 csillagig) promóció kiküldése kezelése ? (ig
+         * megvan??? clarify please hogy mi kell ezen belul)
          */
-        
         JSONObject result = new JSONObject();
 
         JSONObject viewsAndVisitors = layer.getPageViewsAndUniqueVisitors(days);
@@ -143,14 +141,43 @@ public class AnaliticsController {
             }
         }
         result.put("allDeliveredOrders", deliveredOrders);
-        
+
         result.put("allRegisteredUserCount", allUsers.toArray().length);
-        
-        //ToDo: OrderItems CRUD (getAllOrderItems)
-        result.put("mostPurchasedPart", "");
 
-        
+        ArrayList<OrderItems> allOrderItems = OrderItems.getAllOrderItems();
 
+        HashMap<Integer, Integer> mostPurchasedPart = new HashMap<Integer, Integer>();
+
+        //feltöltjük a mostPurchasedPart hashmapet
+        for (OrderItems orderItem : allOrderItems) {
+            Integer partId = orderItem.getPartId().getId();
+            Integer quantity = orderItem.getQuantity();
+
+            if (mostPurchasedPart.containsKey(partId)) {
+                mostPurchasedPart.put(partId, mostPurchasedPart.get(partId) + quantity);
+            } else {
+                mostPurchasedPart.put(partId, quantity);
+            }
+        }
+        //System.out.println("mostpurchasedpart.get1 " +mostPurchasedPart.get(2));
+        
+        List<Map.Entry<Integer, Integer>> sortedList = new ArrayList<>(mostPurchasedPart.entrySet());
+        sortedList.sort((a,b) -> b.getValue().compareTo(a.getValue()));
+        
+        JSONArray top10 = new JSONArray();
+        int limit = Math.min(10, sortedList.size());
+        for (int i = 0; i < limit; i++) {
+            JSONObject item = new JSONObject();
+            item.put("partName", Parts.getPartsById(sortedList.get(i).getKey()).getName());
+            item.put("quantity", sortedList.get(i).getValue());
+            //System.out.println("partName" + Parts.getPartsById(sortedList.get(i).getKey()).getName());
+            //System.out.println("quantity" + sortedList.get(i).getValue());
+            top10.put(item);
+        }
+        //System.out.println("top10 " + top10);
+        result.put("mostPurchasedPart", top10);
+
+        //ToDo: mostsearched part
         JSONObject successResponse = new JSONObject();
         successResponse.put("result", result);
         successResponse.put("status", "success");
@@ -160,5 +187,9 @@ public class AnaliticsController {
                 .entity(successResponse.toString())
                 .type(MediaType.APPLICATION_JSON)
                 .build();
+    }
+
+    private void HashMap() {
+        throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
     }
 }

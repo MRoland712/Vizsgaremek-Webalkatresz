@@ -29,7 +29,7 @@ public class UserTwofaService {
             errors.put("MissingEmail");
         }
 
-        if (!userTwofaAuth.isValidEmail(email)) {
+        if (!userTwofaAuth.isValidEmail(email) && !userTwofaAuth.isDataMissing(email)) {
             errors.put("InvalidEmail");
         }
 

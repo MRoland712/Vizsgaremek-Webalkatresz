@@ -12,6 +12,7 @@ M:\Projektek\vizsgaremekes cuccok\Vizsgaremek-projekt\vizsgaremek\src\main\java\
 M:\Projektek\vizsgaremekes cuccok\Vizsgaremek-projekt\vizsgaremek\src\main\java\com\mycompany\vizsgaremek\controller\PartVariantsController.java
 M:\Projektek\vizsgaremekes cuccok\Vizsgaremek-projekt\vizsgaremek\src\main\java\com\mycompany\vizsgaremek\model\Manufacturers.java
 M:\Projektek\vizsgaremekes cuccok\Vizsgaremek-projekt\vizsgaremek\src\main\java\com\mycompany\vizsgaremek\service\CarsService.java
+M:\Projektek\vizsgaremekes cuccok\Vizsgaremek-projekt\vizsgaremek\src\main\java\com\mycompany\vizsgaremek\controller\OrderItemsController.java
 M:\Projektek\vizsgaremekes cuccok\Vizsgaremek-projekt\vizsgaremek\src\main\java\com\mycompany\vizsgaremek\model\OrderLogs.java
 M:\Projektek\vizsgaremekes cuccok\Vizsgaremek-projekt\vizsgaremek\src\main\java\com\mycompany\vizsgaremek\service\ManufacturersService.java
 M:\Projektek\vizsgaremekes cuccok\Vizsgaremek-projekt\vizsgaremek\src\main\java\com\mycompany\vizsgaremek\controller\AddressesController.java
@@ -71,5 +72,6 @@ M:\Projektek\vizsgaremekes cuccok\Vizsgaremek-projekt\vizsgaremek\src\main\java\
 M:\Projektek\vizsgaremekes cuccok\Vizsgaremek-projekt\vizsgaremek\src\main\java\com\mycompany\vizsgaremek\model\Parts.java
 M:\Projektek\vizsgaremekes cuccok\Vizsgaremek-projekt\vizsgaremek\src\main\java\com\mycompany\vizsgaremek\model\Addresses.java
 M:\Projektek\vizsgaremekes cuccok\Vizsgaremek-projekt\vizsgaremek\src\main\java\com\mycompany\vizsgaremek\config\TFA.java
+M:\Projektek\vizsgaremekes cuccok\Vizsgaremek-projekt\vizsgaremek\src\main\java\com\mycompany\vizsgaremek\service\orderItemsService.java
 M:\Projektek\vizsgaremekes cuccok\Vizsgaremek-projekt\vizsgaremek\src\main\java\com\mycompany\vizsgaremek\controller\AnaliticsController.java
 M:\Projektek\vizsgaremekes cuccok\Vizsgaremek-projekt\vizsgaremek\src\main\java\com\mycompany\vizsgaremek\config\KvFetcher.java

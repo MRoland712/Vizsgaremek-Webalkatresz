@@ -131,8 +131,6 @@ public class TFAController {
                     .type(MediaType.APPLICATION_JSON)
                     .build();
         }
-        //ToDo: getTwoFaSecret
-        String isValid;
 
         Users userData = Users.getUserByEmail(bodyObject.getString("email"));
 
@@ -144,15 +142,34 @@ public class TFAController {
                     .type(MediaType.APPLICATION_JSON)
                     .build();
         }
+        
+        UserTwofa UserTwofaData = UserTwofa.getUserTwofaByUserId(userData.getId());
+        
+        if (UserTwofaData == null) {
+            errors.put("UserTwofaNotFound");
 
-        if (TFA.validateCode(UserTwofa.getUserTwofaByUserId(userData.getId()).getTwofaSecret(), bodyObject.getString("code"))) {
+            return Response.status(404)
+                    .entity(errorAuth.createErrorResponse(errors, 404).toString())
+                    .type(MediaType.APPLICATION_JSON)
+                    .build();
+        }
+
+        String isValid;
+        
+        if (TFA.validateCode(UserTwofaData.getTwofaSecret(), bodyObject.getString("code"))) {
             isValid = "valid";
         } else {
             isValid = "invalid";
         }
-
+        
+        toReturn.put("result", isValid);
+        toReturn.put("statusCode", 200);
+        toReturn.put("status", "success");
+        
+        System.out.println("result: " + toReturn.toString());
+        
         return Response.status(200)
-                .entity(errorAuth.createOKResponse(isValid).toString())
+                .entity(toReturn.toString())
                 .type(MediaType.APPLICATION_JSON)
                 .build();
     }

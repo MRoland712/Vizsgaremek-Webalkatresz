@@ -4,7 +4,10 @@
  */
 package com.mycompany.vizsgaremek.service;
 
+import com.mycompany.vizsgaremek.model.OrderItems;
 import com.mycompany.vizsgaremek.model.Orders;
+import com.mycompany.vizsgaremek.model.Users;
+import com.mycompany.vizsgaremek.model.Parts;
 import java.util.ArrayList;
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -57,6 +60,68 @@ public class OrdersService {
         } else {
             JSONObject error = new JSONObject();
             error.put("message", "Orders Creation Failed");
+            error.put("statusCode", 500);
+            error.put("success", false);
+            return error;
+        }
+
+    }
+    
+    public JSONObject createOrderWithItemsService(OrderItems createOrders, Integer userId) {
+        JSONObject toReturn = new JSONObject();
+        JSONArray errors = new JSONArray();
+
+        // VALIDÁCIÓK...
+        if (ordersAuth.isDataMissing(userId)) {
+            errors.put("MissingUserId");
+        }
+        
+        if (ordersAuth.isDataMissing(createOrders.getPartId().getId())) {
+            errors.put("MissingPartId");
+        }
+        
+        if (ordersAuth.isDataMissing(createOrders.getQuantity())) {
+            errors.put("MissingQuantity");
+        }
+
+        if (!ordersAuth.isDataMissing(userId) && !ordersAuth.isValidUserId(userId)) {
+            errors.put("InvalidUserId");
+        }
+
+        if (!ordersAuth.isDataMissing(createOrders.getPartId().getId()) && !ordersAuth.isValidPartId(createOrders.getPartId().getId())) {
+            errors.put("InvalidPartId");
+        }
+        
+        if (!ordersAuth.isDataMissing(createOrders.getQuantity()) && !ordersAuth.isValidQuantity(createOrders.getQuantity())) {
+            errors.put("InvalidQuantity");
+        }
+
+        if (errorAuth.hasErrors(errors)) {
+            return errorAuth.createErrorResponse(errors, 400);
+        }
+        
+        if (Users.getUserById(userId) == null) {
+            errors.put("UserNotFound");
+        }
+        
+        if (Parts.getPartsById(createOrders.getPartId().getId()) == null) {
+            errors.put("PartNotFound");
+        }
+        
+        if (errorAuth.hasErrors(errors)) {
+            return errorAuth.createErrorResponse(errors, 404);
+        }
+        
+
+        // MODEL HÍVÁS
+        if (Orders.createOrderWithItem(createOrders, userId)) {
+            toReturn.put("message", "Order with Items Created Successfully");
+            toReturn.put("statusCode", 201);
+            toReturn.put("success", true);
+            return toReturn;
+        } else {
+            JSONObject error = new JSONObject();
+            error.put("message", "Order with Items Creation Failed");
             error.put("statusCode", 500);
             error.put("success", false);
             return error;
