@@ -1,5 +1,6 @@
 import { Component, inject, OnInit, signal, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { ActivatedRoute } from '@angular/router';
 import { forkJoin } from 'rxjs';
 import { PartsModel } from '../models/parts.model';
 import { GetallpartsService } from '../services/getallparts.service';
@@ -16,15 +17,17 @@ import { FilterService } from '../services/filter.service';
   styleUrls: ['./filter.component.css'],
 })
 export class Filter implements OnInit {
+  private route = inject(ActivatedRoute);
   filterServiceParts = inject(GetallpartsService);
   filterServiceManufacturers = inject(GetallmanufacturersService);
   filterService = inject(FilterService);
 
   allManufacturers = signal<ManufacturersModel[]>([]);
   allParts = signal<PartsModel[]>([]);
+  currentCategory = signal<string>('');
 
-  categoriesExpanded = signal(true);
-  allManufacturersExpanded = signal(true);
+  categoriesExpanded = signal(false);
+  allManufacturersExpanded = signal(false);
   categorySectionsExpanded = signal<Record<string, boolean>>({});
 
   uniqueCategories = computed(() => {
@@ -67,45 +70,115 @@ export class Filter implements OnInit {
     return result;
   });
 
-  // ⭐ Csak nem üres kategória szekciók
+  // ⭐ Ha VAN URL kategória → csak az, ha NINCS → minden
   categoriesWithManufacturers = computed(() => {
     const manufacturers = this.manufacturersByCategory();
-    const filtered = this.uniqueCategories().filter((cat) => {
+    const currentCat = this.currentCategory();
+
+    let categories = this.uniqueCategories();
+
+    // ⭐ Ha van URL kategória, csak azt mutasd
+    if (currentCat) {
+      categories = categories.filter((cat) => {
+        const normalized = this.normalizeCategory(cat);
+        return normalized === currentCat.toLowerCase();
+      });
+    }
+
+    // Csak ahol van márka
+    return categories.filter((cat) => {
       const mfrs = manufacturers[cat];
-      const hasManufacturers = mfrs && mfrs.size > 0;
-      console.log(`📊 ${cat}: ${hasManufacturers ? mfrs.size : 0} gyártó`);
-      return hasManufacturers;
+      return mfrs && mfrs.size > 0;
     });
-    console.log('✅ Kategóriák gyártókkal:', filtered);
-    return filtered;
   });
 
   ngOnInit(): void {
-    this.loadData();
+    this.route.params.subscribe((params) => {
+      const category = params['category'] || '';
+      const previousCategory = this.currentCategory();
+
+      // Ha változott a kategória
+      if (category !== previousCategory) {
+        this.currentCategory.set(category);
+
+        // Várjuk meg amíg az adatok betöltődnek
+        if (this.allParts().length === 0) {
+          this.loadData().then(() => {
+            this.autoSelectCategory(category);
+          });
+        } else {
+          this.autoSelectCategory(category);
+        }
+      }
+    });
   }
 
-  loadData() {
-    forkJoin({
-      parts: this.filterServiceParts.getAllParts(),
-      manufacturers: this.filterServiceManufacturers.getAllManufacturers(),
-    }).subscribe({
-      next: ({ parts, manufacturers }) => {
-        this.allParts.set(parts.parts);
-        this.allManufacturers.set(manufacturers.Manufacturers);
+  async loadData(): Promise<void> {
+    return new Promise((resolve) => {
+      forkJoin({
+        parts: this.filterServiceParts.getAllParts(),
+        manufacturers: this.filterServiceManufacturers.getAllManufacturers(),
+      }).subscribe({
+        next: ({ parts, manufacturers }) => {
+          this.allParts.set(parts.parts);
+          this.allManufacturers.set(manufacturers.Manufacturers);
 
-        // Initialize category sections expanded state
-        const expandedState: Record<string, boolean> = {};
-        this.uniqueCategories().forEach((cat) => {
-          expandedState[cat] = true;
-        });
-        this.categorySectionsExpanded.set(expandedState);
+          const expandedState: Record<string, boolean> = {};
+          this.uniqueCategories().forEach((cat) => {
+            expandedState[cat] = false;
+          });
+          this.categorySectionsExpanded.set(expandedState);
 
-        console.log('✅ Filter data loaded');
-      },
-      error: (err) => {
-        console.error('❌ Filter load error:', err);
-      },
+          console.log('✅ Filter data loaded');
+          resolve();
+        },
+        error: (err) => {
+          console.error('❌ Filter load error:', err);
+          resolve();
+        },
+      });
     });
+  }
+
+  // ⭐ Automatikus kategória kiválasztás
+  private autoSelectCategory(urlCategory: string) {
+    console.log('🔍 autoSelectCategory meghívva:', urlCategory);
+
+    if (!urlCategory) {
+      console.log('❌ Nincs URL kategória - filterek törlése');
+      this.filterService.clearFilters();
+      return;
+    }
+
+    const categories = this.uniqueCategories();
+    console.log('📋 Elérhető kategóriák:', categories);
+
+    // ⭐ Normalizált összehasonlítás
+    const category = categories.find((cat) => {
+      const normalized = this.normalizeCategory(cat);
+      console.log(
+        `  "${cat}" → "${normalized}" === "${urlCategory}"? ${normalized === urlCategory.toLowerCase()}`,
+      );
+      return normalized === urlCategory.toLowerCase();
+    });
+
+    if (category) {
+      console.log('✅ Kategória MEGTALÁLVA:', category);
+      this.filterService.clearFilters();
+      this.filterService.toggleCategory(category);
+      console.log('✅ Auto-selected:', category);
+    } else {
+      console.warn('❌ Kategória NEM található:', urlCategory);
+    }
+  }
+
+  // ⭐ Normalizálás (ugyanaz mint filter-card-ban)
+  private normalizeCategory(category: string): string {
+    return category
+      .toLowerCase()
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '')
+      .replace(/\s+/g, '-');
   }
 
   toggleCategories() {
@@ -137,19 +210,6 @@ export class Filter implements OnInit {
 
   isManufacturerSelected(manufacturerId: number): boolean {
     return this.filterService.isManufacturerSelected(manufacturerId);
-  }
-
-  shouldShowCategoriesCollapse(): boolean {
-    return this.uniqueCategories().length > 10;
-  }
-
-  shouldShowAllManufacturersCollapse(): boolean {
-    return this.uniqueManufacturers().length > 10;
-  }
-
-  shouldShowCategorySectionCollapse(category: string): boolean {
-    const manufacturers = this.manufacturersByCategory()[category];
-    return manufacturers ? manufacturers.size > 10 : false;
   }
 
   getManufacturersForCategory(category: string): ManufacturersModel[] {

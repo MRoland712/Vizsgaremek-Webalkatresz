@@ -1,11 +1,13 @@
-import { Injectable, signal } from '@angular/core';
+import { inject, Injectable, signal } from '@angular/core';
 import { Router } from '@angular/router';
 import { first } from 'rxjs';
+import { JWTValidateService } from './jwtvalidate.service';
 
 @Injectable({
   providedIn: 'root',
 })
 export class AuthService {
+  JWTValidatorService = inject(JWTValidateService);
   private _isLoggedIn = signal(false);
   private _userEmail = signal('');
   private _userName = signal('');
@@ -111,13 +113,6 @@ export class AuthService {
     if (phone) {
       this._phone.set(phone);
     }
-
-    console.log('🔄 Signals után:');
-    console.log('  userName():', this._userName());
-    console.log('  userEmail():', this._userEmail());
-    console.log('  userFirstName():', this.userFirstName());
-    console.log('  userLastName():', this.userLastName());
-    console.log('  userPhone():', this.userPhone());
   }
 
   setLoggedIn(
@@ -140,7 +135,6 @@ export class AuthService {
     if (userName !== undefined && userName !== '') {
       this._userName.set(userName);
       localStorage.setItem('userName', userName);
-      console.log('✅ userName mentve:', userName);
     }
 
     // FirstName mentése

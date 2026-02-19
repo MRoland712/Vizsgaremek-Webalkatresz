@@ -7,15 +7,14 @@
   <div class="filter-section">
     <div class="filter-header">
       <h3 class="filter-title">Összes Alkatrész</h3>
-      @if (shouldShowCategoriesCollapse()) {
-        <button class="collapse-btn" (click)="toggleCategories()">
-          <i
-            class="fa-solid"
-            [class.fa-chevron-up]="categoriesExpanded()"
-            [class.fa-chevron-down]="!categoriesExpanded()"
-          ></i>
-        </button>
-      }
+      <!-- ⭐ Mindig van collapse gomb -->
+      <button class="collapse-btn" (click)="toggleCategories()">
+        <i
+          class="fa-solid"
+          [class.fa-chevron-up]="categoriesExpanded()"
+          [class.fa-chevron-down]="!categoriesExpanded()"
+        ></i>
+      </button>
     </div>
     <hr />
 
@@ -45,15 +44,14 @@
   <div class="filter-section">
     <div class="filter-header">
       <h3 class="filter-title">Összes Márka</h3>
-      @if (shouldShowAllManufacturersCollapse()) {
-        <button class="collapse-btn" (click)="toggleAllManufacturers()">
-          <i
-            class="fa-solid"
-            [class.fa-chevron-up]="allManufacturersExpanded()"
-            [class.fa-chevron-down]="!allManufacturersExpanded()"
-          ></i>
-        </button>
-      }
+      <!-- ⭐ Mindig van collapse gomb -->
+      <button class="collapse-btn" (click)="toggleAllManufacturers()">
+        <i
+          class="fa-solid"
+          [class.fa-chevron-up]="allManufacturersExpanded()"
+          [class.fa-chevron-down]="!allManufacturersExpanded()"
+        ></i>
+      </button>
     </div>
     <hr />
 
@@ -78,21 +76,20 @@
   </div>
 
   <!-- ==========================================
-       ⭐ KATEGÓRIA SZEKCIÓK (márkák alattuk)
+       ⭐ KATEGÓRIA SZEKCIÓK (csak ahol van márka)
        ========================================== -->
-  @for (category of uniqueCategories(); track category) {
+  @for (category of categoriesWithManufacturers(); track category) {
     <div class="filter-section category-section">
       <div class="filter-header">
         <h3 class="filter-title">{{ category }}</h3>
-        @if (shouldShowCategorySectionCollapse(category)) {
-          <button class="collapse-btn" (click)="toggleCategorySection(category)">
-            <i
-              class="fa-solid"
-              [class.fa-chevron-up]="categorySectionsExpanded()[category]"
-              [class.fa-chevron-down]="!categorySectionsExpanded()[category]"
-            ></i>
-          </button>
-        }
+        <!-- ⭐ Mindig van collapse gomb -->
+        <button class="collapse-btn" (click)="toggleCategorySection(category)">
+          <i
+            class="fa-solid"
+            [class.fa-chevron-up]="categorySectionsExpanded()[category]"
+            [class.fa-chevron-down]="!categorySectionsExpanded()[category]"
+          ></i>
+        </button>
       </div>
       <hr />
 

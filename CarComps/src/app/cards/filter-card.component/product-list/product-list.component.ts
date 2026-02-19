@@ -27,11 +27,11 @@ export class ProductListComponent implements OnInit {
   isLoading = signal(true);
   currentCategory = signal<string>('');
 
-  // ⭐ Filter prioritás: ha van aktív filter, az URL kategória nem számít
+  // ⭐ Szűrt termékek
   filteredProducts = computed(() => {
     let products = this.allProducts();
 
-    // Ha van aktív FilterService szűrő, az felülírja az URL kategóriát
+    // ⭐ Ha VAN aktív filter → filter alapján
     if (this.filterService.hasActiveFilters()) {
       products = products.filter((p) =>
         this.filterService.matchesFilters({
@@ -39,13 +39,8 @@ export class ProductListComponent implements OnInit {
           manufacturerId: p.manufacturerId,
         }),
       );
-    } else {
-      // Csak akkor használja az URL kategóriát, ha NINCS aktív filter
-      const category = this.currentCategory();
-      if (category) {
-        products = products.filter((p) => p.category.toLowerCase() === category.toLowerCase());
-      }
     }
+    // ⭐ Ha NINCS filter → MINDEN TERMÉK (URL nem számít)
 
     return products;
   });
@@ -68,6 +63,15 @@ export class ProductListComponent implements OnInit {
 
       this.loadPartCategories();
     });
+
+    // ⭐ Figyeld a filter változásokat
+    this.monitorFilterChanges();
+  }
+
+  // ⭐ Ha minden filter ki van pipálva, navigálj vissza "minden termék"-re
+  private monitorFilterChanges() {
+    // TODO: Ha kell, implementáld később
+    // Egyelőre maradjon az URL ahol van
   }
 
   loadPartCategories() {

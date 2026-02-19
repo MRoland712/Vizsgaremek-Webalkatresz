@@ -4,7 +4,16 @@
       <li class="breadcrumb-item">
         @if ($index === breadcrumbs.length - 1) {
           <!-- Utolsó elem - nem klikkelhetõ -->
-          <span class="breadcrumb-current">{{ breadcrumb.label }}</span>
+          <span class="breadcrumb-current">
+            {{ breadcrumb.label }}
+            <!-- ⭐ Filter badge az utolsó elemen -->
+            @if (hasActiveFilters) {
+              <span class="filter-badge" title="Aktív szűrők: {{ activeFilterCount }}">
+                <i class="fa-solid fa-filter"></i>
+                {{ activeFilterCount }}
+              </span>
+            }
+          </span>
         } @else {
           <!-- Klikkelhetõ link -->
           <a [routerLink]="breadcrumb.url" class="breadcrumb-link">
