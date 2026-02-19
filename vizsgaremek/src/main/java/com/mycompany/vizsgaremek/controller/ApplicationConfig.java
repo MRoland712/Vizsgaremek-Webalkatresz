@@ -26,15 +26,20 @@ public class ApplicationConfig extends Application {
     private void addRestResourceClasses(Set<Class<?>> resources) {
         resources.add(com.mycompany.vizsgaremek.config.CorsFilter.class);
         resources.add(com.mycompany.vizsgaremek.controller.AddressesController.class);
+        resources.add(com.mycompany.vizsgaremek.controller.AnaliticsController.class);
         resources.add(com.mycompany.vizsgaremek.controller.CarsController.class);
+        resources.add(com.mycompany.vizsgaremek.controller.CartItemsController.class);
+        resources.add(com.mycompany.vizsgaremek.controller.InvoicesController.class);
         resources.add(com.mycompany.vizsgaremek.controller.JWTController.class);
         resources.add(com.mycompany.vizsgaremek.controller.ManufacturersController.class);
         resources.add(com.mycompany.vizsgaremek.controller.MotorsController.class);
         resources.add(com.mycompany.vizsgaremek.controller.OTPController.class);
+        resources.add(com.mycompany.vizsgaremek.controller.OrderItemsController.class);
         resources.add(com.mycompany.vizsgaremek.controller.OrdersController.class);
         resources.add(com.mycompany.vizsgaremek.controller.PartImagesController.class);
         resources.add(com.mycompany.vizsgaremek.controller.PartVariantsController.class);
         resources.add(com.mycompany.vizsgaremek.controller.PartsController.class);
+        resources.add(com.mycompany.vizsgaremek.controller.PaymentsController.class);
         resources.add(com.mycompany.vizsgaremek.controller.ReviewsController.class);
         resources.add(com.mycompany.vizsgaremek.controller.SendEmailController.class);
         resources.add(com.mycompany.vizsgaremek.controller.StaticResourceController.class);

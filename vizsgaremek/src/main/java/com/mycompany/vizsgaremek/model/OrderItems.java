@@ -4,12 +4,18 @@
  */
 package com.mycompany.vizsgaremek.model;
 
+
 import java.io.Serializable;
 import java.math.BigDecimal;
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 import javax.persistence.Basic;
 import javax.persistence.Column;
 import javax.persistence.Entity;
+import javax.persistence.EntityManager;
+import javax.persistence.EntityManagerFactory;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
@@ -17,6 +23,9 @@ import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 import javax.persistence.NamedQueries;
 import javax.persistence.NamedQuery;
+import javax.persistence.ParameterMode;
+import javax.persistence.Persistence;
+import javax.persistence.StoredProcedureQuery;
 import javax.persistence.Table;
 import javax.persistence.Temporal;
 import javax.persistence.TemporalType;
@@ -65,6 +74,25 @@ public class OrderItems implements Serializable {
     @ManyToOne(optional = false)
     private Parts partId;
 
+    static EntityManagerFactory emf = Persistence.createEntityManagerFactory("com.mycompany_vizsgaremek_war_1.0-SNAPSHOTPU");
+    public static SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+
+    public OrderItems(Integer quantity, Parts partId) {
+        this.quantity = quantity;
+        this.partId = partId;
+    }
+
+    public OrderItems(Integer id, Integer quantity, BigDecimal price, Date createdAt, Boolean isDeleted, Date deletedAt, Orders orderId, Parts partId) {
+        this.id = id;
+        this.quantity = quantity;
+        this.price = price;
+        this.createdAt = createdAt;
+        this.isDeleted = isDeleted;
+        this.deletedAt = deletedAt;
+        this.orderId = orderId;
+        this.partId = partId;
+    }
+    
     public OrderItems() {
     }
 
@@ -136,6 +164,24 @@ public class OrderItems implements Serializable {
         this.partId = partId;
     }
 
+    public OrderItems(Integer id, Integer quantity, BigDecimal price, Date createdAt, Boolean isDeleted, Date deletedAt, Orders orderId, Parts partId) {
+        this.id = id;
+        this.quantity = quantity;
+        this.price = price;
+        this.createdAt = createdAt;
+        this.isDeleted = isDeleted;
+        this.deletedAt = deletedAt;
+        this.orderId = orderId;
+        this.partId = partId;
+    }
+
+    public OrderItems(Integer quantity, BigDecimal price, Orders orderId, Parts partId) {
+        this.quantity = quantity;
+        this.price = price;
+        this.orderId = orderId;
+        this.partId = partId;
+    }
+
     @Override
     public int hashCode() {
         int hash = 0;
@@ -161,4 +207,315 @@ public class OrderItems implements Serializable {
         return "com.mycompany.vizsgaremek.model.OrderItems[ id=" + id + " ]";
     }
     
+    public static ArrayList<OrderItems> getAllOrderItemsAdmin() {
+        EntityManager em = emf.createEntityManager();
+
+        try {
+            //eljárást meghívjuk
+            StoredProcedureQuery spq = em.createStoredProcedureQuery("getAllOrderItemsAdmin");
+            spq.execute();
+
+            //Amit visszakap információt berakni egy Object[] list-be
+            List<Object[]> resultList = spq.getResultList();
+
+            ArrayList<OrderItems> toReturn = new ArrayList();
+            
+            for (Object[] record : resultList) {
+                
+                System.out.println("records: "
+                        +"record0 " + (record[0] != null ? record[0].toString() : null)
+                        +"record1 " + (record[1] != null ? record[1].toString() : null)
+                        +"record2 " + (record[2] != null ? record[2].toString() : null)
+                        +"record3 " + (record[3] != null ? record[3].toString() : null)
+                        +"record4 " + (record[4] != null ? record[4].toString() : null)
+                        +"record5 " + (record[5] != null ? record[5].toString() : null)
+                        +"record6 " + (record[6] != null ? record[6].toString() : null)
+                        +"record7 " + (record[7] != null ? record[7].toString() : null)
+                        );
+                
+                Orders order = new Orders();
+                order.setId(Integer.valueOf(record[6].toString()));
+                
+                Parts part = new Parts();
+                part.setId(Integer.valueOf(record[7].toString()));
+                
+                OrderItems o = new OrderItems(
+                        Integer.valueOf(record[0].toString()), // id
+                        Integer.valueOf(record[1].toString()), // quantity
+                        new BigDecimal(record[2].toString()), // Price
+                        formatter.parse(record[3].toString()), // createdAt
+                        Boolean.valueOf(record[4].toString()), // isDeleted
+                        record[5] == null ? null : formatter.parse(record[5].toString()), // deletedAt
+                        order,
+                        part
+                );
+                        
+
+                toReturn.add(o);
+            }
+            return toReturn;
+        } catch (Exception ex) {
+            if (em.getTransaction().isActive()) {
+                em.getTransaction().rollback(); // Ha hiba van, rollback
+            }
+            ex.printStackTrace();
+            return null;
+        } finally {
+            em.clear();
+            em.close();
+        }}
+
+    public static Boolean createOrderItems(OrderItems createdOrderItems) {
+        EntityManager em = emf.createEntityManager();
+        try {
+            StoredProcedureQuery spq = em.createStoredProcedureQuery("createOrderItems");
+
+            spq.registerStoredProcedureParameter("orderIdIN", Integer.class, ParameterMode.IN);
+            spq.registerStoredProcedureParameter("partIdIN", Integer.class, ParameterMode.IN);
+            spq.registerStoredProcedureParameter("quantityIN", Integer.class, ParameterMode.IN);
+            spq.registerStoredProcedureParameter("priceIN", BigDecimal.class, ParameterMode.IN);
+
+            spq.setParameter("orderIdIN", createdOrderItems.getOrderId().getId());
+            spq.setParameter("partIdIN", createdOrderItems.getPartId().getId());
+            spq.setParameter("quantityIN", createdOrderItems.getQuantity());
+            spq.setParameter("priceIN", createdOrderItems.getPrice());
+
+            spq.execute();
+
+            return true;
+
+        } catch (Exception ex) {
+            ex.printStackTrace();
+            return false;
+        } finally {
+            em.close();
+        }
+    }
+
+    public static ArrayList<OrderItems> getAllOrderItems() {
+        EntityManager em = emf.createEntityManager();
+        try {
+            StoredProcedureQuery spq = em.createStoredProcedureQuery("getAllOrderItems");
+            spq.execute();
+
+            List<Object[]> resultList = spq.getResultList();
+
+            if (resultList == null || resultList.isEmpty()) {
+                return null;
+            }
+
+            ArrayList<OrderItems> toReturn = new ArrayList<>();
+
+            for (Object[] record : resultList) {
+                Orders order = new Orders();
+                order.setId(Integer.valueOf(record[1].toString()));
+
+                Parts part = new Parts();
+                part.setId(Integer.valueOf(record[2].toString()));
+
+                OrderItems oI = new OrderItems(
+                        Integer.valueOf(record[0].toString()),
+                        record[3] == null ? null : Integer.valueOf(record[3].toString()),
+                        record[4] == null ? null : new BigDecimal(record[4].toString()),
+                        record[5] == null ? null : formatter.parse(record[5].toString()),
+                        record[6] != null && Boolean.parseBoolean(record[6].toString()),
+                        record[7] == null ? null : formatter.parse(record[7].toString()),
+                        order,
+                        part
+                );
+                toReturn.add(oI);
+            }
+            return toReturn;
+        } catch (Exception ex) {
+            ex.printStackTrace();
+            return null;
+        } finally {
+            em.close();
+        }
+    }
+
+    public static OrderItems getOrderItemById(Integer id) {
+        EntityManager em = emf.createEntityManager();
+        try {
+            StoredProcedureQuery spq = em.createStoredProcedureQuery("getOrderItemById");
+            spq.registerStoredProcedureParameter("idIN", Integer.class, ParameterMode.IN);
+            spq.setParameter("idIN", id);
+            spq.execute();
+
+            List<Object[]> resultList = spq.getResultList();
+
+            if (resultList == null || resultList.isEmpty()) {
+                return null;
+            }
+
+            Object[] record = resultList.get(0);
+
+            Orders order = new Orders();
+            order.setId(Integer.valueOf(record[1].toString()));
+
+            Parts part = new Parts();
+            part.setId(Integer.valueOf(record[2].toString()));
+
+            OrderItems oI = new OrderItems(
+                    Integer.valueOf(record[0].toString()),
+                    record[3] == null ? null : Integer.valueOf(record[3].toString()),
+                    record[4] == null ? null : new BigDecimal(record[4].toString()),
+                    record[5] == null ? null : formatter.parse(record[5].toString()),
+                    record[6] != null && Boolean.parseBoolean(record[6].toString()),
+                    record[7] == null ? null : formatter.parse(record[7].toString()),
+                    order,
+                    part
+            );
+
+            return oI;
+        } catch (Exception ex) {
+            ex.printStackTrace();
+            return null;
+        } finally {
+            em.close();
+        }
+    }
+
+    public static Boolean softDeleteOrderItem(Integer id) {
+        EntityManager em = emf.createEntityManager();
+        try {
+            em.getTransaction().begin();
+
+            StoredProcedureQuery spq = em.createStoredProcedureQuery("softDeleteOrderItem");
+            spq.registerStoredProcedureParameter("idIN", Integer.class, ParameterMode.IN);
+            spq.setParameter("idIN", id);
+
+            spq.execute();
+            em.getTransaction().commit();
+
+            return true;
+        } catch (Exception e) {
+            if (em.getTransaction().isActive()) {
+                em.getTransaction().rollback();
+            }
+            e.printStackTrace();
+            return false;
+        } finally {
+            em.close();
+        }
+    }
+
+    public static Boolean updateOrderItem(OrderItems updatedOrderItem) {
+        EntityManager em = emf.createEntityManager();
+
+        try {
+            em.getTransaction().begin();
+            StoredProcedureQuery spq = em.createStoredProcedureQuery("updateOrderItem");
+
+            spq.registerStoredProcedureParameter("idIN", Integer.class, ParameterMode.IN);
+            spq.registerStoredProcedureParameter("orderIdIN", Integer.class, ParameterMode.IN);
+            spq.registerStoredProcedureParameter("partIdIN", Integer.class, ParameterMode.IN);
+            spq.registerStoredProcedureParameter("quantityIN", Integer.class, ParameterMode.IN);
+            spq.registerStoredProcedureParameter("priceIN", BigDecimal.class, ParameterMode.IN);
+            spq.registerStoredProcedureParameter("isDeletedIN", Integer.class, ParameterMode.IN);
+
+            spq.setParameter("idIN", updatedOrderItem.getId());
+            spq.setParameter("orderIdIN", updatedOrderItem.getOrderId().getId());
+            spq.setParameter("partIdIN", updatedOrderItem.getPartId().getId());
+            spq.setParameter("quantityIN", updatedOrderItem.getQuantity());
+            spq.setParameter("priceIN", updatedOrderItem.getPrice());
+            spq.setParameter("isDeletedIN", Boolean.TRUE.equals(updatedOrderItem.getIsDeleted()) ? 1 : 0);
+
+            spq.execute();
+
+            em.getTransaction().commit();
+
+            return true;
+
+        } catch (Exception ex) {
+            if (em.getTransaction().isActive()) {
+                em.getTransaction().rollback();
+            }
+            ex.printStackTrace();
+            return false;
+        } finally {
+            em.clear();
+            em.close();
+        }
+    }
+
+    public static ArrayList<OrderItems> getOrderItemsByOrderId(Integer orderId) {
+        EntityManager em = emf.createEntityManager();
+        try {
+            StoredProcedureQuery spq = em.createStoredProcedureQuery("getOrderItemsByOrderId");
+            spq.registerStoredProcedureParameter("orderId", Integer.class, ParameterMode.IN);
+            spq.setParameter("orderId", orderId);
+            spq.execute();
+
+            List<Object[]> resultList = spq.getResultList();
+            ArrayList<OrderItems> toReturn = new ArrayList();
+
+            for (Object[] record : resultList) {
+                Orders order = new Orders();
+                order.setId(Integer.valueOf(record[1].toString()));
+
+                Parts part = new Parts();
+                part.setId(Integer.valueOf(record[2].toString()));
+
+                OrderItems i = new OrderItems(
+                        Integer.valueOf(record[0].toString()), // id
+                        record[3] == null ? null : Integer.valueOf(record[3].toString()), // quantity 
+                        record[4] == null ? null : new BigDecimal(record[4].toString()), // price BigDecimal
+                        record[5] == null ? null : formatter.parse(record[5].toString()), // created_at 
+                        record[6] != null && Boolean.parseBoolean(record[6].toString()), // is_deleted 
+                        record[7] == null ? null : formatter.parse(record[7].toString()), // deleted_at 
+                        order,
+                        part
+                );
+
+                toReturn.add(i);
+            }
+            return toReturn;
+        } catch (Exception ex) {
+            ex.printStackTrace();
+            return null;
+        } finally {
+            em.close();
+        }
+    }
+
+    public static ArrayList<OrderItems> getOrderItemsByPartId(Integer partId) {
+        EntityManager em = emf.createEntityManager();
+        try {
+            StoredProcedureQuery spq = em.createStoredProcedureQuery("getOrderItemsByPartId");
+            spq.registerStoredProcedureParameter("partId", Integer.class, ParameterMode.IN);
+            spq.setParameter("partId", partId);
+            spq.execute();
+
+            List<Object[]> resultList = spq.getResultList();
+            ArrayList<OrderItems> toReturn = new ArrayList();
+
+            for (Object[] record : resultList) {
+                Orders order = new Orders();
+                order.setId(Integer.valueOf(record[1].toString()));
+
+                Parts part = new Parts();
+                part.setId(Integer.valueOf(record[2].toString()));
+
+                OrderItems i = new OrderItems(
+                        Integer.valueOf(record[0].toString()), // id
+                        record[3] == null ? null : Integer.valueOf(record[3].toString()), // quantity 
+                        record[4] == null ? null : new BigDecimal(record[4].toString()), // price BigDecimal
+                        record[5] == null ? null : formatter.parse(record[5].toString()), // created_at 
+                        record[6] != null && Boolean.parseBoolean(record[6].toString()), // is_deleted 
+                        record[7] == null ? null : formatter.parse(record[7].toString()), // deleted_at 
+                        order,
+                        part
+                );
+
+                toReturn.add(i);
+            }
+            return toReturn;
+        } catch (Exception ex) {
+            ex.printStackTrace();
+            return null;
+        } finally {
+        }
+    }
+
 }

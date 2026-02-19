@@ -111,8 +111,9 @@ public class UsersController {
     @GET
     @Path("getUserByEmail")
     @Consumes(MediaType.APPLICATION_JSON)
-    public Response getUserByEmail(@QueryParam("email") String email, @HeaderParam("token") String jwtToken) {
+    public Response getUserByEmailController(@QueryParam("email") String email, @HeaderParam("token") String jwtToken) {
         Response jwtError = jwt.validateJwtAndReturnError(jwtToken);
+        JSONArray errors = new JSONArray();
         if (jwtError != null) {
             return jwtError;
         }
@@ -122,6 +123,43 @@ public class UsersController {
         }
         
         JSONObject toReturn = layer.getUserByEmail(email);
+
+        return Response.status(Integer.parseInt(toReturn.get("statusCode").toString()))
+                .entity(toReturn.toString())
+                .type(MediaType.APPLICATION_JSON)
+                .build();
+    }
+    
+    @GET
+    @Path("getAdminByEmail")
+    @Consumes(MediaType.APPLICATION_JSON)
+    public Response getAdminByEmailController(@QueryParam("email") String email, @HeaderParam("token") String jwtToken) {
+        Response jwtError = jwt.validateJwtAndReturnError(jwtToken);
+        String jwtRole = jwt.extractRole(jwtToken);
+        JSONArray errors = new JSONArray();
+        if (jwtError != null) {
+            return jwtError;
+        }
+        System.out.println("\n\n\n" + jwtRole + jwtRole.equals("admin") + "\n\n\n");
+        if (!jwtRole.equals("admin")) {
+            errors.put("userNotAuthorised");
+
+            JSONObject errorResponse = new JSONObject();
+            errorResponse.put("errors", errors);
+            errorResponse.put("status", "failed");
+            errorResponse.put("statusCode", 401);
+
+            return Response.status(401)
+                    .entity(errorResponse.toString())
+                    .type(MediaType.APPLICATION_JSON)
+                    .build();
+        }
+
+        if (userAuth.isDataMissing(email)) {
+            email = null;
+        }
+        
+        JSONObject toReturn = layer.getAdminByEmailService(email);
 
         return Response.status(Integer.parseInt(toReturn.get("statusCode").toString()))
                 .entity(toReturn.toString())
@@ -212,25 +250,6 @@ public class UsersController {
     @Path("loginUser")
     @Consumes(MediaType.APPLICATION_JSON)
     public Response loginUser(String body) {
-        JSONObject bodyObject = new JSONObject(body);
-
-        Users user = new Users(
-                bodyObject.has("email") ? bodyObject.getString("email") : null,
-                bodyObject.has("password") ? bodyObject.getString("password") : null
-        );
-
-        JSONObject toReturn = layer.loginUser(user);
-
-        return Response.status(Integer.parseInt(toReturn.get("statusCode").toString()))
-                .entity(toReturn.toString())
-                .type(MediaType.APPLICATION_JSON)
-                .build();
-    }
-    
-    @PUT
-    @Path("adminLogin")
-    @Consumes(MediaType.APPLICATION_JSON)
-    public Response loginAdminController(String body) {
         JSONObject bodyObject = new JSONObject(body);
 
         Users user = new Users(

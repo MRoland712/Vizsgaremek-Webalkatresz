@@ -4,16 +4,23 @@
  */
 package com.mycompany.vizsgaremek.controller;
 
-import com.mycompany.vizsgaremek.model.Orders;
-import com.mycompany.vizsgaremek.model.OrderItems;
-import com.mycompany.vizsgaremek.model.Users;
-import com.mycompany.vizsgaremek.model.Parts;
-import com.mycompany.vizsgaremek.service.OrdersService;
+import com.mycompany.vizsgaremek.service.orderItemsService;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.UriInfo;
 import javax.ws.rs.Produces;
 import javax.ws.rs.Consumes;
+import javax.ws.rs.GET;
+import javax.ws.rs.Path;
+import javax.ws.rs.PUT;
+import com.mycompany.vizsgaremek.model.OrderItems;
+import com.mycompany.vizsgaremek.model.Orders;
+import com.mycompany.vizsgaremek.model.Parts;
+import com.mycompany.vizsgaremek.service.OrderItemsService;
+import javax.ws.rs.core.Context;
+import javax.ws.rs.core.UriInfo;
+import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
+import javax.ws.rs.Produces;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
@@ -26,25 +33,23 @@ import org.json.JSONObject;
 /**
  * REST Web Service
  *
- * @author neblgergo
+ * @author ddori
  */
-@Path("orders")
-public class OrdersController {
+@Path("OrderItems")
+public class OrderItemsController {
 
     @Context
     private UriInfo context;
-    private OrdersService layer = new OrdersService();
+    private OrderItemsService layer = new OrderItemsService();
 
     /**
-     * Creates a new instance of OrdersController
+     * Creates a new instance of OrderItemsController
      */
-    public OrdersController() {
+    public OrderItemsController() {
     }
 
     /**
-     * Retrieves representation of an instance of
-     * com.mycompany.vizsgaremek.controller.OrdersController
-     *
+     * Retrieves representation of an instance of com.mycompany.vizsgaremek.controller.OrderItemsController
      * @return an instance of java.lang.String
      */
     @GET
@@ -55,32 +60,20 @@ public class OrdersController {
     }
 
     /**
-     * PUT method for updating or creating an instance of OrdersController
-     *
+     * PUT method for updating or creating an instance of OrderItemsController
      * @param content representation for the resource
      */
     @PUT
     @Consumes(MediaType.APPLICATION_JSON)
     public void putJson(String content) {
     }
-
-    @POST
-    @Path("createOrders")
+    
+    @GET
+    @Path("getAllOrderItems")
     @Consumes(MediaType.APPLICATION_JSON)
-    public Response createOrders(String body) {
-
-        JSONObject bodyObject = new JSONObject(body);
-
-        Users user = new Users();
-        user.setId(bodyObject.has("userId") ? bodyObject.getInt("userId") : null);
-
-        Orders createdOrders = new Orders(
-                bodyObject.has("status") ? bodyObject.getString("status") : null,
-                user
-        );
-
-        JSONObject toReturn = layer.createOrders(createdOrders);
-
+    public Response getAllOrderItemsAdminController() {
+        orderItemsService orderItemsService = new orderItemsService();
+        JSONObject toReturn = orderItemsService.getAllOrderItems();
         return Response.status(Integer.parseInt(toReturn.get("statusCode").toString()))
                 .entity(toReturn.toString())
                 .type(MediaType.APPLICATION_JSON)
@@ -88,25 +81,26 @@ public class OrdersController {
     }
     
     @POST
-    @Path("createOrderWithItem")
+    @Path("createOrderItems")
     @Consumes(MediaType.APPLICATION_JSON)
-    public Response createOrderWithItemsController(String body) {
+    public Response createOrderItemsController(String body) {
 
         JSONObject bodyObject = new JSONObject(body);
 
-        Integer id = null;
-        id = (bodyObject.has("userId") ? bodyObject.getInt("userId") : null);
-        
+        Orders order = new Orders();
+        order.setId(bodyObject.has("orderId") ? bodyObject.getInt("orderId") : null);
         
         Parts part = new Parts();
         part.setId(bodyObject.has("partId") ? bodyObject.getInt("partId") : null);
-        
-        OrderItems createdOrderWithItems = new OrderItems(
+
+        OrderItems createdOrderItems = new OrderItems(
                 bodyObject.has("quantity") ? bodyObject.getInt("quantity") : null,
+                bodyObject.has("price") ? bodyObject.getBigDecimal("price") : null,
+                order,
                 part
         );
 
-        JSONObject toReturn = layer.createOrderWithItemsService(createdOrderWithItems, id);
+        JSONObject toReturn = layer.createOrderItemsService(createdOrderItems);
 
         return Response.status(Integer.parseInt(toReturn.get("statusCode").toString()))
                 .entity(toReturn.toString())
@@ -115,11 +109,11 @@ public class OrdersController {
     }
 
     @GET
-    @Path("getAllOrders")
+    @Path("getAllOrderItems")
     @Consumes(MediaType.APPLICATION_JSON)
-    public Response getAllOrders() {
-        OrdersService ordersService = new OrdersService();
-        JSONObject toReturn = ordersService.getAllOrders();
+    public Response getAllOrderItemsController() {
+        OrderItemsService orderItemsService = new OrderItemsService();
+        JSONObject toReturn = orderItemsService.getAllOrderItemsService();
 
         return Response.status(Integer.parseInt(toReturn.get("statusCode").toString()))
                 .entity(toReturn.toString())
@@ -128,11 +122,11 @@ public class OrdersController {
     }
 
     @GET
-    @Path("getOrdersById")
+    @Path("getOrderItemById")
     @Produces(MediaType.APPLICATION_JSON)
-    public Response getOrdersById(@QueryParam("id") Integer id) {
+    public Response getOrderItemByIdController(@QueryParam("id") Integer id) {
 
-        JSONObject toReturn = layer.getOrdersById(id);
+        JSONObject toReturn = layer.getOrderItemByIdService(id);
 
         return Response.status(Integer.parseInt(toReturn.get("statusCode").toString()))
                 .entity(toReturn.toString())
@@ -141,11 +135,24 @@ public class OrdersController {
     }
 
     @GET
-    @Path("getOrdersByUserId")
+    @Path("getOrderItemsByOrderId")
     @Produces(MediaType.APPLICATION_JSON)
-    public Response getOrdersByUserId(@QueryParam("id") Integer userId) {
+    public Response getOrderItemsByOrderIdController(@QueryParam("orderId") Integer orderId) {
 
-        JSONObject toReturn = layer.getOrdersByUserId(userId);
+        JSONObject toReturn = layer.getOrderItemsByOrderIdService(orderId);
+
+        return Response.status(Integer.parseInt(toReturn.get("statusCode").toString()))
+                .entity(toReturn.toString())
+                .type(MediaType.APPLICATION_JSON)
+                .build();
+    }
+    
+    @GET
+    @Path("getOrderItemsByPartId")
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response getOrderItemsByPartIdController(@QueryParam("partId") Integer partId) {
+
+        JSONObject toReturn = layer.getOrderItemsByPartIdService(partId);
 
         return Response.status(Integer.parseInt(toReturn.get("statusCode").toString()))
                 .entity(toReturn.toString())
@@ -154,11 +161,11 @@ public class OrdersController {
     }
 
     @DELETE
-    @Path("softDeleteOrders")
+    @Path("softDeleteOrderItem")
     @Consumes(MediaType.APPLICATION_JSON)
-    public Response softDeleteOrders(@QueryParam("id") Integer idIN) {
+    public Response softDeleteOrderItemController(@QueryParam("id") Integer id) {
 
-        JSONObject toReturn = layer.softDeleteOrders(idIN);
+        JSONObject toReturn = layer.softDeleteOrderItemService(id);
 
         return Response.status(Integer.parseInt(toReturn.get("statusCode").toString()))
                 .entity(toReturn.toString())
@@ -167,29 +174,33 @@ public class OrdersController {
     }
 
     @PUT
-    @Path("updateOrders")
+    @Path("updateOrderItem")
     @Consumes(MediaType.APPLICATION_JSON)
-    public Response updateOrders(
+    public Response updateOrderItemController(
             @QueryParam("id") Integer idIN,
             String body) {
 
         JSONObject bodyObject = new JSONObject(body);
 
-        Orders updatedOrders = new Orders();
+        OrderItems updatedOrderItem = new OrderItems();
 
         if (idIN != null) {
-            updatedOrders.setId(idIN);
+            updatedOrderItem.setId(idIN);
         }
         
-        if (bodyObject.has("status")) {
-            updatedOrders.setStatus(bodyObject.getString("status"));
+        if (bodyObject.has("quantity")) {
+            updatedOrderItem.setQuantity(bodyObject.getInt("quantity"));
+        }
+        
+        if (bodyObject.has("price")) {
+            updatedOrderItem.setPrice(bodyObject.getBigDecimal("price"));
         }
 
         if (bodyObject.has("isDeleted")) {
-            updatedOrders.setIsDeleted(bodyObject.getBoolean("isDeleted"));
+            updatedOrderItem.setIsDeleted(bodyObject.getBoolean("isDeleted"));
         }
 
-        JSONObject toReturn = layer.updateOrders(updatedOrders);
+        JSONObject toReturn = layer.updateOrderItemService(updatedOrderItem);
 
         return Response.status(Integer.parseInt(toReturn.get("statusCode").toString()))
                 .entity(toReturn.toString())

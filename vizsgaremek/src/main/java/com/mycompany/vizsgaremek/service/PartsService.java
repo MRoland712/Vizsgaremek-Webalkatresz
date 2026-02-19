@@ -204,7 +204,7 @@ public class PartsService {
             return errorAuth.createErrorResponse(errors, 400);
         }
 
-        Parts part = Parts.getPartsById(id);
+        Parts part = Parts.getPartsByManufacturerId(id);
 
         if (partsAuth.isDataMissing(part)) {
             errors.put("PartsNotFound");
