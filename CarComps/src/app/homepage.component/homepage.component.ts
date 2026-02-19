@@ -9,6 +9,7 @@ import { PaymentForwardButtonComponent } from '../shared/payment-forward-button.
 import { ProfileSidenavComponent } from '../side-navbar.component/side-navbar.component';
 import { DynamicBreadcrumbsComponent } from '../shared/dynamic-breadcrumbs.component/dynamic-breadcrumbs.component';
 import { AnalyticsComponent } from '../admin-page/analytics.component/analytics.component';
+import { CartComponent } from '../payment/cart.component/cart.component';
 
 @Component({
   selector: 'app-homepage',
@@ -23,6 +24,7 @@ import { AnalyticsComponent } from '../admin-page/analytics.component/analytics.
     ProfileSidenavComponent,
     DynamicBreadcrumbsComponent,
     AnalyticsComponent,
+    CartComponent,
   ],
   templateUrl: './homepage.component.html',
   styleUrl: './homepage.component.css',

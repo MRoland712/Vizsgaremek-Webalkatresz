@@ -1,7 +1,7 @@
 import { inject, Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 import { JwtValidationResponse } from '../models/jtwvalidate.model';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpHeaders } from '@angular/common/http';
 
 @Injectable({
   providedIn: 'root',
@@ -12,6 +12,12 @@ export class JWTValidateService {
   private readonly validateUrl = this.baseUrl + 'JWT/validateJWT';
 
   ValidateJWT(): Observable<JwtValidationResponse> {
-    return this.httpClient.get<JwtValidationResponse>(this.validateUrl);
+    const token = localStorage.getItem('jwtToken');
+
+    const headers = new HttpHeaders({
+      'Content-Type': 'application/json',
+      token: token || '',
+    });
+    return this.httpClient.get<JwtValidationResponse>(this.validateUrl, { headers });
   }
 }

@@ -1,6 +1,5 @@
 import { inject, Injectable, signal } from '@angular/core';
 import { Router } from '@angular/router';
-import { first } from 'rxjs';
 import { JWTValidateService } from './jwtvalidate.service';
 
 @Injectable({
@@ -8,6 +7,7 @@ import { JWTValidateService } from './jwtvalidate.service';
 })
 export class AuthService {
   JWTValidatorService = inject(JWTValidateService);
+
   private _isLoggedIn = signal(false);
   private _userEmail = signal('');
   private _userName = signal('');
@@ -35,45 +35,19 @@ export class AuthService {
     const lastName = localStorage.getItem('lastName');
     const phone = localStorage.getItem('phone');
 
-    console.log('🔐 AuthService checkLoginStatus:');
-    console.log('  token:', token);
-    console.log('  email:', email);
-    console.log('  name:', name);
-    console.log('  isUserData:', isUserData);
-
-    // Ha van token vagy van userData flag, akkor bejelentkezett
     if (token || isUserData === 'true') {
       this._isLoggedIn.set(true);
     } else {
       this._isLoggedIn.set(false);
     }
 
-    // Email és userName beállítása függetlenül attól, hogy van-e token
-    if (email) {
-      this._userEmail.set(email);
-    }
-    if (name) {
-      this._userName.set(name);
-    }
-    if (firstName) {
-      this._firstName.set(firstName);
-    }
-    if (lastName) {
-      this._lastName.set(lastName);
-    }
-    if (phone) {
-      this._phone.set(phone);
-    }
-
-    console.log('  _isLoggedIn:', this._isLoggedIn());
-    console.log('  _userEmail:', this._userEmail());
-    console.log('  _userName:', this._userName());
-    console.log('  userFirstName:', this.userFirstName());
-    console.log('  userLastName:', this.userLastName());
-    console.log('  userPhone:', this.userPhone());
+    if (email) this._userEmail.set(email);
+    if (name) this._userName.set(name);
+    if (firstName) this._firstName.set(firstName);
+    if (lastName) this._lastName.set(lastName);
+    if (phone) this._phone.set(phone);
   }
 
-  // ⭐ ÚJ METÓDUS: Signal-ok frissítése localStorage-ból
   refreshUserData() {
     const email = localStorage.getItem('userEmail');
     const name = localStorage.getItem('userName');
@@ -83,36 +57,46 @@ export class AuthService {
     const lastName = localStorage.getItem('lastName');
     const phone = localStorage.getItem('phone');
 
-    console.log('🔄 refreshUserData meghívva:');
-    console.log('  email:', email);
-    console.log('  name:', name);
-
-    // Login státusz frissítése
     if (token || isUserData === 'true') {
       this._isLoggedIn.set(true);
     }
 
-    // Email frissítése
-    if (email) {
-      this._userEmail.set(email);
-      console.log('✅ Email signal frissítve:', email);
+    if (email) this._userEmail.set(email);
+    if (name) this._userName.set(name);
+    if (firstName) this._firstName.set(firstName);
+    if (lastName) this._lastName.set(lastName);
+    if (phone) this._phone.set(phone);
+  }
+
+  // ⭐ Token validálás
+  ValidateToken(): void {
+    const token = localStorage.getItem('jwt');
+
+    if (!token) {
+      console.warn('⚠️ Nincs JWT token');
+      this.logout();
+      return;
     }
 
-    // UserName frissítése
-    if (name) {
-      this._userName.set(name);
-      console.log('✅ UserName signal frissítve:', name);
-    }
+    console.log('🔍 Token validálás...');
 
-    if (firstName) {
-      this._firstName.set(firstName);
-    }
-    if (lastName) {
-      this._lastName.set(lastName);
-    }
-    if (phone) {
-      this._phone.set(phone);
-    }
+    this.JWTValidatorService.ValidateJWT().subscribe({
+      next: (res) => {
+        if (res.statusCode === 200 && res.status === 'success') {
+          console.log('✅ Token érvényes');
+          // Token OK - marad bejelentkezve
+        } else {
+          console.warn('❌ Token invalid:', res.errors);
+          this.logout();
+        }
+      },
+      error: (err) => {
+        console.error('❌ Token validálási hiba:', err);
+        if (err.status === 401 || err.status === 403) {
+          this.logout();
+        }
+      },
+    });
   }
 
   setLoggedIn(
@@ -124,43 +108,32 @@ export class AuthService {
   ) {
     this._isLoggedIn.set(true);
 
-    // Email mentése (mindig van)
     if (email) {
       this._userEmail.set(email);
       localStorage.setItem('userEmail', email);
     }
 
-    // ⭐ JAVÍTÁS: userName mentése (csak ha van - nem undefined)
-    // Ha undefined, akkor NEM írjuk felül a meglévőt!
     if (userName !== undefined && userName !== '') {
       this._userName.set(userName);
       localStorage.setItem('userName', userName);
     }
 
-    // FirstName mentése
     if (firstName !== undefined && firstName !== '') {
       this._firstName.set(firstName);
       localStorage.setItem('firstName', firstName);
     }
 
-    // LastName mentése
     if (lastName !== undefined && lastName !== '') {
       this._lastName.set(lastName);
       localStorage.setItem('lastName', lastName);
     }
 
-    // Phone mentése
     if (phone !== undefined && phone !== '') {
       this._phone.set(phone);
       localStorage.setItem('phone', phone);
     }
 
-    // Az oldal újratöltés után is tudja, hogy van adat
     localStorage.setItem('isUserData', 'true');
-
-    console.log('✅ setLoggedIn meghívva:');
-    console.log('  email:', email);
-    console.log('  userName:', userName);
   }
 
   logout() {
@@ -176,6 +149,9 @@ export class AuthService {
     this._isLoggedIn.set(false);
     this._userEmail.set('');
     this._userName.set('');
+    this._firstName.set('');
+    this._lastName.set('');
+    this._phone.set('');
 
     this.router.navigate(['/login']);
   }
