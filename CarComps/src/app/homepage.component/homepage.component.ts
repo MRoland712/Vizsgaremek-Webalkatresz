@@ -10,6 +10,7 @@ import { ProfileSidenavComponent } from '../side-navbar.component/side-navbar.co
 import { DynamicBreadcrumbsComponent } from '../shared/dynamic-breadcrumbs.component/dynamic-breadcrumbs.component';
 import { AnalyticsComponent } from '../admin-page/analytics.component/analytics.component';
 import { CartComponent } from '../payment/cart.component/cart.component';
+import { EcommerceDashboardComponent } from '../admin-page/ecommerce.component/ecommerce-dashboard.component';
 
 @Component({
   selector: 'app-homepage',
@@ -25,6 +26,7 @@ import { CartComponent } from '../payment/cart.component/cart.component';
     DynamicBreadcrumbsComponent,
     AnalyticsComponent,
     CartComponent,
+    EcommerceDashboardComponent,
   ],
   templateUrl: './homepage.component.html',
   styleUrl: './homepage.component.css',
