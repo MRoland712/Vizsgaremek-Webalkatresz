@@ -8,6 +8,8 @@ import com.mycompany.vizsgaremek.model.Users;
 import com.mycompany.vizsgaremek.config.Encrypt;
 import com.mycompany.vizsgaremek.model.Addresses;
 import com.mycompany.vizsgaremek.model.Cars;
+import com.mycompany.vizsgaremek.model.CartItems;
+import com.mycompany.vizsgaremek.model.Invoices;
 import com.mycompany.vizsgaremek.model.Manufacturers;
 import com.mycompany.vizsgaremek.model.Motors;
 import com.mycompany.vizsgaremek.model.OrderItems;
@@ -15,12 +17,14 @@ import com.mycompany.vizsgaremek.model.Orders;
 import com.mycompany.vizsgaremek.model.PartImages;
 import com.mycompany.vizsgaremek.model.PartVariants;
 import com.mycompany.vizsgaremek.model.Parts;
+import com.mycompany.vizsgaremek.model.Payments;
 import com.mycompany.vizsgaremek.model.Reviews;
 import com.mycompany.vizsgaremek.model.Trucks;
 import com.mycompany.vizsgaremek.model.UserTwofa;
 import io.jsonwebtoken.Claims;
 import java.math.BigDecimal;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.regex.Pattern;
 import javax.mail.Address;
@@ -1177,6 +1181,280 @@ public class AuthenticationService {
     } //OrderItems Auth Class closer
     
     
+
+    //CartItems
+    public static class cartItemsAuth {
+
+        public boolean isDataMissing(String data) {
+            return (data == null || data.trim().isEmpty());
+        }
+
+        public boolean isDataMissing(Users data) {
+            return (data == null);
+        }
+
+        public boolean isDataMissing(Parts data) {
+            return (data == null);
+        }
+
+        public boolean isDataMissing(CartItems data) {
+            return (data == null);
+        }
+
+        public boolean isDataMissing(Integer data) {
+            return (data == null);
+        }
+
+        public boolean isDataMissing(ArrayList<CartItems> data) {
+            return (data == null || data.isEmpty());
+        }
+
+        public boolean isDataMissing(Boolean data) {
+            return (data == null);
+        }
+
+        public boolean isDataMissing(List<Object[]> data) {
+            return (data == null || data.isEmpty());
+        }
+
+        public boolean isValidId(Integer id) {
+            return id > 0 && id.toString().length() <= 11;
+        }
+
+        public boolean isValidUserId(Users user) {
+            Integer userId = user.getId();
+            return userId > 0 && userId.toString().length() <= 11;
+        }
+
+        public boolean isValidUserId(Integer userId) {
+            return userId > 0 && userId.toString().length() <= 11;
+        }
+
+        public boolean isValidPartId(Parts part) {
+            Integer partId = part.getId();
+            return partId > 0 && partId.toString().length() <= 11;
+        }
+
+        public boolean isValidPartId(Integer partId) {
+            return partId > 0 && partId.toString().length() <= 11;
+        }
+
+        public boolean isValidQuantity(Integer quantity) {
+            return quantity > 0 && quantity.toString().length() <= 11;
+        }
+
+        public boolean isCartItemsDeleted(Boolean isDeleted) {
+            return (isDeleted == true);
+        }
+
+    } //cartItems Auth Class closer
+
+    //Payments
+    public static class paymentsAuth {
+
+        public boolean isDataMissing(String data) {
+            return (data == null || data.trim().isEmpty());
+        }
+
+        public boolean isDataMissing(Orders data) {
+            return (data == null);
+        }
+
+        public boolean isDataMissing(Payments data) {
+            return (data == null);
+        }
+
+        public boolean isDataMissing(Integer data) {
+            return (data == null);
+        }
+
+        public boolean isDataMissing(BigDecimal data) {
+            return (data == null);
+        }
+
+        public boolean isDataMissing(ArrayList<Payments> data) {
+            return (data == null || data.isEmpty());
+        }
+
+        public boolean isDataMissing(Boolean data) {
+            return (data == null);
+        }
+
+        public boolean isDataMissing(List<Object[]> data) {
+            return (data == null || data.isEmpty());
+        }
+
+        public boolean isValidId(Integer id) {
+            return id > 0 && id.toString().length() <= 11;
+        }
+
+        public boolean isValidOrderId(Orders order) {
+            Integer orderId = order.getId();
+            return orderId > 0 && orderId.toString().length() <= 11;
+        }
+
+        public boolean isValidOrderId(Integer orderId) {
+            return orderId > 0 && orderId.toString().length() <= 11;
+        }
+
+        private static final List<String> AllowedPaymentStatuses = Arrays.asList(
+                "pending", "completed", "failed", "refunded", "cancelled"
+        );
+
+        public static boolean isValidStatus(String status) {
+            return status != null && AllowedPaymentStatuses.contains(status);
+        }
+
+        private static final List<String> AllowedPaymentMethods = Arrays.asList(
+                "credit_card", "debit_card", "paypal", "cash_on_delivery", "bank_transfer"
+        );
+
+        public static boolean isValidMethod(String method) {
+            return method != null && AllowedPaymentMethods.contains(method);
+        }
+
+        //BigDecimal 
+        public boolean isValidAmount(BigDecimal amount) {
+            return amount.compareTo(new BigDecimal("0.00")) > 0;
+        }
+
+        public boolean isPaymentsDeleted(Boolean isDeleted) {
+            return (isDeleted == true);
+
+        }
+
+    } //Payments Auth Class closer
+
+    //Invoices
+    public static class invoicesAuth {
+
+        public boolean isDataMissing(String data) {
+            return (data == null || data.trim().isEmpty());
+        }
+
+        public boolean isDataMissing(Orders data) {
+            return (data == null);
+        }
+
+        public boolean isDataMissing(Invoices data) {
+            return (data == null);
+        }
+
+        public boolean isDataMissing(Integer data) {
+            return (data == null);
+        }
+
+        public boolean isDataMissing(ArrayList<Invoices> data) {
+            return (data == null || data.isEmpty());
+        }
+
+        public boolean isDataMissing(Boolean data) {
+            return (data == null);
+        }
+
+        public boolean isDataMissing(List<Object[]> data) {
+            return (data == null || data.isEmpty());
+        }
+
+        public boolean isValidId(Integer id) {
+            return id > 0 && id.toString().length() <= 11;
+        }
+
+        public boolean isValidOrderId(Orders order) {
+            Integer orderId = order.getId();
+            return orderId > 0 && orderId.toString().length() <= 11;
+        }
+
+        public boolean isValidOrderId(Integer orderId) {
+            return orderId > 0 && orderId.toString().length() <= 11;
+        }
+
+        public boolean isValidPdfUrl(String pdfUrl) {
+            return pdfUrl.length() <= 255;
+        }
+
+        public boolean isInvoicesDeleted(Boolean isDeleted) {
+            return (isDeleted == true);
+
+        }
+
+    } //Invoices Auth Class closer
+
+    //OrderItems
+    public static class orderItemsAuth {
+
+        public boolean isDataMissing(String data) {
+            return (data == null || data.trim().isEmpty());
+        }
+
+        public boolean isDataMissing(Orders data) {
+            return (data == null);
+        }
+
+        public boolean isDataMissing(Parts data) {
+            return (data == null);
+        }
+
+        public boolean isDataMissing(OrderItems data) {
+            return (data == null);
+        }
+
+        public boolean isDataMissing(Integer data) {
+            return (data == null);
+        }
+
+        public boolean isDataMissing(ArrayList<OrderItems> data) {
+            return (data == null || data.isEmpty());
+        }
+
+        public boolean isDataMissing(Boolean data) {
+            return (data == null);
+        }
+        
+        public boolean isDataMissing(BigDecimal data) {
+            return (data == null);
+        }
+
+        public boolean isDataMissing(List<Object[]> data) {
+            return (data == null || data.isEmpty());
+        }
+
+        public boolean isValidId(Integer id) {
+            return id > 0 && id.toString().length() <= 11;
+        }
+
+        public boolean isValidOrderId(Orders order) {
+            Integer orderId = order.getId();
+            return orderId > 0 && orderId.toString().length() <= 11;
+        }
+
+        public boolean isValidOrderId(Integer orderId) {
+            return orderId > 0 && orderId.toString().length() <= 11;
+        }
+
+        public boolean isValidPartId(Parts part) {
+            Integer partId = part.getId();
+            return partId > 0 && partId.toString().length() <= 11;
+        }
+
+        public boolean isValidPartId(Integer partId) {
+            return partId > 0 && partId.toString().length() <= 11;
+        }
+
+        public boolean isValidQuantity(Integer quantity) {
+            return quantity > 0 && quantity.toString().length() <= 11;
+        }
+
+        public boolean isValidPrice(BigDecimal price) {
+            return price.compareTo(new BigDecimal("0.00")) > 0;
+        }
+
+        public boolean isOrderItemsDeleted(Boolean isDeleted) {
+            return (isDeleted == true);
+
+        }
+
+    } //OrderItems Auth Class closer
 
 }//Auth Service Class closer
 
