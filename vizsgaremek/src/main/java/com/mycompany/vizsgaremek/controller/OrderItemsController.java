@@ -28,7 +28,7 @@ import org.json.JSONObject;
  * @author ddori
  */
 @Path("OrderItems")
-public class orderItemsController {
+public class OrderItemsController {
 
     @Context
     private UriInfo context;
@@ -37,7 +37,7 @@ public class orderItemsController {
     /**
      * Creates a new instance of OrderItemsController
      */
-    public orderItemsController() {
+    public OrderItemsController() {
     }
 
     /**
