@@ -58,9 +58,79 @@ public class SendEmailController {
      *
      * @param content representation for the resource
      */
-    /*@PUT
+    @PUT
     @Consumes(MediaType.APPLICATION_XML)
     public void putXml(String content) {
+    }
+    
+    /*@PUT
+    @Path("sendActivateUser")
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response sendActivateUserEmailLink(String body) {
+        JSONObject bodyObject = new JSONObject(body);
+        JSONArray errors = new JSONArray();
+
+        String promotionImageLink = bodyObject.has("promotionImageLink") ? bodyObject.getString("promotionImageLink") : null;
+        String bodyText = bodyObject.has("bodyText") ? bodyObject.getString("bodyText") : null;
+        String code = bodyObject.has("promotionCode") ? bodyObject.getString("promotionCode") : null;
+        String expirationDate = bodyObject.has("expirationDate") ? bodyObject.getString("expirationDate") : null;
+
+        if (promotionImageLink == null || promotionImageLink.trim().isEmpty()) {
+            errors.put("MissingPromotionImageLink");
+
+            JSONObject errorResponse = new JSONObject();
+            errorResponse.put("errors", errors);
+            errorResponse.put("status", "failed");
+            errorResponse.put("statusCode", 400);
+
+            return Response.status(400)
+                    .entity(errorResponse.toString())
+                    .type(MediaType.APPLICATION_JSON)
+                    .build();
+        }
+
+        if (bodyText == null || bodyText.trim().isEmpty()) {
+            errors.put("MissingBodyText");
+
+            JSONObject errorResponse = new JSONObject();
+            errorResponse.put("errors", errors);
+            errorResponse.put("status", "failed");
+            errorResponse.put("statusCode", 400);
+
+            return Response.status(400)
+                    .entity(errorResponse.toString())
+                    .type(MediaType.APPLICATION_JSON)
+                    .build();
+        }
+
+        if (code == null || code.trim().isEmpty()) {
+            errors.put("MissingPromotionCode");
+
+            JSONObject errorResponse = new JSONObject();
+            errorResponse.put("errors", errors);
+            errorResponse.put("status", "failed");
+            errorResponse.put("statusCode", 400);
+
+            return Response.status(400)
+                    .entity(errorResponse.toString())
+                    .type(MediaType.APPLICATION_JSON)
+                    .build();
+        }
+
+        if (expirationDate == null || expirationDate.trim().isEmpty()) {
+            errors.put("MissingExpirationDate");
+
+            JSONObject errorResponse = new JSONObject();
+            errorResponse.put("errors", errors);
+            errorResponse.put("status", "failed");
+            errorResponse.put("statusCode", 400);
+
+            return Response.status(400)
+                    .entity(errorResponse.toString())
+                    .type(MediaType.APPLICATION_JSON)
+                    .build();
+        }
     }*/
 
     @POST
@@ -161,7 +231,7 @@ public class SendEmailController {
     }
 
     @POST
-    @Path("getALLStats")
+    @Path("sendOTP")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     public Response sendOTPEmailAndSetAuthSecretController(@QueryParam("email") String email) {

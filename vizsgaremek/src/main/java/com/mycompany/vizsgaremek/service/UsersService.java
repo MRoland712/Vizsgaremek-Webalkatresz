@@ -221,6 +221,51 @@ public class UsersService {
 
     }
 
+    public JSONObject getActivatedUsersService() {
+        JSONObject toReturn = new JSONObject();
+        JSONArray errors = new JSONArray();
+
+        ArrayList<Users> modelResult = Users.getUsers();
+
+        //If no data in DB
+        if (userAuth.isDataMissing(modelResult)) {
+            errors.put("ModelExeption");
+        }
+
+        //if modelexeption
+        if (errorAuth.hasErrors(errors)) {
+            return errorAuth.createErrorResponse(errors, 500);
+        }
+
+        JSONArray result = new JSONArray();
+
+        for (Users actualUser : modelResult) {
+            if (actualUser.getIsActive() == true) {
+                JSONObject actualUserObject = new JSONObject();
+
+                actualUserObject.put("id", actualUser.getId());
+                actualUserObject.put("email", actualUser.getEmail());
+                actualUserObject.put("username", actualUser.getUsername());
+                actualUserObject.put("firstName", actualUser.getFirstName());
+                actualUserObject.put("lastName", actualUser.getLastName());
+                actualUserObject.put("phone", actualUser.getPhone());
+                actualUserObject.put("guid", actualUser.getGuid());
+                actualUserObject.put("role", actualUser.getRole());
+                actualUserObject.put("isActive", actualUser.getIsActive());
+                actualUserObject.put("lastLogin", actualUser.getLastLogin() == null ? null : actualUser.getLastLogin().toString());
+                actualUserObject.put("createdAt", actualUser.getCreatedAt() == null ? null : actualUser.getCreatedAt().toString());
+                actualUserObject.put("updatedAt", actualUser.getUpdatedAt() == null ? null : actualUser.getUpdatedAt().toString());
+                actualUserObject.put("isDeleted", actualUser.getIsDeleted());
+                actualUserObject.put("isSubscribed", actualUser.getIsSubscribed());
+
+                result.put(actualUserObject);
+            }
+        }
+
+        return errorAuth.createOKResponse(result);
+
+    }
+
     public JSONObject getUserById(Integer id) {
         JSONObject toReturn = new JSONObject();
         JSONArray errors = new JSONArray();
@@ -678,7 +723,7 @@ public class UsersService {
 
         return errorAuth.createOKResponse();
     }
-    
+
     public JSONObject loginUser(Users logInUser) {
         JSONObject toReturn = new JSONObject();
         JSONArray errors = new JSONArray();
@@ -800,6 +845,6 @@ public class UsersService {
         toReturn.put("role", userData.getRole());
         return errorAuth.createOKResponse(toReturn);
     }
-    
+
 } // DONT DELETE, THIS IS THE CLASS CLOSER
 

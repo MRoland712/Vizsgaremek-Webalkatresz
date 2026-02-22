@@ -1119,6 +1119,8 @@ public class AuthenticationService {
         }
 
     } //Order Items Auth Class closer
+    /*
+    commented if needed
     public static class orderItemsAuth {
 
         public boolean isDataMissing(String data) {
@@ -1178,7 +1180,7 @@ public class AuthenticationService {
             return (isDeleted == true);
         }
 
-    } //OrderItems Auth Class closer
+    } //OrderItems Auth Class closer*/
     
     
 

@@ -5,17 +5,10 @@
 package com.mycompany.vizsgaremek.controller;
 
 import com.mycompany.vizsgaremek.service.orderItemsService;
-import javax.ws.rs.core.Context;
-import javax.ws.rs.core.UriInfo;
-import javax.ws.rs.Produces;
-import javax.ws.rs.Consumes;
-import javax.ws.rs.GET;
-import javax.ws.rs.Path;
-import javax.ws.rs.PUT;
 import com.mycompany.vizsgaremek.model.OrderItems;
 import com.mycompany.vizsgaremek.model.Orders;
 import com.mycompany.vizsgaremek.model.Parts;
-import com.mycompany.vizsgaremek.service.OrderItemsService;
+import com.mycompany.vizsgaremek.service.orderItemsService;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.UriInfo;
 import javax.ws.rs.Consumes;
@@ -40,7 +33,7 @@ public class OrderItemsController {
 
     @Context
     private UriInfo context;
-    private OrderItemsService layer = new OrderItemsService();
+    private orderItemsService layer = new orderItemsService();
 
     /**
      * Creates a new instance of OrderItemsController
@@ -69,11 +62,11 @@ public class OrderItemsController {
     }
     
     @GET
-    @Path("getAllOrderItems")
+    @Path("getAllOrderItemsAdmin")
     @Consumes(MediaType.APPLICATION_JSON)
     public Response getAllOrderItemsAdminController() {
         orderItemsService orderItemsService = new orderItemsService();
-        JSONObject toReturn = orderItemsService.getAllOrderItems();
+        JSONObject toReturn = orderItemsService.getAllOrderItemsAdminService();
         return Response.status(Integer.parseInt(toReturn.get("statusCode").toString()))
                 .entity(toReturn.toString())
                 .type(MediaType.APPLICATION_JSON)
@@ -112,7 +105,7 @@ public class OrderItemsController {
     @Path("getAllOrderItems")
     @Consumes(MediaType.APPLICATION_JSON)
     public Response getAllOrderItemsController() {
-        OrderItemsService orderItemsService = new OrderItemsService();
+        orderItemsService orderItemsService = new orderItemsService();
         JSONObject toReturn = orderItemsService.getAllOrderItemsService();
 
         return Response.status(Integer.parseInt(toReturn.get("statusCode").toString()))
