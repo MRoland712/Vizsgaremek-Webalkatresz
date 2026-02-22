@@ -11,6 +11,7 @@ import { DynamicBreadcrumbsComponent } from '../shared/dynamic-breadcrumbs.compo
 import { AnalyticsComponent } from '../admin-page/analytics.component/analytics.component';
 import { CartComponent } from '../payment/cart.component/cart.component';
 import { EcommerceDashboardComponent } from '../admin-page/ecommerce.component/ecommerce-dashboard.component';
+import { AdminLandingComponent } from '../admin-page/admin-landing.component/admin-landing.component';
 
 @Component({
   selector: 'app-homepage',
@@ -27,6 +28,7 @@ import { EcommerceDashboardComponent } from '../admin-page/ecommerce.component/e
     AnalyticsComponent,
     CartComponent,
     EcommerceDashboardComponent,
+    AdminLandingComponent,
   ],
   templateUrl: './homepage.component.html',
   styleUrl: './homepage.component.css',

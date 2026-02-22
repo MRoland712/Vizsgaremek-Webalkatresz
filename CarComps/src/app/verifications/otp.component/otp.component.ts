@@ -13,14 +13,11 @@ export class OtpComponent {
   private fb = inject(FormBuilder);
   private otpService = inject(OtpService);
 
-  // Inputs
   userEmail = signal<string>('');
 
-  // Outputs
   verified = output<void>();
   cancelled = output<void>();
 
-  // State
   isOpen = signal(false);
   isSending = signal(false);
   isVerifying = signal(false);
@@ -29,7 +26,6 @@ export class OtpComponent {
   successMessage = signal<string | null>(null);
   resendCooldown = signal(0);
 
-  // Form
   otpForm = this.fb.nonNullable.group({
     digit1: ['', [Validators.required, Validators.pattern(/^[0-9]$/)]],
     digit2: ['', [Validators.required, Validators.pattern(/^[0-9]$/)]],
@@ -63,7 +59,6 @@ export class OtpComponent {
 
     this.otpService.sendOTP(email).subscribe({
       next: (res) => {
-        console.log('✅ OTP elküldve:', res);
         this.isSending.set(false);
         this.otpSent.set(true);
         this.successMessage.set('Kód elküldve az email címedre!');
@@ -73,21 +68,18 @@ export class OtpComponent {
       error: (err: HttpErrorResponse) => {
         console.error('❌ OTP küldési hiba:', err);
         this.isSending.set(false);
-        this.errorMessage.set(err.error?.message || 'Hiba történt az OTP küldése során');
+        this.errorMessage.set('Hiba történt az OTP küldése során');
       },
     });
   }
 
-  /**
-   * ⭐ JAVÍTOTT OTP verifikáció
-   */
   verifyOTP() {
     if (this.otpForm.invalid) {
       this.otpForm.markAllAsTouched();
       return;
     }
 
-    const FinalOTPData = {
+    const finalOTPData = {
       email: this.userEmail(),
       OTP: Number(
         this.otpForm.value.digit1! +
@@ -102,49 +94,45 @@ export class OtpComponent {
     this.isVerifying.set(true);
     this.errorMessage.set(null);
 
-    console.log('🔐 Verify OTP request:', FinalOTPData);
-
-    this.otpService.verifyOTP(FinalOTPData).subscribe({
+    this.otpService.verifyOTP(finalOTPData).subscribe({
       next: (res) => {
-        console.log('✅ OTP TELJES RESPONSE:', res);
-        console.log('  Type:', typeof res);
-        console.log('  Keys:', Object.keys(res));
-        console.log('  res.verified:', res.verified);
-        console.log('  res.success:', res.success);
-        console.log('  res.status:', (res as any).status);
-
         this.isVerifying.set(false);
 
-        // ⭐ JAVÍTOTT: Többféle success ellenőrzés
         const isSuccess =
-          res.verified === true ||
-          res.success === true ||
-          (res as any).status === 'success' ||
-          res.statusCode === 200;
-
-        console.log('🎯 Is success?', isSuccess);
+          res.statusCode === 200 &&
+          (res.status === 'success' || res.result?.toLowerCase().includes('success'));
 
         if (isSuccess) {
           this.successMessage.set('Email cím sikeresen megerősítve!');
-
-          // 2 sec után bezárás + verified emit
+          this.otpForm.disable();
           setTimeout(() => {
             this.isOpen.set(false);
             this.verified.emit();
           }, 2000);
         } else {
-          console.warn('⚠️ Response nem tartalmaz success flag-et!');
-          console.warn('  Full response:', JSON.stringify(res, null, 2));
           this.errorMessage.set('Hibás vagy lejárt kód!');
+
+          this.otpForm.reset();
+          setTimeout(() => {
+            const first = document.getElementById('digit1') as HTMLInputElement;
+            first?.focus();
+          }, 50);
         }
       },
       error: (err: HttpErrorResponse) => {
-        console.error('❌ OTP verifikációs hiba:', err);
-        console.error('  Status:', err.status);
-        console.error('  Error body:', err.error);
-
         this.isVerifying.set(false);
-        this.errorMessage.set(err.error?.message || 'Hibás vagy lejárt kód');
+
+        if (err.status === 400 || err.status === 401) {
+          this.errorMessage.set('Hibás vagy lejárt kód!');
+        } else {
+          this.errorMessage.set('Szerverhiba, kérjük próbálja újra.');
+        }
+
+        this.otpForm.reset();
+        setTimeout(() => {
+          const first = document.getElementById('digit1') as HTMLInputElement;
+          first?.focus();
+        }, 50);
       },
     });
   }

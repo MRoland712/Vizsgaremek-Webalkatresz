@@ -1,0 +1,190 @@
+<div class="product-list-page">
+  <!-- ── Fejléc ──────────────────────────────────────────── -->
+  <div class="page-header">
+    <button class="back-btn" (click)="goBack()">
+      <i class="fa-solid fa-arrow-left"></i>
+    </button>
+    <div>
+      <h1><i class="fa-solid fa-boxes-stacked"></i> Jelenlegi termékek</h1>
+      <p class="page-subtitle">
+        @if (!isLoading()) {
+          {{ filtered().length }} / {{ allParts().length }} termék
+        } @else {
+          Betöltés...
+        }
+      </p>
+    </div>
+  </div>
+
+  <!-- ── Loading ─────────────────────────────────────────── -->
+  @if (isLoading()) {
+    <div class="loading-state">
+      <div class="spinner"></div>
+      <span>Termékek betöltése...</span>
+    </div>
+  }
+
+  <!-- ── Hiba ────────────────────────────────────────────── -->
+  @if (hasError() && !isLoading()) {
+    <div class="error-banner">
+      <i class="fa-solid fa-triangle-exclamation"></i>
+      <span>Nem sikerült betölteni a termékeket.</span>
+      <button class="retry-btn" (click)="loadParts()">
+        <i class="fa-solid fa-rotate-right"></i> Újrapróbálás
+      </button>
+    </div>
+  }
+
+  @if (!isLoading() && !hasError()) {
+    <!-- ── Szűrők ───────────────────────────────────────── -->
+    <div class="filters-bar">
+      <div class="search-wrap">
+        <i class="fa-solid fa-magnifying-glass search-icon"></i>
+        <input
+          type="text"
+          class="search-input"
+          placeholder="Keresés név, SKU, kategória alapján..."
+          (input)="onSearch($event)"
+        />
+      </div>
+      <select class="filter-select" (change)="onStatusFilter($event)">
+        <option value="all">Minden státusz</option>
+        <option value="available">Available</option>
+        <option value="unavailable">Unavailable</option>
+      </select>
+      <select class="filter-select" (change)="onCategoryFilter($event)">
+        <option value="all">Minden kategória</option>
+        @for (cat of categories(); track cat) {
+          <option [value]="cat">{{ cat }}</option>
+        }
+      </select>
+    </div>
+
+    <!-- ── Üres ─────────────────────────────────────────── -->
+    @if (filtered().length === 0) {
+      <div class="empty-state">
+        <i class="fa-solid fa-box-open"></i>
+        <p>Nincs találat a szűrési feltételekre.</p>
+      </div>
+    }
+
+    <!-- ── Lista ────────────────────────────────────────── -->
+    <div class="parts-grid">
+      @for (part of filtered(); track part.id) {
+        <div class="part-card" (click)="openDetail(part)">
+          <div class="part-img">
+            @if (part.imageUrl) {
+              <img [src]="part.imageUrl" [alt]="part.name" />
+            } @else {
+              <div class="img-placeholder">
+                <i class="fa-solid fa-gear"></i>
+              </div>
+            }
+            <span class="part-status-badge" [class]="getStatusClass(part.status)">
+              {{ part.status }}
+            </span>
+          </div>
+          <div class="part-info">
+            <span class="part-sku">{{ part.sku }}</span>
+            <h3 class="part-name">{{ part.name }}</h3>
+            <span class="part-category">
+              <i class="fa-solid fa-folder"></i> {{ part.category }}
+            </span>
+          </div>
+          <div class="part-footer">
+            <span class="part-price">{{ part.price | number: '1.0-0' }} Ft</span>
+            <span class="part-stock" [class.low-stock]="part.stock < 5">
+              <i class="fa-solid fa-cubes"></i> {{ part.stock }} db
+            </span>
+          </div>
+          <div class="card-hover-arrow">
+            <i class="fa-solid fa-arrow-right"></i>
+          </div>
+        </div>
+      }
+    </div>
+  }
+</div>
+
+<!-- ── Detail panel ──────────────────────────────────────── -->
+@if (selected()) {
+  <div class="detail-overlay" (click)="closeDetail()">
+    <div class="detail-panel" (click)="$event.stopPropagation()">
+      <!-- X gomb a panel tetején belül -->
+      <button class="close-panel-btn" (click)="closeDetail()">
+        <i class="fa-solid fa-xmark"></i>
+      </button>
+
+      <!-- Kép -->
+      <div class="detail-img-wrap">
+        @if (selected()!.imageUrl) {
+          <img [src]="selected()!.imageUrl" [alt]="selected()!.name" class="detail-img" />
+        } @else {
+          <div class="detail-img-placeholder">
+            <i class="fa-solid fa-gear"></i>
+          </div>
+        }
+        <span class="detail-status-badge" [class]="getStatusClass(selected()!.status)">
+          {{ selected()!.status }}
+        </span>
+      </div>
+
+      <!-- Alap infók -->
+      <div class="detail-head">
+        <span class="detail-sku">{{ selected()!.sku }}</span>
+        <h2 class="detail-name">{{ selected()!.name }}</h2>
+        <span class="detail-category">
+          <i class="fa-solid fa-folder"></i> {{ selected()!.category }}
+        </span>
+      </div>
+
+      <div class="detail-divider"></div>
+
+      <!-- Adatok grid -->
+      <div class="detail-grid">
+        <div class="detail-item">
+          <span class="detail-label"><i class="fa-solid fa-dollar-sign"></i> Ár</span>
+          <span class="detail-value highlight">{{ selected()!.price | number: '1.0-0' }} Ft</span>
+        </div>
+        <div class="detail-item">
+          <span class="detail-label"><i class="fa-solid fa-cubes"></i> Készlet</span>
+          <span class="detail-value" [class.low-stock]="selected()!.stock < 5">
+            {{ selected()!.stock }} db
+          </span>
+        </div>
+        <div class="detail-item">
+          <span class="detail-label"><i class="fa-solid fa-industry"></i> Gyártó ID</span>
+          <span class="detail-value">{{ selected()!.manufacturerId }}</span>
+        </div>
+        <div class="detail-item">
+          <span class="detail-label"><i class="fa-solid fa-hashtag"></i> Part ID</span>
+          <span class="detail-value">{{ selected()!.id }}</span>
+        </div>
+        <div class="detail-item">
+          <span class="detail-label"><i class="fa-solid fa-toggle-on"></i> Aktív</span>
+          <span class="detail-value">
+            @if (selected()!.isActive) {
+              <span class="badge-yes">Igen</span>
+            } @else {
+              <span class="badge-no">Nem</span>
+            }
+          </span>
+        </div>
+        <div class="detail-item">
+          <span class="detail-label"><i class="fa-solid fa-signal"></i> Státusz</span>
+          <span class="detail-value">
+            <span [class]="getStatusClass(selected()!.status)">{{ selected()!.status }}</span>
+          </span>
+        </div>
+        <div class="detail-item full">
+          <span class="detail-label"><i class="fa-solid fa-calendar-plus"></i> Létrehozva</span>
+          <span class="detail-value">{{ selected()!.createdAt }}</span>
+        </div>
+        <div class="detail-item full">
+          <span class="detail-label"><i class="fa-solid fa-calendar-check"></i> Módosítva</span>
+          <span class="detail-value">{{ selected()!.updatedAt }}</span>
+        </div>
+      </div>
+    </div>
+  </div>
+}

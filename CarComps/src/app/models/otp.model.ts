@@ -8,8 +8,7 @@ export interface VerifyOTPRequest {
   OTP: number;
 }
 export interface VerifyOTPResponse {
-  success: boolean;
-  message: string;
-  verified: boolean;
+  result: string;
+  status: string;
   statusCode: number;
 }

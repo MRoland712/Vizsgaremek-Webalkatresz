@@ -1,0 +1,63 @@
+<div class="admin-landing">
+  <div class="admin-header">
+    <h1><i class="fa-solid fa-shield-halved"></i> Admin Panel</h1>
+  </div>
+
+  <div class="admin-cards">
+    <div class="admin-card new-product" (click)="goToNewProduct()">
+      <div class="card-bg-shape"></div>
+      <div class="card-icon-wrap">
+        <i class="fa-solid fa-circle-plus"></i>
+      </div>
+      <div class="card-body">
+        <h2>Új termék felvétele</h2>
+        <p>Adj hozzá új alkatrészt a rendszerhez — töltsd ki az adatokat és töltsd fel a képet.</p>
+      </div>
+      <div class="card-arrow">
+        <i class="fa-solid fa-arrow-right"></i>
+      </div>
+    </div>
+
+    <div class="admin-card view-products" (click)="goToProducts()">
+      <div class="card-bg-shape"></div>
+      <div class="card-icon-wrap">
+        <i class="fa-solid fa-boxes-stacked"></i>
+      </div>
+      <div class="card-body">
+        <h2>Jelenlegi termékek</h2>
+        <p>Tekintsd meg és kezeld a meglévő alkatrészeket, készletet és státuszokat.</p>
+      </div>
+      <div class="card-arrow">
+        <i class="fa-solid fa-arrow-right"></i>
+      </div>
+    </div>
+
+    <div class="admin-card ecommerce" (click)="goToEcommerce()">
+      <div class="card-bg-shape"></div>
+      <div class="card-icon-wrap">
+        <i class="fa-solid fa-chart-line"></i>
+      </div>
+      <div class="card-body">
+        <h2>E-Commerce Dashboard</h2>
+        <p>Rendelések, ügyfelek és havi forgalom áttekintése — exportálható PDF riporttal.</p>
+      </div>
+      <div class="card-arrow">
+        <i class="fa-solid fa-arrow-right"></i>
+      </div>
+    </div>
+
+    <div class="admin-card analytics" (click)="goToAnalytics()">
+      <div class="card-bg-shape"></div>
+      <div class="card-icon-wrap">
+        <i class="fa-solid fa-chart-area"></i>
+      </div>
+      <div class="card-body">
+        <h2>Analitika Dashboard</h2>
+        <p>Oldalmegtekintések, egyedi látogatók és aktív felhasználók statisztikái.</p>
+      </div>
+      <div class="card-arrow">
+        <i class="fa-solid fa-arrow-right"></i>
+      </div>
+    </div>
+  </div>
+</div>

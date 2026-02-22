@@ -46,7 +46,6 @@
   border-left: 4px solid #ff6600;
   border-radius: 12px;
   padding: 16px 20px;
-  margin-bottom: 24px;
   font-size: 14px;
   color: #2b2b2b;
 }
@@ -55,9 +54,47 @@
   color: #ff6600;
   font-size: 18px;
 }
-
 .error-state span {
   flex: 1;
+}
+
+.retry-btn {
+  padding: 8px 16px;
+  background: #ff6600;
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  transition: background 0.2s ease;
+}
+
+.retry-btn:hover {
+  background: #e65a00;
+}
+.back-btn {
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  border: 2px solid #e0e0e0;
+  background: transparent;
+  color: #2b2b2b;
+  font-size: 16px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s;
+  flex-shrink: 0;
+}
+
+.back-btn:hover {
+  border-color: #ff6600;
+  color: #ff6600;
 }
 
 /* ==========================================
@@ -68,7 +105,7 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 20px;
+  margin-bottom: 40px;
   padding-bottom: 20px;
   border-bottom: 3px solid #ff6600;
 }
@@ -92,13 +129,12 @@
   gap: 12px;
 }
 
-.refresh-btn,
 .export-btn {
   padding: 12px 24px;
-  border: 2px solid #2b2b2b;
+  border: none;
   border-radius: 8px;
-  background: transparent;
-  color: #2b2b2b;
+  background: #ff6600;
+  color: #fffafa;
   font-size: 14px;
   font-weight: 600;
   cursor: pointer;
@@ -108,39 +144,10 @@
   transition: all 0.3s ease;
 }
 
-.refresh-btn:hover {
-  background: #2b2b2b;
-  color: #fffafa;
-}
-
-/* ── Időszűrő ─────────────────────────────────────────────── */
-.filter-bar {
-  display: flex;
-  gap: 8px;
-  margin-bottom: 32px;
-}
-
-.time-filter {
-  padding: 8px 20px;
-  border: 2px solid #e0e0e0;
-  border-radius: 8px;
-  background: transparent;
-  color: #666;
-  font-size: 13px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.3s ease;
-}
-
-.time-filter:hover {
-  border-color: #ff6600;
-  color: #ff6600;
-}
-
-.time-filter.active {
-  background: #ff6600;
-  border-color: #ff6600;
-  color: #fffafa;
+.export-btn:hover {
+  background: #e65a00;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(255, 102, 0, 0.3);
 }
 
 /* ==========================================
@@ -149,7 +156,7 @@
 
 .stat-container {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  grid-template-columns: repeat(3, 1fr);
   gap: 24px;
   margin-bottom: 40px;
 }
@@ -197,7 +204,7 @@
 }
 
 .stat-value {
-  font-size: 32px;
+  font-size: 36px;
   font-weight: 700;
   color: #2b2b2b;
   margin: 0;
@@ -205,14 +212,14 @@
 }
 
 /* ==========================================
-   ACTIVE USERS
+   ACTIVE USERS SPARKLINE
    ========================================== */
 
 .active-user-wrapper {
+  margin-bottom: 40px;
   background: linear-gradient(135deg, #2b2b2b, #3a3a3a);
   border-radius: 16px;
   padding: 32px;
-  margin-bottom: 40px;
   color: #fffafa;
   position: relative;
   overflow: hidden;
@@ -322,309 +329,19 @@
   }
 }
 
-/* ── Aktív felhasználók lista ──────────────────────────────── */
-.active-users-list {
-  position: relative;
-  z-index: 1;
-  margin-top: 28px;
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-  gap: 10px;
-}
-
-.active-user-item {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  background: rgba(255, 255, 255, 0.06);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: 10px;
-  padding: 10px 14px;
-  transition: background 0.2s ease;
-}
-
-.active-user-item:hover {
-  background: rgba(255, 102, 0, 0.1);
-  border-color: rgba(255, 102, 0, 0.3);
-}
-
-.user-avatar {
-  width: 36px;
-  height: 36px;
-  border-radius: 50%;
-  background: linear-gradient(135deg, #ff6600, #ff9040);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 13px;
-  font-weight: 700;
-  color: #fff;
-  flex-shrink: 0;
-}
-
-.user-info {
-  flex: 1;
-  min-width: 0;
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-}
-
-.user-name {
-  font-size: 13px;
-  font-weight: 600;
-  color: #fffafa;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.user-email {
-  font-size: 11px;
-  color: #888;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.user-meta {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-end;
-  gap: 3px;
-  flex-shrink: 0;
-}
-
-.user-role {
-  font-size: 10px;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-  padding: 2px 8px;
-  border-radius: 10px;
-  background: rgba(255, 255, 255, 0.12);
-  color: #ccc;
-}
-
-.user-role.admin {
-  background: rgba(255, 102, 0, 0.25);
-  color: #ff8c40;
-}
-
-.user-login {
-  font-size: 10px;
-  color: #666;
-}
-
-/* ==========================================
-   RENDELÉSEK STÁTUSZ
-   ========================================== */
-
-.orders-status-wrapper {
-  background: #fffafa;
-  border-radius: 16px;
-  padding: 32px;
-  margin-bottom: 40px;
-  box-shadow: 0px 0px 15px 0px rgba(0, 0, 0, 0.1);
-}
-
-.section-title {
-  font-size: 24px;
-  font-weight: 700;
-  color: #2b2b2b;
-  margin: 0 0 24px 0;
-  display: flex;
-  align-items: center;
-  gap: 12px;
-}
-
-.section-title i {
-  color: #ff6600;
-}
-
-.orders-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-  gap: 16px;
-}
-
-.order-stat-card {
-  display: flex;
-  align-items: center;
-  gap: 16px;
-  padding: 20px;
-  border-radius: 12px;
-  border: 2px solid transparent;
-  transition: all 0.3s ease;
-}
-
-.order-stat-card:hover {
-  transform: translateY(-3px);
-  border-color: #ff6600;
-}
-
-.order-stat-card.pending {
-  background: #fffbeb;
-}
-.order-stat-card.shipped {
-  background: #eff6ff;
-}
-.order-stat-card.delivered {
-  background: #f0fdf4;
-}
-.order-stat-card.total {
-  background: #f5f5f5;
-}
-
-.order-stat-icon {
-  width: 48px;
-  height: 48px;
-  border-radius: 12px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 20px;
-  flex-shrink: 0;
-  background: linear-gradient(135deg, #2b2b2b, #555555);
-  color: #fff;
-}
-
-.order-stat-info {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-}
-
-.order-stat-label {
-  font-size: 13px;
-  color: #666;
-  font-weight: 500;
-}
-
-.order-stat-value {
-  font-size: 28px;
-  font-weight: 700;
-  color: #2b2b2b;
-  line-height: 1;
-}
-
-/* ==========================================
-   TOP TERMÉKEK TABLE
-   ========================================== */
-
-.top-pages {
-  background: #fffafa;
-  border-radius: 16px;
-  padding: 32px;
-  box-shadow: 0px 0px 15px 0px rgba(0, 0, 0, 0.1);
-}
-
-.top-pages h2 {
-  font-size: 24px;
-  font-weight: 700;
-  color: #2b2b2b;
-  margin: 0 0 24px 0;
-  display: flex;
-  align-items: center;
-  gap: 12px;
-}
-
-.top-pages h2 i {
-  color: #ff6600;
-}
-
-.pages-table {
-  width: 100%;
-  border-collapse: collapse;
-}
-
-.pages-table thead {
-  background: #2b2b2b;
-}
-
-.pages-table th {
-  padding: 16px;
-  text-align: left;
-  font-size: 14px;
-  font-weight: 700;
-  color: #fffafa;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-}
-
-.pages-table tbody tr {
-  border-bottom: 1px solid #e0e0e0;
-  transition: all 0.2s ease;
-}
-
-.pages-table tbody tr:hover {
-  background-color: #fff4ee;
-}
-
-.pages-table td {
-  padding: 18px 16px;
-  font-size: 15px;
-  color: #2b2b2b;
-}
-
-.pages-table td:first-child {
-  font-weight: 700;
-}
-
-.pages-table td i {
-  margin-right: 8px;
-  color: #ff6600;
-}
-
-/* Bar a táblában */
-.table-bar-wrapper {
-  height: 6px;
-  background: #e0e0e0;
-  border-radius: 4px;
-  overflow: hidden;
-  min-width: 80px;
-}
-
-.table-bar {
-  height: 100%;
-  background: linear-gradient(90deg, #ff6600, #ff9040);
-  border-radius: 4px;
-  transition: width 0.8s ease;
-}
-
-/* Empty state */
-.empty-table {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 10px;
-  padding: 40px;
-  color: #bbb;
-}
-
-.empty-table i {
-  font-size: 32px;
-}
-
 /* ==========================================
    RESPONSIVE
    ========================================== */
 
-@media (max-width: 992px) {
+@media (max-width: 768px) {
+  .analytic-wrapper {
+    padding: 20px 16px;
+  }
+
   .dashboard-header {
     flex-direction: column;
     align-items: flex-start;
     gap: 20px;
-  }
-
-  .stat-container {
-    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-  }
-}
-
-@media (max-width: 768px) {
-  .analytic-wrapper {
-    padding: 20px 16px;
   }
 
   .dashboard-title {
@@ -638,17 +355,86 @@
   .active-number {
     font-size: 56px;
   }
+}
 
-  .orders-grid {
-    grid-template-columns: 1fr 1fr;
-  }
+/* ── Visitor Chart ────────────────────────────────────────── */
+.visitor-chart {
+  background: #fffafa;
+  border-radius: 16px;
+  padding: 32px;
+  box-shadow: 0px 0px 15px 0px rgba(0, 0, 0, 0.1);
+}
 
-  .active-users-list {
-    grid-template-columns: 1fr;
-  }
+.visitor-chart .chart-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 4px;
+}
 
-  .pages-table th:nth-child(4),
-  .pages-table td:nth-child(4) {
-    display: none;
+.visitor-chart .chart-header h2 {
+  font-size: 24px;
+  font-weight: 700;
+  color: #2b2b2b;
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.visitor-chart .chart-header h2 i {
+  color: #ff6600;
+}
+
+.chart-subtitle {
+  font-size: 14px;
+  color: #999;
+  margin-bottom: 24px;
+}
+
+.chart {
+  height: 320px;
+  position: relative;
+}
+
+.chart canvas {
+  width: 100% !important;
+  height: 100% !important;
+}
+
+.chart-legend {
+  display: flex;
+  justify-content: center;
+  gap: 32px;
+  margin-top: 20px;
+  flex-wrap: wrap;
+}
+
+.legend-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+  color: #666;
+}
+
+.legend-dot {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+}
+
+.legend-dot.visitors {
+  background: #ff6600;
+}
+
+/* ── Stat grid 4 oszlop ───────────────────────────────────── */
+.stat-container {
+  grid-template-columns: repeat(3, 1fr);
+}
+
+@media (max-width: 1100px) {
+  .stat-container {
+    grid-template-columns: repeat(2, 1fr);
   }
 }

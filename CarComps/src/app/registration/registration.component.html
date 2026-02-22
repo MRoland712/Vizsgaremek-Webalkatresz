@@ -3,7 +3,9 @@
   <form [formGroup]="signupForm" (ngSubmit)="onSignUpSubmit()">
     <!-- HEADER -->
     <div class="form-header">
-      <img src="assets/CarComps_Logo_C_white.png" alt="CarComps Logo" class="logo" />
+      <a routerLink="/">
+        <img src="assets/CarComps_Logo_C_white.png" alt="CarComps Logo" class="logo" />
+      </a>
       <h2>Regisztráció</h2>
     </div>
 
@@ -21,7 +23,7 @@
         />
         <label for="username" class="form__label">Felhasználónév</label>
         @if (usernameIsInvalid) {
-        <p class="error-message">Hibás felhasználónév! (3-20 karakter)</p>
+          <p class="error-message">Hibás felhasználónév! (3-20 karakter)</p>
         }
       </div>
 
@@ -37,7 +39,7 @@
         />
         <label for="email" class="form__label">Email</label>
         @if (emailIsInvalid || emailAlreadyExists()) {
-        <p class="error-message">Hibás email cím</p>
+          <p class="error-message">Hibás email cím</p>
         }
       </div>
 
@@ -53,7 +55,7 @@
         />
         <label for="firstname" class="form__label">Vezetéknév</label>
         @if (firstnameIsInvalid) {
-        <p class="error-message">Adja meg a vezetéknevét!</p>
+          <p class="error-message">Adja meg a vezetéknevét!</p>
         }
       </div>
 
@@ -69,7 +71,7 @@
         />
         <label for="lastname" class="form__label">Keresztnév</label>
         @if (lastnameIsInvalid) {
-        <p class="error-message">Adja meg a keresztnevét!</p>
+          <p class="error-message">Adja meg a keresztnevét!</p>
         }
       </div>
 
@@ -85,7 +87,7 @@
         />
         <label for="phone" class="form__label">Telefonszám</label>
         @if (phoneNumberIsInvalid) {
-        <p class="error-message">Adja meg a telefonszámát!</p>
+          <p class="error-message">Adja meg a telefonszámát!</p>
         }
       </div>
 
@@ -101,9 +103,9 @@
         />
         <label for="password" class="form__label">Jelszó</label>
         @if (passwordIsInvalid) {
-        <p class="error-message">
-          Hibás jelszó! (Legalább 8 karakter, speciális karakter, nagybetű, szám)
-        </p>
+          <p class="error-message">
+            Hibás jelszó! (Legalább 8 karakter, speciális karakter, nagybetű, szám)
+          </p>
         }
       </div>
 
@@ -119,7 +121,7 @@
         />
         <label for="rePassword" class="form__label">Jelszó megerősítése</label>
         @if (rePasswordIsInvalid) {
-        <p class="error-message">A jelszavak nem egyeznek!</p>
+          <p class="error-message">A jelszavak nem egyeznek!</p>
         }
       </div>
     </div>

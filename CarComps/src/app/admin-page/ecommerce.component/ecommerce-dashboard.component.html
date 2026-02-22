@@ -1,5 +1,5 @@
 <div class="ecommerce-dashboard">
-  <!-- ── Loading állapot ──────────────────────────────────── -->
+  <!-- ── Loading ──────────────────────────────────────────── -->
   @if (isLoading) {
     <div class="loading-overlay">
       <div class="spinner"></div>
@@ -7,7 +7,7 @@
     </div>
   }
 
-  <!-- ── Hiba állapot ─────────────────────────────────────── -->
+  <!-- ── Hiba ─────────────────────────────────────────────── -->
   @if (hasError && !isLoading) {
     <div class="error-banner">
       <i class="fa-solid fa-triangle-exclamation"></i>
@@ -19,20 +19,25 @@
   }
 
   <!-- ── Fő tartalom ──────────────────────────────────────── -->
-  @if (!isLoading) {
+  @if (!isLoading && !hasError) {
     <div class="dashboard-header">
+      <button class="back-btn" (click)="goBack()">
+        <i class="fa-solid fa-arrow-left"></i>
+      </button>
       <div class="header-title">
         <h1><i class="fa-solid fa-chart-line"></i> E-Commerce Dashboard</h1>
       </div>
-      <div class="header-date">
-        <span class="date-label">Utolsó frissítés</span>
+      <div class="header-right">
+        <span class="date-label">Utolsó frissítés:</span>
         <span class="date-value">{{ lastUpdated | date: 'yyyy. MM. dd. HH:mm' }}</span>
+        <button class="export-btn" (click)="exportPdf()">
+          <i class="fa-solid fa-download"></i> Letöltés
+        </button>
       </div>
     </div>
 
-    <!-- ── Stats Cards ────────────────────────────────────── -->
+    <!-- ── Stats Cards ──────────────────────────────────────── -->
     <div class="stats-grid">
-      <!-- Customers Card -->
       <div class="stat-card">
         <div class="card-glow"></div>
         <div class="stat-card-inner">
@@ -58,7 +63,6 @@
         </div>
       </div>
 
-      <!-- Orders Card -->
       <div class="stat-card">
         <div class="card-glow"></div>
         <div class="stat-card-inner">
@@ -94,7 +98,6 @@
 
     <!-- ── Chart + Top Purchases ──────────────────────────── -->
     <div class="bottom-grid">
-      <!-- Monthly Sales Chart -->
       <div class="chart-card">
         <div class="card-glow"></div>
         <div class="chart-header">
@@ -106,73 +109,11 @@
             <span class="legend-item"> <span class="legend-dot sales"></span>Rendelések </span>
           </div>
         </div>
-
-        <div class="chart-wrapper">
-          <div class="chart-y-axis">
-            @for (label of yAxisLabels; track label) {
-              <span>{{ label }}</span>
-            }
-          </div>
-          <div class="chart-area">
-            <svg class="chart-svg" viewBox="0 0 700 220" preserveAspectRatio="none">
-              <defs>
-                <linearGradient id="salesGradient" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="0%" stop-color="#ff6600" stop-opacity="0.25" />
-                  <stop offset="100%" stop-color="#ff6600" stop-opacity="0" />
-                </linearGradient>
-              </defs>
-              @for (y of gridLines; track y) {
-                <line
-                  [attr.x1]="0"
-                  [attr.y1]="y"
-                  [attr.x2]="700"
-                  [attr.y2]="y"
-                  stroke="#e0e0e0"
-                  stroke-width="1"
-                />
-              }
-              <path [attr.d]="salesAreaPath" fill="url(#salesGradient)" />
-              <path
-                [attr.d]="salesLinePath"
-                fill="none"
-                stroke="#ff6600"
-                stroke-width="2.5"
-                stroke-linecap="round"
-                stroke-linejoin="round"
-              />
-              @for (point of chartPoints; track point.x; let i = $index) {
-                <circle
-                  [attr.cx]="point.x"
-                  [attr.cy]="point.y"
-                  r="4"
-                  fill="#ff6600"
-                  stroke="#fffafa"
-                  stroke-width="2"
-                  class="chart-point"
-                  (mouseenter)="showTooltip(i, $event)"
-                  (mouseleave)="hideTooltip()"
-                />
-              }
-            </svg>
-            <div
-              class="chart-tooltip"
-              [class.visible]="tooltipVisible"
-              [style.left.px]="tooltipX"
-              [style.top.px]="tooltipY"
-            >
-              <span class="tooltip-month">{{ tooltipData?.month }}</span>
-              <span class="tooltip-value">{{ tooltipData?.value | number }} db rendelés</span>
-            </div>
-          </div>
-          <div class="chart-x-axis">
-            @for (month of monthLabels; track month) {
-              <span>{{ month }}</span>
-            }
-          </div>
+        <div class="chart-area">
+          <canvas #monthlyChart></canvas>
         </div>
       </div>
 
-      <!-- Top Purchases Card -->
       <div class="top-purchases-card">
         <div class="card-glow"></div>
         <div class="purchases-header">

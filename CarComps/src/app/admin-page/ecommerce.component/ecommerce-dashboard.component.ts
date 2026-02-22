@@ -1,24 +1,15 @@
-import { Component, OnInit, inject } from '@angular/core';
+import { Component, OnInit, OnDestroy, inject, ViewChild, ElementRef } from '@angular/core';
 import { DecimalPipe, DatePipe } from '@angular/common';
 import { GetAllStatsService } from '../../services/getallstats.service';
 import { GetAllStatsModel } from '../../models/getallstats.model';
+import { Chart, registerables } from 'chart.js';
+import { Router } from '@angular/router';
 
-// ── Belső interfészek ────────────────────────────────────────
-interface MonthlySalesData {
-  month: string;
-  shortLabel: string;
-  value: number;
-  orders: number;
-}
+Chart.register(...registerables);
 
 interface TopProduct {
   name: string;
   count: number;
-}
-
-interface ChartPoint {
-  x: number;
-  y: number;
 }
 
 interface TooltipData {
@@ -26,7 +17,6 @@ interface TooltipData {
   value: number;
 }
 
-// Hónapnév map (createdAt string → hónap index)
 const MONTH_NAMES: string[] = [
   'Január',
   'Február',
@@ -63,8 +53,12 @@ const MONTH_SHORT: string[] = [
   templateUrl: './ecommerce-dashboard.component.html',
   styleUrl: './ecommerce-dashboard.component.css',
 })
-export class EcommerceDashboardComponent implements OnInit {
+export class EcommerceDashboardComponent implements OnInit, OnDestroy {
   private statsService = inject(GetAllStatsService);
+  private router = inject(Router);
+
+  @ViewChild('monthlyChart') chartCanvas!: ElementRef<HTMLCanvasElement>;
+  private chartInstance: Chart | null = null;
 
   // ── UI állapot ───────────────────────────────────────────────
   isLoading = true;
@@ -83,36 +77,24 @@ export class EcommerceDashboardComponent implements OnInit {
   shippedOrders = 0;
   deliveredOrders = 0;
 
-  // ── Monthly Sales Chart ──────────────────────────────────────
-  monthLabels: string[] = [];
-  monthlySales: MonthlySalesData[] = [];
-
-  chartPoints: ChartPoint[] = [];
-  salesLinePath = '';
-  salesAreaPath = '';
-  gridLines: number[] = [44, 88, 132, 176];
-  yAxisLabels: string[] = [];
-
-  // ── Tooltip ──────────────────────────────────────────────────
-  tooltipVisible = false;
-  tooltipX = 0;
-  tooltipY = 0;
-  tooltipData: TooltipData | null = null;
+  // ── Chart adatok ─────────────────────────────────────────────
+  private monthlyCounts: number[] = new Array(12).fill(0);
 
   // ── Top Products ─────────────────────────────────────────────
   topProducts: TopProduct[] = [];
 
-  // ── Lifecycle ────────────────────────────────────────────────
   ngOnInit(): void {
-    this.loadStats('365'); // alapértelmezett: utolsó 1 év
+    this.loadStats('1');
   }
 
-  // ── Adatok betöltése ─────────────────────────────────────────
+  ngOnDestroy(): void {
+    this.chartInstance?.destroy();
+  }
+
   loadStats(days: string): void {
     this.isLoading = true;
     this.hasError = false;
 
-    // Admin ellenőrzés még a kérés előtt
     if (!this.statsService['authService']?.isAdmin?.()) {
       console.warn('⛔ E-commerce dashboard: nem admin felhasználó.');
       this.isLoading = false;
@@ -129,6 +111,7 @@ export class EcommerceDashboardComponent implements OnInit {
           this.hasError = true;
         }
         this.isLoading = false;
+        setTimeout(() => this.initChart(), 50);
       },
       error: (err) => {
         console.error('Hiba az adatok betöltésekor:', err);
@@ -138,149 +121,249 @@ export class EcommerceDashboardComponent implements OnInit {
     });
   }
 
-  // ── API válasz → komponens mezők ────────────────────────────
   private mapApiData(data: GetAllStatsModel): void {
-    // ── Customers ──────────────────────────────────────────────
+    // Customers
     this.totalCustomers = data.allRegisteredUserCount ?? 0;
     this.activeCustomers = Array.isArray(data.activeUsers) ? data.activeUsers.length : 0;
     this.customerRetentionRate =
       this.totalCustomers > 0 ? Math.round((this.activeCustomers / this.totalCustomers) * 100) : 0;
 
-    // ── Orders ────────────────────────────────────────────────
+    // Orders
     this.totalOrders = data.ordersCount ?? 0;
-
     if (Array.isArray(data.allOrders)) {
-      this.pendingOrders = data.allOrders.filter((o) => o.status === 'PENDING').length;
-      this.shippedOrders = data.allOrders.filter((o) => o.status === 'SHIPPED').length;
+      this.pendingOrders = data.allOrders.filter((o) => o.status === 'pending').length;
+      this.shippedOrders = data.allOrders.filter((o) => o.status === 'shipped').length;
     }
     this.deliveredOrders = Array.isArray(data.allDeliveredOrders)
       ? data.allDeliveredOrders.length
       : 0;
 
-    // ── Monthly Sales (rendelések havi bontása) ────────────────
-    this.buildMonthlySales(data);
-
-    // ── Top Products ──────────────────────────────────────────
-    if (Array.isArray(data.mostPurchasedPart)) {
-      this.topProducts = [...data.mostPurchasedPart]
-        .sort((a, b) => b.quantity - a.quantity)
-        .slice(0, 5)
-        .map((p) => ({
-          name: p.partName,
-          count: p.quantity,
-        }));
-    }
-  }
-
-  // ── Havi forgalom diagram felépítése ──────────────────────
-  private buildMonthlySales(data: GetAllStatsModel): void {
-    // Inicializálás: 12 hónapos tömb nullákkal
-    const monthlyCounts = new Array(12).fill(0);
-
-    // allOrders havi bontás (createdAt mező alapján)
+    // Havi bontás
+    this.monthlyCounts = new Array(12).fill(0);
     if (Array.isArray(data.allOrders)) {
       data.allOrders.forEach((order) => {
         if (order.createdAt) {
-          const monthIndex = new Date(order.createdAt).getMonth();
-          if (monthIndex >= 0 && monthIndex < 12) {
-            monthlyCounts[monthIndex]++;
-          }
+          const idx = new Date(order.createdAt).getMonth();
+          if (idx >= 0 && idx < 12) this.monthlyCounts[idx]++;
         }
       });
     }
 
-    // allTransactions string → szám konverzió (ha elérhető)
-    const totalRevenue = parseFloat(data.allTransactions) || 0;
-    const totalOrdersForRatio = data.ordersCount || 1;
-    const avgOrderValue = totalRevenue / totalOrdersForRatio;
-
-    // MonthlySalesData tömb összeállítása
-    this.monthlySales = MONTH_NAMES.map((name, i) => ({
-      month: name,
-      shortLabel: MONTH_SHORT[i],
-      orders: monthlyCounts[i],
-      value: Math.round(monthlyCounts[i] * avgOrderValue),
-    }));
-
-    this.monthLabels = MONTH_SHORT;
-
-    // Y-tengely feliratok
-    const maxVal = Math.max(...this.monthlySales.map((d) => d.value), 1);
-    this.yAxisLabels = [
-      this.formatYLabel(maxVal),
-      this.formatYLabel(maxVal * 0.66),
-      this.formatYLabel(maxVal * 0.33),
-      '0',
-    ];
-
-    this.buildChartPaths();
-  }
-
-  // ── SVG útvonalak kiszámítása ─────────────────────────────
-  private buildChartPaths(): void {
-    const svgW = 700;
-    const svgH = 220;
-    const padLeft = 10;
-    const padRight = 10;
-    const padTop = 15;
-    const padBottom = 10;
-
-    const values = this.monthlySales.map((d) => d.value);
-    const maxVal = Math.max(...values, 1);
-    const n = this.monthlySales.length;
-
-    const toX = (i: number) => padLeft + (i / (n - 1)) * (svgW - padLeft - padRight);
-    const toY = (v: number) => padTop + (1 - v / maxVal) * (svgH - padTop - padBottom);
-
-    this.chartPoints = this.monthlySales.map((d, i) => ({
-      x: toX(i),
-      y: toY(d.value),
-    }));
-
-    const pts = this.chartPoints;
-
-    this.salesLinePath = pts
-      .map((p, i) => (i === 0 ? `M${p.x},${p.y}` : `L${p.x},${p.y}`))
-      .join(' ');
-
-    this.salesAreaPath =
-      `M${pts[0].x},${svgH} ` +
-      pts.map((p) => `L${p.x},${p.y}`).join(' ') +
-      ` L${pts[pts.length - 1].x},${svgH} Z`;
-  }
-
-  // ── Tooltip kezelés ───────────────────────────────────────
-  showTooltip(index: number, event: MouseEvent): void {
-    const target = event.target as SVGCircleElement;
-    const rect = target.closest('.chart-area')?.getBoundingClientRect();
-    const targetRect = target.getBoundingClientRect();
-
-    if (rect) {
-      this.tooltipX = targetRect.left - rect.left;
-      this.tooltipY = targetRect.top - rect.top - 55;
+    // Top Products
+    if (Array.isArray(data.mostPurchasedPart)) {
+      this.topProducts = [...data.mostPurchasedPart]
+        .sort((a, b) => b.quantity - a.quantity)
+        .slice(0, 5)
+        .map((p) => ({ name: p.partName, count: p.quantity }));
     }
-
-    this.tooltipData = {
-      month: this.monthlySales[index].month,
-      value: this.monthlySales[index].value,
-    };
-    this.tooltipVisible = true;
   }
 
-  hideTooltip(): void {
-    this.tooltipVisible = false;
+  private initChart(): void {
+    const canvas = this.chartCanvas?.nativeElement;
+    if (!canvas) return;
+
+    this.chartInstance?.destroy();
+
+    this.chartInstance = new Chart(canvas, {
+      type: 'line',
+      data: {
+        labels: MONTH_SHORT,
+        datasets: [
+          {
+            label: 'Rendelések',
+            data: this.monthlyCounts,
+            borderColor: '#ff6600',
+            backgroundColor: 'rgba(255, 102, 0, 0.08)',
+            borderWidth: 2.5,
+            pointBackgroundColor: '#ff6600',
+            pointBorderColor: '#fffafa',
+            pointBorderWidth: 2,
+            pointRadius: 5,
+            pointHoverRadius: 7,
+            fill: true,
+            tension: 0.4,
+          },
+        ],
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: { display: false },
+          tooltip: {
+            backgroundColor: '#2b2b2b',
+            titleColor: '#aaa',
+            bodyColor: '#ff6600',
+            bodyFont: { weight: 'bold', size: 14 },
+            padding: 10,
+            cornerRadius: 8,
+            callbacks: {
+              label: (ctx) => ` ${ctx.parsed.y} rendelés`,
+            },
+          },
+        },
+        scales: {
+          x: {
+            grid: { color: '#f0f0f0' },
+            ticks: { color: '#999', font: { size: 12 } },
+          },
+          y: {
+            beginAtZero: true,
+            grid: { color: '#f0f0f0' },
+            ticks: { color: '#999', font: { size: 12 }, stepSize: 1, precision: 0 },
+          },
+        },
+      },
+    });
+  }
+  goBack(): void {
+    this.router.navigate(['/admin']);
   }
 
-  // ── Segédmetódusok ────────────────────────────────────────
-  private formatYLabel(value: number): string {
-    if (value >= 1_000_000) return (value / 1_000_000).toFixed(1).replace('.0', '') + 'M';
-    if (value >= 1_000) return (value / 1_000).toFixed(0) + 'K';
-    return value.toFixed(0);
-  }
-
-  // Template helper: top termék sávszélesség %
   getBarWidth(count: number): number {
     if (!this.topProducts.length) return 0;
     return Math.round((count / this.topProducts[0].count) * 100);
+  }
+
+  // ── PDF export ───────────────────────────────────────────────
+  async exportPdf(): Promise<void> {
+    const { jsPDF } = await import('jspdf');
+    const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
+
+    const orange = [255, 102, 0] as [number, number, number];
+    const dark = [43, 43, 43] as [number, number, number];
+    const grey = [102, 102, 102] as [number, number, number];
+    const light = [249, 249, 249] as [number, number, number];
+    const pageW = 210;
+    const margin = 20;
+
+    // Fejléc
+    doc.setFillColor(...orange);
+    doc.rect(0, 0, pageW, 28, 'F');
+    doc.setTextColor(255, 255, 255);
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(20);
+    doc.text('CarComps — E-Commerce Riport', margin, 18);
+
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(9);
+    doc.setTextColor(...grey);
+    doc.text(`Generálva: ${this.lastUpdated.toLocaleString('hu-HU')}`, margin, 36);
+
+    doc.setDrawColor(...orange);
+    doc.setLineWidth(0.5);
+    doc.line(margin, 40, pageW - margin, 40);
+
+    // Stat kártyák
+    const cards = [
+      { label: 'Regisztralt ugyfelek', value: String(this.totalCustomers) },
+      { label: 'Aktiv ugyfelek', value: String(this.activeCustomers) },
+      { label: 'Osszes rendeles', value: String(this.totalOrders) },
+      { label: 'Teljesitett', value: String(this.deliveredOrders) },
+    ];
+
+    const cardW = (pageW - margin * 2 - 15) / 4;
+    const cardH = 36;
+    const cardY = 48;
+
+    cards.forEach((card, i) => {
+      const x = margin + i * (cardW + 5);
+      doc.setFillColor(...light);
+      doc.roundedRect(x, cardY, cardW, cardH, 3, 3, 'F');
+      doc.setFillColor(...orange);
+      doc.roundedRect(x, cardY, 3, cardH, 1, 1, 'F');
+      doc.setFont('helvetica', 'normal');
+      doc.setFontSize(7);
+      doc.setTextColor(...grey);
+      doc.text(card.label, x + 6, cardY + 11);
+      doc.setFont('helvetica', 'bold');
+      doc.setFontSize(18);
+      doc.setTextColor(...dark);
+      doc.text(card.value, x + 6, cardY + 27);
+    });
+
+    // Rendelés státuszok
+    const statusY = cardY + cardH + 14;
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(12);
+    doc.setTextColor(...dark);
+    doc.text('Rendelések státusza', margin, statusY);
+    doc.setDrawColor(...orange);
+    doc.line(margin, statusY + 3, pageW - margin, statusY + 3);
+
+    const statuses = [
+      { label: 'Fuggoben', value: this.pendingOrders },
+      { label: 'Szallitas', value: this.shippedOrders },
+      { label: 'Teljesitett', value: this.deliveredOrders },
+    ];
+    const sCardW = (pageW - margin * 2 - 10) / 3;
+    statuses.forEach((s, i) => {
+      const x = margin + i * (sCardW + 5);
+      doc.setFillColor(...light);
+      doc.roundedRect(x, statusY + 8, sCardW, 28, 3, 3, 'F');
+      doc.setFont('helvetica', 'normal');
+      doc.setFontSize(8);
+      doc.setTextColor(...grey);
+      doc.text(s.label, x + 6, statusY + 19);
+      doc.setFont('helvetica', 'bold');
+      doc.setFontSize(16);
+      doc.setTextColor(...dark);
+      doc.text(String(s.value), x + 6, statusY + 30);
+    });
+
+    // Havi rendelések táblázat
+    const tableY = statusY + 50;
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(12);
+    doc.setTextColor(...dark);
+    doc.text('Havi rendelések', margin, tableY);
+    doc.setDrawColor(...orange);
+    doc.line(margin, tableY + 3, pageW - margin, tableY + 3);
+
+    const colW = (pageW - margin * 2) / 12;
+    MONTH_SHORT.forEach((label, i) => {
+      const x = margin + i * colW;
+      doc.setFont('helvetica', 'normal');
+      doc.setFontSize(8);
+      doc.setTextColor(...grey);
+      doc.text(label, x + colW / 2, tableY + 12, { align: 'center' });
+      doc.setFont('helvetica', 'bold');
+      doc.setFontSize(11);
+      doc.setTextColor(...dark);
+      doc.text(String(this.monthlyCounts[i]), x + colW / 2, tableY + 22, { align: 'center' });
+    });
+
+    // Top termékek
+    if (this.topProducts.length > 0) {
+      const topY = tableY + 36;
+      doc.setFont('helvetica', 'bold');
+      doc.setFontSize(12);
+      doc.setTextColor(...dark);
+      doc.text('Top termekek', margin, topY);
+      doc.setDrawColor(...orange);
+      doc.line(margin, topY + 3, pageW - margin, topY + 3);
+
+      this.topProducts.forEach((p, i) => {
+        const y = topY + 12 + i * 10;
+        doc.setFont('helvetica', 'normal');
+        doc.setFontSize(9);
+        doc.setTextColor(...dark);
+        doc.text(`${i + 1}. ${p.name}`, margin, y);
+        doc.setTextColor(...orange);
+        doc.text(`${p.count} db`, pageW - margin, y, { align: 'right' });
+      });
+    }
+
+    // Lábléc
+    doc.setDrawColor(220, 220, 220);
+    doc.setLineWidth(0.3);
+    doc.line(margin, 280, pageW - margin, 280);
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(8);
+    doc.setTextColor(...grey);
+    doc.text('CarComps E-Commerce Dashboard', margin, 286);
+    doc.text('carcomps.hu', pageW - margin, 286, { align: 'right' });
+
+    doc.save(`carcomps-ecommerce-${new Date().toISOString().slice(0, 10)}.pdf`);
   }
 }

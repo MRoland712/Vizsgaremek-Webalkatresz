@@ -9,8 +9,8 @@ import {
   emailMustHaveDomainValidator,
   passwordMatchValidator,
   RegisterService,
-} from './register.service';
-import { RegisterErrorResponse } from './register.model';
+} from '../services/register.service';
+import { RegisterErrorResponse } from '../models/register.model';
 import { AuthService } from '../services/auth.service';
 
 @Component({

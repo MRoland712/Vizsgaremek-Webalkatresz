@@ -1,3 +1,4 @@
+<!--TODO: NAPI HAVI ÉVI STAT VÁLTOZTATÓ GOMBOCSKÁK-->
 <div class="analytic-wrapper">
   <!-- ── Loading ─────────────────────────────────────────── -->
   @if (isLoading) {
@@ -12,41 +13,31 @@
     <div class="error-state">
       <i class="fa-solid fa-triangle-exclamation"></i>
       <span>Nem sikerült betölteni az adatokat.</span>
-      <button class="refresh-btn" (click)="loadStats(activeFilter)">
+      <button class="retry-btn" (click)="loadStats('365')">
         <i class="fa-solid fa-rotate"></i> Újrapróbálás
       </button>
     </div>
   }
 
-  @if (!isLoading) {
+  @if (!isLoading && !hasError) {
     <!-- Dashboard Header -->
     <div class="dashboard-header">
+      <button class="back-btn" (click)="goBack()">
+        <i class="fa-solid fa-arrow-left"></i>
+      </button>
       <h1 class="dashboard-title">
         <i class="fa-solid fa-chart-line"></i>
         Analitika Dashboard
       </h1>
       <div class="header-actions">
-        <button class="refresh-btn" (click)="loadStats(activeFilter)">
-          <i class="fa-solid fa-rotate"></i>
-          Frissítés
+        <button class="export-btn" (click)="exportPdf()">
+          <i class="fa-solid fa-download"></i>
+          Letöltés
         </button>
       </div>
     </div>
 
-    <!-- Időszűrő -->
-    <div class="filter-bar">
-      @for (f of filters; track f.value) {
-        <button
-          class="time-filter"
-          [class.active]="activeFilter === f.value"
-          (click)="setFilter(f.value)"
-        >
-          {{ f.label }}
-        </button>
-      }
-    </div>
-
-    <!-- Stats Container -->
+    <!-- ── Stat Cards ──────────────────────────────────────── -->
     <div class="stat-container">
       <div class="stat-card">
         <div class="stat-icon eye">
@@ -69,34 +60,24 @@
       </div>
 
       <div class="stat-card">
-        <div class="stat-icon users">
-          <i class="fa-solid fa-users"></i>
+        <div class="stat-icon new-users">
+          <i class="fa-solid fa-user-plus"></i>
         </div>
         <div class="stat-content">
           <p class="stat-label">Regisztrált felhasználók</p>
-          <h3 class="stat-value">{{ totalUsers | number }}</h3>
-        </div>
-      </div>
-
-      <div class="stat-card">
-        <div class="stat-icon new-users">
-          <i class="fa-solid fa-box-open"></i>
-        </div>
-        <div class="stat-content">
-          <p class="stat-label">Összes rendelés</p>
-          <h3 class="stat-value">{{ ordersCount | number }}</h3>
+          <h3 class="stat-value">{{ registeredUsers | number }}</h3>
         </div>
       </div>
     </div>
 
-    <!-- Active Users Section -->
+    <!-- ── Active Users Sparkline ─────────────────────────── -->
     <div class="active-user-wrapper">
       <div class="active-header">
         <h2>
           <i class="fa-solid fa-circle pulse"></i>
           Aktív felhasználók
         </h2>
-        <span class="last-updated">Frissítve: {{ lastUpdated | date: 'HH:mm:ss' }}</span>
+        <span class="last-updated">Frissítve: {{ lastUpdated | date: 'yyyy.MM.dd HH:mm:ss' }}</span>
       </div>
       <div class="active-content">
         <div class="active-number">{{ activeUsersCount }}</div>
@@ -109,105 +90,26 @@
           </div>
         </div>
       </div>
-
-      <!-- Aktív felhasználók lista -->
-      @if (activeUsers.length > 0) {
-        <div class="active-users-list">
-          @for (user of activeUsers; track user.email) {
-            <div class="active-user-item">
-              <div class="user-avatar">{{ getInitials(user.firstName, user.lastName) }}</div>
-              <div class="user-info">
-                <span class="user-name">{{ user.firstName }} {{ user.lastName }}</span>
-                <span class="user-email">{{ user.email }}</span>
-              </div>
-              <div class="user-meta">
-                <span class="user-role" [class.admin]="user.role === 'admin'">{{ user.role }}</span>
-                <span class="user-login">{{ user.lastLogin | date: 'MM.dd HH:mm' }}</span>
-              </div>
-            </div>
-          }
-        </div>
-      }
     </div>
 
-    <!-- Rendelések státusz -->
-    <div class="orders-status-wrapper">
-      <h2 class="section-title">
-        <i class="fa-solid fa-box"></i>
-        Rendelések áttekintése
-      </h2>
-      <div class="orders-grid">
-        <div class="order-stat-card pending">
-          <div class="order-stat-icon"><i class="fa-solid fa-clock"></i></div>
-          <div class="order-stat-info">
-            <span class="order-stat-label">Függőben</span>
-            <span class="order-stat-value">{{ pendingCount }}</span>
-          </div>
-        </div>
-        <div class="order-stat-card shipped">
-          <div class="order-stat-icon"><i class="fa-solid fa-truck"></i></div>
-          <div class="order-stat-info">
-            <span class="order-stat-label">Szállítás alatt</span>
-            <span class="order-stat-value">{{ shippedCount }}</span>
-          </div>
-        </div>
-        <div class="order-stat-card delivered">
-          <div class="order-stat-icon"><i class="fa-solid fa-circle-check"></i></div>
-          <div class="order-stat-info">
-            <span class="order-stat-label">Teljesített</span>
-            <span class="order-stat-value">{{ deliveredCount }}</span>
-          </div>
-        </div>
-        <div class="order-stat-card total">
-          <div class="order-stat-icon"><i class="fa-solid fa-layer-group"></i></div>
-          <div class="order-stat-info">
-            <span class="order-stat-label">Összes</span>
-            <span class="order-stat-value">{{ ordersCount }}</span>
-          </div>
+    <!-- ── Havi látogatások diagram ───────────────────────── -->
+    <div class="visitor-chart">
+      <div class="chart-header">
+        <h2>
+          <i class="fa-solid fa-chart-area"></i>
+          Havi látogatások
+        </h2>
+      </div>
+      <p class="chart-subtitle">Rendelések havi bontása az elmúlt évben</p>
+      <div class="chart">
+        <canvas #visitorChart></canvas>
+      </div>
+      <div class="chart-legend">
+        <div class="legend-item">
+          <span class="legend-dot visitors"></span>
+          Rendelések
         </div>
       </div>
-    </div>
-
-    <!-- Top Termékek -->
-    <div class="top-pages">
-      <h2>
-        <i class="fa-solid fa-ranking-star"></i>
-        Top legtöbbet vásárolt termékek
-      </h2>
-
-      @if (topProducts.length === 0) {
-        <div class="empty-table">
-          <i class="fa-solid fa-box-open"></i>
-          <span>Nincs elérhető adat</span>
-        </div>
-      }
-
-      @if (topProducts.length > 0) {
-        <table class="pages-table">
-          <thead>
-            <tr>
-              <th>#</th>
-              <th>Termék neve</th>
-              <th>Eladott (db)</th>
-              <th>Arány</th>
-            </tr>
-          </thead>
-          <tbody>
-            @for (product of topProducts; track product.partName; let i = $index) {
-              <tr>
-                <td>{{ i + 1 }}</td>
-                <td><i class="fa-solid fa-gear"></i> {{ product.partName }}</td>
-                <td>{{ product.quantity | number }}</td>
-                <td>
-                  <div class="table-bar-wrapper">
-                    <div class="table-bar" [style.width.%]="getTopBarWidth(product.quantity)"></div>
-                  </div>
-                </td>
-              </tr>
-            }
-          </tbody>
-        </table>
-      }
     </div>
   }
 </div>

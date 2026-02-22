@@ -1,0 +1,262 @@
+<div class="new-product-page">
+  <!-- ── Fejléc ──────────────────────────────────────────── -->
+  <div class="page-header">
+    <button class="back-btn" (click)="goBack()">
+      <i class="fa-solid fa-arrow-left"></i>
+    </button>
+    <div>
+      <h1><i class="fa-solid fa-circle-plus"></i> Új termék felvétele</h1>
+      <p class="page-subtitle">Töltsd ki az adatokat és opcionálisan tölts fel képet</p>
+    </div>
+  </div>
+
+  <!-- ── Siker ────────────────────────────────────────────── -->
+  @if (isSuccess()) {
+    <div class="success-state">
+      <div class="success-icon"><i class="fa-solid fa-circle-check"></i></div>
+      <h2>Termék sikeresen létrehozva!</h2>
+      @if (uploadSuccess()) {
+        <p>A termék és a kép is feltöltve.</p>
+      } @else {
+        <p>A termék adatai mentve.</p>
+      }
+      @if (errorMsg()) {
+        <p class="warn-note"><i class="fa-solid fa-triangle-exclamation"></i> {{ errorMsg() }}</p>
+      }
+      <div class="success-actions">
+        <button class="btn-primary" (click)="resetForm()">
+          <i class="fa-solid fa-plus"></i> Új termék
+        </button>
+        <button class="btn-outline" (click)="goBack()">
+          <i class="fa-solid fa-arrow-left"></i> Vissza
+        </button>
+      </div>
+    </div>
+  }
+
+  <!-- ── Form ─────────────────────────────────────────────── -->
+  @if (!isSuccess()) {
+    <form [formGroup]="productForm" (ngSubmit)="onSubmit()" class="product-form">
+      <!-- Hiba banner -->
+      @if (errorMsg()) {
+        <div class="error-banner">
+          <i class="fa-solid fa-triangle-exclamation"></i>
+          <span>{{ errorMsg() }}</span>
+        </div>
+      }
+
+      <!-- ── Sor 1: Járműkategória + Gyártó ──────────────── -->
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">
+            <i class="fa-solid fa-car"></i> Járműkategória <span class="required">*</span>
+          </label>
+          <select
+            class="form-select"
+            formControlName="vehicleCategory"
+            [class.invalid]="
+              productForm.controls.vehicleCategory.touched &&
+              productForm.controls.vehicleCategory.invalid
+            "
+          >
+            <option value="" disabled>Válassz kategóriát...</option>
+            @for (vc of vehicleCategories; track vc.value) {
+              <option [value]="vc.value">{{ vc.label }}</option>
+            }
+          </select>
+          @if (
+            productForm.controls.vehicleCategory.touched &&
+            productForm.controls.vehicleCategory.invalid
+          ) {
+            <p class="field-error">Kötelező mező</p>
+          }
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">
+            <i class="fa-solid fa-industry"></i> Gyártó / Márka <span class="required">*</span>
+          </label>
+          <select
+            class="form-select"
+            formControlName="manufacturerId"
+            [class.invalid]="isInvalid(mfId)"
+          >
+            <option value="" disabled>Válassz gyártót...</option>
+            @for (mf of manufacturers; track mf.id) {
+              <option [value]="mf.id">{{ mf.name }}</option>
+            }
+          </select>
+          @if (isInvalid(mfId)) {
+            <p class="field-error">Kötelező mező</p>
+          }
+        </div>
+      </div>
+
+      <!-- ── Sor 2: SKU + Név ─────────────────────────────── -->
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">
+            <i class="fa-solid fa-barcode"></i> SKU <span class="required">*</span>
+          </label>
+          <input
+            type="text"
+            class="form-input"
+            formControlName="sku"
+            placeholder="pl. BRAKE-DISC-001"
+            [class.invalid]="isInvalid(skuCtrl)"
+          />
+          <span class="field-hint">Automatikusan nagybetűs</span>
+          @if (isInvalid(skuCtrl)) {
+            <p class="field-error">Kötelező mező</p>
+          }
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">
+            <i class="fa-solid fa-tag"></i> Termék neve <span class="required">*</span>
+          </label>
+          <input
+            type="text"
+            class="form-input"
+            formControlName="name"
+            placeholder="pl. Zimmermann Féktárcsa"
+            [class.invalid]="isInvalid(nameCtrl)"
+          />
+          @if (isInvalid(nameCtrl)) {
+            <p class="field-error">Kötelező mező</p>
+          }
+        </div>
+      </div>
+
+      <!-- ── Sor 3: Kategória + Ár ────────────────────────── -->
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">
+            <i class="fa-solid fa-folder-open"></i> Kategória <span class="required">*</span>
+          </label>
+          <select
+            class="form-select"
+            formControlName="category"
+            [class.invalid]="isInvalid(catCtrl)"
+          >
+            <option value="" disabled>Válassz kategóriát...</option>
+            @for (cat of partCategories; track cat) {
+              <option [value]="cat">{{ cat }}</option>
+            }
+          </select>
+          @if (isInvalid(catCtrl)) {
+            <p class="field-error">Kötelező mező</p>
+          }
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">
+            <i class="fa-solid fa-dollar-sign"></i> Ár (string) <span class="required">*</span>
+          </label>
+          <input
+            type="text"
+            class="form-input"
+            formControlName="price"
+            placeholder="pl. 18.742"
+            [class.invalid]="isInvalid(priceCtrl)"
+          />
+          @if (isInvalid(priceCtrl)) {
+            <p class="field-error">Kötelező mező</p>
+          }
+        </div>
+      </div>
+
+      <!-- ── Sor 4: Készlet + Státusz + isActive ──────────── -->
+      <div class="form-row three-col">
+        <div class="form-group">
+          <label class="form-label">
+            <i class="fa-solid fa-cubes"></i> Készlet (db) <span class="required">*</span>
+          </label>
+          <input
+            type="number"
+            class="form-input"
+            formControlName="stock"
+            min="0"
+            placeholder="0"
+            [class.invalid]="isInvalid(stockCtrl)"
+          />
+          @if (isInvalid(stockCtrl)) {
+            <p class="field-error">Kötelező mező, min. 0</p>
+          }
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">
+            <i class="fa-solid fa-signal"></i> Státusz <span class="required">*</span>
+          </label>
+          <select class="form-select" formControlName="status">
+            <option value="available">Available</option>
+            <option value="unavailable">Unavailable</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">
+            <i class="fa-solid fa-toggle-on"></i> Aktív <span class="required">*</span>
+          </label>
+          <select class="form-select" formControlName="isActive">
+            <option value="true">Igen (true)</option>
+            <option value="false">Nem (false)</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- ── Képfeltöltés ──────────────────────────────────── -->
+      <div class="form-group full-width">
+        <label class="form-label">
+          <i class="fa-solid fa-image"></i> Termék képe
+          <span class="optional">(opcionális)</span>
+        </label>
+
+        @if (!imagePreviewUrl()) {
+          <label class="upload-zone" for="imageInput">
+            <div class="upload-icon"><i class="fa-solid fa-cloud-arrow-up"></i></div>
+            <p class="upload-text">Kattints vagy húzd ide a képet</p>
+            <p class="upload-hint">JPG, PNG, WEBP — max 10MB</p>
+            <input
+              type="file"
+              id="imageInput"
+              accept="image/*"
+              (change)="onFileSelected($event)"
+              hidden
+            />
+          </label>
+        }
+
+        @if (imagePreviewUrl()) {
+          <div class="image-preview-wrap">
+            <img [src]="imagePreviewUrl()" alt="Preview" class="image-preview" />
+            <div class="image-info">
+              <span class="image-name">{{ selectedFile()?.name }}</span>
+              <span class="image-size"
+                >{{ (selectedFile()?.size ?? 0) / 1024 | number: '1.0-0' }} KB</span
+              >
+            </div>
+            <button type="button" class="remove-image-btn" (click)="removeImage()">
+              <i class="fa-solid fa-xmark"></i> Eltávolítás
+            </button>
+          </div>
+        }
+      </div>
+
+      <!-- ── Submit ────────────────────────────────────────── -->
+      <div class="form-actions">
+        <button type="button" class="btn-outline" (click)="goBack()">Mégsem</button>
+        <button type="submit" class="btn-primary" [disabled]="isLoading() || productForm.invalid">
+          @if (isLoading() && !isUploadingImg()) {
+            <i class="fa-solid fa-spinner fa-spin"></i> Létrehozás...
+          } @else if (isUploadingImg()) {
+            <i class="fa-solid fa-spinner fa-spin"></i> Kép feltöltése...
+          } @else {
+            <i class="fa-solid fa-circle-plus"></i> Termék létrehozása
+          }
+        </button>
+      </div>
+    </form>
+  }
+</div>

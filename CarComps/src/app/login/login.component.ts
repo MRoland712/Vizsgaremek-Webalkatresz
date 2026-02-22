@@ -3,10 +3,10 @@ import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { debounceTime } from 'rxjs';
 import { HttpErrorResponse } from '@angular/common/http';
-import { LoginService } from './login.service';
-import { AuthService } from '../services/auth.service';
 
+import { AuthService } from '../services/auth.service';
 import { OtpComponent } from '../verifications/otp.component/otp.component';
+import { LoginService } from '../services/login.service';
 
 let initialEmailValue = '';
 let initialPasswordValue = '';
@@ -31,10 +31,7 @@ export class LoginComponent implements OnInit {
   fb = inject(FormBuilder);
   loginService = inject(LoginService);
 
-  // ⭐ OTP Dialog reference
   @ViewChild(OtpComponent) otpDialog!: OtpComponent;
-
-  // Login failed signal
   loginFailed = signal(false);
 
   loginForm = this.fb.nonNullable.group({
@@ -43,103 +40,72 @@ export class LoginComponent implements OnInit {
   });
 
   onLoginSubmit() {
-    // Form érvényesség ellenőrzése
     if (this.loginForm.invalid) {
       this.loginForm.markAllAsTouched();
       return;
     }
 
-    // Login error reset
     this.loginFailed.set(false);
+    const { email, password } = this.loginForm.value;
 
-    const finalLoginData = {
-      email: this.loginForm.value.email!,
-      password: this.loginForm.value.password!,
-    };
-
-    console.log('🔐 Login próbálkozás:', finalLoginData);
-
-    this.loginService.login(finalLoginData).subscribe({
+    this.loginService.login({ email: email!, password: password! }).subscribe({
       next: (res) => {
-        console.log('✅ Sikeres bejelentkezés!', res);
+        // Teljes raw response kiírása
 
-        // JWT token mentése
         localStorage.setItem('jwt', res.result.JWTToken!);
-        localStorage.setItem('userEmail', finalLoginData.email);
+        localStorage.setItem('userEmail', email!);
+        localStorage.setItem('userName', res.result.username || email!);
+        localStorage.setItem('firstName', res.result.firstName || '');
+        localStorage.setItem('lastName', res.result.lastName || '');
+        localStorage.setItem('phone', res.result.phone || '');
 
-        // Username a response-ból
-        const username = res.result.username || finalLoginData.email;
-        const firstname = res.result.firstName || '';
-        const lastname = res.result.lastName || '';
-        const phone = res.result.phone || '';
+        // ⭐ role: res.result.role — a modellben most már benne van
+        const role = res.result.role;
 
-        localStorage.setItem('userName', username);
-        localStorage.setItem('firstName', firstname);
-        localStorage.setItem('lastName', lastname);
-        localStorage.setItem('phone', phone || '');
-        // AuthService setLoggedIn()
-        this.authService.setLoggedIn(finalLoginData.email, username);
+        this.authService.setLoggedIn(
+          email,
+          res.result.username,
+          res.result.firstName,
+          res.result.lastName,
+          res.result.phone,
+          role,
+        );
 
-        console.log('✅ AuthService frissítve');
-
-        // ⭐ OTP Dialog megnyitása
-        console.log('📧 OTP Dialog megnyitása...');
-        setTimeout(() => {
-          this.otpDialog.open(finalLoginData.email);
-        }, 100);
+        setTimeout(() => this.otpDialog.open(email!), 100);
       },
       error: (err: HttpErrorResponse) => {
-        console.error('❌ Bejelentkezési hiba:', err);
+        console.error('❌ Login hiba:', err);
         this.loginFailed.set(true);
-
-        if (err.status === 401) {
-          console.log('⚠️ Hibás email vagy jelszó');
-        } else if (err.status === 0) {
-          console.log('⚠️ Nincs hálózati kapcsolat');
-        } else {
-          console.log('⚠️ Szerver hiba:', err.status);
-        }
       },
     });
   }
 
-  // ⭐ OTP sikeres verifikáció után
   onOTPVerified() {
-    console.log('✅ OTP sikeresen megerősítve!');
-
-    // Mark user as verified in localStorage
     localStorage.setItem('emailVerified', 'true');
-
-    // Navigáció főoldalra
-    this.router.navigate(['/']);
+    if (this.authService.isAdmin()) {
+      this.router.navigate(['/admin']);
+    } else {
+      this.router.navigate(['/']);
+    }
   }
 
-  // ⭐ OTP dialog bezárása (skip)
   onOTPCancelled() {
-    console.log('⚠️ OTP megerősítés kihagyva');
-
-    // Navigáció főoldalra (OTP nélkül is)
-    this.router.navigate(['/']);
+    this.authService.logout(false);
   }
 
   ngOnInit() {
-    const subscription = this.loginForm.valueChanges.pipe(debounceTime(500)).subscribe({
-      next: (value) => {
-        window.localStorage.setItem(
+    const sub1 = this.loginForm.valueChanges
+      .pipe(debounceTime(500))
+      .subscribe((v) =>
+        localStorage.setItem(
           'saved-login-form',
-          JSON.stringify({ email: value.email, password: value.password }),
-        );
-      },
-    });
-
-    // Form változáskor login error törlése
-    const errorSubscription = this.loginForm.valueChanges.subscribe(() => {
-      this.loginFailed.set(false);
-    });
-
+          JSON.stringify({ email: v.email, password: v.password }),
+        ),
+      );
+    const sub2 = this.loginForm.valueChanges.subscribe(() => this.loginFailed.set(false));
     this.destroyRef.onDestroy(() => {
-      subscription.unsubscribe();
-      errorSubscription.unsubscribe();
+      sub1.unsubscribe();
+      sub2.unsubscribe();
     });
   }
 
@@ -150,7 +116,6 @@ export class LoginComponent implements OnInit {
       this.loginForm.controls.email.invalid
     );
   }
-
   get passwordIsInvalid() {
     return (
       this.loginForm.controls.password.touched &&

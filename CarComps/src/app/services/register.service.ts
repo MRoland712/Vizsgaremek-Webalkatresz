@@ -2,7 +2,7 @@ import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { inject, Injectable } from '@angular/core';
 import { AbstractControl, ValidationErrors } from '@angular/forms';
 import { Observable, of } from 'rxjs';
-import { RegisterBody, RegisterResponse } from './register.model';
+import { RegisterBody, RegisterResponse } from '../models/register.model';
 
 //Speciális karakterek validator
 export function mustContainSpecialCharacters(control: AbstractControl) {

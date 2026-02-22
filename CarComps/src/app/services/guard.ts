@@ -15,3 +15,20 @@ export const authGuard = () => {
     return false;
   }
 };
+export const adminGuard = () => {
+  const auth = inject(AuthService);
+  const router = inject(Router);
+
+  if (!auth.isAuthenticated()) {
+    router.navigate(['/login']);
+    return false;
+  }
+
+  if (auth.isAdmin()) {
+    return true;
+  }
+
+  console.warn('nem admin felhasználó');
+  router.navigate(['/']);
+  return false;
+};
