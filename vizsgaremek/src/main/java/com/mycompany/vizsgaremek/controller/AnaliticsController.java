@@ -11,6 +11,7 @@ import com.mycompany.vizsgaremek.model.Users;
 import com.mycompany.vizsgaremek.model.Payments;
 import com.mycompany.vizsgaremek.model.OrderItems;
 import com.mycompany.vizsgaremek.model.Parts;
+import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -147,12 +148,16 @@ public class AnaliticsController {
         ArrayList<OrderItems> allOrderItems = OrderItems.getAllOrderItems();
 
         HashMap<Integer, Integer> mostPurchasedPart = new HashMap<Integer, Integer>();
-
-        //feltöltjük a mostPurchasedPart hashmapet
+        BigDecimal profit = BigDecimal.ZERO;
+        
+        //feltöltjük a mostPurchasedPart hashmapet és a profits BigDecimalt
+        
         for (OrderItems orderItem : allOrderItems) {
             Integer partId = orderItem.getPartId().getId();
             Integer quantity = orderItem.getQuantity();
-
+            
+            profit = profit.add(BigDecimal.valueOf(quantity).multiply(orderItem.getPrice()));
+            
             if (mostPurchasedPart.containsKey(partId)) {
                 mostPurchasedPart.put(partId, mostPurchasedPart.get(partId) + quantity);
             } else {
@@ -176,6 +181,8 @@ public class AnaliticsController {
         }
         //System.out.println("top10 " + top10);
         result.put("mostPurchasedPart", top10);
+
+        result.put("AllProfit", profit);
 
         //ToDo: mostsearched part
         JSONObject successResponse = new JSONObject();

@@ -32,7 +32,118 @@ import javax.mail.Flags;
  */
 public class SendEmail {
 
-    //ToDo: Verify OTP function
+    /**
+     * Sends an activation email to a newly registered user.
+     *
+     * The email contains an activation link with the user's registration token
+     * as a query parameter. The link is valid for 24 hours and must be clicked
+     * to activate the user account.
+     *
+     * Email is sent from the alias "noreply@carcomps.hu" using Gmail SMTP.
+     *
+     * @param recipientEmail The email address of the user to send the
+     * activation link to
+     * @param userdata The Users object containing user information (firstName,
+     * lastName, registrationToken)
+     * @throws MessagingException if email sending fails due to SMTP
+     * configuration or network issues
+     */
+    public static void sendActivationEmail(String recipientEmail, Users userdata) throws MessagingException {
+
+        // Configure SMTP properties
+        Properties props = new Properties();
+        props.put("mail.smtp.auth", "true");
+        props.put("mail.smtp.starttls.enable", "true");
+        props.put("mail.smtp.host", "smtp.gmail.com");
+        props.put("mail.smtp.port", "587");
+
+        // Create session with authentication
+        Session session = Session.getInstance(props, new Authenticator() {
+            @Override
+            protected PasswordAuthentication getPasswordAuthentication() {
+                return new PasswordAuthentication(
+                        KvFetcher.getDataFromKV("SMTPEmail"),
+                        base64Converters.base64Converter(KvFetcher.getDataFromKV("SMTPPsw"))
+                );
+            }
+        });
+
+        // Create email message
+        Message message = new MimeMessage(session);
+
+        // Set the "From" header
+        message.setFrom(new InternetAddress("noreply@carcomps.hu"));
+        message.setRecipients(Message.RecipientType.TO, InternetAddress.parse(recipientEmail));
+        message.setSubject("CarComps - Fiók aktiválás");
+
+        // Get user data
+        String firstName = userdata.getFirstName();
+        String lastName = userdata.getLastName();
+        String registrationToken = userdata.getRegistrationToken();
+
+        // Activation link
+        String activationLink = "https://api.carcomps.hu/activate?activationTOken=" + registrationToken;
+
+        // Create HTML content
+        String htmlContent = "<!DOCTYPE html>"
+                + "<html lang=\"hu\">"
+                + "<head>"
+                + "<meta charset=\"UTF-8\" />"
+                + "<meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\" />"
+                + "<title>Fiók aktiválás</title>"
+                + "<style>"
+                + "* { margin: 0; padding: 0; box-sizing: border-box; }"
+                + "body { background: #111; padding: 20px; font-family: system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; }"
+                + ".email-container { border-radius: 10px; max-width: 600px; width: 100%; margin: 20px auto; background-color: #2b2b2b; color: #fff; text-align: center; overflow: hidden; }"
+                + ".email-header, .email-footer { padding: 16px; }"
+                + ".email-header img { width: 300px; display: block; margin: auto; }"
+                + ".email-body { padding: 0 24px 24px; text-align: left; }"
+                + "hr { border: none; height: 1px; background: rgba(255, 255, 255, 0.06); margin: 20px 0; }"
+                + "h2 { margin: 18px 0; color: #fffafa; font-size: 20px; text-align: left; }"
+                + "p { margin: 0 0 16px; font-size: 16px; line-height: 1.6; color: #eaeaea; }"
+                + ".btn-container { display: flex; justify-content: center; margin: 30px 0; }"
+                + ".btn { display: inline-block; padding: 14px 32px; background: #ff6600; color: #fff; text-decoration: none; border-radius: 6px; font-weight: 600; font-size: 16px; }"
+                + ".btn:hover { background: #e55a00; }"
+                + ".link-text { word-break: break-all; font-size: 14px; color: #9fc5ff; background: rgba(255,255,255,0.05); padding: 12px; border-radius: 4px; margin: 20px 0; font-family: monospace; }"
+                + ".email-footer p { color: #bfbfbf; font-size: 12px; margin: 0; text-align: center; }"
+                + ".email-footer a { color: #9fc5ff; text-decoration: none; }"
+                + "</style>"
+                + "</head>"
+                + "<body>"
+                + "<div class=\"email-container\">"
+                + "<div class=\"email-header\">"
+                + "<img src=\"https://raw.githubusercontent.com/MRoland712/Vizsgaremek-Webalkatresz/refs/heads/Backend/K%C3%A9pek/CarComps_Logo_BigassC.png\" alt=\"CarComps logó\" />"
+                + "</div>"
+                + "<div class=\"email-body\">"
+                + "<hr />"
+                + "<h2>Kedves " + lastName + " " + firstName + "!</h2>"
+                + "<p>Köszönjük, hogy regisztrált a CarComps webshopunkban! Az alábbi gombra kattintva aktiválhatja fiókját:</p>"
+                + "<div class=\"btn-container\">"
+                + "<a href=\"" + activationLink + "\" class=\"btn\">Fiók aktiválása</a>"
+                + "</div>"
+                + "<p>Ha a gomb nem működik, másolja be az alábbi linket a böngészőjébe:</p>"
+                + "<div class=\"link-text\">" + activationLink + "</div>"
+                + "<p>Ez a link <span style=\"text-decoration: underline\">24 óráig</span> érvényes.</p>"
+                + "<p>Ha Ön nem regisztrált a CarComps oldalán, kérjük, hagyja figyelmen kívül ezt az e-mailt.</p>"
+                + "<p>Üdvözlettel,<br />CarComps csapata</p>"
+                + "</div>"
+                + "<hr />"
+                + "<div class=\"email-footer\">"
+                + "<p>Ez egy automatikus üzenet, kérjük, ne válaszolj rá.<br />© 2025 CarComps – Minden jog fenntartva.<br />Székhely: 7621 Pécs, Fő utca 12.<br />"
+                + "<a href=\"https://carcomps.hu/adatvedelem\">Adatvédelmi nyilatkozat</a> | <a href=\"https://carcomps.hu/aszf\">Felhasználási feltételek</a></p>"
+                + "</div>"
+                + "</div>"
+                + "</body>"
+                + "</html>";
+
+        message.setContent(htmlContent, "text/html; charset=utf-8");
+
+        // Send the email
+        Transport.send(message);
+
+        System.out.println("Activation email sent to: " + recipientEmail);
+    }
+
     /**
      * Sends an OTP email using SMTP
      *

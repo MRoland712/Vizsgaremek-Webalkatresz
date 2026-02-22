@@ -93,6 +93,13 @@ public class OrderItems implements Serializable {
         this.partId = partId;
     }
     
+    public OrderItems(Integer quantity, BigDecimal price, Orders orderId, Parts partId) {
+        this.quantity = quantity;
+        this.price = price;
+        this.orderId = orderId;
+        this.partId = partId;
+    }
+    
     public OrderItems() {
     }
 
@@ -161,24 +168,6 @@ public class OrderItems implements Serializable {
     }
 
     public void setPartId(Parts partId) {
-        this.partId = partId;
-    }
-
-    public OrderItems(Integer id, Integer quantity, BigDecimal price, Date createdAt, Boolean isDeleted, Date deletedAt, Orders orderId, Parts partId) {
-        this.id = id;
-        this.quantity = quantity;
-        this.price = price;
-        this.createdAt = createdAt;
-        this.isDeleted = isDeleted;
-        this.deletedAt = deletedAt;
-        this.orderId = orderId;
-        this.partId = partId;
-    }
-
-    public OrderItems(Integer quantity, BigDecimal price, Orders orderId, Parts partId) {
-        this.quantity = quantity;
-        this.price = price;
-        this.orderId = orderId;
         this.partId = partId;
     }
 

@@ -4,3 +4,4 @@
 \target
 # API kulcs file-át ebbe a gitignoreba rakjad  
 \node_modules
+*.class

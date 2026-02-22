@@ -86,6 +86,23 @@ public class UsersController {
                 .type(MediaType.APPLICATION_JSON)
                 .build();
     }
+    
+    @GET
+    @Path("getActivatedUsers")
+    @Consumes(MediaType.APPLICATION_JSON)
+    public Response getActivatedUsers(@HeaderParam("token") String jwtToken) {
+        Response jwtError = jwt.validateJwtAndReturnError(jwtToken);
+        if (jwtError != null) {
+            return jwtError;
+        }
+
+        JSONObject toReturn = layer.getActivatedUsersService();
+
+        return Response.status(Integer.parseInt(toReturn.get("statusCode").toString()))
+                .entity(toReturn.toString())
+                .type(MediaType.APPLICATION_JSON)
+                .build();
+    }
 
     @GET
     @Path("getUserById")

@@ -13,7 +13,7 @@ import org.json.JSONObject;
  *
  * @author neblgergo
  */
-public class OrderItemsService {
+public class orderItemsService {
     
     private final AuthenticationService.orderItemsAuth orderItemsAuth = new AuthenticationService.orderItemsAuth();
     private final AuthenticationService.errorAuth errorAuth = new AuthenticationService.errorAuth();
@@ -77,6 +77,48 @@ public class OrderItemsService {
 
     }
 
+    public JSONObject getAllOrderItemsAdminService() {
+        JSONObject toReturn = new JSONObject();
+        JSONArray errors = new JSONArray();
+
+        // MODEL HÍVÁS
+        ArrayList<OrderItems> modelResult = OrderItems.getAllOrderItemsAdmin();
+
+        // VALIDÁCIÓ If no data in DB
+        if (orderItemsAuth.isDataMissing(modelResult)) {
+            errors.put("ModelException");
+        }
+
+        // If modelexeption
+        if (errorAuth.hasErrors(errors)) {
+            return errorAuth.createErrorResponse(errors, 500);
+        }
+
+        // KONVERZIÓ ArrayList 
+        JSONArray orderItemsArray = new JSONArray();
+
+        for (OrderItems orderItem : modelResult) {
+            JSONObject orderItemObj = new JSONObject();
+            orderItemObj.put("id", orderItem.getId());
+            orderItemObj.put("orderId", orderItem.getOrderId().getId());
+            orderItemObj.put("partId", orderItem.getPartId().getId());
+            orderItemObj.put("quantity", orderItem.getQuantity());
+            orderItemObj.put("price", orderItem.getPrice());
+            orderItemObj.put("createdAt", orderItem.getCreatedAt());
+            orderItemObj.put("isDeleted", orderItem.getIsDeleted());
+            orderItemObj.put("deletedAt", orderItem.getDeletedAt());
+
+            orderItemsArray.put(orderItemObj);
+        }
+
+        toReturn.put("success", true);
+        toReturn.put("OrderItems", orderItemsArray);
+        toReturn.put("count", modelResult.size());
+        toReturn.put("statusCode", 200);
+
+        return toReturn;
+    }//getAllOrderItem
+    
     public JSONObject getAllOrderItemsService() {
         JSONObject toReturn = new JSONObject();
         JSONArray errors = new JSONArray();

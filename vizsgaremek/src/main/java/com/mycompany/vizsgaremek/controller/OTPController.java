@@ -82,6 +82,20 @@ public class OTPController {
 
         Users userdata = Users.getUserByEmail(bodyObject.getString("email"));
 
+        System.out.println(
+                "AuthSecret: " + userdata.getAuthSecret() + "\n"
+                + "Email: " + userdata.getEmail() + "\n"
+                + "FirstName: " + userdata.getFirstName() + "\n"
+                + "Guid: " + userdata.getGuid() + "\n"
+                + "LastName: " + userdata.getLastName() + "\n"
+                + "Password: " + userdata.getPassword() + "\n"
+                + "Phone: " + userdata.getPhone() + "\n"
+                + "RegistrationToken: " + userdata.getRegistrationToken() + "\n"
+                + "Role: " + userdata.getRole() + "\n"
+                + "Timezone: " + userdata.getTimezone() + "\n"
+                + "Username: " + userdata.getUsername()
+        );
+
         if (userdata == null) {
             errors.put("UserNotFound");
 
