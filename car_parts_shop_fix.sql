@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Gép: localhost:8889
--- Létrehozás ideje: 2026. Feb 22. 22:54
+-- Létrehozás ideje: 2026. Feb 23. 10:05
 -- Kiszolgáló verziója: 8.0.44
 -- PHP verzió: 8.3.28
 
@@ -211,8 +211,8 @@ CREATE DEFINER=`root`@`localhost` PROCEDURE `createCars` (IN `brandIN` VARCHAR(1
     SELECT LAST_INSERT_ID()AS new_cars_id;
 END$$
 
-DROP PROCEDURE IF EXISTS `createCartItmes`$$
-CREATE DEFINER=`root`@`localhost` PROCEDURE `createCartItmes` (IN `userIdIN` INT(11), IN `partIdIN` INT(11), IN `quantityIN` INT(11))   BEGIN
+DROP PROCEDURE IF EXISTS `createCartItems`$$
+CREATE DEFINER=`root`@`localhost` PROCEDURE `createCartItems` (IN `userIdIN` INT(11), IN `partIdIN` INT(11), IN `quantityIN` INT(11))   BEGIN
     INSERT INTO cart_items 
     (
         user_id, 
@@ -616,6 +616,21 @@ CREATE DEFINER=`root`@`localhost` PROCEDURE `createUserTwoFa` (IN `user_idIN` IN
     COMMIT;
 END$$
 
+DROP PROCEDURE IF EXISTS `createWarehouses`$$
+CREATE DEFINER=`root`@`localhost` PROCEDURE `createWarehouses` (IN `nameIN` VARCHAR(50), IN `locationIN` VARCHAR(255))   BEGIN
+    INSERT INTO warehouses (
+        name,
+        location,
+        created_at
+    ) VALUES (
+        nameIN,
+        locationIN,
+        NOW()
+    );
+    
+    SELECT LAST_INSERT_ID() AS new_warehouse_id;
+END$$
+
 DROP PROCEDURE IF EXISTS `getAddressById`$$
 CREATE DEFINER=`root`@`localhost` PROCEDURE `getAddressById` (IN `p_address_id` INT)   BEGIN
     SELECT 
@@ -946,6 +961,20 @@ CREATE DEFINER=`root`@`localhost` PROCEDURE `getAllUserTwoFa` ()   BEGIN
     FROM user_twofa
     WHERE is_deleted = 0
     ORDER BY id DESC;
+END$$
+
+DROP PROCEDURE IF EXISTS `getAllWarehouses`$$
+CREATE DEFINER=`root`@`localhost` PROCEDURE `getAllWarehouses` ()   Begin
+	SELECT 
+        id,
+        name,
+        location,
+        created_at,
+        is_deleted,
+        deleted_at
+    FROM warehouses
+    WHERE is_deleted = 0
+    ORDER BY id;
 END$$
 
 DROP PROCEDURE IF EXISTS `getCarsByBrand`$$
@@ -1549,6 +1578,19 @@ CREATE DEFINER=`root`@`localhost` PROCEDURE `getUserTwoFaByUserId` (IN `user_idI
         AND is_deleted = 0;
 END$$
 
+DROP PROCEDURE IF EXISTS `getWarehousesById`$$
+CREATE DEFINER=`root`@`localhost` PROCEDURE `getWarehousesById` (IN `idIN` INT(11))   BEGIN
+    SELECT 
+        id,
+        name,
+        location,
+        created_at,
+        is_deleted,
+        deleted_at
+    FROM warehouses
+    WHERE id = idIN;
+END$$
+
 DROP PROCEDURE IF EXISTS `increasePageViewers`$$
 CREATE DEFINER=`root`@`localhost` PROCEDURE `increasePageViewers` (IN `pageNameIN` VARCHAR(255))   BEGIN
     DECLARE pageExists INT;
@@ -1883,18 +1925,45 @@ CREATE DEFINER=`root`@`localhost` PROCEDURE `softDeleteUser` (IN `p_user_id` INT
 END$$
 
 DROP PROCEDURE IF EXISTS `softDeleteUserAndAddresses`$$
-CREATE DEFINER=`root`@`localhost` PROCEDURE `softDeleteUserAndAddresses` (IN `p_user_id` INT)   BEGIN
-
+CREATE DEFINER=`root`@`localhost` PROCEDURE `softDeleteUserAndAddresses` (IN `userIdIN` INT)   BEGIN
+    DECLARE userExists INT;
+    
+    DECLARE EXIT HANDLER FOR SQLEXCEPTION
+    BEGIN
+        ROLLBACK;
+        SELECT 'ERROR: User deletion failed' AS error_message;
+    END;
+    
+    START TRANSACTION;
+    
+    SELECT COUNT(*) INTO userExists
+    FROM users
+    WHERE id = userIdIN AND is_deleted = 0;
+    
+    IF userExists = 0 THEN
+        SIGNAL SQLSTATE '45000'
+        SET MESSAGE_TEXT = 'User not found or already deleted';
+    END IF;
+    
     UPDATE users
-    SET is_deleted = TRUE,
-        deleted_at = NOW()
-    WHERE id = p_user_id;
-
-
+    SET is_deleted = 1, deleted_at = NOW()
+    WHERE id = userIdIN;
+    
     UPDATE addresses
-    SET is_deleted = TRUE,
-        deleted_at = NOW()
-    WHERE user_id = p_user_id;
+    SET is_deleted = 1, deleted_at = NOW()
+    WHERE user_id = userIdIN AND is_deleted = 0;
+    
+    UPDATE cart_items
+    SET is_deleted = 1, deleted_at = NOW()
+    WHERE user_id = userIdIN AND is_deleted = 0;
+    
+    UPDATE user_twofa
+    SET is_deleted = 1, deleted_at = NOW()
+    WHERE user_id = userIdIN AND is_deleted = 0;
+    
+    COMMIT;
+    
+    SELECT userIdIN AS deleted_user_id;
 END$$
 
 DROP PROCEDURE IF EXISTS `softDeleteUserTwoFa`$$
@@ -1904,6 +1973,15 @@ CREATE DEFINER=`root`@`localhost` PROCEDURE `softDeleteUserTwoFa` (IN `twofa_idI
         is_deleted = 1,
         deleted_at = NOW()
     WHERE id = twofa_idIN;
+END$$
+
+DROP PROCEDURE IF EXISTS `softDeleteWarehouses`$$
+CREATE DEFINER=`root`@`localhost` PROCEDURE `softDeleteWarehouses` (IN `idIN` INT(11))   BEGIN
+    UPDATE warehouses
+    SET 
+        is_deleted = 1,
+        deleted_at = NOW()
+    WHERE id = idIN;
 END$$
 
 DROP PROCEDURE IF EXISTS `updateAddress`$$
@@ -2175,6 +2253,18 @@ CREATE DEFINER=`root`@`localhost` PROCEDURE `updateUserTwoFa` (IN `idIN` INT(11)
     WHERE id = idIN;
     
     COMMIT;
+END$$
+
+DROP PROCEDURE IF EXISTS `updateWarehouses`$$
+CREATE DEFINER=`root`@`localhost` PROCEDURE `updateWarehouses` (IN `idIN` INT(11))   BEGIN
+
+    UPDATE warehouses
+    SET 
+    	name = nameIN,
+        location = locationIN,
+        is_deleted = isDeleted
+    WHERE id = idIN;
+
 END$$
 
 DROP PROCEDURE IF EXISTS `user_login`$$
@@ -2486,6 +2576,23 @@ CREATE TABLE `order_logs` (
   `old_status` varchar(20) DEFAULT NULL,
   `new_status` varchar(20) DEFAULT NULL,
   `changed_at` datetime DEFAULT CURRENT_TIMESTAMP
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3;
+
+-- --------------------------------------------------------
+
+--
+-- Tábla szerkezet ehhez a táblához `page_statistics`
+--
+
+DROP TABLE IF EXISTS `page_statistics`;
+CREATE TABLE `page_statistics` (
+  `id` int NOT NULL,
+  `pageName` varchar(255) NOT NULL,
+  `viewersCount` int NOT NULL,
+  `created_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` datetime DEFAULT NULL ON UPDATE CURRENT_TIMESTAMP,
+  `is_deleted` tinyint DEFAULT '0',
+  `deleted_at` datetime DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3;
 
 -- --------------------------------------------------------
@@ -3048,131 +3155,6 @@ CREATE TABLE `user_logs` (
   `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3;
 
---
--- A tábla adatainak kiíratása `user_logs`
---
-
-INSERT INTO `user_logs` (`id`, `user_id`, `action`, `details`, `created_at`) VALUES
-(1, 1, 'createUser', 'User Jonny7 registered.', '2026-01-30 10:15:11'),
-(2, 1, 'loginUser', 'User Jonny7 logged in.', '2026-01-30 10:18:56'),
-(3, 1, 'loginUser', 'User Jonny7 logged in.', '2026-01-30 10:24:34'),
-(6, 3, 'createUser', 'User Csabusa registered.', '2026-01-30 10:29:41'),
-(7, 1, 'loginUser', 'User Jonny7 logged in.', '2026-01-30 10:30:18'),
-(8, 1, 'loginUser', 'User Jonny7 logged in.', '2026-02-02 08:57:31'),
-(9, 1, 'updateUser', 'User Jonny7 Updated the following data(s): [is subscribed]', '2026-02-02 08:58:13'),
-(10, 1, 'loginUser', 'User Jonny7 logged in.', '2026-02-02 09:23:58'),
-(11, 1, 'loginUser', 'User Jonny7 logged in.', '2026-02-02 09:51:41'),
-(12, 1, 'loginUser', 'User Jonny7 logged in.', '2026-02-02 09:53:49'),
-(13, 1, 'loginUser', 'User Jonny7 logged in.', '2026-02-02 09:54:05'),
-(14, 1, 'loginUser', 'User Jonny7 logged in.', '2026-02-02 10:03:37'),
-(15, 1, 'loginUser', 'User Jonny7 logged in.', '2026-02-02 10:04:16'),
-(16, 1, 'loginUser', 'User Jonny7 logged in.', '2026-02-02 10:06:58'),
-(17, 1, 'loginUser', 'User Jonny7 logged in.', '2026-02-02 10:11:05'),
-(18, 1, 'loginUser', 'User Jonny7 logged in.', '2026-02-02 10:15:19'),
-(19, 1, 'updateUser', 'User Jonny7 Updated the following data(s): [email]', '2026-02-02 11:36:57'),
-(20, 1, 'updateUser', 'User Jonny7 Updated the following data(s): [is subscribed]', '2026-02-02 11:39:19'),
-(21, 4, 'createUser', 'User NebelG registered.', '2026-02-02 12:18:31'),
-(22, 4, 'loginUser', 'User NebelG logged in.', '2026-02-02 12:19:17'),
-(23, 1, 'loginUser', 'User Jonny7 logged in.', '2026-02-02 12:28:26'),
-(28, 6, 'createUser', 'User Doryan registered.', '2026-02-02 12:48:26'),
-(29, 1, 'loginUser', 'User Jonny7 logged in.', '2026-02-02 12:48:56'),
-(30, 1, 'loginUser', 'User Jonny7 logged in.', '2026-02-02 12:51:55'),
-(31, 1, 'loginUser', 'User Jonny7 logged in.', '2026-02-02 13:00:39'),
-(42, 1, 'loginUser', 'User Jonny7 logged in.', '2026-02-02 17:33:42'),
-(49, 8, 'createUser', 'User TesztMagyar registered.', '2026-02-02 18:06:41'),
-(50, 8, 'loginUser', 'User TesztMagyar logged in.', '2026-02-02 18:07:05'),
-(51, 1, 'loginUser', 'User Jonny7 logged in.', '2026-02-02 18:11:10'),
-(52, 8, 'loginUser', 'User TesztMagyar logged in.', '2026-02-02 18:15:16'),
-(53, 1, 'loginUser', 'User Jonny7 logged in.', '2026-02-03 09:25:32'),
-(55, 9, 'createUser', 'User Rolando registered.', '2026-02-03 09:43:09'),
-(56, 9, 'loginUser', 'User Rolando logged in.', '2026-02-03 09:43:31'),
-(57, 9, 'loginUser', 'User Rolando logged in.', '2026-02-03 09:45:49'),
-(58, 9, 'loginUser', 'User Rolando logged in.', '2026-02-03 11:14:30'),
-(59, 9, 'loginUser', 'User Rolando logged in.', '2026-02-03 11:36:30'),
-(60, 9, 'loginUser', 'User Rolando logged in.', '2026-02-03 12:27:57'),
-(61, 9, 'loginUser', 'User Rolando logged in.', '2026-02-04 08:52:38'),
-(62, 10, 'createUser', 'User Admin registered.', '2026-02-08 11:38:41'),
-(63, 10, 'loginUser', 'User Admin logged in.', '2026-02-08 11:38:57'),
-(66, 9, 'loginUser', 'User Rolando logged in.', '2026-02-09 09:54:31'),
-(67, 9, 'loginUser', 'User Rolando logged in.', '2026-02-09 10:02:54'),
-(68, 9, 'loginUser', 'User Rolando logged in.', '2026-02-09 10:05:04'),
-(69, 9, 'loginUser', 'User Rolando logged in.', '2026-02-09 10:05:16'),
-(70, 9, 'loginUser', 'User Rolando logged in.', '2026-02-09 10:05:32'),
-(71, 10, 'loginAdmin', 'Admin Admin logged in.', '2026-02-09 13:10:18'),
-(72, 9, 'loginAdmin', 'Admin Rolando logged in.', '2026-02-10 08:41:13'),
-(73, 10, 'loginAdmin', 'Admin Admin logged in.', '2026-02-10 09:04:02'),
-(74, 10, 'loginAdmin', 'Admin Admin logged in.', '2026-02-10 09:04:55'),
-(75, 10, 'softDeleteUser', 'User Admin Has deleted their account. ', '2026-02-10 09:06:14'),
-(76, 6, 'softDeleteUser', 'User Doryan Has deleted their account. ', '2026-02-10 09:06:44'),
-(77, 12, 'createUser', 'User drxy registered.', '2026-02-10 09:24:55'),
-(78, 13, 'createUser', 'User root registered.', '2026-02-10 09:31:04'),
-(79, 13, 'loginAdmin', 'Admin root logged in.', '2026-02-10 09:31:56'),
-(80, 13, 'loginUser', 'User root logged in.', '2026-02-10 09:52:20'),
-(81, 14, 'createUser', 'User user registered.', '2026-02-10 09:54:05'),
-(82, 14, 'loginAdmin', 'Admin user logged in.', '2026-02-10 09:54:58'),
-(83, 9, 'loginAdmin', 'Admin Rolando logged in.', '2026-02-13 09:33:07'),
-(84, 13, 'loginUser', 'User root logged in.', '2026-02-13 11:46:50'),
-(85, 13, 'loginUser', 'User root logged in.', '2026-02-13 11:47:10'),
-(86, 14, 'loginAdmin', 'Admin user logged in.', '2026-02-16 09:49:00'),
-(87, 15, 'createUser', 'User RadeonGamer06 registered.', '2026-02-17 10:14:35'),
-(88, 15, 'loginAdmin', 'Admin RadeonGamer06 logged in.', '2026-02-17 10:14:40'),
-(89, 16, 'createUser', 'User marko registered.', '2026-02-17 10:17:51'),
-(90, 16, 'loginAdmin', 'Admin marko logged in.', '2026-02-17 10:18:08'),
-(91, 9, 'loginAdmin', 'Admin Rolando logged in.', '2026-02-17 10:19:44'),
-(92, 9, 'loginAdmin', 'Admin Rolando logged in.', '2026-02-17 10:20:36'),
-(93, 14, 'loginAdmin', 'Admin user logged in.', '2026-02-17 10:21:07'),
-(94, 14, 'loginAdmin', 'Admin user logged in.', '2026-02-17 10:27:53'),
-(95, 1, 'loginAdmin', 'Admin Jonny7 logged in.', '2026-02-17 10:35:25'),
-(96, 9, 'loginAdmin', 'Admin Rolando logged in.', '2026-02-17 11:41:07'),
-(97, 13, 'loginUser', 'User root logged in.', '2026-02-17 12:22:46'),
-(98, 13, 'loginUser', 'User root logged in.', '2026-02-17 12:55:38'),
-(99, 9, 'loginAdmin', 'Admin Rolando logged in.', '2026-02-17 13:22:08'),
-(100, 9, 'loginAdmin', 'Admin Rolando logged in.', '2026-02-18 18:03:45'),
-(101, 13, 'loginUser', 'User root logged in.', '2026-02-19 09:14:43'),
-(102, 9, 'loginAdmin', 'Admin Rolando logged in.', '2026-02-19 09:18:26'),
-(103, 9, 'loginAdmin', 'Admin Rolando logged in.', '2026-02-19 12:16:03'),
-(104, 9, 'loginAdmin', 'Admin Rolando logged in.', '2026-02-19 12:34:39'),
-(105, 13, 'loginUser', 'User root logged in.', '2026-02-19 15:51:21'),
-(106, 13, 'loginUser', 'User root logged in.', '2026-02-19 17:10:42'),
-(107, 13, 'loginUser', 'User root logged in.', '2026-02-19 17:13:52'),
-(108, 9, 'loginAdmin', 'Admin Rolando logged in.', '2026-02-20 08:43:38'),
-(109, 13, 'loginUser', 'User root logged in.', '2026-02-20 09:57:08'),
-(110, 9, 'loginAdmin', 'Admin Rolando logged in.', '2026-02-20 10:11:52'),
-(111, 9, 'loginAdmin', 'Admin Rolando logged in.', '2026-02-20 10:11:56'),
-(112, 9, 'loginAdmin', 'Admin Rolando logged in.', '2026-02-20 10:13:40'),
-(113, 9, 'loginAdmin', 'Admin Rolando logged in.', '2026-02-20 10:14:05'),
-(114, 9, 'loginAdmin', 'Admin Rolando logged in.', '2026-02-20 10:14:08'),
-(115, 9, 'loginAdmin', 'Admin Rolando logged in.', '2026-02-20 10:14:37'),
-(116, 9, 'loginAdmin', 'Admin Rolando logged in.', '2026-02-20 10:14:56'),
-(117, 13, 'loginUser', 'User root logged in.', '2026-02-20 10:27:30'),
-(118, 9, 'loginAdmin', 'Admin Rolando logged in.', '2026-02-20 11:25:03'),
-(119, 9, 'loginAdmin', 'Admin Rolando logged in.', '2026-02-20 11:26:56'),
-(120, 9, 'loginAdmin', 'Admin Rolando logged in.', '2026-02-22 16:34:06'),
-(121, 9, 'loginAdmin', 'Admin Rolando logged in.', '2026-02-22 16:34:16'),
-(122, 9, 'loginAdmin', 'Admin Rolando logged in.', '2026-02-22 16:39:28'),
-(123, 9, 'loginAdmin', 'Admin Rolando logged in.', '2026-02-22 16:41:18'),
-(124, 9, 'loginAdmin', 'Admin Rolando logged in.', '2026-02-22 16:48:28'),
-(125, 9, 'loginAdmin', 'Admin Rolando logged in.', '2026-02-22 16:49:22'),
-(126, 17, 'createUser', 'User Mivan registered.', '2026-02-22 16:55:02'),
-(127, 17, 'loginAdmin', 'Admin Mivan logged in.', '2026-02-22 16:55:21'),
-(128, 9, 'loginAdmin', 'Admin Rolando logged in.', '2026-02-22 17:00:12'),
-(129, 17, 'loginAdmin', 'Admin Mivan logged in.', '2026-02-22 17:01:23'),
-(130, 9, 'loginAdmin', 'Admin Rolando logged in.', '2026-02-22 17:01:42'),
-(131, 9, 'loginAdmin', 'Admin Rolando logged in.', '2026-02-22 17:02:02'),
-(132, 17, 'loginAdmin', 'Admin Mivan logged in.', '2026-02-22 17:07:21'),
-(133, 17, 'loginAdmin', 'Admin Mivan logged in.', '2026-02-22 17:17:52'),
-(134, 17, 'loginAdmin', 'Admin Mivan logged in.', '2026-02-22 17:18:22'),
-(135, 9, 'loginAdmin', 'Admin Rolando logged in.', '2026-02-22 17:18:41'),
-(136, 18, 'createUser', 'User levicky registered.', '2026-02-22 17:21:13'),
-(137, 18, 'loginAdmin', 'Admin levicky logged in.', '2026-02-22 17:21:26'),
-(138, 17, 'loginAdmin', 'Admin Mivan logged in.', '2026-02-22 17:24:46'),
-(139, 17, 'loginAdmin', 'Admin Mivan logged in.', '2026-02-22 17:27:12'),
-(140, 17, 'loginAdmin', 'Admin Mivan logged in.', '2026-02-22 19:10:05'),
-(141, 17, 'loginAdmin', 'Admin Mivan logged in.', '2026-02-22 19:10:05'),
-(142, 17, 'loginAdmin', 'Admin Mivan logged in.', '2026-02-22 19:10:41'),
-(143, 17, 'loginAdmin', 'Admin Mivan logged in.', '2026-02-22 19:12:26'),
-(144, 17, 'loginAdmin', 'Admin Mivan logged in.', '2026-02-22 19:13:34');
-
 -- --------------------------------------------------------
 
 --
@@ -3191,34 +3173,6 @@ CREATE TABLE `user_twofa` (
   `is_deleted` tinyint(1) DEFAULT '0',
   `deleted_at` datetime DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3;
-
---
--- A tábla adatainak kiíratása `user_twofa`
---
-
-INSERT INTO `user_twofa` (`id`, `user_id`, `twofa_enabled`, `twofa_secret`, `recovery_codes`, `created_at`, `updated_at`, `is_deleted`, `deleted_at`) VALUES
-(1, 12, 0, '2WVLQO3KUIWSLU6ZAZ5XGOOZF33RAWQL', '71d97feb-b66f-4093-b6db-18a0926327dd;42ad77e3-0c29-41b5-bd5e-7ed76eacc18b;8ff14d26-0b5f-41a7-9e84-39538666cf3c;21c9c917-7549-4b69-845b-cbe2deb53016;1d81ec04-de1b-4e14-9af0-dcf37e5ff5f7;dcedb170-baa8-4372-ab93-b3db897e7181;', '2026-02-13 10:39:56', '2026-02-13 10:39:56', 0, NULL),
-(2, 14, 0, 'BWKP5EDOJUCS2R6ZCHDJEQVT5E5TSH6E', 'c2f33dbf-2985-4fec-979a-95c5bbdfadfc;2416dcf0-406b-4f00-9db7-8873ecbd67da;d8976ae5-7f96-4eff-ac36-950b47ae434c;f8a69075-3dcf-4378-901f-d33d3569e963;81ef7376-911e-40f4-8857-2f0de26c75f2;23e540be-4f24-417e-a020-67f724c4dd69;', '2026-02-16 11:13:44', '2026-02-16 11:13:44', 0, NULL),
-(3, 9, 0, 'ZSSSFVE5MB3RBPG6CHSNOXWP6NJKBE65', '9ff75085-ef13-45bd-92e0-ac8dc08a7579;9e4e2995-e1a0-4254-a00e-c500c191cf50;7348ebe4-cb6c-479c-8efc-6ebae9213766;a025d15c-6dff-4c43-b4b4-4ecb79ffa6ce;59c856df-af5f-421b-b9e7-5966c03f4dfe;845ae507-1679-4e3c-a6d5-8b6391dc695a;', '2026-02-17 11:21:12', '2026-02-17 11:21:12', 0, NULL),
-(4, 14, 0, '4WQBPWHP5W66Q7RLQB5FCJ2OUZYRBGPN', '3f9262b1-6570-4e51-9978-139b337117de;dd4d3224-7063-4e78-b115-f0a514b5a4f9;46763e89-d7e5-40d1-a28c-b73b8aee1041;5f34d9fa-4235-4f3a-ab6c-ba60b909a5f4;7acc952b-d3a4-4da2-8ca8-664daef71b34;c33cd1b8-30f7-43ca-aa4b-d6bacc564eab;', '2026-02-17 11:27:56', '2026-02-17 11:27:56', 0, NULL),
-(5, 14, 0, 'JINQ4JBYVRQCSWTUTFNHWSE2ATRRMJTV', 'fa5963fd-dd9d-4e2e-baf8-0fdf1126aac3;322c0fdf-9d8d-47ce-996d-ca320191a5ca;06015615-0830-4915-a610-a2a284dfe74a;e39957c1-634f-4c5b-bc0e-a7d9993c219f;0d3e95be-cf67-4c69-bacd-5b273a751770;749bd6d7-c519-4741-a63b-acda3a3c334f;', '2026-02-17 11:30:38', '2026-02-17 11:30:38', 0, NULL),
-(6, 1, 0, 'AGBCCCUD4O24YKMVJTHQWL3YHPABK4TD', '5eb39116-3a16-46b5-82ba-90dc595d38e5;c5bf9420-5c61-4431-a57c-42af3d1cf593;2c70fdc4-415e-4a34-903c-0b7fbad6f687;16030be5-5e01-4ce7-a826-803c7baa7cc2;937b1749-ae2b-4b0a-a207-e0481e65ca73;4f48b956-894e-4ba2-83d1-c8a3def79d64;', '2026-02-17 12:39:05', '2026-02-17 12:39:05', 0, NULL),
-(7, 9, 0, 'ESSNBALTEV357EQ3PKUK7MLAONHCH7IX', '1ea945a5-3b58-4048-87b7-c7edee50c1cb;4a5bbdfe-2346-4d81-9d97-cc72129d3947;33c39e66-f42e-4ede-9bfe-cc7582260f9e;7f2243df-7a0e-424c-83ee-8dc8bff17938;b34d044c-270a-441d-a493-27f11feac362;0697f3e5-7b77-497b-8af6-4a5bd4792e91;', '2026-02-17 12:41:10', '2026-02-17 12:41:10', 0, NULL),
-(8, 9, 0, 'UXQFKDHT57S2ALKCHCK7TUMTXQWPJADK', '68a0f653-a05e-46b1-84cb-7715acedc931;53ac39bf-526c-4878-be51-c31b958b2354;91de0a41-117e-4334-ad53-41595394e0ea;1ce4d84f-ec00-4204-801c-488f09e8b1b2;9d5ab6c6-23ca-4cca-9a9b-6ec647410a06;ab1a457f-b127-4019-bc87-7332b2a7eb79;', '2026-02-17 12:42:19', '2026-02-17 12:42:19', 0, NULL),
-(9, 9, 0, '3NDYKFJWJTVIK5X6KGUZ6S4TXU25WNYO', '8f2725ea-e75f-41b2-81eb-c4d8ebe3ecd3;0126bc98-3bd8-4dde-9ffd-2d70c4bfaf01;1b421f60-fe32-42e0-87a1-c05c8df9b8a2;43557210-4265-4eb0-a3ef-7eb5831d607c;0f8f595e-d5e6-4096-a5a8-6274112b7e7c;fe86083c-ed86-4ef6-a8a8-ea3a67d87b20;', '2026-02-17 12:45:08', '2026-02-17 12:45:08', 0, NULL),
-(10, 9, 0, 'JFRSK3FFGTHOG7GDFM3XYO45CFOQLXDH', '02daa20b-de8f-48fd-bf60-a9adb6325b08;5eb502bf-e960-445e-b532-c5179702e1cb;d7589c10-869f-46db-a6ae-1f5434c84aef;8ff8c34b-b685-4d78-ba42-fe7bb1a32508;bbbdfd0b-721f-4b09-b92d-575df3046dab;7b1a86a5-47ac-49f8-8b6d-7cd8fdd1e436;', '2026-02-17 13:02:21', '2026-02-17 13:02:21', 0, NULL),
-(11, 9, 0, 'JW5TNGEPPGAG5DA7ZT427SK2PTH6APRI', '3782e42a-d925-4f3b-a3d3-01122962da97;329a462f-c401-4e50-88b9-bb79f0102696;dcc2e2f5-31ad-4dc0-b3a9-450d8b24db56;96a9cf6d-96ef-4b03-b3cd-74706dc63357;da7961df-e20a-4933-9a04-bc7a82a86772;513e69c3-bb7e-4788-bded-8e61e70767f2;', '2026-02-17 13:03:09', '2026-02-17 13:03:09', 0, NULL),
-(12, 9, 0, 'X3KU6K7HYFZY3UPLUQJGM443AUZ4MLV6', 'da44f5f3-5e31-445b-a37e-7f3c5ea8fd69;d874806f-38fc-4dd2-9339-2f0e5fa95940;51bea3d3-2a0e-423e-91c8-0dcceca81331;39322598-0121-4fcb-86fa-11f499022325;f85a1b6c-9116-4085-998e-eb19f5040dc2;06509f99-7f3a-4537-9704-a846e2798613;', '2026-02-17 13:05:32', '2026-02-17 13:05:32', 0, NULL),
-(13, 9, 0, 'O56LP3QWIG5PC4NXOVLREF4T2OFHCNE6', 'cfce5b14-6c89-4ced-aae9-ac7cb540c00d;1d06bd24-84df-4504-87bc-8febefcc7c72;e5611a4b-955a-4ca4-a1f2-642e65eb94d4;819043d0-c136-4b63-9631-32d59ed6e4a4;44f07a48-8d4b-49fc-8cbe-8c88a63d1bdd;e8893cdc-d195-45ec-b516-86a47428bebd;', '2026-02-17 13:24:28', '2026-02-17 13:24:28', 0, NULL),
-(14, 9, 0, '4L3OZE7C4SUVOZ44V4C2BIIJ57J25D5Y', '7d5b0414-eefb-45ba-a356-01cd0859cb4a;57b147f8-f361-48e8-8a40-4e78d73ba9c0;5baf19a5-fdbf-4a00-b34e-f075e79687b2;31719e6a-0d27-43e4-80fa-5bfbcbdbd304;b86cb56d-f14b-4abc-8164-551be0328d8a;0060e814-18b5-4243-a8ca-02d3808b487b;', '2026-02-17 13:32:24', '2026-02-17 13:32:24', 0, NULL),
-(15, 9, 0, 'RQ3FTMOFLSL23GYPEHN5SUYB5ZBJDQLH', '8c0be46f-58ff-4e73-abb5-9d451b0260e1;273cfc07-22bf-4ba2-aa1a-3d57ce6d4783;b82ff4e4-67d6-4834-a06f-998f94c3a5ff;8eee2d46-7c9c-4dda-af3f-954ac98b1fa6;357d5204-99f9-4f1a-ae05-03681ca10a8b;f4e772ee-3b17-4a1d-a2a5-78e023677036;', '2026-02-17 13:32:35', '2026-02-17 13:32:35', 0, NULL),
-(16, 9, 0, 'NN2EEBOW5QHUGZIICHR6JI7DGKOTSBCR', 'f24ba684-fe87-42b7-84fd-69088ae7d985;fc4d9e8f-4549-4dde-a1b7-30acce878b56;09c1ea1a-0cff-401b-a230-6a0939c6372b;dbd149e6-7dd7-4033-938c-c1f91081eeb5;be80f0e2-afa2-4c01-90db-ccee553d4719;c89ccef5-98b5-4ab5-bd2c-0a05b1453707;', '2026-02-17 13:32:59', '2026-02-17 13:32:59', 0, NULL),
-(17, 9, 0, 'AH7HAEFYVLWK6BQV2VPLS2MVKXTJGTTO', 'f4fab7ba-20d1-4afc-9fef-9ff86eafe873;d30084ce-33ed-434c-8124-9b99cb183e2f;3f9f5690-4679-496c-b9f8-d879a2e20bff;8af9444d-11af-4792-bb3f-ada432c1e83a;0cc28b20-494c-495a-b526-309b53b53371;94d4e15e-70b4-4caf-9325-b96a353b84ba;', '2026-02-17 13:45:30', '2026-02-17 13:45:30', 0, NULL),
-(18, 13, 0, '6MJRSRJURQFBY6SQJMWGIVYTC5PQH5GI', '108598ee-7349-4298-9554-08194e2f8f35;34956e7d-ae3b-4c6c-bb14-1502e43f54e0;4b09bf7f-8c5e-421c-8860-caf3690d9cb6;82f1eb60-2ed2-466b-9b91-693c40da9d5d;15a94851-4276-4c6c-b1f6-61d86c53ee7a;237ce817-863b-4d43-9911-2af613091d7c;', '2026-02-20 09:43:03', '2026-02-20 09:43:03', 0, NULL),
-(19, 9, 0, 'D2J4T7VB4ZPJ43D3QCINYRWMLNWJ3FRP', '7f4f3b52-ee93-4a9c-9815-61f78eaaa8d5;050af43a-9a7f-4a56-87c6-12f94f0a055c;03f34b97-39e7-4aff-8697-2a0e885f1077;e915223d-7e03-4b09-ac94-c52543add4ec;09f1ce93-0a92-4a74-9cfb-1e5d02a43c18;6e79037e-75d8-454f-958b-49ae160e04ed;', '2026-02-20 09:43:54', '2026-02-20 09:43:54', 0, NULL),
-(20, 9, 0, 'BKSD7RQRMFXVCY3HXAS7O5ZNNTXONDNC', '63b891dd-1e78-4335-924e-2df59bcc46a0;dcbbc7aa-496a-430d-891a-33912a3eca36;c7f8ae1a-01b5-46d6-b3bb-abeb1decd604;6dcb5b3a-dcac-4117-bf7e-d1fb035c9e8c;9bcd3b4a-7193-46b2-9fd1-d74f4fbfa7a9;40c46620-b289-4eb2-800c-6ceb498c5bd1;', '2026-02-20 12:28:11', '2026-02-20 12:28:11', 0, NULL),
-(21, 9, 0, 'F2BAF7BF6YCF2YLQJZQ4GVG4T2JT7PBI', 'fd16090d-1465-4d4e-a4da-feeb15bb9fa7;de4ccae3-956a-47b6-9d0f-75e52aee4ae5;a102bde6-865e-4780-91de-b57f3490bb76;876d50e5-688b-41a1-b06b-e7166ee2c748;5a1caef2-2a01-466b-abc0-fce0fe63c529;4bf11ea6-d6ad-4ceb-801a-10aee30eb0b3;', '2026-02-22 17:34:26', '2026-02-22 17:34:26', 0, NULL),
-(22, 9, 0, 'K2FIRCLQW62YHDE66MJWWGT4KVPXWST3', '3920d5e9-3729-4bca-af6d-352c24a08f0a;677af4e5-5633-477b-b156-7acbe9cb2834;7d09b58c-7a68-43c4-80f6-79bbff64f34c;db74ada6-996b-405e-be59-b73dbea6ead9;dd7c39cd-3d11-4e30-834c-1997a01ef461;24d2830c-38c7-41af-9223-d82d3c5878eb;', '2026-02-22 18:29:49', '2026-02-22 18:29:49', 0, NULL);
 
 -- --------------------------------------------------------
 
@@ -3632,13 +3586,13 @@ ALTER TABLE `users`
 -- AUTO_INCREMENT a táblához `user_logs`
 --
 ALTER TABLE `user_logs`
-  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=145;
+  MODIFY `id` int NOT NULL AUTO_INCREMENT;
 
 --
 -- AUTO_INCREMENT a táblához `user_twofa`
 --
 ALTER TABLE `user_twofa`
-  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=23;
+  MODIFY `id` int NOT NULL AUTO_INCREMENT;
 
 --
 -- AUTO_INCREMENT a táblához `warehouses`
