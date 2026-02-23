@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Gép: localhost:8889
--- Létrehozás ideje: 2026. Feb 23. 09:32
+-- Létrehozás ideje: 2026. Feb 22. 22:54
 -- Kiszolgáló verziója: 8.0.44
 -- PHP verzió: 8.3.28
 
@@ -211,8 +211,8 @@ CREATE DEFINER=`root`@`localhost` PROCEDURE `createCars` (IN `brandIN` VARCHAR(1
     SELECT LAST_INSERT_ID()AS new_cars_id;
 END$$
 
-DROP PROCEDURE IF EXISTS `createCartItems`$$
-CREATE DEFINER=`root`@`localhost` PROCEDURE `createCartItems` (IN `userIdIN` INT(11), IN `partIdIN` INT(11), IN `quantityIN` INT(11))   BEGIN
+DROP PROCEDURE IF EXISTS `createCartItmes`$$
+CREATE DEFINER=`root`@`localhost` PROCEDURE `createCartItmes` (IN `userIdIN` INT(11), IN `partIdIN` INT(11), IN `quantityIN` INT(11))   BEGIN
     INSERT INTO cart_items 
     (
         user_id, 
@@ -616,21 +616,6 @@ CREATE DEFINER=`root`@`localhost` PROCEDURE `createUserTwoFa` (IN `user_idIN` IN
     COMMIT;
 END$$
 
-DROP PROCEDURE IF EXISTS `createWarehouses`$$
-CREATE DEFINER=`root`@`localhost` PROCEDURE `createWarehouses` (IN `nameIN` VARCHAR(50), IN `locationIN` VARCHAR(255))   BEGIN
-    INSERT INTO warehouses (
-        name,
-        location,
-        created_at
-    ) VALUES (
-        nameIN,
-        locationIN,
-        NOW()
-    );
-    
-    SELECT LAST_INSERT_ID() AS new_warehouse_id;
-END$$
-
 DROP PROCEDURE IF EXISTS `getAddressById`$$
 CREATE DEFINER=`root`@`localhost` PROCEDURE `getAddressById` (IN `p_address_id` INT)   BEGIN
     SELECT 
@@ -961,20 +946,6 @@ CREATE DEFINER=`root`@`localhost` PROCEDURE `getAllUserTwoFa` ()   BEGIN
     FROM user_twofa
     WHERE is_deleted = 0
     ORDER BY id DESC;
-END$$
-
-DROP PROCEDURE IF EXISTS `getAllWarehouses`$$
-CREATE DEFINER=`root`@`localhost` PROCEDURE `getAllWarehouses` ()   Begin
-	SELECT 
-        id,
-        name,
-        location,
-        created_at,
-        is_deleted,
-        deleted_at
-    FROM warehouses
-    WHERE is_deleted = 0
-    ORDER BY id;
 END$$
 
 DROP PROCEDURE IF EXISTS `getCarsByBrand`$$
@@ -1578,19 +1549,6 @@ CREATE DEFINER=`root`@`localhost` PROCEDURE `getUserTwoFaByUserId` (IN `user_idI
         AND is_deleted = 0;
 END$$
 
-DROP PROCEDURE IF EXISTS `getWarehousesById`$$
-CREATE DEFINER=`root`@`localhost` PROCEDURE `getWarehousesById` (IN `idIN` INT(11))   BEGIN
-    SELECT 
-        id,
-        name,
-        location,
-        created_at,
-        is_deleted,
-        deleted_at
-    FROM warehouses
-    WHERE id = idIN;
-END$$
-
 DROP PROCEDURE IF EXISTS `increasePageViewers`$$
 CREATE DEFINER=`root`@`localhost` PROCEDURE `increasePageViewers` (IN `pageNameIN` VARCHAR(255))   BEGIN
     DECLARE pageExists INT;
@@ -1925,45 +1883,18 @@ CREATE DEFINER=`root`@`localhost` PROCEDURE `softDeleteUser` (IN `p_user_id` INT
 END$$
 
 DROP PROCEDURE IF EXISTS `softDeleteUserAndAddresses`$$
-CREATE DEFINER=`root`@`localhost` PROCEDURE `softDeleteUserAndAddresses` (IN `userIdIN` INT)   BEGIN
-    DECLARE userExists INT;
-    
-    DECLARE EXIT HANDLER FOR SQLEXCEPTION
-    BEGIN
-        ROLLBACK;
-        SELECT 'ERROR: User deletion failed' AS error_message;
-    END;
-    
-    START TRANSACTION;
-    
-    SELECT COUNT(*) INTO userExists
-    FROM users
-    WHERE id = userIdIN AND is_deleted = 0;
-    
-    IF userExists = 0 THEN
-        SIGNAL SQLSTATE '45000'
-        SET MESSAGE_TEXT = 'User not found or already deleted';
-    END IF;
-    
+CREATE DEFINER=`root`@`localhost` PROCEDURE `softDeleteUserAndAddresses` (IN `p_user_id` INT)   BEGIN
+
     UPDATE users
-    SET is_deleted = 1, deleted_at = NOW()
-    WHERE id = userIdIN;
-    
+    SET is_deleted = TRUE,
+        deleted_at = NOW()
+    WHERE id = p_user_id;
+
+
     UPDATE addresses
-    SET is_deleted = 1, deleted_at = NOW()
-    WHERE user_id = userIdIN AND is_deleted = 0;
-    
-    UPDATE cart_items
-    SET is_deleted = 1, deleted_at = NOW()
-    WHERE user_id = userIdIN AND is_deleted = 0;
-    
-    UPDATE user_twofa
-    SET is_deleted = 1, deleted_at = NOW()
-    WHERE user_id = userIdIN AND is_deleted = 0;
-    
-    COMMIT;
-    
-    SELECT userIdIN AS deleted_user_id;
+    SET is_deleted = TRUE,
+        deleted_at = NOW()
+    WHERE user_id = p_user_id;
 END$$
 
 DROP PROCEDURE IF EXISTS `softDeleteUserTwoFa`$$
@@ -1973,15 +1904,6 @@ CREATE DEFINER=`root`@`localhost` PROCEDURE `softDeleteUserTwoFa` (IN `twofa_idI
         is_deleted = 1,
         deleted_at = NOW()
     WHERE id = twofa_idIN;
-END$$
-
-DROP PROCEDURE IF EXISTS `softDeleteWarehouses`$$
-CREATE DEFINER=`root`@`localhost` PROCEDURE `softDeleteWarehouses` (IN `idIN` INT(11))   BEGIN
-    UPDATE warehouses
-    SET 
-        is_deleted = 1,
-        deleted_at = NOW()
-    WHERE id = idIN;
 END$$
 
 DROP PROCEDURE IF EXISTS `updateAddress`$$
@@ -2253,18 +2175,6 @@ CREATE DEFINER=`root`@`localhost` PROCEDURE `updateUserTwoFa` (IN `idIN` INT(11)
     WHERE id = idIN;
     
     COMMIT;
-END$$
-
-DROP PROCEDURE IF EXISTS `updateWarehouses`$$
-CREATE DEFINER=`root`@`localhost` PROCEDURE `updateWarehouses` (IN `idIN` INT(11))   BEGIN
-
-    UPDATE warehouses
-    SET 
-    	name = nameIN,
-        location = locationIN,
-        is_deleted = isDeleted
-    WHERE id = idIN;
-
 END$$
 
 DROP PROCEDURE IF EXISTS `user_login`$$
@@ -2576,23 +2486,6 @@ CREATE TABLE `order_logs` (
   `old_status` varchar(20) DEFAULT NULL,
   `new_status` varchar(20) DEFAULT NULL,
   `changed_at` datetime DEFAULT CURRENT_TIMESTAMP
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3;
-
--- --------------------------------------------------------
-
---
--- Tábla szerkezet ehhez a táblához `page_statistics`
---
-
-DROP TABLE IF EXISTS `page_statistics`;
-CREATE TABLE `page_statistics` (
-  `id` int NOT NULL,
-  `pageName` varchar(255) NOT NULL,
-  `viewersCount` int NOT NULL,
-  `created_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  `updated_at` datetime DEFAULT NULL ON UPDATE CURRENT_TIMESTAMP,
-  `is_deleted` tinyint DEFAULT '0',
-  `deleted_at` datetime DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3;
 
 -- --------------------------------------------------------
@@ -3139,26 +3032,6 @@ CREATE TABLE `users` (
   `guid` char(36) NOT NULL,
   `registration_token` varchar(255) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3;
-
---
--- A tábla adatainak kiíratása `users`
---
-
-INSERT INTO `users` (`id`, `email`, `username`, `password`, `first_name`, `last_name`, `phone`, `is_active`, `role`, `created_at`, `updated_at`, `last_login`, `failed_login_attempts`, `locked_until`, `timezone`, `email_verified`, `phone_verified`, `is_subscribed`, `deleted_at`, `is_deleted`, `auth_secret`, `guid`, `registration_token`) VALUES
-(1, 'johndoe2@gmail.com', 'Jonny7', 'I+kDP9AUtNQIDTX08C+K/A==', 'Doe', 'John', '+364020201', 0, '', '2026-01-30 11:15:11', '2026-02-17 11:35:25', '2026-02-17 11:35:25', 0, NULL, NULL, 0, 0, 1, NULL, 0, '810073', '9fea99d1-fdc4-11f0-8a9f-025077a96b1a', 'edbc7622-0290-4c13-878e-e028377e9d53'),
-(3, 'csabusa@gmail.com', 'Csabusa', 'QfUljxmdMyeSeJBciTQtiQ==', 'Csab', 'USANKA', '+6464646', 0, 'user', '2026-01-30 11:29:41', '2026-01-30 11:29:41', NULL, 0, NULL, NULL, 0, 0, 0, NULL, 0, '116467', 'a6751c05-fdc6-11f0-8a9f-025077a96b1a', '1fde145e-eb23-4d56-9b21-2ad033e43ddf'),
-(4, 'nebl.gergo@gmail.com', 'NebelG', 'QfUljxmdMyeSeJBciTQtiQ==', 'Nebl', 'Gergő', '+4546464646', 0, 'user', '2026-02-02 13:18:31', '2026-02-02 13:19:17', '2026-02-02 13:19:17', 0, NULL, NULL, 0, 0, 0, NULL, 0, '221714', '49888fbc-0031-11f1-b125-025077a96b1a', 'c8b3f437-0029-41b1-b43f-e44e53f13dcb'),
-(6, '092@drxy.hu', 'Doryan', 'I+kDP9AUtNQIDTX08C+K/A==', 'Kis-Borbás', 'Dorián', '+655544633533', 0, 'user', '2026-02-02 13:48:26', '2026-02-10 10:06:44', NULL, 0, NULL, NULL, 0, 0, 0, '2026-02-10 10:06:44', 1, '417212', '777c5cb0-0035-11f1-b125-025077a96b1a', 'f204529f-613a-43aa-a8d2-aa2bab25cd29'),
-(8, 'levicky712@gmail.com', 'TesztMagyar', 'QfUljxmdMyeSeJBciTQtiQ==', 'Hajra', 'Magyarok', '+98989898', 0, '', '2026-02-02 19:06:41', '2026-02-02 19:15:19', '2026-02-02 19:15:16', 0, NULL, NULL, 0, 0, 0, NULL, 0, '390253', 'ed1ec044-0061-11f1-b125-025077a96b1a', 'aa8052a5-69cf-4421-9e5f-fe23cf6d0cec'),
-(9, 'meszaros.roland@szechenyi.hu', 'Rolando', 'QfUljxmdMyeSeJBciTQtiQ==', 'Roland', 'Mészáros', '+4545446532', 0, '', '2026-02-03 10:43:09', '2026-02-22 18:18:43', '2026-02-22 18:18:41', 0, NULL, NULL, 0, 0, 0, NULL, 0, '513847', 'bfe7b296-00e4-11f1-9e02-025077a96b1a', 'ca388ec5-16e4-4f4e-9a2f-7f706c4f83fd'),
-(10, 'ddorian092@gmail.com', 'Admin', 'QF3vRJNKHgQR78UPbe700g==', 'Kis-Borbás ', 'Dorián', '06309769461', 1, '', '2026-02-08 12:38:41', '2026-02-22 18:00:32', '2026-02-10 10:04:54', 0, NULL, NULL, 0, 0, 0, '2026-02-10 10:06:14', 1, '442257', 'cb55d687-04e2-11f1-81a7-025077a96b1a', '1891572a-e283-409f-bf20-2643e952eefc'),
-(12, '092@drxy.hu', 'drxy', 'h7RN+REITtSoJ8eydNYDrw==', 'Kis-Borbás', 'Dorián', '+123442340a55', 0, 'user', '2026-02-10 10:24:55', '2026-02-10 10:24:55', NULL, 0, NULL, NULL, 0, 0, 0, NULL, 0, '876529', '5c557a34-0662-11f1-b53c-025077a96b1a', '8e275c2f-0dea-4a29-b105-e66e2c658e04'),
-(13, 'root@carcomps.hu', 'root', 'h5jQdJz3X0iwbzKTqCArLoAQaQ95tvvF1rpzqruoA68=', 'root', 'root', '+123456789', 0, 'admin', '2026-02-10 10:31:04', '2026-02-20 11:27:30', '2026-02-20 11:27:30', 0, NULL, NULL, 0, 0, 0, NULL, 0, '759268', '38879eae-0663-11f1-b53c-025077a96b1a', 'c4400534-ec96-49b9-baba-1c46b6fc4a70'),
-(14, 'user@carcomps.hu', 'user', 'oLgPp9pxfoif1pI8ZFnG40d7XHBTkDioXCOu9CW7YSg=', 'user', 'user', '+12345678912', 0, 'user', '2026-02-10 10:54:05', '2026-02-17 11:27:53', '2026-02-17 11:27:53', 0, NULL, NULL, 0, 0, 0, NULL, 0, '851873', '6fb3c4ba-0666-11f1-b53c-025077a96b1a', '30946828-813f-478e-963e-13c88232e965'),
-(15, 'ikr3erpeti@gmail.com', 'RadeonGamer06', 'rkw+24w/4Oa99uFVVi1APQ==', 'Bagoly', 'Donat', '+36709482582', 1, 'user', '2026-02-17 11:14:35', '2026-02-17 13:47:00', '2026-02-17 11:14:40', 0, NULL, NULL, 0, 0, 0, NULL, 0, '787405', '7a80310e-0be9-11f1-b36e-025077a96b1a', '5ef84117-64e8-4190-ab29-5c66acc38363'),
-(16, 'bbajormark@gmail.com', 'marko', '58adIwoRoMQP653wKQJ/Uw==', 'Márk', 'Bajor', '+36702975207', 0, 'user', '2026-02-17 11:17:51', '2026-02-17 11:18:08', '2026-02-17 11:18:08', 0, NULL, NULL, 0, 0, 0, NULL, 0, '120573', 'ef9a4104-0be9-11f1-b36e-025077a96b1a', 'd2f7b877-27ee-41f0-99d3-6cc8f8cf245b'),
-(17, 'vinrar712@gmail.com', 'Mivan', 'QfUljxmdMyeSeJBciTQtiQ==', 'Lakatos', 'Laci', '065096587412', 0, '', '2026-02-22 17:55:02', '2026-02-22 20:13:37', '2026-02-22 20:13:34', 0, NULL, NULL, 0, 0, 0, NULL, 0, '226056', '3ab758a5-100f-11f1-a7ec-025077a96b1a', '385af163-df01-4df5-a600-fc8063b0dadd'),
-(18, 'roleplay9543@gmail.com', 'levicky', 'QfUljxmdMyeSeJBciTQtiQ==', 'KisKura', 'István', '34344343434434', 0, '', '2026-02-22 18:21:13', '2026-02-22 18:21:28', '2026-02-22 18:21:26', 0, NULL, NULL, 0, 0, 0, NULL, 0, '307247', 'e39f8edd-1012-11f1-a7ec-025077a96b1a', 'f88a7ada-3055-492c-abf3-8ee7e0c10914');
 
 -- --------------------------------------------------------
 
@@ -3753,7 +3626,7 @@ ALTER TABLE `trucks`
 -- AUTO_INCREMENT a táblához `users`
 --
 ALTER TABLE `users`
-  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=19;
+  MODIFY `id` int NOT NULL AUTO_INCREMENT;
 
 --
 -- AUTO_INCREMENT a táblához `user_logs`
