@@ -63,21 +63,15 @@ public class SendEmailController {
     public void putXml(String content) {
     }
     
-    /*@PUT
+    @PUT
     @Path("sendActivateUser")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    public Response sendActivateUserEmailLink(String body) {
-        JSONObject bodyObject = new JSONObject(body);
+    public Response sendActivateUserEmailLink(@QueryParam("email") String email) {
         JSONArray errors = new JSONArray();
 
-        String promotionImageLink = bodyObject.has("promotionImageLink") ? bodyObject.getString("promotionImageLink") : null;
-        String bodyText = bodyObject.has("bodyText") ? bodyObject.getString("bodyText") : null;
-        String code = bodyObject.has("promotionCode") ? bodyObject.getString("promotionCode") : null;
-        String expirationDate = bodyObject.has("expirationDate") ? bodyObject.getString("expirationDate") : null;
-
-        if (promotionImageLink == null || promotionImageLink.trim().isEmpty()) {
-            errors.put("MissingPromotionImageLink");
+        if (email == null || email.trim().isEmpty()) {
+            errors.put("MissingEmail");
 
             JSONObject errorResponse = new JSONObject();
             errorResponse.put("errors", errors);
@@ -89,49 +83,67 @@ public class SendEmailController {
                     .type(MediaType.APPLICATION_JSON)
                     .build();
         }
+        
+        Users userData = Users.getUserByEmail(email);
 
-        if (bodyText == null || bodyText.trim().isEmpty()) {
-            errors.put("MissingBodyText");
-
-            JSONObject errorResponse = new JSONObject();
-            errorResponse.put("errors", errors);
-            errorResponse.put("status", "failed");
-            errorResponse.put("statusCode", 400);
-
-            return Response.status(400)
-                    .entity(errorResponse.toString())
-                    .type(MediaType.APPLICATION_JSON)
-                    .build();
-        }
-
-        if (code == null || code.trim().isEmpty()) {
-            errors.put("MissingPromotionCode");
+        if (userData == null) {
+            errors.put("UserNotFound");
 
             JSONObject errorResponse = new JSONObject();
             errorResponse.put("errors", errors);
             errorResponse.put("status", "failed");
-            errorResponse.put("statusCode", 400);
+            errorResponse.put("statusCode", 404);
 
-            return Response.status(400)
+            return Response.status(404)
                     .entity(errorResponse.toString())
                     .type(MediaType.APPLICATION_JSON)
                     .build();
         }
-
-        if (expirationDate == null || expirationDate.trim().isEmpty()) {
-            errors.put("MissingExpirationDate");
+        
+        String registrationToken = userData.getRegistrationToken();
+        
+        if (registrationToken == null) {
+            errors.put("ModelError");
 
             JSONObject errorResponse = new JSONObject();
             errorResponse.put("errors", errors);
             errorResponse.put("status", "failed");
-            errorResponse.put("statusCode", 400);
+            errorResponse.put("statusCode", 500);
 
-            return Response.status(400)
+            return Response.status(500)
                     .entity(errorResponse.toString())
                     .type(MediaType.APPLICATION_JSON)
                     .build();
         }
-    }*/
+        
+        try {
+            SendEmail.sendActivationEmail(email, userData);
+
+            JSONObject successResponse = new JSONObject();
+            successResponse.put("status", "success");
+            successResponse.put("statusCode", 200);
+            successResponse.put("message", "Activation email sent successfully");
+
+            return Response.status(200)
+                    .entity(successResponse.toString())
+                    .type(MediaType.APPLICATION_JSON)
+                    .build();
+
+        } catch (Exception ex) {
+            ex.printStackTrace();
+
+            JSONObject errorResponse = new JSONObject();
+            errorResponse.put("status", "error");
+            errorResponse.put("statusCode", 500);
+            errorResponse.put("message", "Failed to send Activation email: " + ex.getMessage());
+
+            return Response.status(500)
+                    .entity(errorResponse.toString())
+                    .type(MediaType.APPLICATION_JSON)
+                    .build();
+        }
+        
+    }
 
     @POST
     @Path("sendPromotion")

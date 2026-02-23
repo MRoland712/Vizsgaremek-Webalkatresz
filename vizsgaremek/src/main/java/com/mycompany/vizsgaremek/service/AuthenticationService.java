@@ -180,7 +180,7 @@ public class AuthenticationService {
                 = Pattern.compile("^(?=.*[A-Z])(?=.*\\d)(?=.*[^A-Za-z0-9]).{8,}$");
 
         public boolean isDataMissing(String data) {
-            return (data == null || data.trim().isEmpty());
+            return (data == null);
         }
 
         public boolean isDataMissing(Integer data) {
@@ -232,6 +232,10 @@ public class AuthenticationService {
             return phone.length() <= 50;
         }
 
+        public boolean isValidRegistrationToken(String token) {
+            return token.length() == 36;
+        }
+        
         public boolean isValidRole(String role) {
             return role.length() <= 20;
         }
@@ -243,15 +247,6 @@ public class AuthenticationService {
         public boolean isValidAuthSecret(String authSecret) {
             try {
                 return authSecret.length() <= 255;
-            } catch (Exception ex) {
-                ex.printStackTrace();
-                return false;
-            }
-        }
-
-        public boolean isValidRegistrationToken(String regToken) {
-            try {
-                return regToken.length() <= 255;
             } catch (Exception ex) {
                 ex.printStackTrace();
                 return false;
