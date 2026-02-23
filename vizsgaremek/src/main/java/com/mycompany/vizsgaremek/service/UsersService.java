@@ -320,6 +320,64 @@ public class UsersService {
         return errorAuth.createOKResponse(result);
     }
 
+    public JSONObject activateUserService(String activationToken) {
+        JSONObject toReturn = new JSONObject();
+        JSONArray errors = new JSONArray();
+
+        // If token is missing
+        if (userAuth.isDataMissing(activationToken)) {
+            errors.put("MissingActivationToken");
+            return errorAuth.createErrorResponse(errors, 400);
+        }
+
+        // If token is invalid format
+        if (!userAuth.isValidRegistrationToken(activationToken)) {
+            errors.put("InvalidActivationToken");
+            return errorAuth.createErrorResponse(errors, 400);
+        }
+
+        // Get user by token
+        Users modelResult = Users.getUserByRegistrationToken(activationToken);
+
+        if (modelResult == null) {
+            errors.put("UserNotFound");
+            return errorAuth.createErrorResponse(errors, 404);
+        }
+
+        // Check if already activated
+        if (modelResult.getIsActive() == true) {
+            errors.put("AlreadyActivated");
+            return errorAuth.createErrorResponse(errors, 409);
+        }
+
+        // Activate user
+        modelResult.setIsActive(true);
+
+        Boolean updateResult = Users.updateUser(modelResult);
+
+        if (!updateResult) {
+            errors.put("UpdateFailed");
+            return errorAuth.createErrorResponse(errors, 500);
+        }
+
+        // Log activation
+        UserLogs activationLog = new UserLogs();
+        activationLog.setAction("activateUser");
+        activationLog.setDetails("User " + modelResult.getUsername() + " activated account via email link.");
+
+        Boolean logResult = UserLogs.createUserLogs(activationLog, modelResult.getId());
+
+        if (!logResult) {
+            toReturn.put("warning", "Failed to log user action");
+        }
+
+        toReturn.put("message", "User " + modelResult.getUsername() + " activated successfully");
+        toReturn.put("username", modelResult.getUsername());
+        toReturn.put("email", modelResult.getEmail());
+
+        return errorAuth.createOKResponse(toReturn);
+    }   
+
     public JSONObject getUserByEmail(String email) {
         JSONObject toReturn = new JSONObject();
         JSONArray errors = new JSONArray();

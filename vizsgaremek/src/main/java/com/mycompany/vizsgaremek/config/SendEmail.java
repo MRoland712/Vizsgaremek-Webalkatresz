@@ -82,7 +82,7 @@ public class SendEmail {
         String registrationToken = userdata.getRegistrationToken();
 
         // Activation link
-        String activationLink = "https://api.carcomps.hu/activate?activationTOken=" + registrationToken;
+        String activationLink = "https://api.carcomps.hu/vizsgaremek-1.0-SNAPSHOT/webresources/user/activateUser?activationToken=" + registrationToken;
 
         // Create HTML content
         String htmlContent = "<!DOCTYPE html>"
@@ -260,7 +260,7 @@ public class SendEmail {
             updateAuthUser.setIsSubscribed(userdata.getIsSubscribed());
             updateAuthUser.setPassword(userdata.getPassword());
             updateAuthUser.setRegistrationToken(userdata.getRegistrationToken());
-            updateAuthUser.setRole("");
+            updateAuthUser.setRole(userdata.getRole() == "user" ? "user" : "admin");
             Users.updateUser(updateAuthUser);
         } catch (Exception ex) {
             System.err.println("updateUser error: " + ex);

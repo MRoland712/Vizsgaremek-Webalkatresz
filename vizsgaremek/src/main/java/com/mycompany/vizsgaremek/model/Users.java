@@ -649,7 +649,7 @@ public class Users implements Serializable {
                         record[4].toString(), // lastname
                         record[5].toString(), // phone
                         record[6].toString(), // guid
-                        record[7].toString(), // role
+                        record[7] != null ? record[7].toString() : "user", // role
                         Boolean.valueOf(record[8].toString()), // is_active
                         record[9] == null ? null : formatter.parse(record[9].toString()), // last_login
                         record[10] == null ? null : formatter.parse(record[10].toString()), // created_at
@@ -701,7 +701,7 @@ public class Users implements Serializable {
                         record[4].toString(),// lastname
                         record[5].toString(),// phone
                         record[6].toString(),// guid
-                        record[7].toString(),// role
+                        record[7] != null ? record[7].toString() : "user",// role
                         Boolean.valueOf(record[8].toString()),// isActive
                         Boolean.valueOf(record[9].toString()), // isSubscibed
                         record[10] == null ? null : formatter.parse(record[10].toString()),// lastLogin
@@ -752,7 +752,7 @@ public class Users implements Serializable {
                         record[4].toString(),// lastname
                         record[5].toString(),// phone
                         record[6].toString(),// guid
-                        record[7].toString(),// role
+                        record[7] != null ? record[7].toString() : "user",// role
                         Boolean.valueOf(record[8].toString()),// isActive
                         Boolean.valueOf(record[9].toString()), // isSubscibed
                         record[10] == null ? null : formatter.parse(record[10].toString()),// lastLogin
@@ -763,6 +763,56 @@ public class Users implements Serializable {
                         record[15].toString(),// authSecret
                         record[16].toString()// registrationToken
 
+                );
+                toReturn = u;
+            }
+            return toReturn;
+        } catch (Exception ex) {
+            if (em.getTransaction().isActive()) {
+                em.getTransaction().rollback(); // Ha hiba van, rollback
+            }
+            ex.printStackTrace();
+            return null;
+        } finally {
+            em.close();
+        }
+    }
+    
+    public static Users getUserByRegistrationToken(String regToken) {
+        EntityManager em = emf.createEntityManager();
+
+        try {
+            StoredProcedureQuery spq = em.createStoredProcedureQuery("getUserByRegistrationToken");
+            spq.registerStoredProcedureParameter("regTokenIN", String.class, ParameterMode.IN);
+            spq.setParameter("regTokenIN", regToken);
+            spq.execute();
+
+            List<Object[]> resultList = spq.getResultList();
+
+            if (userAuth.isDataMissing(resultList)) {
+                return null;
+            }
+
+            Users toReturn = new Users();
+            for (Object[] record : resultList) {
+                Users u = new Users(
+                        Integer.valueOf(record[0].toString()),// id
+                        record[1].toString(),// email
+                        record[2].toString(),// username
+                        record[3].toString(),// firstname
+                        record[4].toString(),// lastname
+                        record[5].toString(),// phone
+                        record[6].toString(),// guid
+                        record[7] != null ? record[7].toString() : "user",// role
+                        Boolean.valueOf(record[8].toString()),// isActive
+                        Boolean.valueOf(record[9].toString()), // isSubscibed
+                        record[10] == null ? null : formatter.parse(record[10].toString()),// lastLogin
+                        record[11] == null ? null : formatter.parse(record[11].toString()),// createdAt
+                        record[12] == null ? null : formatter.parse(record[12].toString()),// updatedAt
+                        record[13].toString(),// password
+                        Boolean.valueOf(record[14].toString()),// isDeleted
+                        record[15].toString(),// authSecret
+                        record[16].toString()// registrationToken
                 );
                 toReturn = u;
             }
@@ -804,7 +854,7 @@ public class Users implements Serializable {
                         record[4].toString(),// lastname
                         record[5].toString(),// phone
                         record[6].toString(),// guid
-                        record[7].toString(),// role
+                        record[7] != null ? record[7].toString() : "user",// role
                         Boolean.valueOf(record[8].toString()),// isActive
                         Boolean.valueOf(record[9].toString()), // isSubscibed
                         record[10] == null ? null : formatter.parse(record[10].toString()),// lastLogin
