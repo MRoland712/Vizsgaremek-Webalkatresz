@@ -23,6 +23,8 @@ import javax.mail.Store;
 import javax.mail.Folder;
 import com.mycompany.vizsgaremek.model.EmailInfo;
 import java.io.IOException;
+import java.math.BigDecimal;
+import java.text.SimpleDateFormat;
 import javax.mail.BodyPart;
 import javax.mail.Flags;
 
@@ -622,6 +624,144 @@ public class SendEmail {
             System.err.println("Error archiving email: " + ex.getMessage());
             ex.printStackTrace();
             return false;
+        }
+    }
+    
+    //PDF generatálás kiküldés 
+    // -------------------------------------------------------------------------
+
+    /**
+     * Send payment confirmation email to customer
+     *
+     * @param recipientEmail Customer's email address
+     * @param orderId Order ID
+     * @param amount Payment amount
+     * @param method Payment method
+     * @param invoiceUrl Link to invoice PDF
+     * @param paymentDate Payment date
+     * @throws MessagingException if email sending fails
+     */
+    
+    public static void sendPaymentConfirmationEmail(
+            String recipientEmail,
+            Integer orderId,
+            BigDecimal amount,
+            String method,
+            String invoiceUrl,
+            Date paymentDate) throws MessagingException {
+
+        // SMTP értéket megadása
+        Properties props = new Properties();
+        props.put("mail.smtp.auth", "true");
+        props.put("mail.smtp.starttls.enable", "true");
+        props.put("mail.smtp.host", "smtp.gmail.com");
+        props.put("mail.smtp.port", "587");
+
+        // Create session with authentication
+        Session session = Session.getInstance(props, new Authenticator() {
+            @Override
+            protected PasswordAuthentication getPasswordAuthentication() {
+                return new PasswordAuthentication(
+                        KvFetcher.getDataFromKV("SMTPEmail"),
+                        base64Converters.base64Converter(KvFetcher.getDataFromKV("SMTPPsw"))
+                );
+            }
+        });
+
+        // Email üzenet létrehozása
+        MimeMessage message = new MimeMessage(session);
+        message.setFrom(new InternetAddress("fizetesek@carcomps.hu"));
+        message.setRecipients(Message.RecipientType.TO, InternetAddress.parse(recipientEmail));
+        message.setSubject("Fizetés megerősítve Rendelés #" + orderId);
+
+        
+        SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+        String formattedDate = dateFormat.format(paymentDate);
+        String formattedAmount = String.format("%,.2f Ft", amount);
+
+        // HTML fájl
+        String htmlContent = "<!DOCTYPE html>"
+                + "<html lang=\"en\">"
+                + "<head>"
+                + "<meta charset=\"UTF-8\" />"
+                + "<meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\" />"
+                + "<title>Fizetés megerősítés</title>"
+                + "<style>"
+                + "* { margin: 0; padding: 0; box-sizing: border-box; }"
+                + "body { background: #111; padding: 20px; font-family: system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; }"
+                + ".email-container { border-radius: 10px; max-width: 600px; width: 100%; margin: 20px auto; background-color: #2b2b2b; color: #fffafa; text-align: center; overflow: hidden; }"
+                + ".email-header, .email-footer { padding: 16px; }"
+                + ".email-header img { width: 300px; display: block; margin: auto; }"
+                + ".email-body { padding: 0 24px 24px; text-align: left; }"
+                + "hr { border: none; height: 1px; background: rgba(255, 255, 255, 0.06); margin: 20px 0; }"
+                + "h2 { margin: 18px 0; color: #fffafa; font-size: 20px; text-align: left; }"
+                + "p { margin: 0 0 16px; font-size: 16px; line-height: 1.6; color: #eaeaea; }"
+                + ".details { background-color: #1a1a1a; padding: 15px; border-left: 4px solid #4CAF50; margin: 20px 0; border-radius: 4px; }"
+                + ".details p { margin: 8px 0; }"
+                + ".button { display: inline-block; background-color: #4CAF50; color: white; padding: 12px 30px; text-decoration: none; border-radius: 5px; margin-top: 20px; }"
+                + ".email-footer p { color: #bfbfbf; font-size: 12px; margin: 0; text-align: center; }"
+                + ".email-footer a { color: #9fc5ff; text-decoration: none; }"
+                + ".success-icon { font-size: 48px; text-align: center; margin: 10px 0; }"
+                + "</style>"
+                + "</head>"
+                + "<body>"
+                + "<div class=\"email-container\">"
+                + "<div class=\"email-header\">"
+                + "<img src=\"https://raw.githubusercontent.com/MRoland712/Vizsgaremek-Webalkatresz/refs/heads/Backend/K%C3%A9pek/CarComps_Logo_BigassC.png\" alt=\"CarComps logó\" />"
+                + "</div>"
+                + "<div class=\"email-body\">"
+                + "<hr />"
+                + "<div class=\"success-icon\">✅</div>"
+                + "<h2>Fizetés sikeres!</h2>"
+                + "<p>Kedves Vásárló!</p>"
+                + "<p>Sikeresen feldolgoztuk a fizetését. Köszönjük a vásárlást!</p>"
+                + "<div class=\"details\">"
+                + "<h3 style=\"color: #fffafa; margin-bottom: 12px;\">📋 Fizetési részletek:</h3>"
+                + "<p><strong>Rendelés szám:</strong> #" + orderId + "</p>"
+                + "<p><strong>Összeg:</strong> " + formattedAmount + "</p>"
+                + "<p><strong>Fizetési mód:</strong> " + getPaymentMethod(method) + "</p>"
+                + "<p><strong>Fizetés dátuma:</strong> " + formattedDate + "</p>"
+                + "</div>"
+                + "<p>A számláját az alábbi linken érheti el:</p>"
+                + "<a href=\"" + invoiceUrl + "\" class=\"button\">📄 Számla megtekintése</a>"
+                + "<p style=\"margin-top: 20px;\">Ha bármilyen kérdése van, kérjük vegye fel velünk a kapcsolatot.</p>"
+                + "<p>Üdvözlettel: CarComps csapata</p>"
+                + "</div>"
+                + "<hr />"
+                + "<div class=\"email-footer\">"
+                + "<p>Ez egy automatikus üzenet, kérjük, ne válaszolj rá.<br />"
+                + "© 2025 CarComps – Minden jog fenntartva.<br />"
+                + "Székhely: 7621 Pécs, Fő utca 12.<br />"
+                + "<a href=\"https://carcomps.hu/adatvedelem\">Adatvédelmi nyilatkozat</a> | "
+                + "<a href=\"https://carcomps.hu/aszf\">Felhasználási feltételek</a>"
+                + "</p>"
+                + "</div>"
+                + "</div>"
+                + "</body>"
+                + "</html>";
+
+        message.setContent(htmlContent, "text/html; charset=utf-8");
+
+        // Email küldése
+        Transport.send(message);
+
+        System.out.println("Payment confirmation email sent to: " + recipientEmail);
+    }
+
+    private static String getPaymentMethod(String method) {
+        switch (method) {
+            case "credit_card":
+                return "Bankkártya";
+            case "debit_card":
+                return "Betéti kártya";
+            case "paypal":
+                return "PayPal";
+            case "cash_on_delivery":
+                return "Utánvét";
+            case "bank_transfer":
+                return "Banki átutalás";
+            default:
+                return method;
         }
     }
 }

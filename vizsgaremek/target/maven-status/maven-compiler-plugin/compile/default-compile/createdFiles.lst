@@ -5,6 +5,7 @@ com/mycompany/vizsgaremek/model/PasswordResets.class
 com/mycompany/vizsgaremek/service/AuthenticationService$userLogsAuth.class
 com/mycompany/vizsgaremek/model/UserLogs.class
 com/mycompany/vizsgaremek/service/TrucksService.class
+com/mycompany/vizsgaremek/config/SendEmail$4.class
 com/mycompany/vizsgaremek/controller/StaticResourceController.class
 com/mycompany/vizsgaremek/model/Cars.class
 com/mycompany/vizsgaremek/service/AuthenticationService$paymentsAuth.class

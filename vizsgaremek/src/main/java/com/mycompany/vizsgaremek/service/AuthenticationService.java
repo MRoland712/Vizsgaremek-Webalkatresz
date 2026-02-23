@@ -1181,7 +1181,6 @@ public class AuthenticationService {
         }
 
     } //OrderItems Auth Class closer*/
-
     //CartItems
     public static class cartItemsAuth {
 
