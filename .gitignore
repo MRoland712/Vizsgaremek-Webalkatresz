@@ -6,3 +6,5 @@
 \node_modules
 *.class
 *.class
+.DS_Store
+.DS_Store

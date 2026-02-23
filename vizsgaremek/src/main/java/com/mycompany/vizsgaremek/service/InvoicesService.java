@@ -5,7 +5,17 @@
 package com.mycompany.vizsgaremek.service;
 
 import com.mycompany.vizsgaremek.model.Invoices;
+import com.mycompany.vizsgaremek.model.OrderItems;
+import com.mycompany.vizsgaremek.model.Orders;
+import com.mycompany.vizsgaremek.model.Payments;
+import com.mycompany.vizsgaremek.model.Users;
+import java.math.BigDecimal;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Paths;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
@@ -311,4 +321,163 @@ public class InvoicesService {
 
         return toReturn;
     }//updateParts
+
+    public static String generateInvoiceHtml(
+            Integer orderId,
+            Orders order,
+            Payments payment,
+            Users user,
+            ArrayList<OrderItems> orderItems) throws Exception {
+
+        // Dátum formázás
+        SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
+        String invoiceDate = dateFormat.format(payment.getPaidAt() != null ? payment.getPaidAt() : new Date());
+
+        // Számla szám
+        String invoiceNumber = "INV-" + orderId + "-" + invoiceDate.replace("-", "");
+
+        // Összeg formázás
+        String formattedTotal = String.format("%,.2f Ft", payment.getAmount());
+
+        // HTML tartalom
+        StringBuilder html = new StringBuilder();
+        html.append("<!DOCTYPE html>");
+        html.append("<html lang=\"hu\">");
+        html.append("<head>");
+        html.append("<meta charset=\"UTF-8\" />");
+        html.append("<meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\" />");
+        html.append("<title>Számla - ").append(invoiceNumber).append("</title>");
+        html.append("<style>");
+        html.append("* { margin: 0; padding: 0; box-sizing: border-box; }");
+        html.append("body { font-family: Arial, sans-serif; padding: 40px; background: #f5f5f5; }");
+        html.append(".invoice { max-width: 800px; margin: 0 auto; background: white; padding: 40px; box-shadow: 0 0 10px rgba(0,0,0,0.1); }");
+        html.append(".header { border-bottom: 3px solid #4CAF50; padding-bottom: 20px; margin-bottom: 30px; }");
+        html.append(".header h1 { color: #333; font-size: 32px; }");
+        html.append(".header .invoice-number { color: #666; font-size: 14px; margin-top: 5px; }");
+        html.append(".company-info, .customer-info { margin-bottom: 30px; }");
+        html.append(".company-info h3, .customer-info h3 { color: #4CAF50; margin-bottom: 10px; font-size: 14px; text-transform: uppercase; }");
+        html.append(".info-line { color: #333; margin: 5px 0; font-size: 14px; }");
+        html.append("table { width: 100%; border-collapse: collapse; margin: 30px 0; }");
+        html.append("th { background: #4CAF50; color: white; padding: 12px; text-align: left; font-weight: 600; }");
+        html.append("td { padding: 12px; border-bottom: 1px solid #ddd; }");
+        html.append("tr:hover { background: #f9f9f9; }");
+        html.append(".text-right { text-align: right; }");
+        html.append(".total-row { font-weight: bold; font-size: 18px; background: #f5f5f5; }");
+        html.append(".footer { margin-top: 40px; padding-top: 20px; border-top: 2px solid #eee; text-align: center; color: #666; font-size: 12px; }");
+        html.append(".payment-info { background: #f0f9ff; padding: 15px; border-left: 4px solid #4CAF50; margin: 20px 0; }");
+        html.append("@media print { body { background: white; padding: 0; } .invoice { box-shadow: none; } }");
+        html.append("</style>");
+        html.append("</head>");
+        html.append("<body>");
+        html.append("<div class=\"invoice\">");
+
+        // Header
+        html.append("<div class=\"header\">");
+        html.append("<h1>SZÁMLA</h1>");
+        html.append("<div class=\"invoice-number\">Számlaszám: ").append(invoiceNumber).append("</div>");
+        html.append("<div class=\"invoice-number\">Kiállítás dátuma: ").append(invoiceDate).append("</div>");
+        html.append("</div>");
+
+        // Company info
+        html.append("<div class=\"company-info\">");
+        html.append("<h3>Eladó (Szolgáltató)</h3>");
+        html.append("<div class=\"info-line\"><strong>CarComps Kft.</strong></div>");
+        html.append("<div class=\"info-line\">7621 Pécs, Fő utca 12.</div>");
+        html.append("<div class=\"info-line\">Adószám: 12345678-2-02</div>");
+        html.append("<div class=\"info-line\">Email: info@carcomps.hu</div>");
+        html.append("<div class=\"info-line\">Telefon: +36 30 123 4567</div>");
+        html.append("</div>");
+
+        // Customer info
+        html.append("<div class=\"customer-info\">");
+        html.append("<h3>Vevő</h3>");
+        html.append("<div class=\"info-line\"><strong>").append(user.getFirstName()).append(" ").append(user.getLastName()).append("</strong></div>");
+        html.append("<div class=\"info-line\">Email: ").append(user.getEmail()).append("</div>");
+        if (user.getPhone() != null) {
+            html.append("<div class=\"info-line\">Telefon: ").append(user.getPhone()).append("</div>");
+        }
+        html.append("</div>");
+
+        // Payment info
+        html.append("<div class=\"payment-info\">");
+        html.append("<strong>Fizetési információ:</strong><br />");
+        html.append("Fizetési mód: ").append(getPaymentMethodHu(payment.getMethod())).append("<br />");
+        html.append("Fizetés dátuma: ").append(invoiceDate).append("<br />");
+        html.append("Státusz: Fizetve");
+        html.append("</div>");
+
+        // Items table
+        html.append("<table>");
+        html.append("<thead>");
+        html.append("<tr>");
+        html.append("<th>Megnevezés</th>");
+        html.append("<th class=\"text-right\">Mennyiség</th>");
+        html.append("<th class=\"text-right\">Egységár</th>");
+        html.append("<th class=\"text-right\">Összesen</th>");
+        html.append("</tr>");
+        html.append("</thead>");
+        html.append("<tbody>");
+
+        // Order items
+        BigDecimal subtotal = BigDecimal.ZERO;
+        for (OrderItems item : orderItems) {
+            BigDecimal itemTotal = item.getPrice().multiply(new BigDecimal(item.getQuantity()));
+            subtotal = subtotal.add(itemTotal);
+
+            html.append("<tr>");
+            html.append("<td>").append(item.getPartId().getName()).append("</td>");
+            html.append("<td class=\"text-right\">").append(item.getQuantity()).append(" db</td>");
+            html.append("<td class=\"text-right\">").append(String.format("%,.2f Ft", item.getPrice())).append("</td>");
+            html.append("<td class=\"text-right\">").append(String.format("%,.2f Ft", itemTotal)).append("</td>");
+            html.append("</tr>");
+        }
+
+        // Total
+        html.append("<tr class=\"total-row\">");
+        html.append("<td colspan=\"3\" class=\"text-right\">Végösszeg:</td>");
+        html.append("<td class=\"text-right\">").append(formattedTotal).append("</td>");
+        html.append("</tr>");
+        html.append("</tbody>");
+        html.append("</table>");
+
+        // Footer
+        html.append("<div class=\"footer\">");
+        html.append("<p>Köszönjük a vásárlást!</p>");
+        html.append("<p>© 2025 CarComps Kft. - Minden jog fenntartva.</p>");
+        html.append("<p>Ez egy elektronikus számla, aláírás és pecsét nélkül is érvényes.</p>");
+        html.append("</div>");
+
+        html.append("</div>");
+        html.append("</body>");
+        html.append("</html>");
+
+        return html.toString();
+    }
+
+    private static String getPaymentMethodHu(String method) {
+        switch (method) {
+            case "credit_card":
+                return "Bankkártya";
+            case "debit_card":
+                return "Betéti kártya";
+            case "paypal":
+                return "PayPal";
+            case "cash_on_delivery":
+                return "Utánvét";
+            case "bank_transfer":
+                return "Banki átutalás";
+            default:
+                return method;
+        }
+    }
+
+    public static String saveInvoiceHtml(String html, Integer orderId) throws Exception {
+        String fileName = "invoice_" + orderId + ".html";
+        String filePath = "/tmp/invoices/" + fileName;  // Temp könyvtár
+
+        Files.createDirectories(Paths.get("/tmp/invoices/"));
+        Files.write(Paths.get(filePath), html.getBytes(StandardCharsets.UTF_8));
+
+        return "https://carcomps.hu/invoices/" + fileName;
+    }
 }
