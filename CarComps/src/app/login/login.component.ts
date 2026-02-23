@@ -50,17 +50,13 @@ export class LoginComponent implements OnInit {
 
     this.loginService.login({ email: email!, password: password! }).subscribe({
       next: (res) => {
-        // Teljes raw response kiírása
-
         localStorage.setItem('jwt', res.result.JWTToken!);
         localStorage.setItem('userEmail', email!);
         localStorage.setItem('userName', res.result.username || email!);
         localStorage.setItem('firstName', res.result.firstName || '');
         localStorage.setItem('lastName', res.result.lastName || '');
         localStorage.setItem('phone', res.result.phone || '');
-
-        // ⭐ role: res.result.role — a modellben most már benne van
-        const role = res.result.role;
+        localStorage.setItem('role', res.result.role || '');
 
         this.authService.setLoggedIn(
           email,
@@ -68,9 +64,10 @@ export class LoginComponent implements OnInit {
           res.result.firstName,
           res.result.lastName,
           res.result.phone,
-          role,
+          res.result.role,
         );
 
+        console.log('👑 isAdmin:', this.authService.isAdmin());
         setTimeout(() => this.otpDialog.open(email!), 100);
       },
       error: (err: HttpErrorResponse) => {

@@ -32,7 +32,8 @@ export class AuthService {
     const admin = role === 'admin' || role === 'ADMIN';
     this._isAdmin.set(admin);
     console.log('🔑 role:', role, '→ isAdmin:', admin);
-    if (role) localStorage.setItem('userRole', role);
+    // ⭐ Üres stringet NEM mentjük — csak valódi értéket
+    if (role && role !== '') localStorage.setItem('userRole', role);
   }
 
   checkLoginStatus() {
@@ -56,16 +57,17 @@ export class AuthService {
   }
 
   refreshUserData() {
-    const savedRole = localStorage.getItem('userRole');
     const token = localStorage.getItem('jwt');
-    const isUserData = localStorage.getItem('isUserData');
-    if (token || isUserData === 'true') this._isLoggedIn.set(true);
-    this.setAdmin(savedRole);
     const email = localStorage.getItem('userEmail');
     const name = localStorage.getItem('userName');
     const firstName = localStorage.getItem('firstName');
     const lastName = localStorage.getItem('lastName');
     const phone = localStorage.getItem('phone');
+    const isUserData = localStorage.getItem('isUserData');
+    const savedRole = localStorage.getItem('userRole');
+
+    if (token || isUserData === 'true') this._isLoggedIn.set(true);
+    this.setAdmin(savedRole);
     if (email) this._userEmail.set(email);
     if (name) this._userName.set(name);
     if (firstName) this._firstName.set(firstName);
@@ -93,7 +95,6 @@ export class AuthService {
     });
   }
 
-  // ⭐ role-t közvetlenül a login response body-ból kapja
   setLoggedIn(
     email?: string,
     userName?: string,

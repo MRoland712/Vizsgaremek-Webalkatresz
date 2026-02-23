@@ -1,0 +1,22 @@
+<div class="progress-wrapper">
+  <div class="progress-track">
+    @for (step of steps; track step.id; let i = $index) {
+      <!-- Vonal az előző lépés és ez között -->
+      @if (i > 0) {
+        <div class="connector" [class.connector--active]="isLineActive(i)"></div>
+      }
+
+      <!-- Lépés -->
+      <div class="step" [class]="'step--' + getStepState(step)">
+        <div class="step__circle">
+          @if (getStepState(step) === 'completed') {
+            <i class="fa-solid fa-check"></i>
+          } @else {
+            <span>{{ step.number }}</span>
+          }
+        </div>
+        <span class="step__label">{{ step.label }}</span>
+      </div>
+    }
+  </div>
+</div>

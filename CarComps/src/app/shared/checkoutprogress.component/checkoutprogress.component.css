@@ -1,0 +1,117 @@
+/* ── Wrapper ─────────────────────────────────────────────── */
+.progress-wrapper {
+  width: 100%;
+  padding: 24px 32px;
+  background: #2b2b2b;
+  border-radius: 16px;
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.18);
+}
+
+/* ── Track ───────────────────────────────────────────────── */
+.progress-track {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0;
+}
+
+/* ── Connector vonal ─────────────────────────────────────── */
+.connector {
+  flex: 1;
+  height: 2px;
+  background: #444;
+  margin: 0 4px;
+  position: relative;
+  overflow: hidden;
+  border-radius: 2px;
+  transition: background 0.4s ease;
+}
+
+.connector--active {
+  background: #ff6600;
+}
+
+/* ── Step ────────────────────────────────────────────────── */
+.step {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+/* ── Circle ──────────────────────────────────────────────── */
+.step__circle {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 16px;
+  font-weight: 700;
+  transition: all 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
+  position: relative;
+}
+
+/* Inactive */
+.step--inactive .step__circle {
+  background: #3a3a3a;
+  color: #888;
+  border: 2px solid #444;
+}
+
+/* Active */
+.step--active .step__circle {
+  background: #ff6600;
+  color: #fff;
+  border: 2px solid #ff6600;
+  box-shadow: 0 0 0 5px rgba(255, 102, 0, 0.2);
+  transform: scale(1.1);
+}
+
+/* Completed */
+.step--completed .step__circle {
+  background: #ff6600;
+  color: #fff;
+  border: 2px solid #ff6600;
+}
+
+.step--completed .step__circle i {
+  font-size: 16px;
+}
+
+/* ── Label ───────────────────────────────────────────────── */
+.step__label {
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  transition: color 0.3s ease;
+  white-space: nowrap;
+}
+
+.step--inactive .step__label {
+  color: #666;
+}
+.step--active .step__label {
+  color: #ff6600;
+}
+.step--completed .step__label {
+  color: #aaa;
+}
+
+/* ── Responsive ──────────────────────────────────────────── */
+@media (max-width: 480px) {
+  .progress-wrapper {
+    padding: 20px 16px;
+  }
+  .step__circle {
+    width: 36px;
+    height: 36px;
+    font-size: 14px;
+  }
+  .step__label {
+    font-size: 10px;
+  }
+}
