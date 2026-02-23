@@ -5,7 +5,6 @@ import { debounceTime } from 'rxjs';
 import { HttpErrorResponse } from '@angular/common/http';
 import { LoginService } from './login.service';
 import { AuthService } from '../services/auth.service';
-
 import { OtpComponent } from '../verifications/otp.component/otp.component';
 
 let initialEmailValue = '';
