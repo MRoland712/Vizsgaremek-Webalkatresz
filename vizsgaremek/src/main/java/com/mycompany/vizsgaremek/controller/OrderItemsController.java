@@ -8,7 +8,6 @@ import com.mycompany.vizsgaremek.service.orderItemsService;
 import com.mycompany.vizsgaremek.model.OrderItems;
 import com.mycompany.vizsgaremek.model.Orders;
 import com.mycompany.vizsgaremek.model.Parts;
-import com.mycompany.vizsgaremek.service.orderItemsService;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.UriInfo;
 import javax.ws.rs.Consumes;

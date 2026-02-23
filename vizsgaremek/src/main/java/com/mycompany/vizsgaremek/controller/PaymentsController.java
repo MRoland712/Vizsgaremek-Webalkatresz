@@ -40,7 +40,9 @@ public class PaymentsController {
     }
 
     /**
-     * Retrieves representation of an instance of com.mycompany.vizsgaremek.controller.PaymentsController
+     * Retrieves representation of an instance of
+     * com.mycompany.vizsgaremek.controller.PaymentsController
+     *
      * @return an instance of java.lang.String
      */
     @GET
@@ -52,13 +54,14 @@ public class PaymentsController {
 
     /**
      * PUT method for updating or creating an instance of PaymentsController
+     *
      * @param content representation for the resource
      */
     @PUT
     @Consumes(MediaType.APPLICATION_JSON)
     public void putJson(String content) {
     }
-    
+
     @POST
     @Path("createPayments")
     @Consumes(MediaType.APPLICATION_JSON)
@@ -68,11 +71,11 @@ public class PaymentsController {
 
         Orders order = new Orders();
         order.setId(bodyObject.has("orderId") ? bodyObject.getInt("orderId") : null);
-        
+
         Payments createdPayments = new Payments(
                 bodyObject.has("amount") ? bodyObject.getBigDecimal("amount") : null,
-                bodyObject.has("method") ? bodyObject.getString("method"): null,
-                bodyObject.has("status") ? bodyObject.getString("status"): null,
+                bodyObject.has("method") ? bodyObject.getString("method") : null,
+                bodyObject.has("status") ? bodyObject.getString("status") : null,
                 null,
                 order
         );
@@ -103,7 +106,7 @@ public class PaymentsController {
     @Consumes(MediaType.APPLICATION_JSON)
     public Response getPaymentByIdController(@QueryParam("id") Integer Id) {
         PaymentsService paymentsSerice = new PaymentsService();
-        
+
         JSONObject toReturn = paymentsSerice.getPaymentByIdService(Id);
 
         return Response.status(Integer.parseInt(toReturn.get("statusCode").toString()))
@@ -111,7 +114,7 @@ public class PaymentsController {
                 .type(MediaType.APPLICATION_JSON)
                 .build();
     }
-    
+
     @GET
     @Path("getPaymentsByOrderId")
     @Produces(MediaType.APPLICATION_JSON)
@@ -124,7 +127,7 @@ public class PaymentsController {
                 .type(MediaType.APPLICATION_JSON)
                 .build();
     }
-    
+
     @DELETE
     @Path("softDeletePayment")
     @Consumes(MediaType.APPLICATION_JSON)
@@ -137,7 +140,7 @@ public class PaymentsController {
                 .type(MediaType.APPLICATION_JSON)
                 .build();
     }
-    
+
     @PUT
     @Path("updatePayment")
     @Consumes(MediaType.APPLICATION_JSON)
@@ -152,15 +155,15 @@ public class PaymentsController {
         if (id != null) {
             updatedPayments.setId(id);
         }
-        
+
         if (bodyObject.has("amount")) {
             updatedPayments.setAmount(bodyObject.getBigDecimal("amount"));
         }
-        
+
         if (bodyObject.has("method")) {
             updatedPayments.setMethod(bodyObject.getString("method"));
         }
-        
+
         if (bodyObject.has("status")) {
             updatedPayments.setStatus(bodyObject.getString("status"));
         }
@@ -176,4 +179,31 @@ public class PaymentsController {
                 .type(MediaType.APPLICATION_JSON)
                 .build();
     }
+
+    @POST
+    @Path("processPayment")
+    @Consumes(MediaType.APPLICATION_JSON)
+    public Response processPaymentController(String body) {
+
+        JSONObject bodyObject = new JSONObject(body);
+
+        Orders order = new Orders();
+        order.setId(bodyObject.has("orderId") ? bodyObject.getInt("orderId") : null);
+
+        Payments processPayment = new Payments(
+                bodyObject.has("amount") ? bodyObject.getBigDecimal("amount") : null,
+                bodyObject.has("method") ? bodyObject.getString("method") : null,
+                "completed", // processPayment mindig completed status
+                null, // paidAt stored procedure állítja be
+                order
+        );
+
+        JSONObject toReturn = layer.processPaymentService(processPayment);
+
+        return Response.status(Integer.parseInt(toReturn.get("statusCode").toString()))
+                .entity(toReturn.toString())
+                .type(MediaType.APPLICATION_JSON)
+                .build();
+    }   
+    
 }

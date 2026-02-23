@@ -14,6 +14,7 @@ import com.mycompany.vizsgaremek.model.Manufacturers;
 import com.mycompany.vizsgaremek.model.Motors;
 import com.mycompany.vizsgaremek.model.OrderItems;
 import com.mycompany.vizsgaremek.model.Orders;
+import com.mycompany.vizsgaremek.model.PartCompatibility;
 import com.mycompany.vizsgaremek.model.PartImages;
 import com.mycompany.vizsgaremek.model.PartVariants;
 import com.mycompany.vizsgaremek.model.Parts;
@@ -1096,11 +1097,11 @@ public class AuthenticationService {
         public boolean isValidUserId(Integer userId) {
             return userId > 0 && userId.toString().length() <= 11;
         }
-        
+
         public boolean isValidQuantity(Integer quantity) {
             return quantity > 0 && quantity.toString().length() <= 11;
         }
-        
+
         public boolean isValidPartId(Integer partId) {
             return partId > 0 && partId.toString().length() <= 11;
         }
@@ -1176,9 +1177,7 @@ public class AuthenticationService {
         }
 
     } //OrderItems Auth Class closer*/
-    
-    
-
+     
     //CartItems
     public static class cartItemsAuth {
 
@@ -1407,7 +1406,7 @@ public class AuthenticationService {
         public boolean isDataMissing(Boolean data) {
             return (data == null);
         }
-        
+
         public boolean isDataMissing(BigDecimal data) {
             return (data == null);
         }
@@ -1452,6 +1451,77 @@ public class AuthenticationService {
         }
 
     } //OrderItems Auth Class closer
+
+    //PartCompatibility
+    public static class partCompatibilityAuth {
+
+        // ENUM validáció megengedett vehicle típusok
+        private static final List<String> ALLOWED_VEHICLE_TYPES = Arrays.asList("car", "motor", "truck");
+
+        public boolean isDataMissing(String data) {
+            return (data == null || data.trim().isEmpty());
+        }
+
+        public boolean isDataMissing(Parts data) {
+            return (data == null);
+        }
+
+        public boolean isDataMissing(PartCompatibility data) {
+            return (data == null);
+        }
+
+        public boolean isDataMissing(Integer data) {
+            return (data == null);
+        }
+
+        public boolean isDataMissing(ArrayList<PartCompatibility> data) {
+            return (data == null || data.isEmpty());
+        }
+
+        public boolean isDataMissing(Boolean data) {
+            return (data == null);
+        }
+
+        public boolean isDataMissing(List<Object[]> data) {
+            return (data == null || data.isEmpty());
+        }
+
+        public boolean isValidId(Integer id) {
+            return id > 0 && id.toString().length() <= 11;
+        }
+
+        public boolean isValidPartId(Parts part) {
+            Integer partId = part.getId();
+            return partId > 0 && partId.toString().length() <= 11;
+        }
+
+        public boolean isValidPartId(Integer partId) {
+            return partId > 0 && partId.toString().length() <= 11;
+        }
+
+        public boolean isValidQuantity(Integer quantity) {
+            return quantity > 0 && quantity.toString().length() <= 11;
+        }
+
+        public boolean isValidPrice(BigDecimal price) {
+            return price.compareTo(new BigDecimal("0.00")) > 0;
+        }
+
+        // Vehicle Type validáció csak car/motor/truck engedélyezett
+        public boolean isValidVehicleType(String vehicleType) {
+            return vehicleType != null && ALLOWED_VEHICLE_TYPES.contains(vehicleType);
+        }
+
+        // Vehicle ID validáció
+        public boolean isValidVehicleId(Integer vehicleId) {
+            return vehicleId != null && vehicleId > 0 && vehicleId.toString().length() <= 11;
+        }
+
+        public boolean isPartCompatibilityDeleted(Boolean isDeleted) {
+            return (isDeleted == true);
+        }
+
+    } //PartCompatibility Auth Class closer
 
 }//Auth Service Class closer
 

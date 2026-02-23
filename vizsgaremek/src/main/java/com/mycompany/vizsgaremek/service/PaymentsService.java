@@ -4,8 +4,11 @@
  */
 package com.mycompany.vizsgaremek.service;
 
+import com.mycompany.vizsgaremek.config.SendEmail;
+import com.mycompany.vizsgaremek.model.Orders;
 import com.mycompany.vizsgaremek.model.Payments;
 import java.util.ArrayList;
+import java.util.Date;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
@@ -284,7 +287,7 @@ public class PaymentsService {
                 errors.put("InvalidAmount");
             }
         }
-        
+
         if (!paymentsAuth.isDataMissing(updatedPayment.getMethod())) {
             if (paymentsAuth.isValidMethod(updatedPayment.getMethod())) {
                 existingPayment.setMethod(updatedPayment.getMethod());
@@ -292,7 +295,7 @@ public class PaymentsService {
                 errors.put("InvalidMethod");
             }
         }
-        
+
         if (!paymentsAuth.isDataMissing(updatedPayment.getStatus())) {
             if (paymentsAuth.isValidStatus(updatedPayment.getStatus())) {
                 existingPayment.setStatus(updatedPayment.getStatus());
@@ -338,5 +341,125 @@ public class PaymentsService {
 
         return toReturn;
     }//updatePayments
+
+    public JSONObject processPaymentService(Payments payment) {
+        JSONObject toReturn = new JSONObject();
+        JSONArray errors = new JSONArray();
+
+        // VALIDÁCIÓK - Hiányzó mezők
+        if (paymentsAuth.isDataMissing(payment.getOrderId())) {
+            errors.put("MissingOrderId");
+        }
+        if (paymentsAuth.isDataMissing(payment.getAmount())) {
+            errors.put("MissingAmount");
+        }
+        if (paymentsAuth.isDataMissing(payment.getMethod())) {
+            errors.put("MissingMethod");
+        }
+
+        if (errorAuth.hasErrors(errors)) {
+            return errorAuth.createErrorResponse(errors, 400);
+        }
+
+        // VALIDÁCIÓK 
+        if (!paymentsAuth.isValidOrderId(payment.getOrderId())) {
+            errors.put("InvalidOrderId");
+        }
+        if (!paymentsAuth.isValidAmount(payment.getAmount())) {
+            errors.put("InvalidAmount");
+        }
+        if (!paymentsAuth.isValidMethod(payment.getMethod())) {
+            errors.put("InvalidPaymentMethod");
+        }
+
+        // Hiba ellenőrzés - érvénytelen mezők
+        if (errorAuth.hasErrors(errors)) {
+            return errorAuth.createErrorResponse(errors, 400);
+        }
+
+        // ÜZLETI LOGIKA VALIDÁCIÓK
+        // Order létezik
+        Orders existingOrder = Orders.getOrdersById(payment.getOrderId().getId());
+        if (paymentsAuth.isDataMissing(existingOrder)) {
+            errors.put("OrderNotFound");
+            return errorAuth.createErrorResponse(errors, 404);
+        }
+
+        // Order már ki van fizetve
+        if ("paid".equals(existingOrder.getStatus())
+                || "shipped".equals(existingOrder.getStatus())
+                || "delivered".equals(existingOrder.getStatus())) {
+            errors.put("OrderAlreadyPaid");
+            return errorAuth.createErrorResponse(errors, 409);
+        }
+
+        // Order törölt
+        if (Boolean.TRUE.equals(existingOrder.getIsDeleted())) {
+            errors.put("OrderIsDeleted");
+            return errorAuth.createErrorResponse(errors, 409);
+        }
+
+        // Order cancelled vagy refunded
+        if ("cancelled".equals(existingOrder.getStatus())
+                || "refunded".equals(existingOrder.getStatus())) {
+            errors.put("OrderIsCancelledOrRefunded");
+            return errorAuth.createErrorResponse(errors, 409);
+        }
+
+        if (errorAuth.hasErrors(errors)) {
+            return errorAuth.createErrorResponse(errors, 409);
+        }
+
+        // MODEL HÍVÁS processPayment stored procedure
+        try {
+            Boolean result = Payments.processPayment(payment);
+
+            if (!result) {
+                errors.put("PaymentProcessingFailed");
+                return errorAuth.createErrorResponse(errors, 500);
+            }
+
+            // EMAIL KÜLDÉS HOZZÁADÁSA 
+            try {
+                // User email lekérése az existingOrder-ből
+                String userEmail = existingOrder.getUserId().getEmail();
+
+                // Invoice URL generálása
+                String invoiceUrl = "https://carcomps.hu/invoices/invoice_" + payment.getOrderId().getId() + ".pdf";
+
+                // Email küldés
+                SendEmail.sendPaymentConfirmationEmail(
+                        userEmail,
+                        payment.getOrderId().getId(),
+                        payment.getAmount(),
+                        payment.getMethod(),
+                        invoiceUrl,
+                        new Date()
+                );
+
+                System.out.println("Fizetési email elküldve: " + userEmail);
+
+            } catch (Exception emailEx) {
+                // Email hiba NEM akadályozza a fizetést!
+                System.err.println("Email küldési hiba: " + emailEx.getMessage());
+                emailEx.printStackTrace();
+            }
+            
+        } catch (Exception ex) {
+            errors.put("DatabaseError");
+            ex.printStackTrace();
+            return errorAuth.createErrorResponse(errors, 500);
+        }
+
+        // SIKERES VÁLASZ
+        toReturn.put("success", true);
+        toReturn.put("message", "Payment processed successfully");
+        toReturn.put("orderId", payment.getOrderId().getId());
+        toReturn.put("amount", payment.getAmount());
+        toReturn.put("method", payment.getMethod());
+        toReturn.put("statusCode", 200);
+
+        return toReturn;
+    }//processPayment
 
 }

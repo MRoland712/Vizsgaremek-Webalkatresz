@@ -88,10 +88,10 @@ public class Payments implements Serializable {
 
     public Payments() {
     }
-    
+
     static EntityManagerFactory emf = Persistence.createEntityManagerFactory("com.mycompany_vizsgaremek_war_1.0-SNAPSHOTPU");
     public static SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-    
+
     public Payments(Integer id) {
         this.id = id;
     }
@@ -216,15 +216,12 @@ public class Payments implements Serializable {
         this.paidAt = paidAt;
         this.orderId = orderId;
     }
-    
-    
-    
 
     @Override
     public String toString() {
         return "com.mycompany.vizsgaremek.model.Payments[ id=" + id + " ]";
     }
-    
+
     public static Boolean createPayments(Payments createdPayments) {
         EntityManager em = emf.createEntityManager();
         try {
@@ -294,7 +291,7 @@ public class Payments implements Serializable {
             em.close();
         }
     }
-    
+
     public static Payments getPaymentById(Integer id) {
         EntityManager em = emf.createEntityManager();
         try {
@@ -316,15 +313,15 @@ public class Payments implements Serializable {
             order.setId(Integer.valueOf(record[1].toString()));
 
             Payments p = new Payments(
-                        Integer.valueOf(record[0].toString()), // 1. id
-                        record[2] == null ? null : new BigDecimal(record[2].toString()), // 3. amount
-                        record[3] != null ? record[3].toString() : null, // 4. method
-                        record[4] != null ? record[4].toString() : null, // 5. status
-                        record[5] == null ? null : formatter.parse(record[5].toString()), // 6. paid_at
-                        record[6] == null ? null : formatter.parse(record[6].toString()), // 7. created_at
-                        Boolean.FALSE, // isDeleted
-                        record[7] == null ? null : formatter.parse(record[7].toString()), // 8. deleted_at
-                        order
+                    Integer.valueOf(record[0].toString()), // 1. id
+                    record[2] == null ? null : new BigDecimal(record[2].toString()), // 3. amount
+                    record[3] != null ? record[3].toString() : null, // 4. method
+                    record[4] != null ? record[4].toString() : null, // 5. status
+                    record[5] == null ? null : formatter.parse(record[5].toString()), // 6. paid_at
+                    record[6] == null ? null : formatter.parse(record[6].toString()), // 7. created_at
+                    Boolean.FALSE, // isDeleted
+                    record[7] == null ? null : formatter.parse(record[7].toString()), // 8. deleted_at
+                    order
             );
             return p;
         } catch (Exception ex) {
@@ -359,7 +356,7 @@ public class Payments implements Serializable {
             em.close();
         }
     }
-    
+
     public static Payments getPaymentsByOrderId(Integer orderId) {
         EntityManager em = emf.createEntityManager();
         try {
@@ -378,15 +375,15 @@ public class Payments implements Serializable {
 
             // Parts objektum létrehozása
             Payments p = new Payments(
-                        Integer.valueOf(record[0].toString()), // 1. id
-                        record[2] == null ? null : new BigDecimal(record[2].toString()), // 3. amount
-                        record[3] != null ? record[3].toString() : null, // 4. method
-                        record[4] != null ? record[4].toString() : null, // 5. status
-                        record[5] == null ? null : formatter.parse(record[5].toString()), // 6. paid_at
-                        record[6] == null ? null : formatter.parse(record[6].toString()), // 7. created_at
-                        Boolean.FALSE, // isDeleted
-                        record[7] == null ? null : formatter.parse(record[7].toString()), // 8. deleted_at
-                        order
+                    Integer.valueOf(record[0].toString()), // 1. id
+                    record[2] == null ? null : new BigDecimal(record[2].toString()), // 3. amount
+                    record[3] != null ? record[3].toString() : null, // 4. method
+                    record[4] != null ? record[4].toString() : null, // 5. status
+                    record[5] == null ? null : formatter.parse(record[5].toString()), // 6. paid_at
+                    record[6] == null ? null : formatter.parse(record[6].toString()), // 7. created_at
+                    Boolean.FALSE, // isDeleted
+                    record[7] == null ? null : formatter.parse(record[7].toString()), // 8. deleted_at
+                    order
             );
 
             return p;
@@ -398,15 +395,15 @@ public class Payments implements Serializable {
             em.close();
         }
     }
-    
+
     public static Boolean updatePayment(Payments updatedPayment) {
         EntityManager em = emf.createEntityManager();
 
         try {
             em.getTransaction().begin();
             StoredProcedureQuery spq = em.createStoredProcedureQuery("updatePayment");
-            
-             spq.registerStoredProcedureParameter("idIN", Integer.class, ParameterMode.IN);
+
+            spq.registerStoredProcedureParameter("idIN", Integer.class, ParameterMode.IN);
             spq.registerStoredProcedureParameter("orderIdIN", Integer.class, ParameterMode.IN);
             spq.registerStoredProcedureParameter("amountIN", BigDecimal.class, ParameterMode.IN);
             spq.registerStoredProcedureParameter("methodIN", String.class, ParameterMode.IN);
@@ -437,5 +434,35 @@ public class Payments implements Serializable {
             em.close();
         }
     }
-    
+
+    public static Boolean processPayment(Payments payment) {
+        EntityManager em = emf.createEntityManager();
+        try {
+            em.getTransaction().begin();
+            StoredProcedureQuery spq = em.createStoredProcedureQuery("processPayment");
+
+            spq.registerStoredProcedureParameter("orderIdIN", Integer.class, ParameterMode.IN);
+            spq.registerStoredProcedureParameter("amountIN", BigDecimal.class, ParameterMode.IN);
+            spq.registerStoredProcedureParameter("methodIN", String.class, ParameterMode.IN);
+
+            spq.setParameter("orderIdIN", payment.getOrderId().getId());
+            spq.setParameter("amountIN", payment.getAmount());
+            spq.setParameter("methodIN", payment.getMethod());
+
+            spq.execute();
+            em.getTransaction().commit();
+
+            return true;
+        } catch (Exception ex) {
+            if (em.getTransaction().isActive()) {
+                em.getTransaction().rollback();
+            }
+            ex.printStackTrace();
+            return false;
+        } finally {
+            em.clear();
+            em.close();
+        }
+    }
+
 }
