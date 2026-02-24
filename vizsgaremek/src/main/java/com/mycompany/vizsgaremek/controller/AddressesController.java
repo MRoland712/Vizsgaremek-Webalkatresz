@@ -7,6 +7,7 @@ package com.mycompany.vizsgaremek.controller;
 import com.mycompany.vizsgaremek.model.Addresses;
 import com.mycompany.vizsgaremek.model.Users;
 import com.mycompany.vizsgaremek.service.AddressService;
+import com.mycompany.vizsgaremek.config.JwtUtil;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.UriInfo;
 import javax.ws.rs.Consumes;
@@ -32,7 +33,9 @@ public class AddressesController {
 
     @Context
     private UriInfo context;
+
     private AddressService layer = new AddressService();
+    private final JwtUtil jwt = new JwtUtil();
 
     /**
      * Creates a new instance of AddressesController
@@ -62,12 +65,14 @@ public class AddressesController {
     @Consumes(MediaType.APPLICATION_JSON)
     public void putJson(String content) {
     }*/
-
     @POST
     @Path("createAddress")
     @Consumes(MediaType.APPLICATION_JSON)
-    public Response createAddress(String body) {
-
+    public Response createAddress(String body, @HeaderParam("token") String jwtToken) {
+        Response jwtError = jwt.validateJwtAndReturnError(jwtToken);
+        if (jwtError != null) {
+            return jwtError;
+        }
         JSONObject bodyObject = new JSONObject(body);
 
         Users user = new Users();
@@ -97,7 +102,12 @@ public class AddressesController {
     @GET
     @Path("getAllAddresses")
     @Consumes(MediaType.APPLICATION_JSON)
-    public Response getAllAddresses() {
+    public Response getAllAddresses(@HeaderParam("token") String jwtToken) {
+        Response jwtError = jwt.validateJwtAndReturnError(jwtToken);
+        if (jwtError != null) {
+            return jwtError;
+        }
+
         AddressService addressService = new AddressService();
         JSONObject toReturn = addressService.getAllAddresses();
 
@@ -110,7 +120,11 @@ public class AddressesController {
     @GET
     @Path("getAddressById")
     @Produces(MediaType.APPLICATION_JSON)
-    public Response getAddressById(@QueryParam("id") Integer id) {
+    public Response getAddressById(@QueryParam("id") Integer id, @HeaderParam("token") String jwtToken) {
+        Response jwtError = jwt.validateJwtAndReturnError(jwtToken);
+        if (jwtError != null) {
+            return jwtError;
+        }
 
         JSONObject toReturn = layer.getAddressById(id);
 
@@ -119,11 +133,15 @@ public class AddressesController {
                 .type(MediaType.APPLICATION_JSON)
                 .build();
     }
-    
+
     @GET
     @Path("getAddressByUserId")
     @Produces(MediaType.APPLICATION_JSON)
-    public Response getAddressByUserId(@QueryParam("userId") Integer id) {
+    public Response getAddressByUserId(@QueryParam("userId") Integer id, @HeaderParam("token") String jwtToken) {
+        Response jwtError = jwt.validateJwtAndReturnError(jwtToken);
+        if (jwtError != null) {
+            return jwtError;
+        }
 
         JSONObject toReturn = layer.getAddressByUserId(id);
 
@@ -136,7 +154,11 @@ public class AddressesController {
     @DELETE
     @Path("softDeleteAddress")
     @Consumes(MediaType.APPLICATION_JSON)
-    public Response softDeleteAddress(@QueryParam("id") Integer addressId) {
+    public Response softDeleteAddress(@QueryParam("id") Integer addressId, @HeaderParam("token") String jwtToken) {
+        Response jwtError = jwt.validateJwtAndReturnError(jwtToken);
+        if (jwtError != null) {
+            return jwtError;
+        }
 
         JSONObject toReturn = layer.softDeleteAddress(addressId);
 
@@ -153,7 +175,11 @@ public class AddressesController {
             @QueryParam("id") Integer addressId,
             @QueryParam("userId") Integer userId,
             @QueryParam("street") String street,
-            String body) {
+            String body, @HeaderParam("token") String jwtToken) {
+        Response jwtError = jwt.validateJwtAndReturnError(jwtToken);
+        if (jwtError != null) {
+            return jwtError;
+        }
 
         JSONObject bodyObject = new JSONObject(body);
 
@@ -171,7 +197,7 @@ public class AddressesController {
             Users user = new Users();
             user.setId(userId);
             updatedAddress.setUserId(user);
-        } else if (addressId != null || street != null){
+        } else if (addressId != null || street != null) {
             Users user = new Users();
             Integer idFromAddressId = Addresses.getAddressById(addressId).getId();
             Integer idFromStreet = null; //Addresses.getAddressByStreet(street).getId();
@@ -204,19 +230,19 @@ public class AddressesController {
         if (bodyObject.has("country")) {
             updatedAddress.setCountry(bodyObject.getString("country"));
         }
-        
+
         if (bodyObject.has("city")) {
             updatedAddress.setCity(bodyObject.getString("city"));
         }
-        
+
         if (bodyObject.has("zipCode")) {
             updatedAddress.setZipCode(bodyObject.getString("zipCode"));
         }
-        
+
         if (bodyObject.has("street")) {
             updatedAddress.setStreet(bodyObject.getString("street"));
         }
-        
+
         if (bodyObject.has("isDefault")) {
             updatedAddress.setIsDefault(bodyObject.getBoolean("isDefault"));
         }
@@ -229,4 +255,3 @@ public class AddressesController {
                 .build();
     }
 }
-

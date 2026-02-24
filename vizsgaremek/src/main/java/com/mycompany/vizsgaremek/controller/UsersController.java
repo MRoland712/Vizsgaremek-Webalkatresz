@@ -186,7 +186,6 @@ public class UsersController {
                     + "<h1>Fiók sikeresen aktiválva!</h1>"
                     + "<p>Köszönjük " + username + "! A fiókod aktiválva lett.</p>"
                     + "<p>Most már bejelentkezhetsz és használhatod a CarComps webshop szolgáltatásait.</p>"
-                    + "<a href=\"https://carcomps.hu/login\" class=\"btn\">Bejelentkezés</a>"
                     + "</div>"
                     + "</body>"
                     + "</html>";
@@ -218,7 +217,6 @@ public class UsersController {
                     + "<h1>Érvénytelen aktiválási link</h1>"
                     + "<p>Ez az aktiválási link már nem érvényes vagy hibás.</p>"
                     + "<p>Kérjük, ellenőrizd az e-mailben kapott linket vagy regisztrálj újra.</p>"
-                    + "<a href=\"https://carcomps.hu/registration\" class=\"btn\">Regisztráció</a>"
                     + "</div>"
                     + "</body>"
                     + "</html>";
@@ -250,7 +248,6 @@ public class UsersController {
                     + "<h1>Fiók már aktiválva</h1>"
                     + "<p>Ez a fiók már korábban aktiválásra került.</p>"
                     + "<p>Bejelentkezhetsz az email címeddel és jelszavaddal.</p>"
-                    + "<a href=\"https://carcomps.hu/login\" class=\"btn\">Bejelentkezés</a>"
                     + "</div>"
                     + "</body>"
                     + "</html>";
@@ -282,7 +279,6 @@ public class UsersController {
                     + "<h1>Hiba történt</h1>"
                     + "<p>Sajnos hiba történt a fiók aktiválása során.</p>"
                     + "<p>Kérjük, próbáld újra később vagy vedd fel velünk a kapcsolatot.</p>"
-                    + "<a href=\"https://carcomps.hu\" class=\"btn\">Vissza a főoldalra</a>"
                     + "</div>"
                     + "</body>"
                     + "</html>";

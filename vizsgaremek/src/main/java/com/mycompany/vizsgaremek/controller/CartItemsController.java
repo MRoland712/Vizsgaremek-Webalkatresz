@@ -63,7 +63,11 @@ public class CartItemsController {
     @POST
     @Path("createCartItems")
     @Consumes(MediaType.APPLICATION_JSON)
-    public Response createCartItemsController(String body) {
+    public Response createCartItemsController(String body, @HeaderParam("token") String jwtToken) {
+        Response jwtError = jwt.validateJwtAndReturnError(jwtToken);
+        if (jwtError != null) {
+            return jwtError;
+        }
 
         JSONObject bodyObject = new JSONObject(body);
 
@@ -90,7 +94,28 @@ public class CartItemsController {
     @GET
     @Path("getAllCartItems")
     @Consumes(MediaType.APPLICATION_JSON)
-    public Response getAllCartItemsController() {
+    public Response getAllCartItemsController(@HeaderParam("token") String jwtToken) {
+        Response jwtError = jwt.validateJwtAndReturnError(jwtToken);
+        if (jwtError != null) {
+            return jwtError;
+        }
+
+        JSONArray errors = new JSONArray();
+	String jwtRole = jwt.extractRole(jwtToken);
+        if (!jwtRole.equals("admin")) {
+            errors.put("userNotAuthorised");
+
+            JSONObject errorResponse = new JSONObject();
+            errorResponse.put("errors", errors);
+            errorResponse.put("status", "failed");
+            errorResponse.put("statusCode", 401);
+
+            return Response.status(401)
+                    .entity(errorResponse.toString())
+                    .type(MediaType.APPLICATION_JSON)
+                    .build();
+        }
+
         CartItemsService cartItemsService = new CartItemsService();
         JSONObject toReturn = cartItemsService.getAllCartItemsService();
 

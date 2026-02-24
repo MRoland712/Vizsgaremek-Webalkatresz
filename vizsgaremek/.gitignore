@@ -27,6 +27,10 @@
 target/
 **/target/
 /target
+./target
+target
+\target
+.\target
 
 # NetBeans
 nbproject/private/
