@@ -21,9 +21,14 @@ import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import org.json.JSONObject;
+import javax.ws.rs.HeaderParam;
+import com.mycompany.vizsgaremek.config.JwtUtil;
+import org.json.JSONArray;
 
 /**
+ *
  * REST Web Service
+ *
  *
  * @author neblgergo
  */
@@ -33,6 +38,7 @@ public class CartItemsController {
     @Context
     private UriInfo context;
     private CartItemsService layer = new CartItemsService();
+    private final JwtUtil jwt = new JwtUtil();
 
     /**
      * Creates a new instance of CartItemsController
@@ -41,7 +47,9 @@ public class CartItemsController {
     }
 
     /**
-     * Retrieves representation of an instance of com.mycompany.vizsgaremek.controller.CartItemsController
+     * Retrieves representation of an instance of
+     * com.mycompany.vizsgaremek.controller.CartItemsController
+     *
      * @return an instance of java.lang.String
      */
     @GET
@@ -53,13 +61,14 @@ public class CartItemsController {
 
     /**
      * PUT method for updating or creating an instance of CartItemsController
+     *
      * @param content representation for the resource
      */
     @PUT
     @Consumes(MediaType.APPLICATION_JSON)
     public void putJson(String content) {
     }
-    
+
     @POST
     @Path("createCartItems")
     @Consumes(MediaType.APPLICATION_JSON)
@@ -73,7 +82,7 @@ public class CartItemsController {
 
         Users user = new Users();
         user.setId(bodyObject.has("userId") ? bodyObject.getInt("userId") : null);
-        
+
         Parts part = new Parts();
         part.setId(bodyObject.has("partId") ? bodyObject.getInt("partId") : null);
 
@@ -101,7 +110,7 @@ public class CartItemsController {
         }
 
         JSONArray errors = new JSONArray();
-	String jwtRole = jwt.extractRole(jwtToken);
+        String jwtRole = jwt.extractRole(jwtToken);
         if (!jwtRole.equals("admin")) {
             errors.put("userNotAuthorised");
 
@@ -130,7 +139,7 @@ public class CartItemsController {
     @Consumes(MediaType.APPLICATION_JSON)
     public Response getCartItemByIdController(@QueryParam("id") Integer Id) {
         CartItemsService cartItemsService = new CartItemsService();
-        
+
         JSONObject toReturn = cartItemsService.getCartItemByIdService(Id);
 
         return Response.status(Integer.parseInt(toReturn.get("statusCode").toString()))
@@ -138,7 +147,7 @@ public class CartItemsController {
                 .type(MediaType.APPLICATION_JSON)
                 .build();
     }
-    
+
     @GET
     @Path("getCartItemsByPartId")
     @Produces(MediaType.APPLICATION_JSON)
@@ -151,7 +160,7 @@ public class CartItemsController {
                 .type(MediaType.APPLICATION_JSON)
                 .build();
     }
-    
+
     @GET
     @Path("getCartItemsByUserId")
     @Produces(MediaType.APPLICATION_JSON)
@@ -164,7 +173,7 @@ public class CartItemsController {
                 .type(MediaType.APPLICATION_JSON)
                 .build();
     }
-    
+
     @DELETE
     @Path("softDeleteCartItem")
     @Consumes(MediaType.APPLICATION_JSON)
@@ -177,7 +186,7 @@ public class CartItemsController {
                 .type(MediaType.APPLICATION_JSON)
                 .build();
     }
-    
+
     @PUT
     @Path("updateCartItem")
     @Consumes(MediaType.APPLICATION_JSON)
@@ -192,7 +201,7 @@ public class CartItemsController {
         if (id != null) {
             updatedCartItem.setId(id);
         }
-        
+
         if (bodyObject.has("quantity")) {
             updatedCartItem.setQuantity(bodyObject.getInt("quantity"));
         }
@@ -208,5 +217,5 @@ public class CartItemsController {
                 .type(MediaType.APPLICATION_JSON)
                 .build();
     }
-    
+
 }

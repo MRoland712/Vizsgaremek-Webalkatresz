@@ -348,7 +348,7 @@ public class PaymentsService {
         JSONObject toReturn = new JSONObject();
         JSONArray errors = new JSONArray();
 
-        // VALIDÁCIÓK - Hiányzó mezők
+        // VALIDÁCIÓK Hiányzó mezők
         if (paymentsAuth.isDataMissing(payment.getOrderId())) {
             errors.put("MissingOrderId");
         }
@@ -363,7 +363,7 @@ public class PaymentsService {
             return errorAuth.createErrorResponse(errors, 400);
         }
 
-        // VALIDÁCIÓK 
+        // VALIDÁCIÓK Érvénytelen mezők
         if (!paymentsAuth.isValidOrderId(payment.getOrderId())) {
             errors.put("InvalidOrderId");
         }
@@ -379,12 +379,23 @@ public class PaymentsService {
         }
 
         // ÜZLETI LOGIKA VALIDÁCIÓK
+        // Order létezik
         Orders existingOrder = Orders.getOrdersById(payment.getOrderId().getId());
         if (paymentsAuth.isDataMissing(existingOrder)) {
             errors.put("OrderNotFound");
             return errorAuth.createErrorResponse(errors, 404);
         }
 
+        //  USER KÜLÖN LEKÉRÉSE 
+        Users user = Users.getUserById(existingOrder.getUserId().getId());
+        if (user == null) {
+            errors.put("UserNotFound");
+            return errorAuth.createErrorResponse(errors, 404);
+        }
+
+        System.out.println("User betöltve: " + user.getEmail() + " (" + user.getFirstName() + " " + user.getLastName() + ")");
+
+        // Order már ki van fizetve
         if ("paid".equals(existingOrder.getStatus())
                 || "shipped".equals(existingOrder.getStatus())
                 || "delivered".equals(existingOrder.getStatus())) {
@@ -392,11 +403,13 @@ public class PaymentsService {
             return errorAuth.createErrorResponse(errors, 409);
         }
 
+        // Order törölt
         if (Boolean.TRUE.equals(existingOrder.getIsDeleted())) {
             errors.put("OrderIsDeleted");
             return errorAuth.createErrorResponse(errors, 409);
         }
 
+        // Order cancelled vagy refunded
         if ("cancelled".equals(existingOrder.getStatus())
                 || "refunded".equals(existingOrder.getStatus())) {
             errors.put("OrderIsCancelledOrRefunded");
@@ -407,7 +420,7 @@ public class PaymentsService {
             return errorAuth.createErrorResponse(errors, 409);
         }
 
-        // MODEL HÍVÁS processPayment stored procedure
+        // MODEL HÍVÁS - processPayment stored procedure
         try {
             Boolean result = Payments.processPayment(payment);
 
@@ -416,49 +429,77 @@ public class PaymentsService {
                 return errorAuth.createErrorResponse(errors, 500);
             }
 
-            // SZÁMLA GENERÁLÁS 
+            System.out.println("Payment feldolgozva sikeresen");
+
+            //SZÁMLA GENERÁLÁS
+            String invoiceUrl = null;
             try {
-                // OrderItems lekérése
+                System.out.println("OrderItems lekérése");
                 ArrayList<OrderItems> orderItems = OrderItems.getOrderItemsByOrderId(payment.getOrderId().getId());
 
-                //  User lekérése
-                Users user = existingOrder.getUserId();
+                if (orderItems == null || orderItems.isEmpty()) {
+                    System.err.println("Nincs OrderItem, üres lista használata");
+                    orderItems = new ArrayList<>();
+                } else {
+                    System.out.println("OrderItems: " + orderItems.size() + " db");
+                }
 
-                // HTML számla generálás
+                System.out.println("HTML számla generálás");
                 String invoiceHtml = InvoicesService.generateInvoiceHtml(
                         payment.getOrderId().getId(),
                         existingOrder,
                         payment,
-                        user,
+                        user, 
                         orderItems
                 );
+                System.out.println("HTML generálva: " + invoiceHtml.length() + " karakter");
 
-                //  HTML fájl mentése
-                String invoiceUrl = InvoicesService.saveInvoiceHtml(invoiceHtml, payment.getOrderId().getId());
+                System.out.println("HTML fájl mentése");
+                invoiceUrl = InvoicesService.saveInvoiceHtml(invoiceHtml, payment.getOrderId().getId());
+                System.out.println("Számla mentve: " + invoiceUrl);
 
-                System.out.println(" Számla HTML generálva: " + invoiceUrl);
+            } catch (Exception invoiceEx) {
+                System.err.println("Számla hiba:");
+                invoiceEx.printStackTrace();
+            }
 
-                // Email küldés URLlel
+            // EMAIL KÜLDÉS
+            try {
+                System.out.println("Email küldés");
+
+                if (user.getEmail() == null || user.getEmail().trim().isEmpty()) {
+                    System.err.println("User email NULL!");
+                    throw new Exception("User email is null");
+                }
+
+                if (invoiceUrl == null || invoiceUrl.trim().isEmpty()) {
+                    System.err.println("Invoice URL null, placeholder");
+                    invoiceUrl = "https://carcomps.hu/orders/" + payment.getOrderId().getId();
+                }
+
+                System.out.println("   Címzett: " + user.getEmail());
+                System.out.println("   Invoice: " + invoiceUrl);
+
                 SendEmail.sendPaymentConfirmationEmail(
                         user.getEmail(),
                         payment.getOrderId().getId(),
                         payment.getAmount(),
                         payment.getMethod(),
-                        invoiceUrl, // Ez most már LÉTEZŐ fájl
+                        invoiceUrl,
                         new Date()
                 );
 
-                System.out.println("Fizetési email elküldve: " + user.getEmail());
+                System.out.println("Email elküldve!");
 
             } catch (Exception emailEx) {
-                // Email hiba NEM akadályozza a fizetést
-                System.err.println("Email/Számla hiba: " + emailEx.getMessage());
+                System.err.println("Email hiba:");
                 emailEx.printStackTrace();
             }
 
         } catch (Exception ex) {
-            errors.put("DatabaseError");
+            System.err.println("Payment hiba:");
             ex.printStackTrace();
+            errors.put("DatabaseError");
             return errorAuth.createErrorResponse(errors, 500);
         }
 

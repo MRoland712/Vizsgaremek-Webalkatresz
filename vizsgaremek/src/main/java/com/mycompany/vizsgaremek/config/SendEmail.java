@@ -781,7 +781,7 @@ public class SendEmail {
 
         // Email üzenet létrehozása
         MimeMessage message = new MimeMessage(session);
-        message.setFrom(new InternetAddress("fizetesek@carcomps.hu"));
+        message.setFrom(new InternetAddress("noreply@carcomps.hu"));
         message.setRecipients(Message.RecipientType.TO, InternetAddress.parse(recipientEmail));
         message.setSubject("Fizetés megerősítve Rendelés #" + orderId);
 
@@ -822,7 +822,7 @@ public class SendEmail {
                 + "</div>"
                 + "<div class=\"email-body\">"
                 + "<hr />"
-                + "<div class=\"success-icon\">✅</div>"
+                + "<div class=\"success-icon\"></div>"
                 + "<h2>Fizetés sikeres!</h2>"
                 + "<p>Kedves Vásárló!</p>"
                 + "<p>Sikeresen feldolgoztuk a fizetését. Köszönjük a vásárlást!</p>"
@@ -834,7 +834,7 @@ public class SendEmail {
                 + "<p><strong>Fizetés dátuma:</strong> " + formattedDate + "</p>"
                 + "</div>"
                 + "<p>A számláját az alábbi linken érheti el:</p>"
-                + "<a href=\"" + invoiceUrl + "\" class=\"button\">📄 Számla megtekintése</a>"
+                + "<a href=\"" + invoiceUrl + "\" class=\"button\">Számla megtekintése</a>"
                 + "<p style=\"margin-top: 20px;\">Ha bármilyen kérdése van, kérjük vegye fel velünk a kapcsolatot.</p>"
                 + "<p>Üdvözlettel: CarComps csapata</p>"
                 + "</div>"
