@@ -5,8 +5,10 @@
 package com.mycompany.vizsgaremek.service;
 
 import com.mycompany.vizsgaremek.config.SendEmail;
+import com.mycompany.vizsgaremek.model.OrderItems;
 import com.mycompany.vizsgaremek.model.Orders;
 import com.mycompany.vizsgaremek.model.Payments;
+import com.mycompany.vizsgaremek.model.Users;
 import java.util.ArrayList;
 import java.util.Date;
 import org.json.JSONArray;
@@ -372,20 +374,17 @@ public class PaymentsService {
             errors.put("InvalidPaymentMethod");
         }
 
-        // Hiba ellenőrzés - érvénytelen mezők
         if (errorAuth.hasErrors(errors)) {
             return errorAuth.createErrorResponse(errors, 400);
         }
 
         // ÜZLETI LOGIKA VALIDÁCIÓK
-        // Order létezik
         Orders existingOrder = Orders.getOrdersById(payment.getOrderId().getId());
         if (paymentsAuth.isDataMissing(existingOrder)) {
             errors.put("OrderNotFound");
             return errorAuth.createErrorResponse(errors, 404);
         }
 
-        // Order már ki van fizetve
         if ("paid".equals(existingOrder.getStatus())
                 || "shipped".equals(existingOrder.getStatus())
                 || "delivered".equals(existingOrder.getStatus())) {
@@ -393,13 +392,11 @@ public class PaymentsService {
             return errorAuth.createErrorResponse(errors, 409);
         }
 
-        // Order törölt
         if (Boolean.TRUE.equals(existingOrder.getIsDeleted())) {
             errors.put("OrderIsDeleted");
             return errorAuth.createErrorResponse(errors, 409);
         }
 
-        // Order cancelled vagy refunded
         if ("cancelled".equals(existingOrder.getStatus())
                 || "refunded".equals(existingOrder.getStatus())) {
             errors.put("OrderIsCancelledOrRefunded");
@@ -419,32 +416,46 @@ public class PaymentsService {
                 return errorAuth.createErrorResponse(errors, 500);
             }
 
-            // EMAIL KÜLDÉS HOZZÁADÁSA 
+            // SZÁMLA GENERÁLÁS 
             try {
-                // User email lekérése az existingOrder-ből
-                String userEmail = existingOrder.getUserId().getEmail();
+                // OrderItems lekérése
+                ArrayList<OrderItems> orderItems = OrderItems.getOrderItemsByOrderId(payment.getOrderId().getId());
 
-                // Invoice URL generálása
-                String invoiceUrl = "https://carcomps.hu/invoices/invoice_" + payment.getOrderId().getId() + ".pdf";
+                //  User lekérése
+                Users user = existingOrder.getUserId();
 
-                // Email küldés
+                // HTML számla generálás
+                String invoiceHtml = InvoicesService.generateInvoiceHtml(
+                        payment.getOrderId().getId(),
+                        existingOrder,
+                        payment,
+                        user,
+                        orderItems
+                );
+
+                //  HTML fájl mentése
+                String invoiceUrl = InvoicesService.saveInvoiceHtml(invoiceHtml, payment.getOrderId().getId());
+
+                System.out.println(" Számla HTML generálva: " + invoiceUrl);
+
+                // Email küldés URLlel
                 SendEmail.sendPaymentConfirmationEmail(
-                        userEmail,
+                        user.getEmail(),
                         payment.getOrderId().getId(),
                         payment.getAmount(),
                         payment.getMethod(),
-                        invoiceUrl,
+                        invoiceUrl, // Ez most már LÉTEZŐ fájl
                         new Date()
                 );
 
-                System.out.println("Fizetési email elküldve: " + userEmail);
+                System.out.println("Fizetési email elküldve: " + user.getEmail());
 
             } catch (Exception emailEx) {
-                // Email hiba NEM akadályozza a fizetést!
-                System.err.println("Email küldési hiba: " + emailEx.getMessage());
+                // Email hiba NEM akadályozza a fizetést
+                System.err.println("Email/Számla hiba: " + emailEx.getMessage());
                 emailEx.printStackTrace();
             }
-            
+
         } catch (Exception ex) {
             errors.put("DatabaseError");
             ex.printStackTrace();
@@ -460,6 +471,6 @@ public class PaymentsService {
         toReturn.put("statusCode", 200);
 
         return toReturn;
-    }//processPayment
+    }
 
 }
