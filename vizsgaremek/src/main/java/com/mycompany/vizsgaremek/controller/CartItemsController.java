@@ -41,43 +41,49 @@ public class CartItemsController {
     }
 
     /**
-     * Retrieves representation of an instance of com.mycompany.vizsgaremek.controller.CartItemsController
+     * Retrieves representation of an instance of
+     * com.mycompany.vizsgaremek.controller.CartItemsController
+     * 
      * @return an instance of java.lang.String
      */
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     public String getJson() {
-        //TODO return proper representation object
+        // TODO return proper representation object
         throw new UnsupportedOperationException();
     }
 
     /**
      * PUT method for updating or creating an instance of CartItemsController
+     * 
      * @param content representation for the resource
      */
     @PUT
     @Consumes(MediaType.APPLICATION_JSON)
     public void putJson(String content) {
     }
-    
+
     @POST
     @Path("createCartItems")
     @Consumes(MediaType.APPLICATION_JSON)
-    public Response createCartItemsController(String body) {
+    public Response createCartItemsController(String body, @HeaderParam("token") String jwtToken) {
+        Response jwtError = jwt.validateJwtAndReturnError(jwtToken);
+        if (jwtError != null) {
+            return jwtError;
+        }
 
         JSONObject bodyObject = new JSONObject(body);
 
         Users user = new Users();
         user.setId(bodyObject.has("userId") ? bodyObject.getInt("userId") : null);
-        
+
         Parts part = new Parts();
         part.setId(bodyObject.has("partId") ? bodyObject.getInt("partId") : null);
 
         CartItems createdCartItems = new CartItems(
                 bodyObject.has("quantity") ? bodyObject.getInt("quantity") : null,
                 part,
-                user
-        );
+                user);
 
         JSONObject toReturn = layer.createCartItemsService(createdCartItems);
 
@@ -90,7 +96,28 @@ public class CartItemsController {
     @GET
     @Path("getAllCartItems")
     @Consumes(MediaType.APPLICATION_JSON)
-    public Response getAllCartItemsController() {
+    public Response getAllCartItemsController(@HeaderParam("token") String jwtToken) {
+        Response jwtError = jwt.validateJwtAndReturnError(jwtToken);
+        if (jwtError != null) {
+            return jwtError;
+        }
+
+        JSONArray errors = new JSONArray();
+        String jwtRole = jwt.extractRole(jwtToken);
+        if (!jwtRole.equals("admin")) {
+            errors.put("userNotAuthorised");
+
+            JSONObject errorResponse = new JSONObject();
+            errorResponse.put("errors", errors);
+            errorResponse.put("status", "failed");
+            errorResponse.put("statusCode", 401);
+
+            return Response.status(401)
+                    .entity(errorResponse.toString())
+                    .type(MediaType.APPLICATION_JSON)
+                    .build();
+        }
+
         CartItemsService cartItemsService = new CartItemsService();
         JSONObject toReturn = cartItemsService.getAllCartItemsService();
 
@@ -105,7 +132,7 @@ public class CartItemsController {
     @Consumes(MediaType.APPLICATION_JSON)
     public Response getCartItemByIdController(@QueryParam("id") Integer Id) {
         CartItemsService cartItemsService = new CartItemsService();
-        
+
         JSONObject toReturn = cartItemsService.getCartItemByIdService(Id);
 
         return Response.status(Integer.parseInt(toReturn.get("statusCode").toString()))
@@ -113,7 +140,7 @@ public class CartItemsController {
                 .type(MediaType.APPLICATION_JSON)
                 .build();
     }
-    
+
     @GET
     @Path("getCartItemsByPartId")
     @Produces(MediaType.APPLICATION_JSON)
@@ -126,7 +153,7 @@ public class CartItemsController {
                 .type(MediaType.APPLICATION_JSON)
                 .build();
     }
-    
+
     @GET
     @Path("getCartItemsByUserId")
     @Produces(MediaType.APPLICATION_JSON)
@@ -139,7 +166,7 @@ public class CartItemsController {
                 .type(MediaType.APPLICATION_JSON)
                 .build();
     }
-    
+
     @DELETE
     @Path("softDeleteCartItem")
     @Consumes(MediaType.APPLICATION_JSON)
@@ -152,7 +179,7 @@ public class CartItemsController {
                 .type(MediaType.APPLICATION_JSON)
                 .build();
     }
-    
+
     @PUT
     @Path("updateCartItem")
     @Consumes(MediaType.APPLICATION_JSON)
@@ -167,7 +194,7 @@ public class CartItemsController {
         if (id != null) {
             updatedCartItem.setId(id);
         }
-        
+
         if (bodyObject.has("quantity")) {
             updatedCartItem.setQuantity(bodyObject.getInt("quantity"));
         }
@@ -183,5 +210,5 @@ public class CartItemsController {
                 .type(MediaType.APPLICATION_JSON)
                 .build();
     }
-    
+
 }
