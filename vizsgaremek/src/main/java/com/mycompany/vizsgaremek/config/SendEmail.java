@@ -27,6 +27,7 @@ import java.math.BigDecimal;
 import java.text.SimpleDateFormat;
 import javax.mail.BodyPart;
 import javax.mail.Flags;
+import javax.mail.internet.MimeBodyPart;
 
 /**
  *
@@ -737,10 +738,9 @@ public class SendEmail {
             return false;
         }
     }
-    
+
     //PDF generatálás kiküldés 
     // -------------------------------------------------------------------------
-
     /**
      * Send payment confirmation email to customer
      *
@@ -752,16 +752,19 @@ public class SendEmail {
      * @param paymentDate Payment date
      * @throws MessagingException if email sending fails
      */
-    
+    /**
+     * Send payment confirmation email with PDF attachment
+     */
     public static void sendPaymentConfirmationEmail(
             String recipientEmail,
             Integer orderId,
             BigDecimal amount,
             String method,
             String invoiceUrl,
-            Date paymentDate) throws MessagingException {
+            Date paymentDate,
+            byte[] pdfAttachment) throws MessagingException {  // ✅ PDF csatolmány hozzáadva
 
-        // SMTP értéket megadása
+        // Configure SMTP properties
         Properties props = new Properties();
         props.put("mail.smtp.auth", "true");
         props.put("mail.smtp.starttls.enable", "true");
@@ -779,18 +782,18 @@ public class SendEmail {
             }
         });
 
-        // Email üzenet létrehozása
+        // Create email message
         MimeMessage message = new MimeMessage(session);
-        message.setFrom(new InternetAddress("noreply@carcomps.hu"));
+        message.setFrom(new InternetAddress("fizetesek@carcomps.hu"));
         message.setRecipients(Message.RecipientType.TO, InternetAddress.parse(recipientEmail));
-        message.setSubject("Fizetés megerősítve Rendelés #" + orderId);
+        message.setSubject("Fizetés megerősítve - Rendelés #" + orderId);
 
-        
+        // Format date and amount
         SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
         String formattedDate = dateFormat.format(paymentDate);
         String formattedAmount = String.format("%,.2f Ft", amount);
 
-        // HTML fájl
+        // Create HTML content (UGYANAZ marad)
         String htmlContent = "<!DOCTYPE html>"
                 + "<html lang=\"en\">"
                 + "<head>"
@@ -827,14 +830,14 @@ public class SendEmail {
                 + "<p>Kedves Vásárló!</p>"
                 + "<p>Sikeresen feldolgoztuk a fizetését. Köszönjük a vásárlást!</p>"
                 + "<div class=\"details\">"
-                + "<h3 style=\"color: #fffafa; margin-bottom: 12px;\">📋 Fizetési részletek:</h3>"
+                + "<h3 style=\"color: #fffafa; margin-bottom: 12px;\">Fizetési részletek:</h3>"
                 + "<p><strong>Rendelés szám:</strong> #" + orderId + "</p>"
                 + "<p><strong>Összeg:</strong> " + formattedAmount + "</p>"
                 + "<p><strong>Fizetési mód:</strong> " + getPaymentMethod(method) + "</p>"
                 + "<p><strong>Fizetés dátuma:</strong> " + formattedDate + "</p>"
                 + "</div>"
-                + "<p>A számláját az alábbi linken érheti el:</p>"
-                + "<a href=\"" + invoiceUrl + "\" class=\"button\">Számla megtekintése</a>"
+                + "<p>A számláját az alábbi linken érheti el, vagy megtalálja csatolmányként ebben az emailben:</p>"
+                + "<a href=\"" + invoiceUrl + "\" class=\"button\">📄 Számla megtekintése</a>"
                 + "<p style=\"margin-top: 20px;\">Ha bármilyen kérdése van, kérjük vegye fel velünk a kapcsolatot.</p>"
                 + "<p>Üdvözlettel: CarComps csapata</p>"
                 + "</div>"
@@ -851,9 +854,40 @@ public class SendEmail {
                 + "</body>"
                 + "</html>";
 
-        message.setContent(htmlContent, "text/html; charset=utf-8");
+        // PDF CSATOLÁS 
+        if (pdfAttachment != null && pdfAttachment.length > 0) {
+            try {
+                // Multipart message létrehozása
+                MimeMultipart multipart = new MimeMultipart();
 
-        // Email küldése
+                // HTML rész
+                MimeBodyPart htmlPart = new MimeBodyPart();
+                htmlPart.setContent(htmlContent, "text/html; charset=utf-8");
+                multipart.addBodyPart(htmlPart);
+
+                // PDF csatolmány
+                MimeBodyPart attachmentPart = new MimeBodyPart();
+                javax.activation.DataSource source = new javax.mail.util.ByteArrayDataSource(pdfAttachment, "application/pdf");
+                attachmentPart.setDataHandler(new javax.activation.DataHandler(source));
+                attachmentPart.setFileName("szamla_" + orderId + ".pdf");
+                multipart.addBodyPart(attachmentPart);
+
+                // Set multipart content
+                message.setContent(multipart);
+
+                System.out.println("PDF csatolmány hozzáadva az emailhez (" + pdfAttachment.length + " bytes)");
+
+            } catch (Exception ex) {
+                System.err.println("PDF csatolás hiba, email HTML-ként megy: " + ex.getMessage());
+                // Fallback: csak HTML email küldése
+                message.setContent(htmlContent, "text/html; charset=utf-8");
+            }
+        } else {
+            // Nincs PDF csatolmány, csak HTML email
+            message.setContent(htmlContent, "text/html; charset=utf-8");
+        }
+
+        // Send the email
         Transport.send(message);
 
         System.out.println("Payment confirmation email sent to: " + recipientEmail);

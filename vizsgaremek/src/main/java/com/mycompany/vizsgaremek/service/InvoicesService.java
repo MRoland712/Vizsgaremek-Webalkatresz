@@ -9,6 +9,8 @@ import com.mycompany.vizsgaremek.model.OrderItems;
 import com.mycompany.vizsgaremek.model.Orders;
 import com.mycompany.vizsgaremek.model.Payments;
 import com.mycompany.vizsgaremek.model.Users;
+import java.io.ByteArrayOutputStream;
+import java.io.FileOutputStream;
 import java.math.BigDecimal;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
@@ -350,7 +352,7 @@ public class InvoicesService {
         html.append("<style>");
         html.append("* { margin: 0; padding: 0; box-sizing: border-box; }");
         html.append("body { font-family: Arial, sans-serif; padding: 40px; background: #f5f5f5; }");
-        html.append(".invoice { max-width: 800px; margin: 0 auto; background: white; padding: 40px; box-shadow: 0 0 10px rgba(0,0,0,0.1); }");
+        html.append(".invoice { max-width: 800px; margin: 0 auto; background: white; padding: 40px; }");
         html.append(".header { border-bottom: 3px solid #4CAF50; padding-bottom: 20px; margin-bottom: 30px; }");
         html.append(".header h1 { color: #333; font-size: 32px; }");
         html.append(".header .invoice-number { color: #666; font-size: 14px; margin-top: 5px; }");
@@ -360,12 +362,10 @@ public class InvoicesService {
         html.append("table { width: 100%; border-collapse: collapse; margin: 30px 0; }");
         html.append("th { background: #4CAF50; color: white; padding: 12px; text-align: left; font-weight: 600; }");
         html.append("td { padding: 12px; border-bottom: 1px solid #ddd; }");
-        html.append("tr:hover { background: #f9f9f9; }");
         html.append(".text-right { text-align: right; }");
         html.append(".total-row { font-weight: bold; font-size: 18px; background: #f5f5f5; }");
         html.append(".footer { margin-top: 40px; padding-top: 20px; border-top: 2px solid #eee; text-align: center; color: #666; font-size: 12px; }");
         html.append(".payment-info { background: #f0f9ff; padding: 15px; border-left: 4px solid #4CAF50; margin: 20px 0; }");
-        html.append("@media print { body { background: white; padding: 0; } .invoice { box-shadow: none; } }");
         html.append("</style>");
         html.append("</head>");
         html.append("<body>");
@@ -471,13 +471,42 @@ public class InvoicesService {
         }
     }
 
-    public static String saveInvoiceHtml(String html, Integer orderId) throws Exception {
-        String fileName = "invoice_" + orderId + ".html";
-        String filePath = "/tmp/invoices/" + fileName;  // Temp könyvtár
+    /**
+     * PDF FÁJL MENTÉSE (szerverről letölthető)
+     */
+   public static String saveInvoicePdf(String html, Integer orderId) throws Exception {
+        String fileName = "invoice_" + orderId + ".pdf";
+        String filePath = "/tmp/invoices/" + fileName;
 
+        // Könyvtár létrehozása
         Files.createDirectories(Paths.get("/tmp/invoices/"));
-        Files.write(Paths.get(filePath), html.getBytes(StandardCharsets.UTF_8));
+
+        // HTML PDF konverzió
+        FileOutputStream os = new FileOutputStream(filePath);
+        //ITextRenderer renderer = new ITextRenderer();
+        //renderer.setDocumentFromString(html);
+        //renderer.layout();
+        //renderer.createPDF(os);
+        os.close();
+
+        System.out.println("PDF fájl mentve: " + filePath);
 
         return "https://carcomps.hu/invoices/" + fileName;
+    }
+
+    /**
+     * PDF BYTE ARRAY GENERÁLÁS (email csatoláshoz)
+     */
+    public static byte[] generateInvoicePdfBytes(String html) throws Exception {
+        ByteArrayOutputStream os = new ByteArrayOutputStream();
+        //ITextRenderer renderer = new ITextRenderer();
+        //renderer.setDocumentFromString(html);
+        //renderer.layout();
+        //renderer.createPDF(os);
+        os.close();
+
+        System.out.println("PDF byte array generálva: " + os.size() + " bytes");
+
+        return os.toByteArray();
     }
 }

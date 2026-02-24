@@ -124,6 +124,13 @@
             <version>4.5.14</version>
         </dependency>
         
+        <!-- HTML to PDF - Flying Saucer -->
+        <dependency>
+            <groupId>org.xhtmlrenderer</groupId>
+            <artifactId>flying-saucer-pdf</artifactId>
+            <version>9.1.22</version>
+        </dependency>
+        
     </dependencies>
 
     <build>
