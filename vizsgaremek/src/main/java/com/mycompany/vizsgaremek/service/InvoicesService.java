@@ -9,10 +9,7 @@ import com.mycompany.vizsgaremek.model.OrderItems;
 import com.mycompany.vizsgaremek.model.Orders;
 import com.mycompany.vizsgaremek.model.Payments;
 import com.mycompany.vizsgaremek.model.Users;
-import java.io.ByteArrayOutputStream;
-import java.io.FileOutputStream;
 import java.math.BigDecimal;
-import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.text.SimpleDateFormat;
@@ -20,6 +17,9 @@ import java.util.ArrayList;
 import java.util.Date;
 import org.json.JSONArray;
 import org.json.JSONObject;
+import org.xhtmlrenderer.pdf.ITextRenderer;
+import java.io.FileOutputStream;
+import java.io.ByteArrayOutputStream;
 
 /**
  *
@@ -324,6 +324,9 @@ public class InvoicesService {
         return toReturn;
     }//updateParts
 
+    /**
+     * Generate HTML invoice
+     */
     public static String generateInvoiceHtml(
             Integer orderId,
             Orders order,
@@ -401,7 +404,7 @@ public class InvoicesService {
         // Payment info
         html.append("<div class=\"payment-info\">");
         html.append("<strong>Fizetési információ:</strong><br />");
-        html.append("Fizetési mód: ").append(getPaymentMethodHu(payment.getMethod())).append("<br />");
+        html.append("Fizetési mód: ").append(getPaymentMethod(payment.getMethod())).append("<br />");
         html.append("Fizetés dátuma: ").append(invoiceDate).append("<br />");
         html.append("Státusz: Fizetve");
         html.append("</div>");
@@ -454,7 +457,7 @@ public class InvoicesService {
         return html.toString();
     }
 
-    private static String getPaymentMethodHu(String method) {
+    private static String getPaymentMethod(String method) {
         switch (method) {
             case "credit_card":
                 return "Bankkártya";
@@ -472,40 +475,56 @@ public class InvoicesService {
     }
 
     /**
-     * PDF FÁJL MENTÉSE (szerverről letölthető)
+     * Save invoice as PDF file works on Mac, Windows, Linux
      */
-   public static String saveInvoicePdf(String html, Integer orderId) throws Exception {
+    public static String saveInvoicePdf(String html, Integer orderId) throws Exception {
         String fileName = "invoice_" + orderId + ".pdf";
-        String filePath = "/tmp/invoices/" + fileName;
 
-        // Könyvtár létrehozása
-        Files.createDirectories(Paths.get("/tmp/invoices/"));
+        // Automatikus környezet detektálás
+        String os = System.getProperty("os.name").toLowerCase();
+        String baseDir;
 
-        // HTML PDF konverzió
-        FileOutputStream os = new FileOutputStream(filePath);
-        //ITextRenderer renderer = new ITextRenderer();
-        //renderer.setDocumentFromString(html);
-        //renderer.layout();
-        //renderer.createPDF(os);
-        os.close();
+        if (os.contains("mac") || os.contains("darwin")) {
+            // Mac Development
+            baseDir = System.getProperty("user.home") + "/Desktop/carcomps_invoices/";
+        } else if (os.contains("win")) {
+            // Windows Production
+            baseDir = "C:/carcomps/invoices/";
+        } else {
+            // Linux  
+            baseDir = "/var/www/carcomps/invoices/";
+        }
 
-        System.out.println("PDF fájl mentve: " + filePath);
+        String filePath = baseDir + fileName;
+
+        // Create directory
+        Files.createDirectories(Paths.get(baseDir));
+
+        // HTML to PDF conversion
+        FileOutputStream fos = new FileOutputStream(filePath);  
+        ITextRenderer renderer = new ITextRenderer();
+        renderer.setDocumentFromString(html);
+        renderer.layout();
+        renderer.createPDF(fos);  
+        fos.close();  
+
+        System.out.println("PDF saved: " + filePath);
 
         return "https://carcomps.hu/invoices/" + fileName;
     }
 
     /**
-     * PDF BYTE ARRAY GENERÁLÁS (email csatoláshoz)
+     * Generate PDF as byte array for email attachment
      */
     public static byte[] generateInvoicePdfBytes(String html) throws Exception {
         ByteArrayOutputStream os = new ByteArrayOutputStream();
-        //ITextRenderer renderer = new ITextRenderer();
-        //renderer.setDocumentFromString(html);
-        //renderer.layout();
-        //renderer.createPDF(os);
+        ITextRenderer renderer = new ITextRenderer();
+        renderer.setDocumentFromString(html);
+        renderer.layout();
+        renderer.createPDF(os);
         os.close();
 
-        System.out.println("PDF byte array generálva: " + os.size() + " bytes");
+        System.out.println("PDF byte array generated: " + os.size() + " bytes");
 
         return os.toByteArray();
     }

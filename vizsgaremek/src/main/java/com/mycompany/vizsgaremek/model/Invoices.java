@@ -45,7 +45,7 @@ import javax.xml.bind.annotation.XmlRootElement;
     @NamedQuery(name = "Invoices.findByIsDeleted", query = "SELECT i FROM Invoices i WHERE i.isDeleted = :isDeleted"),
     @NamedQuery(name = "Invoices.findByDeletedAt", query = "SELECT i FROM Invoices i WHERE i.deletedAt = :deletedAt")})
 public class Invoices implements Serializable {
-    
+
     static EntityManagerFactory emf = Persistence.createEntityManagerFactory("com.mycompany_vizsgaremek_war_1.0-SNAPSHOTPU");
     public static SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 
@@ -139,8 +139,6 @@ public class Invoices implements Serializable {
         this.orderId = orderId;
     }
 
-    
-    
     @Override
     public int hashCode() {
         int hash = 0;
@@ -165,7 +163,7 @@ public class Invoices implements Serializable {
     public String toString() {
         return "com.mycompany.vizsgaremek.model.Invoices[ id=" + id + " ]";
     }
-    
+
     public static Boolean createInvoice(Invoices createdInvoices) {
         EntityManager em = emf.createEntityManager();
         try {
@@ -188,7 +186,7 @@ public class Invoices implements Serializable {
             em.close();
         }
     }
-    
+
     public static ArrayList<Invoices> getAllInvoices() {
         EntityManager em = emf.createEntityManager();
 
@@ -212,7 +210,7 @@ public class Invoices implements Serializable {
                         record[3] == null ? null : formatter.parse(record[3].toString()), // 11. createdAt
                         Boolean.FALSE, // 13. isDeleted
                         record[5] == null ? null : formatter.parse(record[5].toString()), // deleted_at
-                        order 
+                        order
                 );
 
                 toReturn.add(i);
@@ -229,7 +227,7 @@ public class Invoices implements Serializable {
             em.close();
         }
     }
-    
+
     public static Invoices getInvoiceById(Integer id) {
         EntityManager em = emf.createEntityManager();
         try {
@@ -248,12 +246,12 @@ public class Invoices implements Serializable {
             order.setId(Integer.valueOf(record[1].toString()));
 
             Invoices i = new Invoices(
-                        Integer.valueOf(record[0].toString()), // 1. id
-                        record[2] != null ? record[2].toString() : null, // 2. pdfUrl
-                        record[3] == null ? null : formatter.parse(record[3].toString()), // 11. createdAt
-                        Boolean.FALSE, // 13. isDeleted
-                        record[5] == null ? null : formatter.parse(record[5].toString()), // deleted_at
-                        order 
+                    Integer.valueOf(record[0].toString()), // 1. id
+                    record[2] != null ? record[2].toString() : null, // 2. pdfUrl
+                    record[3] == null ? null : formatter.parse(record[3].toString()), // 11. createdAt
+                    Boolean.FALSE, // 13. isDeleted
+                    record[5] == null ? null : formatter.parse(record[5].toString()), // deleted_at
+                    order
             );
 
             return i;
@@ -265,7 +263,7 @@ public class Invoices implements Serializable {
             em.close();
         }
     }
-    
+
     public static Boolean softDeleteInvoice(Integer id) {
         EntityManager em = emf.createEntityManager();
 
@@ -291,7 +289,7 @@ public class Invoices implements Serializable {
         }
     }
 
-    public static Boolean updateInvoice (Invoices updatedInvoice) {
+    public static Boolean updateInvoice(Invoices updatedInvoice) {
         EntityManager em = emf.createEntityManager();
 
         try {
@@ -307,8 +305,6 @@ public class Invoices implements Serializable {
             spq.setParameter("orderIdIN", updatedInvoice.getOrderId().getId());
             spq.setParameter("pdfUrlIN", updatedInvoice.getPdfUrl());
             spq.setParameter("isDeletedIN", Boolean.TRUE.equals(updatedInvoice.getIsDeleted()) ? 1 : 0);
-
-
 
             spq.execute();
 
@@ -327,7 +323,7 @@ public class Invoices implements Serializable {
             em.close();
         }
     }
-    
+
     public static ArrayList<Invoices> getInvoicesByOrderId(Integer orderId) {
         EntityManager em = emf.createEntityManager();
         try {
@@ -339,7 +335,7 @@ public class Invoices implements Serializable {
             List<Object[]> resultList = spq.getResultList();
             ArrayList<Invoices> toReturn = new ArrayList();
 
-             for (Object[] record : resultList) {
+            for (Object[] record : resultList) {
                 Orders order = new Orders();
                 order.setId(Integer.valueOf(record[1].toString()));
 
@@ -349,7 +345,7 @@ public class Invoices implements Serializable {
                         record[3] == null ? null : formatter.parse(record[3].toString()), // 11. createdAt
                         Boolean.FALSE, // 13. isDeleted
                         record[5] == null ? null : formatter.parse(record[5].toString()), // deleted_at
-                        order 
+                        order
                 );
 
                 toReturn.add(i);
@@ -360,6 +356,27 @@ public class Invoices implements Serializable {
             return null;
         } finally {
             em.close();
+        }
+    }
+
+    public static Boolean updateInvoicePdfUrl(Integer orderId, String pdfUrl) {
+        EntityManager em = emf.createEntityManager();
+        try {
+            StoredProcedureQuery spq = em.createStoredProcedureQuery("updateInvoicePdfUrl");
+
+            spq.registerStoredProcedureParameter("orderIdIN", Integer.class, ParameterMode.IN);
+            spq.registerStoredProcedureParameter("pdfUrlIN", String.class, ParameterMode.IN);
+
+            spq.setParameter("orderIdIN", orderId);
+            spq.setParameter("pdfUrlIN", pdfUrl);
+
+            spq.execute();
+
+            return true;
+
+        } catch (Exception ex) {
+            System.err.println("updateInvoicePdfUrl error: " + ex);
+            return false;
         }
     }
 }
