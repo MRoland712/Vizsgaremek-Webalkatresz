@@ -4,7 +4,6 @@
  */
 package com.mycompany.vizsgaremek.model;
 
-
 import java.io.Serializable;
 import java.math.BigDecimal;
 import java.text.SimpleDateFormat;
@@ -81,7 +80,7 @@ public class OrderItems implements Serializable {
         this.quantity = quantity;
         this.partId = partId;
     }
-    
+
     public OrderItems(Integer quantity, BigDecimal price, Orders orderId, Parts partId) {
         this.quantity = quantity;
         this.price = price;
@@ -99,8 +98,7 @@ public class OrderItems implements Serializable {
         this.orderId = orderId;
         this.partId = partId;
     }
-    
-    
+
     public OrderItems() {
     }
 
@@ -196,7 +194,7 @@ public class OrderItems implements Serializable {
     public String toString() {
         return "com.mycompany.vizsgaremek.model.OrderItems[ id=" + id + " ]";
     }
-    
+
     public static ArrayList<OrderItems> getAllOrderItemsAdmin() {
         EntityManager em = emf.createEntityManager();
 
@@ -209,26 +207,26 @@ public class OrderItems implements Serializable {
             List<Object[]> resultList = spq.getResultList();
 
             ArrayList<OrderItems> toReturn = new ArrayList();
-            
+
             for (Object[] record : resultList) {
-                
+
                 System.out.println("records: "
-                        +"record0 " + (record[0] != null ? record[0].toString() : null)
-                        +"record1 " + (record[1] != null ? record[1].toString() : null)
-                        +"record2 " + (record[2] != null ? record[2].toString() : null)
-                        +"record3 " + (record[3] != null ? record[3].toString() : null)
-                        +"record4 " + (record[4] != null ? record[4].toString() : null)
-                        +"record5 " + (record[5] != null ? record[5].toString() : null)
-                        +"record6 " + (record[6] != null ? record[6].toString() : null)
-                        +"record7 " + (record[7] != null ? record[7].toString() : null)
-                        );
-                
+                        + "record0 " + (record[0] != null ? record[0].toString() : null)
+                        + "record1 " + (record[1] != null ? record[1].toString() : null)
+                        + "record2 " + (record[2] != null ? record[2].toString() : null)
+                        + "record3 " + (record[3] != null ? record[3].toString() : null)
+                        + "record4 " + (record[4] != null ? record[4].toString() : null)
+                        + "record5 " + (record[5] != null ? record[5].toString() : null)
+                        + "record6 " + (record[6] != null ? record[6].toString() : null)
+                        + "record7 " + (record[7] != null ? record[7].toString() : null)
+                );
+
                 Orders order = new Orders();
                 order.setId(Integer.valueOf(record[6].toString()));
-                
+
                 Parts part = new Parts();
                 part.setId(Integer.valueOf(record[7].toString()));
-                
+
                 OrderItems o = new OrderItems(
                         Integer.valueOf(record[0].toString()), // id
                         Integer.valueOf(record[1].toString()), // quantity
@@ -239,7 +237,6 @@ public class OrderItems implements Serializable {
                         order,
                         part
                 );
-                        
 
                 toReturn.add(o);
             }
@@ -253,7 +250,8 @@ public class OrderItems implements Serializable {
         } finally {
             em.clear();
             em.close();
-        }}
+        }
+    }
 
     public static Boolean createOrderItems(OrderItems createdOrderItems) {
         EntityManager em = emf.createEntityManager();
@@ -446,6 +444,7 @@ public class OrderItems implements Serializable {
 
                 Parts part = new Parts();
                 part.setId(Integer.valueOf(record[2].toString()));
+                part.setName(record[8] != null ? record[8].toString() : "Ismeretlen termék"); 
 
                 OrderItems i = new OrderItems(
                         Integer.valueOf(record[0].toString()), // id

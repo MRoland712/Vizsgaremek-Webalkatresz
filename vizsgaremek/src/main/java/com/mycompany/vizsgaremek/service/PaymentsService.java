@@ -353,9 +353,6 @@ public class PaymentsService {
         if (paymentsAuth.isDataMissing(payment.getOrderId())) {
             errors.put("MissingOrderId");
         }
-        if (paymentsAuth.isDataMissing(payment.getAmount())) {
-            errors.put("MissingAmount");
-        }
         if (paymentsAuth.isDataMissing(payment.getMethod())) {
             errors.put("MissingMethod");
         }
@@ -367,9 +364,6 @@ public class PaymentsService {
         // VALIDÁCIÓK Érvénytelen mezők
         if (!paymentsAuth.isValidOrderId(payment.getOrderId())) {
             errors.put("InvalidOrderId");
-        }
-        if (!paymentsAuth.isValidAmount(payment.getAmount())) {
-            errors.put("InvalidAmount");
         }
         if (!paymentsAuth.isValidMethod(payment.getMethod())) {
             errors.put("InvalidPaymentMethod");

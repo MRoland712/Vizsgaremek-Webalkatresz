@@ -4,6 +4,7 @@
  */
 package com.mycompany.vizsgaremek.service;
 
+import com.lowagie.text.pdf.BaseFont;
 import com.mycompany.vizsgaremek.model.Invoices;
 import com.mycompany.vizsgaremek.model.OrderItems;
 import com.mycompany.vizsgaremek.model.Orders;
@@ -20,6 +21,7 @@ import org.json.JSONObject;
 import org.xhtmlrenderer.pdf.ITextRenderer;
 import java.io.FileOutputStream;
 import java.io.ByteArrayOutputStream;
+import org.xhtmlrenderer.pdf.ITextFontResolver;
 
 /**
  *
@@ -474,58 +476,78 @@ public class InvoicesService {
         }
     }
 
-    /**
-     * Save invoice as PDF file works on Mac, Windows, Linux
-     */
     public static String saveInvoicePdf(String html, Integer orderId) throws Exception {
         String fileName = "invoice_" + orderId + ".pdf";
 
-        // Automatikus környezet detektálás
         String os = System.getProperty("os.name").toLowerCase();
         String baseDir;
+        String fontPath;
+        String fontBoldPath;
 
         if (os.contains("mac") || os.contains("darwin")) {
-            // Mac Development
             baseDir = System.getProperty("user.home") + "/Desktop/carcomps_invoices/";
+            fontPath = "/Library/Fonts/Arial.ttf";
+            fontBoldPath = "/Library/Fonts/Arial Bold.ttf";
         } else if (os.contains("win")) {
-            // Windows Production
             baseDir = "C:/carcomps/invoices/";
+            fontPath = "C:/Windows/Fonts/arial.ttf";
+            fontBoldPath = "C:/Windows/Fonts/arialbd.ttf";
         } else {
-            // Linux  
             baseDir = "/var/www/carcomps/invoices/";
+            fontPath = "/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf";
+            fontBoldPath = "/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf";
         }
 
         String filePath = baseDir + fileName;
-
-        // Create directory
         Files.createDirectories(Paths.get(baseDir));
 
-        // HTML to PDF conversion
-        FileOutputStream fos = new FileOutputStream(filePath);  
+        FileOutputStream fos = new FileOutputStream(filePath);
         ITextRenderer renderer = new ITextRenderer();
+
+        ITextFontResolver fontResolver = renderer.getFontResolver();
+        fontResolver.addFont(fontPath, BaseFont.IDENTITY_H, BaseFont.EMBEDDED);
+        fontResolver.addFont(fontBoldPath, BaseFont.IDENTITY_H, BaseFont.EMBEDDED);
+
         renderer.setDocumentFromString(html);
         renderer.layout();
-        renderer.createPDF(fos);  
-        fos.close();  
+        renderer.createPDF(fos);
+        fos.close();
 
         System.out.println("PDF saved: " + filePath);
 
         return "https://carcomps.hu/invoices/" + fileName;
     }
 
-    /**
-     * Generate PDF as byte array for email attachment
-     */
     public static byte[] generateInvoicePdfBytes(String html) throws Exception {
-        ByteArrayOutputStream os = new ByteArrayOutputStream();
+        String os = System.getProperty("os.name").toLowerCase();
+        String fontPath;
+        String fontBoldPath;
+
+        if (os.contains("mac") || os.contains("darwin")) {
+            fontPath = "/Library/Fonts/Arial.ttf";
+            fontBoldPath = "/Library/Fonts/Arial Bold.ttf";
+        } else if (os.contains("win")) {
+            fontPath = "C:/Windows/Fonts/arial.ttf";
+            fontBoldPath = "C:/Windows/Fonts/arialbd.ttf";
+        } else {
+            fontPath = "/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf";
+            fontBoldPath = "/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf";
+        }
+
+        ByteArrayOutputStream baos = new ByteArrayOutputStream();
         ITextRenderer renderer = new ITextRenderer();
+
+        ITextFontResolver fontResolver = renderer.getFontResolver();
+        fontResolver.addFont(fontPath, BaseFont.IDENTITY_H, BaseFont.EMBEDDED);
+        fontResolver.addFont(fontBoldPath, BaseFont.IDENTITY_H, BaseFont.EMBEDDED);
+
         renderer.setDocumentFromString(html);
         renderer.layout();
-        renderer.createPDF(os);
-        os.close();
+        renderer.createPDF(baos);
+        baos.close();
 
-        System.out.println("PDF byte array generated: " + os.size() + " bytes");
+        System.out.println("PDF byte array generated: " + baos.size() + " bytes");
 
-        return os.toByteArray();
+        return baos.toByteArray();
     }
 }

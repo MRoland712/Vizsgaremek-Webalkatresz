@@ -762,7 +762,7 @@ public class SendEmail {
             String method,
             String invoiceUrl,
             Date paymentDate,
-            byte[] pdfAttachment) throws MessagingException {  // ✅ PDF csatolmány hozzáadva
+            byte[] pdfAttachment) throws MessagingException {  // PDF csatolmány hozzáadva
 
         // Configure SMTP properties
         Properties props = new Properties();

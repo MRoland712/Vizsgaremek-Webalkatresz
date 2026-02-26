@@ -191,10 +191,7 @@ public class PaymentsController {
         order.setId(bodyObject.has("orderId") ? bodyObject.getInt("orderId") : null);
 
         Payments processPayment = new Payments(
-                bodyObject.has("amount") ? bodyObject.getBigDecimal("amount") : null,
                 bodyObject.has("method") ? bodyObject.getString("method") : null,
-                "completed", // processPayment mindig completed status
-                null, // paidAt stored procedure állítja be
                 order
         );
 

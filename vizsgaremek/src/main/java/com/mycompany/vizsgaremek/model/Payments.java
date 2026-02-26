@@ -209,6 +209,13 @@ public class Payments implements Serializable {
         this.orderId = orderId;
     }
 
+    public Payments(String method, Orders orderId) {
+        this.method = method;
+        this.orderId = orderId;
+    }
+    
+    
+
     public Payments(BigDecimal amount, String method, String status, Date paidAt, Orders orderId) {
         this.amount = amount;
         this.method = method;
@@ -442,11 +449,9 @@ public class Payments implements Serializable {
             StoredProcedureQuery spq = em.createStoredProcedureQuery("processPayment");
 
             spq.registerStoredProcedureParameter("orderIdIN", Integer.class, ParameterMode.IN);
-            spq.registerStoredProcedureParameter("amountIN", BigDecimal.class, ParameterMode.IN);
             spq.registerStoredProcedureParameter("methodIN", String.class, ParameterMode.IN);
 
             spq.setParameter("orderIdIN", payment.getOrderId().getId());
-            spq.setParameter("amountIN", payment.getAmount());
             spq.setParameter("methodIN", payment.getMethod());
 
             spq.execute();

@@ -224,6 +224,7 @@ public class orderItemsService {
             orderItemObj.put("id", orderItem.getId());
             orderItemObj.put("orderId", orderItem.getOrderId().getId());
             orderItemObj.put("partId", orderItem.getPartId().getId());
+            orderItemObj.put("partName", orderItem.getPartId().getName());
             orderItemObj.put("quantity", orderItem.getQuantity());
             orderItemObj.put("price", orderItem.getPrice());
             orderItemObj.put("createdAt", orderItem.getCreatedAt());
