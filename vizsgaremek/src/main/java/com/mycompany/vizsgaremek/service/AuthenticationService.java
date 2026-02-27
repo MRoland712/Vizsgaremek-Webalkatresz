@@ -167,7 +167,7 @@ public class AuthenticationService {
     public static class JWTAuth {
 
         public boolean isDataMissing(String data) {
-            return data.trim().isEmpty() || data == null;
+            return data.isEmpty() || data == null;
         }
     }
 

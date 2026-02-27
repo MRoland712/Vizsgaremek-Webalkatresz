@@ -5,6 +5,7 @@
 package com.mycompany.vizsgaremek.service;
 
 import com.mycompany.vizsgaremek.model.Parts;
+import com.mycompany.vizsgaremek.model.PartImages;
 import java.util.ArrayList;
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -81,7 +82,7 @@ public class PartsService {
         if (errorAuth.hasErrors(errors)) {
             return errorAuth.createErrorResponse(errors, 400);
         }
-        
+
         Parts existingPart = Parts.getPartsBySku(createParts.getSku());
         if (existingPart != null) {
             errors.put("SkuAlreadyExists");
@@ -102,10 +103,8 @@ public class PartsService {
             return error;
         }
 
+    }// createParts Closer
 
-    }
-
-// createParts Closer
     public JSONObject getAllParts() {
         JSONObject toReturn = new JSONObject();
         JSONArray errors = new JSONArray();
@@ -150,6 +149,64 @@ public class PartsService {
 
         return toReturn;
     }//getAllParts
+
+    public JSONObject getAllPartsWithImages() {
+        JSONObject toReturn = new JSONObject();
+        JSONArray errors = new JSONArray();
+
+        // MODEL HÍVÁS
+        ArrayList<Parts> modelResult = Parts.getAllParts();
+        ArrayList<PartImages> modelImagesResult = PartImages.getAllPartImages();
+
+        // VALIDÁCIÓ - If no data in DB
+        if (partsAuth.isDataMissing(modelResult) || modelImagesResult == null) {
+            errors.put("ModelException");
+        }
+
+        // If modelexeption
+        if (errorAuth.hasErrors(errors)) {
+            return errorAuth.createErrorResponse(errors, 500);
+        }
+
+        // KONVERZIÓ ArrayList --> JSONArray
+        JSONArray partArray = new JSONArray();
+
+        for (Parts part : modelResult) {
+            JSONObject partObj = new JSONObject();
+            partObj.put("id", part.getId());
+            partObj.put("manufacturerId", part.getManufacturerId().getId());
+            partObj.put("sku", part.getSku());
+            partObj.put("name", part.getName());
+            partObj.put("category", part.getCategory());
+            partObj.put("price", part.getPrice());
+            partObj.put("stock", part.getStock());
+            partObj.put("status", part.getStatus());
+            partObj.put("isActive", part.getIsActive());
+            partObj.put("createdAt", part.getCreatedAt());
+            partObj.put("updatedAt", part.getUpdatedAt());
+
+            Boolean hasImage = false;
+            for (PartImages images : modelImagesResult) {
+                if (part.getId() == images.getPartId().getId()) {
+                    partObj.put("imageUrl", images.getUrl());
+                    hasImage = true;
+                }
+            }
+            
+            if (!hasImage) {
+                partObj.put("imageUrl", "noImageFound");
+            }
+
+            partArray.put(partObj);
+        }
+
+        toReturn.put("success", true);
+        toReturn.put("parts", partArray);
+        toReturn.put("count", modelResult.size());
+        toReturn.put("statusCode", 200);
+
+        return toReturn;
+    } //getAllPartsWithImages
 
     public JSONObject getPartsById(Integer id) {
         JSONObject toReturn = new JSONObject();

@@ -19,7 +19,7 @@ public class OTPVerifyer {
         
         System.out.println("verifyOTP: "+ userData.getAuthSecret() + " | " + otpCodeInp);
         
-        if (otpCodeInp.equals(Integer.parseInt(userData.getAuthSecret()))) {
+        if (otpCodeInp.equals(Integer.valueOf(userData.getAuthSecret())) == false) {
             return false;
         }
 
@@ -35,6 +35,10 @@ public class OTPVerifyer {
         
         System.out.println("verifyOTP expiry: "+ otpGeneratedAt + " | " + expiryDate + " | " + now.before(expiryDate));
         
-        return now.before(expiryDate);
+        if (!now.before(expiryDate)) {
+            return false;
+        }
+        
+        return true;
     }
 }

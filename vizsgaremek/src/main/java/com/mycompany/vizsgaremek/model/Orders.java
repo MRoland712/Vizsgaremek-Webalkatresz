@@ -247,7 +247,7 @@ public class Orders implements Serializable {
     public Orders(Users userId) {
         this.userId = userId;
     }
-    
+
     @Override
     public String toString() {
         return "com.mycompany.vizsgaremek.model.Orders[ id=" + id + " ]";
@@ -490,10 +490,11 @@ public class Orders implements Serializable {
             spq.execute();
             em.getTransaction().commit();
 
-            List<Object[]> resultList = spq.getResultList();
+            List resultList = spq.getResultList();
             if (resultList != null && !resultList.isEmpty()) {
-                Object[] record = resultList.get(0);
-                return Integer.valueOf(record[0].toString());
+                // Egy oszlop esetén nem Object[] hanem direkt érték
+                Object record = resultList.get(0);
+                return Integer.valueOf(record.toString());
             }
             return null;
         } catch (Exception ex) {

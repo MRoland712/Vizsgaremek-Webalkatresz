@@ -103,6 +103,19 @@ public class PartsController {
                 .type(MediaType.APPLICATION_JSON)
                 .build();
     }
+    
+    @GET
+    @Path("getAllPartsWithImages")
+    @Consumes(MediaType.APPLICATION_JSON)
+    public Response getAllPartsWithImagesController() {
+        PartsService partsService = new PartsService();
+        JSONObject toReturn = partsService.getAllPartsWithImages();
+
+        return Response.status(Integer.parseInt(toReturn.get("statusCode").toString()))
+                .entity(toReturn.toString())
+                .type(MediaType.APPLICATION_JSON)
+                .build();
+    }
 
     @GET
     @Path("getPartsById")

@@ -87,6 +87,8 @@ public class PartImages implements Serializable {
         this.id = id;
         this.url = url;
     }
+    
+    
 
     public Integer getId() {
         return id;

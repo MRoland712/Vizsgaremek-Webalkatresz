@@ -270,6 +270,8 @@ public class UsersService {
         JSONObject toReturn = new JSONObject();
         JSONArray errors = new JSONArray();
 
+        System.out.println("id: " + id);
+        
         //if id is missing
         if (userAuth.isDataMissing(id)) {
             errors.put("MissingId");
@@ -860,7 +862,7 @@ public class UsersService {
         }
 
         Users adminData = Users.getAdminByEmail(userData.getEmail());
-        if (adminData != null) {
+        if (adminData == null) {
             UserLogs createdUserLog = new UserLogs();
             createdUserLog.setAction("loginUser");
             createdUserLog.setDetails("User " + userData.getUsername() + " logged in.");
