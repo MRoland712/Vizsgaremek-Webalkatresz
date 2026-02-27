@@ -274,13 +274,18 @@ public class UsersService {
         if (userAuth.isDataMissing(id)) {
             errors.put("MissingId");
         }
-
+        
+        //error check if id is Missing
+        if (errorAuth.hasErrors(errors)) {
+            return errorAuth.createErrorResponse(errors, 400);
+        }
+        
         //if id is invalid
         if (!userAuth.isValidId(id) && !userAuth.isDataMissing(id)) {
             errors.put("InvalidId");
         }
 
-        //error check if id is invalid or missing
+        //error check if id is invalid
         if (errorAuth.hasErrors(errors)) {
             return errorAuth.createErrorResponse(errors, 400);
         }
