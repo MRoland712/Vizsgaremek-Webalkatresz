@@ -10,6 +10,7 @@ import com.mycompany.vizsgaremek.model.OrderItems;
 import com.mycompany.vizsgaremek.model.Orders;
 import com.mycompany.vizsgaremek.model.Payments;
 import com.mycompany.vizsgaremek.model.Users;
+import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Date;
 import org.json.JSONArray;
@@ -349,7 +350,7 @@ public class PaymentsService {
         JSONObject toReturn = new JSONObject();
         JSONArray errors = new JSONArray();
 
-        // VALIDÁCIÓK - Hiányzó mezők
+        // VALIDÁCIÓK Hiányzó mezők
         if (paymentsAuth.isDataMissing(payment.getOrderId())) {
             errors.put("MissingOrderId");
         }
@@ -374,14 +375,12 @@ public class PaymentsService {
         }
 
         // ÜZLETI LOGIKA VALIDÁCIÓK
-        // Order létezik
         Orders existingOrder = Orders.getOrdersById(payment.getOrderId().getId());
         if (paymentsAuth.isDataMissing(existingOrder)) {
             errors.put("OrderNotFound");
             return errorAuth.createErrorResponse(errors, 404);
         }
 
-        // USER KÜLÖN LEKÉRÉSE
         Users user = Users.getUserById(existingOrder.getUserId().getId());
         if (user == null) {
             errors.put("UserNotFound");
@@ -390,7 +389,6 @@ public class PaymentsService {
 
         System.out.println("User betöltve: " + user.getEmail() + " (" + user.getFirstName() + " " + user.getLastName() + ")");
 
-        // Order már ki van fizetve
         if ("paid".equals(existingOrder.getStatus())
                 || "shipped".equals(existingOrder.getStatus())
                 || "delivered".equals(existingOrder.getStatus())) {
@@ -398,13 +396,11 @@ public class PaymentsService {
             return errorAuth.createErrorResponse(errors, 409);
         }
 
-        // Order törölt
         if (Boolean.TRUE.equals(existingOrder.getIsDeleted())) {
             errors.put("OrderIsDeleted");
             return errorAuth.createErrorResponse(errors, 409);
         }
 
-        // Order cancelled vagy refunded
         if ("cancelled".equals(existingOrder.getStatus())
                 || "refunded".equals(existingOrder.getStatus())) {
             errors.put("OrderIsCancelledOrRefunded");
@@ -441,7 +437,14 @@ public class PaymentsService {
                     System.out.println("OrderItems: " + orderItems.size() + " db");
                 }
 
-                System.out.println("?HTML számla generálás");
+                // AMOUNT KISZÁMÍTÁSA AZ ORDER ITEMS ALAPJÁN
+                BigDecimal calculatedAmount = orderItems.stream()
+                        .map(item -> item.getPrice().multiply(new BigDecimal(item.getQuantity())))
+                        .reduce(BigDecimal.ZERO, BigDecimal::add);
+                payment.setAmount(calculatedAmount);
+                System.out.println("Számított összeg: " + calculatedAmount);
+
+                System.out.println("HTML számla generálás");
                 String invoiceHtml = InvoicesService.generateInvoiceHtml(
                         payment.getOrderId().getId(),
                         existingOrder,
@@ -457,7 +460,6 @@ public class PaymentsService {
                 System.out.println("PDF mentve: " + invoiceUrl);
                 System.out.println("PDF bytes: " + invoicePdfBytes.length + " bytes");
 
-                //INVOICES TÁBLA PDF URL FRISSÍTÉSE
                 System.out.println("Invoices tábla PDF URL frissítése");
                 Boolean updateResult = Invoices.updateInvoicePdfUrl(payment.getOrderId().getId(), invoiceUrl);
 
@@ -497,7 +499,7 @@ public class PaymentsService {
                         payment.getMethod(),
                         invoiceUrl,
                         new Date(),
-                        invoicePdfBytes // PDF csatolmány
+                        invoicePdfBytes
                 );
 
                 System.out.println("Email PDF csatolással elküldve!");
