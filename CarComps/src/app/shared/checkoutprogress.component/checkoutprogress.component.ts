@@ -20,7 +20,7 @@ export class CheckoutProgressComponent {
 
   steps: Step[] = [
     { id: 'cart', label: 'Kosár', number: 1 },
-    { id: 'delivery', label: 'Szállítás', number: 2 },
+    { id: 'delivery', label: 'Szállítás Adatok', number: 2 },
     { id: 'payment', label: 'Fizetés', number: 3 },
     { id: 'summary', label: 'Nyugtázás', number: 4 },
   ];

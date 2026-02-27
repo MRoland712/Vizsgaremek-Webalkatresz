@@ -1,47 +1,166 @@
 <app-main-header></app-main-header>
-<!--TODO másik header + progress par-->
+
 <div class="cart-page-wrapper">
+  <!-- Progress bar — középen, cím felett -->
+  <div class="progress-wrapper">
+    <app-checkout-progress [currentStep]="'cart'"></app-checkout-progress>
+  </div>
+
+  <!-- Cím -->
   <div class="stage-title">
     <h1>Kosár</h1>
-    <hr />
+    <div class="stage-title__underline"></div>
   </div>
-  <div class="item-list-container">
-    <div class="item-list-header">
-      <h2>Termék kép</h2>
-      <h2>Márka</h2>
-      <h2>Termék</h2>
-      <h2>Mennyiség</h2>
-      <h2>Összesen</h2>
-      <h2>Törlés</h2>
+
+  <div class="cart-body">
+    <!-- Bal oldal: termék lista -->
+    <div class="item-list-container">
+      @if (cartItems().length === 0) {
+        <div class="cart-empty">
+          <i class="fa-solid fa-cart-shopping"></i>
+          <p>A kosár üres</p>
+          <button class="btn-back" (click)="goBack()">Vissza a vásárláshoz</button>
+        </div>
+      } @else {
+        <!-- Fejléc -->
+        <div class="item-list-header">
+          <span>Termék kép</span>
+          <span>Márka</span>
+          <span>Termék</span>
+          <span>Mennyiség</span>
+          <span>Összesen</span>
+          <span>Törlés</span>
+        </div>
+
+        <!-- Sorok -->
+        @for (item of cartItems(); track item.id) {
+          <div class="cart-row">
+            <!-- Kép -->
+            <div class="cart-row__image">
+              @if (item.imageUrl) {
+                <img [src]="item.imageUrl" [alt]="item.name" />
+              } @else {
+                <div class="cart-row__image-placeholder">
+                  <i class="fa-solid fa-gear"></i>
+                </div>
+              }
+            </div>
+
+            <!-- Márka -->
+            <div class="cart-row__brand">
+              @if (item.brandLogo) {
+                <img [src]="item.brandLogo" [alt]="item.brand" class="brand-logo" />
+              } @else {
+                <span class="brand-badge">{{ item.brand }}</span>
+              }
+            </div>
+
+            <!-- Terméknév + hover tooltip -->
+            <div class="cart-row__name">
+              <span class="product-name">
+                {{ item.name }}
+                <!-- Tooltip kártya -->
+                <div class="product-tooltip">
+                  <div class="product-tooltip__header">
+                    @if (item.imageUrl) {
+                      <img [src]="item.imageUrl" [alt]="item.name" class="tooltip-img" />
+                    } @else {
+                      <i class="fa-solid fa-gear tooltip-img-placeholder"></i>
+                    }
+                    <span>{{ item.name }}</span>
+                  </div>
+                  <div class="product-tooltip__row">
+                    <span>Márka:</span><strong>{{ item.brand }}</strong>
+                  </div>
+                  <div class="product-tooltip__row">
+                    <span>Egységár:</span><strong>{{ formatPrice(item.price) }}</strong>
+                  </div>
+                  <div class="product-tooltip__row">
+                    <span>Mennyiség:</span><strong>{{ item.quantity }} db</strong>
+                  </div>
+                  <div class="product-tooltip__row product-tooltip__row--total">
+                    <span>Összesen:</span
+                    ><strong>{{ formatPrice(item.price * item.quantity) }}</strong>
+                  </div>
+                </div>
+              </span>
+            </div>
+
+            <!-- Mennyiség -->
+            <div class="cart-row__qty">
+              <button class="qty-btn" (click)="decreaseQty(item.id)">−</button>
+              <span class="qty-value">{{ item.quantity }}</span>
+              <button class="qty-btn" (click)="increaseQty(item.id)">+</button>
+            </div>
+
+            <!-- Összesen -->
+            <div class="cart-row__total">
+              {{ formatPrice(item.price * item.quantity) }}
+            </div>
+
+            <!-- Törlés -->
+            <div class="cart-row__delete">
+              <button class="delete-btn" (click)="removeItem(item.id)">
+                <i class="fa-solid fa-trash"></i>
+              </button>
+            </div>
+          </div>
+          <hr class="row-divider" />
+        }
+
+        <!-- Vissza gomb -->
+        <div class="back-btn-wrapper">
+          <button class="btn-back" (click)="goBack()">
+            <i class="fa-solid fa-arrow-left btn-back__arrow"></i>
+            <span class="btn-back__text">Vissza a vásárláshoz</span>
+          </button>
+        </div>
+      }
     </div>
-    <div class="list-items">
-      <ul></ul>
-      <hr />
-      <ul></ul>
-      <hr />
-      <ul></ul>
-      <hr />
-      <ul></ul>
-      <hr />
-      <ul></ul>
-      <hr />
-      <ul></ul>
-      <hr />
-      <ul></ul>
-      <hr />
-    </div>
-  </div>
-  <div class="summary-container">
-    <div class="summary-header"><h2>Összegzés</h2></div>
-    <p>x termék</p>
-    <ul>
-      <li></li>
-    </ul>
-    <p>Összesen: x Ft</p>
-    <p>Szállítási díj: x Ft</p>
-    <hr />
-    <p>Végösszeg: x Ft <i class="fa-solid fa-circle-info"></i></p>
-    <app-payment-forward-button></app-payment-forward-button>
+
+    <!-- Jobb oldal: összegzés -->
+    @if (cartItems().length > 0) {
+      <div class="summary-container">
+        <div class="summary-header">
+          <h2>Összegzés</h2>
+        </div>
+
+        <div class="summary-body">
+          <p class="summary-count">
+            <strong>{{ cartItems().length }} termék:</strong>
+          </p>
+          <ul class="summary-items">
+            @for (item of cartItems(); track item.id) {
+              <li>{{ item.name }}</li>
+            }
+          </ul>
+
+          <div class="summary-row">
+            <span>Összesen:</span>
+            <span>{{ formatPrice(subtotal()) }}</span>
+          </div>
+          <div class="summary-row">
+            <span>Szállítási díj:</span>
+            <span>{{ formatPrice(SHIPPING_FEE) }}</span>
+          </div>
+
+          <hr class="summary-divider" />
+
+          <div class="summary-row summary-row--total">
+            <span>Végösszeg:</span>
+            <span>
+              {{ formatPrice(total()) }}
+              <span class="info-icon-wrapper">
+                <i class="fa-solid fa-circle-info info-icon"></i>
+                <span class="info-tooltip">Az ár tartalmazza az áfát</span>
+              </span>
+            </span>
+          </div>
+
+          <app-payment-forward-button></app-payment-forward-button>
+        </div>
+      </div>
+    }
   </div>
 </div>
 

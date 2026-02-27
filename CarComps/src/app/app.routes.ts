@@ -2,14 +2,19 @@ import { Routes } from '@angular/router';
 import { LoginComponent } from './login/login.component';
 import { RegistrationComponent } from './registration/registration.component';
 import { HomepageComponent } from './homepage.component/homepage.component';
-import { ProductPageComponent } from './product-page.component/product-page.component';
 import { adminGuard, authGuard } from './services/guard';
 
 export const routes: Routes = [
+  // ── Publikus ─────────────────────────────────────────────
   { path: '', component: HomepageComponent },
   { path: 'login', component: LoginComponent },
   { path: 'registration', component: RegistrationComponent },
-  { path: 'products/:category', component: ProductPageComponent },
+
+  {
+    path: 'products/:category',
+    loadComponent: () =>
+      import('./product-page.component/product-page.component').then((m) => m.ProductPageComponent),
+  },
   {
     path: 'product/:id',
     loadComponent: () =>
@@ -17,6 +22,8 @@ export const routes: Routes = [
         (m) => m.ProductDetailComponent,
       ),
   },
+
+  // ── Védett (bejelentkezés kell) ───────────────────────────
   {
     path: 'profile',
     loadComponent: () =>
@@ -26,7 +33,7 @@ export const routes: Routes = [
     canActivate: [authGuard],
   },
   {
-    path: 'mygarage',
+    path: 'profile/garage', // ← Garázsom
     loadComponent: () =>
       import('./profile-page/user-mygarage.component/user-mygarage.component').then(
         (m) => m.UserMygarageComponent,
@@ -34,7 +41,7 @@ export const routes: Routes = [
     canActivate: [authGuard],
   },
 
-  // ── Admin (csak admin role) ──────────────────────────────────
+  // ── Admin (csak admin role) ───────────────────────────────
   {
     path: 'admin',
     loadComponent: () =>
@@ -76,5 +83,6 @@ export const routes: Routes = [
     canActivate: [adminGuard],
   },
 
+  // ── 404 ───────────────────────────────────────────────────
   { path: '**', redirectTo: '' },
 ];

@@ -1,0 +1,426 @@
+/* ── Layout ──────────────────────────────────────────────── */
+.garage-layout {
+  display: flex;
+  min-height: 100vh;
+  background: #f5f5f5;
+}
+
+.garage-main {
+  flex: 1;
+  margin-left: 80px; /* sidenav szélesség */
+  padding: 40px;
+  transition: margin-left 0.3s ease;
+  min-height: 100vh;
+  background: #fffafa;
+  background-image: url('/assets/feher_hatter_ugyaneb.png');
+}
+
+/* ── Content ──────────────────────────────────────────────── */
+.garage-content {
+  max-width: 860px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 28px;
+}
+
+/* ── Header ───────────────────────────────────────────────── */
+.garage-header {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  padding: 8px 0 16px;
+  border-bottom: 2px solid #f0f0f0;
+}
+
+.garage-header__icon {
+  width: 56px;
+  height: 56px;
+  background: linear-gradient(135deg, #ff6600, #ff8533);
+  border-radius: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 24px;
+  color: white;
+  flex-shrink: 0;
+}
+
+.garage-header__title {
+  font-size: 28px;
+  font-weight: 700;
+  color: #2b2b2b;
+  margin: 0 0 4px;
+}
+
+.garage-header__subtitle {
+  font-size: 14px;
+  color: #888;
+  margin: 0;
+}
+
+/* ── Kártya ───────────────────────────────────────────────── */
+.garage-card {
+  background: #fff;
+  border-radius: 16px;
+  padding: 28px 32px;
+  box-shadow: 0 2px 16px rgba(0, 0, 0, 0.07);
+  border: 1px solid #f0f0f0;
+}
+
+.garage-card__title {
+  font-size: 17px;
+  font-weight: 700;
+  color: #2b2b2b;
+  margin: 0 0 24px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.garage-card__title i {
+  color: #ff6600;
+  font-size: 16px;
+}
+
+/* ── Form ─────────────────────────────────────────────────── */
+.garage-form {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.form-field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.form-field__label {
+  font-size: 13px;
+  font-weight: 600;
+  color: #555;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.select-wrapper {
+  position: relative;
+}
+
+.form-field__select {
+  width: 100%;
+  padding: 13px 44px 13px 16px;
+  background: #f8f8f8;
+  border: 1.5px solid #e8e8e8;
+  border-radius: 10px;
+  font-size: 15px;
+  color: #2b2b2b;
+  appearance: none;
+  cursor: pointer;
+  transition:
+    border-color 0.2s,
+    box-shadow 0.2s;
+  outline: none;
+}
+
+.form-field__select:focus {
+  border-color: #ff6600;
+  box-shadow: none;
+  background: #fff;
+  outline: none;
+}
+
+.form-field__select:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.form-field__select.invalid {
+  border-color: #e53935;
+}
+
+.select-icon {
+  position: absolute;
+  right: 14px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #999;
+  font-size: 13px;
+  pointer-events: none;
+}
+
+.form-field__error {
+  font-size: 12px;
+  color: #e53935;
+  margin: 0;
+}
+
+/* ── Gomb ─────────────────────────────────────────────────── */
+.form-actions {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  flex-wrap: wrap;
+  padding-top: 4px;
+}
+
+.btn-save {
+  padding: 13px 28px;
+  background: #ff6600;
+  color: white;
+  border: none;
+  border-radius: 10px;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  transition: background 0.2s;
+  box-shadow: none;
+}
+
+.btn-save:hover {
+  background: #e55a00;
+}
+
+.btn-save:active {
+  transform: translateY(0);
+}
+
+/* ── Feedback ─────────────────────────────────────────────── */
+.feedback {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 16px;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 500;
+  animation: fadeIn 0.3s ease;
+}
+
+.feedback--success {
+  background: #e8f5e9;
+  color: #2e7d32;
+  border: 1px solid #a5d6a7;
+}
+
+.feedback--error {
+  background: #ffebee;
+  color: #c62828;
+  border: 1px solid #ef9a9a;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* ── Autó grid ────────────────────────────────────────────── */
+.cars-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 16px;
+}
+
+.car-card {
+  background: #f8f8f8;
+  border: 1.5px solid #eee;
+  border-radius: 12px;
+  padding: 18px 16px;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  transition:
+    border-color 0.2s,
+    box-shadow 0.2s,
+    transform 0.2s;
+  position: relative;
+}
+
+.car-card:hover {
+  border-color: #ff6600;
+  box-shadow: 0 4px 16px rgba(255, 102, 0, 0.12);
+  transform: translateY(-2px);
+}
+
+.car-card__icon {
+  width: 42px;
+  height: 42px;
+  background: linear-gradient(135deg, #ff6600, #ff8533);
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-size: 18px;
+  flex-shrink: 0;
+}
+
+.car-card__info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  flex: 1;
+  min-width: 0;
+}
+
+.car-card__brand {
+  font-size: 13px;
+  font-weight: 700;
+  color: #2b2b2b;
+}
+
+.car-card__model {
+  font-size: 13px;
+  color: #555;
+}
+
+.car-card__year {
+  font-size: 12px;
+  color: #ff6600;
+  font-weight: 600;
+}
+
+.car-card__remove {
+  background: none;
+  border: none;
+  color: #bbb;
+  cursor: pointer;
+  padding: 4px;
+  font-size: 14px;
+  transition: color 0.2s;
+  flex-shrink: 0;
+}
+
+.car-card__remove:hover {
+  color: #e53935;
+}
+
+/* ── Üres állapot ─────────────────────────────────────────── */
+.garage-empty {
+  text-align: center;
+  padding: 56px 24px;
+  background: #fff;
+  border-radius: 16px;
+  border: 2px dashed #e8e8e8;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+.garage-empty__icon {
+  font-size: 52px;
+  color: #ddd;
+  display: block;
+  margin-bottom: 16px;
+  text-align: center;
+  width: 100%;
+}
+
+.garage-empty__text {
+  font-size: 18px;
+  font-weight: 600;
+  color: #aaa;
+  margin: 0 0 8px;
+}
+
+.garage-empty__sub {
+  font-size: 14px;
+  color: #bbb;
+  margin: 0;
+}
+
+/* ── Responsive ───────────────────────────────────────────── */
+@media (max-width: 992px) {
+  .garage-main {
+    margin-left: 70px;
+    padding: 28px 24px;
+  }
+}
+
+@media (max-width: 768px) {
+  .garage-main {
+    margin-left: 0;
+    padding: 20px 16px;
+  }
+  .garage-card {
+    padding: 20px 16px;
+  }
+  .cars-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* ── Loading / Error state ───────────────────────────────── */
+.state-box {
+  background: #fff;
+  border-radius: 16px;
+  padding: 48px;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+  box-shadow: 0 2px 16px rgba(0, 0, 0, 0.07);
+  border: 1px solid #f0f0f0;
+  color: #888;
+  font-size: 15px;
+}
+
+.state-box--error {
+  color: #c62828;
+  border-color: #ef9a9a;
+  background: #fff8f8;
+}
+
+.state-box--error i {
+  font-size: 32px;
+}
+
+.spinner {
+  width: 36px;
+  height: 36px;
+  border: 3px solid #f0f0f0;
+  border-top-color: #ff6600;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.btn-retry {
+  padding: 10px 24px;
+  background: #ff6600;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  margin-top: 8px;
+}
+
+/* ── Button spinner ──────────────────────────────────────── */
+.btn-spinner {
+  width: 16px;
+  height: 16px;
+  border: 2px solid rgba(255, 255, 255, 0.4);
+  border-top-color: white;
+  border-radius: 50%;
+  animation: spin 0.7s linear infinite;
+  display: inline-block;
+}

@@ -1,1 +1,189 @@
-<p>user-mygarage.component works!</p>
+<div class="garage-layout">
+  <app-profile-sidenav></app-profile-sidenav>
+
+  <main class="garage-main">
+    <div class="garage-content">
+      <!-- Header -->
+      <div class="garage-header">
+        <div class="garage-header__icon">
+          <i class="fa-solid fa-warehouse"></i>
+        </div>
+        <div>
+          <h1 class="garage-header__title">Garázsom</h1>
+          <p class="garage-header__subtitle">
+            Mentsd el az autóid és böngéssz pontosan illő alkatrészek között
+          </p>
+        </div>
+      </div>
+
+      <!-- Loading -->
+      @if (isLoading()) {
+        <div class="state-box">
+          <div class="spinner"></div>
+          <p>Autók betöltése...</p>
+        </div>
+      }
+
+      <!-- Load error -->
+      @if (loadError()) {
+        <div class="state-box state-box--error">
+          <i class="fa-solid fa-circle-exclamation"></i>
+          <p>Nem sikerült betölteni az autókat. Ellenőrizd a kapcsolatot!</p>
+          <button class="btn-retry" (click)="loadCars()">Újra próbál</button>
+        </div>
+      }
+
+      <!-- Form kártya — csak ha betöltött -->
+      @if (!isLoading() && !loadError()) {
+        <div class="garage-card">
+          <h2 class="garage-card__title">
+            <i class="fa-solid fa-plus"></i>
+            Autó hozzáadása
+          </h2>
+
+          <form [formGroup]="garageForm" (ngSubmit)="saveCar()" class="garage-form">
+            <!-- Márka -->
+            <div class="form-field">
+              <label class="form-field__label">Márka</label>
+              <div class="select-wrapper">
+                <select
+                  formControlName="brand"
+                  class="form-field__select"
+                  [class.invalid]="
+                    garageForm.controls.brand.touched && garageForm.controls.brand.invalid
+                  "
+                >
+                  <option value="" disabled>Válassz márkát</option>
+                  @for (brand of brands(); track brand) {
+                    <option [value]="brand">{{ brand }}</option>
+                  }
+                </select>
+                <i class="fa-solid fa-chevron-down select-icon"></i>
+              </div>
+              @if (garageForm.controls.brand.touched && garageForm.controls.brand.invalid) {
+                <p class="form-field__error">Válassz márkát!</p>
+              }
+            </div>
+
+            <!-- Modell -->
+            <div class="form-field">
+              <label class="form-field__label">Modell</label>
+              <div class="select-wrapper">
+                <select
+                  formControlName="model"
+                  class="form-field__select"
+                  [class.invalid]="
+                    garageForm.controls.model.touched && garageForm.controls.model.invalid
+                  "
+                  [attr.disabled]="!garageForm.controls.brand.value ? true : null"
+                >
+                  <option value="" disabled>
+                    {{
+                      garageForm.controls.brand.value ? 'Válassz modellt' : 'Először válassz márkát'
+                    }}
+                  </option>
+                  @for (model of filteredModels(); track model.name) {
+                    <option [value]="model.name">{{ model.name }}</option>
+                  }
+                </select>
+                <i class="fa-solid fa-chevron-down select-icon"></i>
+              </div>
+              @if (garageForm.controls.model.touched && garageForm.controls.model.invalid) {
+                <p class="form-field__error">Válassz modellt!</p>
+              }
+            </div>
+
+            <!-- Évjárat -->
+            <div class="form-field">
+              <label class="form-field__label">Évjárat</label>
+              <div class="select-wrapper">
+                <select
+                  formControlName="year"
+                  class="form-field__select"
+                  [class.invalid]="
+                    garageForm.controls.year.touched && garageForm.controls.year.invalid
+                  "
+                  [attr.disabled]="!garageForm.controls.model.value ? true : null"
+                >
+                  <option value="" disabled>
+                    {{
+                      garageForm.controls.model.value
+                        ? 'Válassz évjáratot'
+                        : 'Először válassz modellt'
+                    }}
+                  </option>
+                  @for (year of filteredYears(); track year) {
+                    <option [value]="year.toString()">{{ year }}</option>
+                  }
+                </select>
+                <i class="fa-solid fa-chevron-down select-icon"></i>
+              </div>
+              @if (garageForm.controls.year.touched && garageForm.controls.year.invalid) {
+                <p class="form-field__error">Válassz évjáratot!</p>
+              }
+            </div>
+
+            <!-- Gomb + feedback -->
+            <div class="form-actions">
+              <button type="submit" class="btn-save" [disabled]="isSaving()">
+                @if (isSaving()) {
+                  <span class="btn-spinner"></span>
+                  Mentés...
+                } @else {
+                  <i class="fa-solid fa-floppy-disk"></i>
+                  Autó mentése
+                }
+              </button>
+
+              @if (saveSuccess()) {
+                <div class="feedback feedback--success">
+                  <i class="fa-solid fa-circle-check"></i>
+                  Sikeresen elmentve!
+                </div>
+              }
+              @if (saveError()) {
+                <div class="feedback feedback--error">
+                  <i class="fa-solid fa-circle-exclamation"></i>
+                  {{ saveError() }}
+                </div>
+              }
+            </div>
+          </form>
+        </div>
+
+        <!-- Mentett autók -->
+        @if (savedCars().length > 0) {
+          <div class="garage-card">
+            <h2 class="garage-card__title">
+              <i class="fa-solid fa-car"></i>
+              Mentett autóim ({{ savedCars().length }})
+            </h2>
+            <div class="cars-grid">
+              @for (car of savedCars(); track $index) {
+                <div class="car-card">
+                  <div class="car-card__icon">
+                    <i class="fa-solid fa-car"></i>
+                  </div>
+                  <div class="car-card__info">
+                    <span class="car-card__brand">{{ car.brand }}</span>
+                    <span class="car-card__model">{{ car.model }}</span>
+                    <span class="car-card__year">{{ car.year }}</span>
+                  </div>
+                  <button class="car-card__remove" (click)="removeCar($index)" title="Törlés">
+                    <i class="fa-solid fa-trash"></i>
+                  </button>
+                </div>
+              }
+            </div>
+          </div>
+        } @else {
+          <div class="garage-empty">
+            <i class="fa-solid fa-warehouse garage-empty__icon"></i>
+            <p class="garage-empty__text">Még nincs mentett autód</p>
+            <p class="garage-empty__sub">Add hozzá az első autódat a fenti formmal!</p>
+          </div>
+        }
+      }
+    </div>
+  </main>
+</div>
