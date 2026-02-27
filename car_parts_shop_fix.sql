@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Gép: localhost:8889
--- Létrehozás ideje: 2026. Feb 23. 10:05
+-- Létrehozás ideje: 2026. Feb 27. 17:05
 -- Kiszolgáló verziója: 8.0.44
 -- PHP verzió: 8.3.28
 
@@ -275,6 +275,74 @@ CREATE DEFINER=`root`@`localhost` PROCEDURE `createMotors` (IN `brandIN` VARCHAR
     SELECT LAST_INSERT_ID()AS new_motors_id;
 END$$
 
+DROP PROCEDURE IF EXISTS `createOrderFromCart`$$
+CREATE DEFINER=`root`@`localhost` PROCEDURE `createOrderFromCart` (IN `userIdIN` INT(11))   BEGIN
+    DECLARE newOrderId INT;
+    DECLARE cartCount INT;
+    
+    DECLARE EXIT HANDLER FOR SQLEXCEPTION
+    BEGIN
+        ROLLBACK;
+        SELECT 'ERROR: Order creation failed' AS error_message;
+    END;
+    
+    START TRANSACTION;
+    
+    -- Van termék a kosárban vagy nincs
+    SELECT COUNT(*) INTO cartCount
+    FROM cart_items
+    WHERE user_id = userIdIN AND is_deleted = 0;
+    
+    IF cartCount = 0 THEN
+        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'Cart is empty';
+    END IF;
+    
+    -- Stock ellenőrzés minden termékre
+    IF EXISTS (
+        SELECT 1 FROM cart_items ci
+        INNER JOIN parts p ON p.id = ci.part_id
+        WHERE ci.user_id = userIdIN 
+          AND ci.is_deleted = 0
+          AND p.stock < ci.quantity
+    ) THEN
+        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'Insufficient stock for one or more items';
+    END IF;
+    
+    -- Order létrehozása
+    INSERT INTO orders (user_id, status, created_at, is_deleted, deleted_at)
+    VALUES (userIdIN, 'pending', NOW(), 0, NULL);
+    SET newOrderId = LAST_INSERT_ID();
+    
+    -- Cart items → Order items
+    INSERT INTO order_items (order_id, part_id, quantity, price, created_at, is_deleted, deleted_at)
+    SELECT newOrderId, ci.part_id, ci.quantity, p.price, NOW(), 0, NULL
+    FROM cart_items ci
+    INNER JOIN parts p ON p.id = ci.part_id
+    WHERE ci.user_id = userIdIN AND ci.is_deleted = 0;
+    
+    -- Stock csökkentése
+    UPDATE parts p
+    INNER JOIN cart_items ci ON p.id = ci.part_id
+    SET p.stock = p.stock - ci.quantity,
+        p.updated_at = NOW()
+    WHERE ci.user_id = userIdIN AND ci.is_deleted = 0;
+    
+    -- Stock log
+    INSERT INTO stock_logs (part_id, change_amount, reason, created_at)
+    SELECT ci.part_id, -ci.quantity, CONCAT('Order #', newOrderId), NOW()
+    FROM cart_items ci
+    WHERE ci.user_id = userIdIN AND ci.is_deleted = 0;
+    
+    -- Kosár kiürítése
+    UPDATE cart_items
+    SET is_deleted = 1, deleted_at = NOW()
+    WHERE user_id = userIdIN AND is_deleted = 0;
+    
+    COMMIT;
+    
+    SELECT newOrderId AS new_order_id;
+END$$
+
 DROP PROCEDURE IF EXISTS `createOrderItems`$$
 CREATE DEFINER=`root`@`localhost` PROCEDURE `createOrderItems` (IN `orderIdIN` INT(11), IN `partIdIN` INT(11), IN `quantityIN` INT(11), IN `priceIN` DECIMAL(10,2))   BEGIN
     
@@ -320,63 +388,10 @@ CREATE DEFINER=`root`@`localhost` PROCEDURE `createOrders` (IN `userIdIN` INT(11
    COMMIT;
 END$$
 
-DROP PROCEDURE IF EXISTS `createOrderWithItems`$$
-CREATE DEFINER=`root`@`localhost` PROCEDURE `createOrderWithItems` (IN `userIdIN` INT, IN `partIdIN` INT, IN `quantityIN` INT)   BEGIN
-    DECLARE newOrderId INT;
-    DECLARE currentPrice DECIMAL(10,2);
-    DECLARE availableStock INT;
-    DECLARE totalAmount DECIMAL(10,2);
-    
-    DECLARE EXIT HANDLER FOR SQLEXCEPTION
-    BEGIN
-        ROLLBACK;
-        SELECT 'ERROR: Transaction rolled back' AS error_message;
-    END;
-    
-    START TRANSACTION;
-    
-    -- Stock és ár lekérése ZÁROLÁSSAL
-    SELECT price, stock INTO currentPrice, availableStock 
-    FROM parts 
-    WHERE id = partIdIN AND is_deleted = 0
-    FOR UPDATE;
-    
-    -- Stock ellenőrzés
-    IF availableStock IS NULL OR availableStock < quantityIN THEN
-        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'Insufficient stock';
-    END IF;
-    
-    -- Végösszeg számítás
-    SET totalAmount = currentPrice * quantityIN;
-    
-    -- 1. Order létrehozása
-    INSERT INTO orders (user_id, status, created_at, is_deleted, deleted_at)
-    VALUES (userIdIN, 'pending', NOW(), 0, NULL);
-    SET newOrderId = LAST_INSERT_ID();
-    
-    -- 2. Order item hozzáadása
-    INSERT INTO order_items (order_id, part_id, quantity, price, created_at, is_deleted, deleted_at)
-    VALUES (newOrderId, partIdIN, quantityIN, currentPrice, NOW(), 0, NULL);
-    
-    -- 3. Stock csökkentése
-    UPDATE parts 
-    SET stock = stock - quantityIN,
-        updated_at = NOW()
-    WHERE id = partIdIN;
-    
-    -- 4. Stock log
-    INSERT INTO stock_logs (part_id, change_amount, reason, created_at)
-    VALUES (partIdIN, -quantityIN, CONCAT('Order #', newOrderId), NOW());
-    
-    COMMIT;
-    
-    SELECT newOrderId AS new_order_id, totalAmount AS total_amount;
-END$$
-
 DROP PROCEDURE IF EXISTS `createPartCompatibility`$$
 CREATE DEFINER=`root`@`localhost` PROCEDURE `createPartCompatibility` (IN `partIdIN` INT(11), IN `vehicleTypeIN` VARCHAR(255), IN `vehicleIdIN` INT(11))   BEGIN
 
-    INSERT INTO part_variants(
+    INSERT INTO part_compatibility(
         part_id,
         vehicle_type,
         vehicle_id,
@@ -1042,6 +1057,25 @@ CREATE DEFINER=`root`@`localhost` PROCEDURE `getCartItemById` (IN `idIN` INT)   
     WHERE id = idIN;
 END$$
 
+DROP PROCEDURE IF EXISTS `getCartItemsByUserId`$$
+CREATE DEFINER=`root`@`localhost` PROCEDURE `getCartItemsByUserId` (IN `userId` INT(11))   BEGIN
+    SELECT
+        ci.id,
+        ci.user_id,
+        ci.part_id,
+        ci.quantity,
+        ci.added_at,
+        ci.is_deleted,
+        ci.deleted_at,
+        p.name AS part_name,
+        p.price AS part_price
+    FROM cart_items ci
+    LEFT JOIN parts p ON p.id = ci.part_id
+    WHERE ci.user_id = userId
+      AND ci.is_deleted = 0
+    ORDER BY ci.added_at DESC;
+END$$
+
 DROP PROCEDURE IF EXISTS `getInvoiceById`$$
 CREATE DEFINER=`root`@`localhost` PROCEDURE `getInvoiceById` (IN `idIN` INT)   BEGIN
     SELECT
@@ -1136,17 +1170,20 @@ END$$
 
 DROP PROCEDURE IF EXISTS `getOrderItemsByOrderId`$$
 CREATE DEFINER=`root`@`localhost` PROCEDURE `getOrderItemsByOrderId` (IN `orderId` INT(11))   BEGIN
-    SELECT
-        id,
-        order_id,
-        part_id,
-        quantity,
-        price,
-        created_at,
-        is_deleted,
-        deleted_at
-     FROM order_items
-     WHERE order_id = orderId;
+    SELECT 
+        oi.id,           
+        oi.order_id,     
+        oi.part_id,      
+        oi.quantity,     
+        oi.price,        
+        oi.created_at,   
+        oi.is_deleted,   
+        oi.deleted_at,  
+        p.name           
+    FROM order_items oi
+    LEFT JOIN parts p ON p.id = oi.part_id
+    WHERE oi.order_id = orderId
+      AND oi.is_deleted = 0;
 END$$
 
 DROP PROCEDURE IF EXISTS `getOrderItemsByPartId`$$
@@ -1335,6 +1372,30 @@ CREATE DEFINER=`root`@`localhost` PROCEDURE `getPartsBySku` (IN `p_sku` VARCHAR(
     FROM parts
     WHERE sku = p_sku
     ORDER BY id DESC;
+END$$
+
+DROP PROCEDURE IF EXISTS `getPartsByVehicleId`$$
+CREATE DEFINER=`root`@`localhost` PROCEDURE `getPartsByVehicleId` (IN `vehicleIdIN` INT(11), IN `vehicleTypeIN` VARCHAR(255))   BEGIN
+    SELECT 
+        p.id,
+        p.manufacturer_id,
+        p.sku,
+        p.name,
+        p.category,
+        p.price,
+        p.stock,
+        p.status,
+        p.is_active,
+        p.created_at,
+        p.updated_at,
+        p.deleted_at
+    FROM parts p
+    INNER JOIN part_compatibility pc ON pc.part_id = p.id
+    WHERE pc.vehicle_id = vehicleIdIN
+      AND pc.vehicle_type = vehicleTypeIN
+      AND pc.is_deleted = 0
+      AND p.is_deleted = 0
+    ORDER BY p.id;
 END$$
 
 DROP PROCEDURE IF EXISTS `getPartsCategory`$$
@@ -1536,6 +1597,14 @@ CREATE DEFINER=`root`@`localhost` PROCEDURE `getUserById` (IN `p_user_id` INT)  
   WHERE id = p_user_id;
 END$$
 
+DROP PROCEDURE IF EXISTS `getUserByRegistrationToken`$$
+CREATE DEFINER=`root`@`localhost` PROCEDURE `getUserByRegistrationToken` (IN `regTokenIN` VARCHAR(255))   BEGIN
+  SELECT id, email, username, first_name, last_name, phone, guid, role, is_active, is_subscribed, last_login, created_at, updated_at, password, is_deleted, auth_secret, registration_token
+  FROM users 
+  WHERE registration_token = regTokenIN
+  AND is_deleted = 0;
+END$$
+
 DROP PROCEDURE IF EXISTS `getUsers`$$
 CREATE DEFINER=`root`@`localhost` PROCEDURE `getUsers` ()   BEGIN
     SELECT id, email, username, first_name, last_name, 
@@ -1626,10 +1695,11 @@ CREATE DEFINER=`root`@`localhost` PROCEDURE `increasePageViewers` (IN `pageNameI
 END$$
 
 DROP PROCEDURE IF EXISTS `processPayment`$$
-CREATE DEFINER=`root`@`localhost` PROCEDURE `processPayment` (IN `orderIdIN` INT, IN `amountIN` DECIMAL(10,2), IN `methodIN` VARCHAR(50))   BEGIN
+CREATE DEFINER=`root`@`localhost` PROCEDURE `processPayment` (IN `orderIdIN` INT, IN `methodIN` VARCHAR(50))   BEGIN
     DECLARE newPaymentId INT;
     DECLARE newInvoiceId INT;
     DECLARE currentOrderStatus VARCHAR(20);
+    DECLARE calculatedAmount DECIMAL(10,2); 
     
     DECLARE EXIT HANDLER FOR SQLEXCEPTION
     BEGIN
@@ -1654,17 +1724,26 @@ CREATE DEFINER=`root`@`localhost` PROCEDURE `processPayment` (IN `orderIdIN` INT
         SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'Order already processed';
     END IF;
     
-    -- 1. Payment rögzítése
+    -- Összeg kiszámítása az order_items alapján  
+    SELECT SUM(oi.price * oi.quantity) INTO calculatedAmount
+    FROM order_items oi
+    WHERE oi.order_id = orderIdIN AND oi.is_deleted = 0;
+    
+    IF calculatedAmount IS NULL THEN
+        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'No order items found';
+    END IF;
+    
+    -- Payment rögzítése
     INSERT INTO payments (order_id, amount, method, status, paid_at, created_at, is_deleted, deleted_at)
-    VALUES (orderIdIN, amountIN, methodIN, 'completed', NOW(), NOW(), 0, NULL);
+    VALUES (orderIdIN, calculatedAmount, methodIN, 'completed', NOW(), NOW(), 0, NULL);  -- calculatedAmount
     SET newPaymentId = LAST_INSERT_ID();
     
-    -- 2. Order státusz frissítése
+    -- Order státusz frissítése
     UPDATE orders 
     SET status = 'paid'
     WHERE id = orderIdIN;
     
-    -- 3. Invoice létrehozása
+    -- Invoice létrehozása
     INSERT INTO invoices (order_id, created_at, is_deleted, deleted_at)
     VALUES (orderIdIN, NOW(), 0, NULL);
     SET newInvoiceId = LAST_INSERT_ID();
@@ -2057,6 +2136,13 @@ CREATE DEFINER=`root`@`localhost` PROCEDURE `updateInvoice` (IN `idIN` INT, IN `
     WHERE id = idIN;
 END$$
 
+DROP PROCEDURE IF EXISTS `updateInvoicePdfUrl`$$
+CREATE DEFINER=`root`@`localhost` PROCEDURE `updateInvoicePdfUrl` (IN `orderIdIN` INT, IN `pdfUrlIN` VARCHAR(500))   BEGIN
+    UPDATE invoices
+    SET pdf_url = pdfUrlIN
+    WHERE order_id = orderIdIN;
+END$$
+
 DROP PROCEDURE IF EXISTS `updateManufacturers`$$
 CREATE DEFINER=`root`@`localhost` PROCEDURE `updateManufacturers` (IN `p_manufacturers_id` INT, IN `p_name` VARCHAR(255), IN `p_country` VARCHAR(100))   BEGIN
   START TRANSACTION;
@@ -2111,7 +2197,7 @@ END$$
 DROP PROCEDURE IF EXISTS `updatePartCompatibility`$$
 CREATE DEFINER=`root`@`localhost` PROCEDURE `updatePartCompatibility` (IN `idIN` INT(11), IN `partIdIN` INT(11), IN `vehicleTypeIN` VARCHAR(255), IN `vehicleIdIN` INT(11), IN `isDeleted` TINYINT)   BEGIN
 
-    UPDATE cars
+    UPDATE part_compatibility
     SET 
         part_id = partIdIN,
         vehicle_type = vehicleTypeIN,
@@ -2291,8 +2377,8 @@ DELIMITER ;
 --
 
 DROP TABLE IF EXISTS `addresses`;
-CREATE TABLE `addresses` (
-  `id` int NOT NULL,
+CREATE TABLE IF NOT EXISTS `addresses` (
+  `id` int NOT NULL AUTO_INCREMENT,
   `user_id` int NOT NULL,
   `first_name` varchar(50) DEFAULT NULL,
   `last_name` varchar(50) DEFAULT NULL,
@@ -2306,7 +2392,9 @@ CREATE TABLE `addresses` (
   `created_at` datetime DEFAULT CURRENT_TIMESTAMP,
   `updated_at` datetime DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   `is_deleted` tinyint(1) DEFAULT '0',
-  `deleted_at` datetime DEFAULT NULL
+  `deleted_at` datetime DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  KEY `user_id` (`user_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3;
 
 -- --------------------------------------------------------
@@ -2316,8 +2404,8 @@ CREATE TABLE `addresses` (
 --
 
 DROP TABLE IF EXISTS `cars`;
-CREATE TABLE `cars` (
-  `id` int NOT NULL,
+CREATE TABLE IF NOT EXISTS `cars` (
+  `id` int NOT NULL AUTO_INCREMENT,
   `brand` varchar(100) NOT NULL,
   `model` varchar(100) NOT NULL,
   `year_from` int DEFAULT NULL,
@@ -2325,7 +2413,8 @@ CREATE TABLE `cars` (
   `created_at` datetime DEFAULT CURRENT_TIMESTAMP,
   `updated_at` datetime DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   `is_deleted` tinyint(1) DEFAULT '0',
-  `deleted_at` datetime DEFAULT NULL
+  `deleted_at` datetime DEFAULT NULL,
+  PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3;
 
 -- --------------------------------------------------------
@@ -2335,15 +2424,25 @@ CREATE TABLE `cars` (
 --
 
 DROP TABLE IF EXISTS `cart_items`;
-CREATE TABLE `cart_items` (
-  `id` int NOT NULL,
+CREATE TABLE IF NOT EXISTS `cart_items` (
+  `id` int NOT NULL AUTO_INCREMENT,
   `user_id` int NOT NULL,
   `part_id` int NOT NULL,
   `quantity` int DEFAULT '1',
   `added_at` datetime DEFAULT CURRENT_TIMESTAMP,
   `is_deleted` tinyint(1) DEFAULT '0',
-  `deleted_at` datetime DEFAULT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3;
+  `deleted_at` datetime DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  KEY `user_id` (`user_id`),
+  KEY `part_id` (`part_id`)
+) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8mb3;
+
+--
+-- A tábla adatainak kiíratása `cart_items`
+--
+
+INSERT INTO `cart_items` (`id`, `user_id`, `part_id`, `quantity`, `added_at`, `is_deleted`, `deleted_at`) VALUES
+(1, 6, 6, 10, '2026-02-27 10:16:32', 0, NULL);
 
 -- --------------------------------------------------------
 
@@ -2352,13 +2451,16 @@ CREATE TABLE `cart_items` (
 --
 
 DROP TABLE IF EXISTS `email_verifications`;
-CREATE TABLE `email_verifications` (
-  `id` int NOT NULL,
+CREATE TABLE IF NOT EXISTS `email_verifications` (
+  `id` int NOT NULL AUTO_INCREMENT,
   `user_id` int NOT NULL,
-  `token` varchar(6) NOT NULL,
+  `token` varchar(255) CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci NOT NULL,
   `verified` tinyint(1) DEFAULT '0',
   `sent_at` datetime DEFAULT CURRENT_TIMESTAMP,
-  `verified_at` datetime DEFAULT NULL
+  `verified_at` datetime DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `token` (`token`),
+  KEY `user_id` (`user_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3;
 
 -- --------------------------------------------------------
@@ -2368,14 +2470,24 @@ CREATE TABLE `email_verifications` (
 --
 
 DROP TABLE IF EXISTS `invoices`;
-CREATE TABLE `invoices` (
-  `id` int NOT NULL,
+CREATE TABLE IF NOT EXISTS `invoices` (
+  `id` int NOT NULL AUTO_INCREMENT,
   `order_id` int NOT NULL,
   `pdf_url` varchar(255) DEFAULT NULL,
   `created_at` datetime DEFAULT CURRENT_TIMESTAMP,
   `is_deleted` tinyint(1) DEFAULT '0',
-  `deleted_at` datetime DEFAULT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3;
+  `deleted_at` datetime DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  KEY `order_id` (`order_id`),
+  KEY `invoices_ibfk_1` (`order_id`)
+) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8mb3;
+
+--
+-- A tábla adatainak kiíratása `invoices`
+--
+
+INSERT INTO `invoices` (`id`, `order_id`, `pdf_url`, `created_at`, `is_deleted`, `deleted_at`) VALUES
+(1, 3, NULL, '2026-02-23 13:53:41', 0, NULL);
 
 -- --------------------------------------------------------
 
@@ -2384,11 +2496,14 @@ CREATE TABLE `invoices` (
 --
 
 DROP TABLE IF EXISTS `login_logs`;
-CREATE TABLE `login_logs` (
-  `id` int NOT NULL,
+CREATE TABLE IF NOT EXISTS `login_logs` (
+  `id` int NOT NULL AUTO_INCREMENT,
   `user_id` int NOT NULL,
   `user_agent` varchar(255) DEFAULT NULL,
-  `logged_in_at` datetime DEFAULT CURRENT_TIMESTAMP
+  `logged_in_at` datetime DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  KEY `user_id` (`user_id`),
+  KEY `logged_in_at` (`logged_in_at`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3;
 
 -- --------------------------------------------------------
@@ -2398,14 +2513,16 @@ CREATE TABLE `login_logs` (
 --
 
 DROP TABLE IF EXISTS `manufacturers`;
-CREATE TABLE `manufacturers` (
-  `id` int NOT NULL,
+CREATE TABLE IF NOT EXISTS `manufacturers` (
+  `id` int NOT NULL AUTO_INCREMENT,
   `name` varchar(100) NOT NULL,
   `country` varchar(50) DEFAULT NULL,
   `created_at` datetime DEFAULT CURRENT_TIMESTAMP,
   `is_deleted` tinyint(1) DEFAULT '0',
-  `deleted_at` datetime DEFAULT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3;
+  `deleted_at` datetime DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `name` (`name`)
+) ENGINE=InnoDB AUTO_INCREMENT=75 DEFAULT CHARSET=utf8mb3;
 
 --
 -- A tábla adatainak kiíratása `manufacturers`
@@ -2494,8 +2611,8 @@ INSERT INTO `manufacturers` (`id`, `name`, `country`, `created_at`, `is_deleted`
 --
 
 DROP TABLE IF EXISTS `motors`;
-CREATE TABLE `motors` (
-  `id` int NOT NULL,
+CREATE TABLE IF NOT EXISTS `motors` (
+  `id` int NOT NULL AUTO_INCREMENT,
   `brand` varchar(100) NOT NULL,
   `model` varchar(100) NOT NULL,
   `year_from` int DEFAULT NULL,
@@ -2503,7 +2620,8 @@ CREATE TABLE `motors` (
   `created_at` datetime DEFAULT CURRENT_TIMESTAMP,
   `updated_at` datetime DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   `is_deleted` tinyint(1) DEFAULT '0',
-  `deleted_at` datetime DEFAULT NULL
+  `deleted_at` datetime DEFAULT NULL,
+  PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3;
 
 -- --------------------------------------------------------
@@ -2513,15 +2631,17 @@ CREATE TABLE `motors` (
 --
 
 DROP TABLE IF EXISTS `orders`;
-CREATE TABLE `orders` (
-  `id` int NOT NULL,
+CREATE TABLE IF NOT EXISTS `orders` (
+  `id` int NOT NULL AUTO_INCREMENT,
   `user_id` int NOT NULL,
   `status` enum('pending','paid','shipped','delivered','cancelled','refunded') DEFAULT 'pending',
   `created_at` datetime DEFAULT CURRENT_TIMESTAMP,
   `updated_at` datetime DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   `is_deleted` tinyint(1) DEFAULT '0',
-  `deleted_at` datetime DEFAULT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3;
+  `deleted_at` datetime DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  KEY `user_id` (`user_id`)
+) ENGINE=InnoDB AUTO_INCREMENT=7 DEFAULT CHARSET=utf8mb3;
 
 --
 -- A tábla adatainak kiíratása `orders`
@@ -2530,7 +2650,7 @@ CREATE TABLE `orders` (
 INSERT INTO `orders` (`id`, `user_id`, `status`, `created_at`, `updated_at`, `is_deleted`, `deleted_at`) VALUES
 (1, 3, 'pending', '2026-02-13 13:49:39', '2026-02-16 17:42:47', 0, NULL),
 (2, 4, 'delivered', '2026-02-14 10:14:33', '2026-02-14 10:14:33', 0, NULL),
-(3, 3, 'pending', '2026-02-17 09:52:29', '2026-02-17 09:52:29', 0, NULL),
+(3, 3, 'paid', '2026-02-17 09:52:29', '2026-02-23 13:53:41', 0, NULL),
 (4, 4, 'pending', '2026-02-17 13:57:21', '2026-02-17 13:57:21', 0, NULL),
 (5, 10, 'pending', '2026-02-17 13:57:30', '2026-02-17 13:57:30', 0, NULL),
 (6, 6, 'pending', '2026-02-17 13:57:38', '2026-02-17 13:57:38', 0, NULL);
@@ -2542,16 +2662,19 @@ INSERT INTO `orders` (`id`, `user_id`, `status`, `created_at`, `updated_at`, `is
 --
 
 DROP TABLE IF EXISTS `order_items`;
-CREATE TABLE `order_items` (
-  `id` int NOT NULL,
+CREATE TABLE IF NOT EXISTS `order_items` (
+  `id` int NOT NULL AUTO_INCREMENT,
   `order_id` int NOT NULL,
   `part_id` int NOT NULL,
   `quantity` int DEFAULT '1',
   `price` decimal(10,2) DEFAULT NULL,
   `created_at` datetime DEFAULT CURRENT_TIMESTAMP,
   `is_deleted` tinyint(1) DEFAULT '0',
-  `deleted_at` datetime DEFAULT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3;
+  `deleted_at` datetime DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  KEY `order_id` (`order_id`),
+  KEY `part_id` (`part_id`)
+) ENGINE=InnoDB AUTO_INCREMENT=5 DEFAULT CHARSET=utf8mb3;
 
 --
 -- A tábla adatainak kiíratása `order_items`
@@ -2570,12 +2693,14 @@ INSERT INTO `order_items` (`id`, `order_id`, `part_id`, `quantity`, `price`, `cr
 --
 
 DROP TABLE IF EXISTS `order_logs`;
-CREATE TABLE `order_logs` (
-  `id` int NOT NULL,
+CREATE TABLE IF NOT EXISTS `order_logs` (
+  `id` int NOT NULL AUTO_INCREMENT,
   `order_id` int NOT NULL,
   `old_status` varchar(20) DEFAULT NULL,
   `new_status` varchar(20) DEFAULT NULL,
-  `changed_at` datetime DEFAULT CURRENT_TIMESTAMP
+  `changed_at` datetime DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  KEY `order_id` (`order_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3;
 
 -- --------------------------------------------------------
@@ -2585,7 +2710,7 @@ CREATE TABLE `order_logs` (
 --
 
 DROP TABLE IF EXISTS `page_statistics`;
-CREATE TABLE `page_statistics` (
+CREATE TABLE IF NOT EXISTS `page_statistics` (
   `id` int NOT NULL,
   `pageName` varchar(255) NOT NULL,
   `viewersCount` int NOT NULL,
@@ -2602,8 +2727,8 @@ CREATE TABLE `page_statistics` (
 --
 
 DROP TABLE IF EXISTS `parts`;
-CREATE TABLE `parts` (
-  `id` int NOT NULL,
+CREATE TABLE IF NOT EXISTS `parts` (
+  `id` int NOT NULL AUTO_INCREMENT,
   `manufacturer_id` int NOT NULL,
   `sku` varchar(100) NOT NULL,
   `name` varchar(255) NOT NULL,
@@ -2615,8 +2740,12 @@ CREATE TABLE `parts` (
   `created_at` datetime DEFAULT CURRENT_TIMESTAMP,
   `updated_at` datetime DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   `deleted_at` datetime DEFAULT NULL,
-  `is_deleted` tinyint(1) DEFAULT '0'
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3;
+  `is_deleted` tinyint(1) DEFAULT '0',
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `sku` (`sku`),
+  KEY `manufacturer_id` (`manufacturer_id`),
+  KEY `category` (`category`)
+) ENGINE=InnoDB AUTO_INCREMENT=160 DEFAULT CHARSET=utf8mb3;
 
 --
 -- A tábla adatainak kiíratása `parts`
@@ -2771,15 +2900,21 @@ INSERT INTO `parts` (`id`, `manufacturer_id`, `sku`, `name`, `category`, `price`
 --
 
 DROP TABLE IF EXISTS `part_compatibility`;
-CREATE TABLE `part_compatibility` (
-  `id` int NOT NULL,
+CREATE TABLE IF NOT EXISTS `part_compatibility` (
+  `id` int NOT NULL AUTO_INCREMENT,
   `part_id` int NOT NULL,
   `vehicle_type` enum('car','motor','truck') NOT NULL,
   `vehicle_id` int NOT NULL,
   `created_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
   `updated_at` datetime DEFAULT NULL ON UPDATE CURRENT_TIMESTAMP,
   `deleted_at` datetime DEFAULT NULL,
-  `is_deleted` tinyint(1) DEFAULT '0'
+  `is_deleted` tinyint(1) DEFAULT '0',
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `unique_compatibility` (`part_id`,`vehicle_type`,`vehicle_id`),
+  KEY `idx_part_id` (`part_id`),
+  KEY `idx_vehicle_type` (`vehicle_type`),
+  KEY `idx_vehicle_id` (`vehicle_id`),
+  KEY `idx_part_vehicle` (`part_id`,`vehicle_type`,`vehicle_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3;
 
 -- --------------------------------------------------------
@@ -2789,15 +2924,17 @@ CREATE TABLE `part_compatibility` (
 --
 
 DROP TABLE IF EXISTS `part_images`;
-CREATE TABLE `part_images` (
-  `id` int NOT NULL,
+CREATE TABLE IF NOT EXISTS `part_images` (
+  `id` int NOT NULL AUTO_INCREMENT,
   `part_id` int NOT NULL,
   `url` varchar(255) NOT NULL,
   `is_primary` tinyint(1) DEFAULT '0',
   `created_at` datetime DEFAULT CURRENT_TIMESTAMP,
   `is_deleted` tinyint(1) DEFAULT '0',
-  `deleted_at` datetime DEFAULT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3;
+  `deleted_at` datetime DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  KEY `part_id` (`part_id`)
+) ENGINE=InnoDB AUTO_INCREMENT=114 DEFAULT CHARSET=utf8mb3;
 
 --
 -- A tábla adatainak kiíratása `part_images`
@@ -2923,15 +3060,17 @@ INSERT INTO `part_images` (`id`, `part_id`, `url`, `is_primary`, `created_at`, `
 --
 
 DROP TABLE IF EXISTS `part_variants`;
-CREATE TABLE `part_variants` (
-  `id` int NOT NULL,
+CREATE TABLE IF NOT EXISTS `part_variants` (
+  `id` int NOT NULL AUTO_INCREMENT,
   `part_id` int NOT NULL,
   `name` varchar(100) DEFAULT NULL,
   `value` varchar(100) DEFAULT NULL,
   `additional_price` decimal(10,2) DEFAULT '0.00',
   `created_at` datetime DEFAULT CURRENT_TIMESTAMP,
   `is_deleted` tinyint(1) DEFAULT '0',
-  `deleted_at` datetime DEFAULT NULL
+  `deleted_at` datetime DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  KEY `part_id` (`part_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3;
 
 -- --------------------------------------------------------
@@ -2941,13 +3080,17 @@ CREATE TABLE `part_variants` (
 --
 
 DROP TABLE IF EXISTS `password_resets`;
-CREATE TABLE `password_resets` (
-  `id` int NOT NULL,
+CREATE TABLE IF NOT EXISTS `password_resets` (
+  `id` int NOT NULL AUTO_INCREMENT,
   `user_id` int NOT NULL,
   `token` varchar(255) NOT NULL,
   `expires_at` datetime NOT NULL,
   `used` tinyint(1) DEFAULT '0',
-  `created_at` datetime DEFAULT CURRENT_TIMESTAMP
+  `created_at` datetime DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `token` (`token`),
+  KEY `user_id` (`user_id`),
+  KEY `token_2` (`token`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3;
 
 -- --------------------------------------------------------
@@ -2957,8 +3100,8 @@ CREATE TABLE `password_resets` (
 --
 
 DROP TABLE IF EXISTS `payments`;
-CREATE TABLE `payments` (
-  `id` int NOT NULL,
+CREATE TABLE IF NOT EXISTS `payments` (
+  `id` int NOT NULL AUTO_INCREMENT,
   `order_id` int NOT NULL,
   `amount` decimal(10,2) DEFAULT NULL,
   `method` varchar(50) DEFAULT NULL,
@@ -2966,8 +3109,10 @@ CREATE TABLE `payments` (
   `paid_at` datetime DEFAULT NULL,
   `created_at` datetime DEFAULT CURRENT_TIMESTAMP,
   `is_deleted` tinyint(1) DEFAULT '0',
-  `deleted_at` datetime DEFAULT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3;
+  `deleted_at` datetime DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  KEY `order_id` (`order_id`)
+) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8mb3;
 
 -- --------------------------------------------------------
 
@@ -2976,14 +3121,16 @@ CREATE TABLE `payments` (
 --
 
 DROP TABLE IF EXISTS `refunds`;
-CREATE TABLE `refunds` (
-  `id` int NOT NULL,
+CREATE TABLE IF NOT EXISTS `refunds` (
+  `id` int NOT NULL AUTO_INCREMENT,
   `payment_id` int NOT NULL,
   `amount` decimal(10,2) DEFAULT NULL,
   `reason` varchar(255) DEFAULT NULL,
   `refunded_at` datetime DEFAULT CURRENT_TIMESTAMP,
   `is_deleted` tinyint(1) DEFAULT '0',
-  `deleted_at` datetime DEFAULT NULL
+  `deleted_at` datetime DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  KEY `payment_id` (`payment_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3;
 
 -- --------------------------------------------------------
@@ -2993,16 +3140,19 @@ CREATE TABLE `refunds` (
 --
 
 DROP TABLE IF EXISTS `reviews`;
-CREATE TABLE `reviews` (
-  `id` int NOT NULL,
+CREATE TABLE IF NOT EXISTS `reviews` (
+  `id` int NOT NULL AUTO_INCREMENT,
   `user_id` int NOT NULL,
   `part_id` int NOT NULL,
   `rating` int DEFAULT NULL,
   `comment` text,
   `created_at` datetime DEFAULT CURRENT_TIMESTAMP,
   `is_deleted` tinyint(1) DEFAULT '0',
-  `deleted_at` datetime DEFAULT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3;
+  `deleted_at` datetime DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  KEY `user_id` (`user_id`),
+  KEY `part_id` (`part_id`)
+) ENGINE=InnoDB AUTO_INCREMENT=5 DEFAULT CHARSET=utf8mb3;
 
 --
 -- A tábla adatainak kiíratása `reviews`
@@ -3019,13 +3169,17 @@ INSERT INTO `reviews` (`id`, `user_id`, `part_id`, `rating`, `comment`, `created
 --
 
 DROP TABLE IF EXISTS `sessions`;
-CREATE TABLE `sessions` (
-  `id` int NOT NULL,
+CREATE TABLE IF NOT EXISTS `sessions` (
+  `id` int NOT NULL AUTO_INCREMENT,
   `user_id` int NOT NULL,
   `token` varchar(255) NOT NULL,
   `expires_at` datetime NOT NULL,
   `created_at` datetime DEFAULT CURRENT_TIMESTAMP,
-  `revoked` tinyint(1) DEFAULT '0'
+  `revoked` tinyint(1) DEFAULT '0',
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `token` (`token`),
+  KEY `token_2` (`token`),
+  KEY `user_id` (`user_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3;
 
 -- --------------------------------------------------------
@@ -3035,14 +3189,15 @@ CREATE TABLE `sessions` (
 --
 
 DROP TABLE IF EXISTS `shipping_methods`;
-CREATE TABLE `shipping_methods` (
-  `id` int NOT NULL,
+CREATE TABLE IF NOT EXISTS `shipping_methods` (
+  `id` int NOT NULL AUTO_INCREMENT,
   `name` varchar(50) DEFAULT NULL,
   `price` decimal(10,2) DEFAULT NULL,
   `duration` varchar(50) DEFAULT NULL,
   `created_at` datetime DEFAULT CURRENT_TIMESTAMP,
   `is_deleted` tinyint(1) DEFAULT '0',
-  `deleted_at` datetime DEFAULT NULL
+  `deleted_at` datetime DEFAULT NULL,
+  PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3;
 
 -- --------------------------------------------------------
@@ -3052,15 +3207,17 @@ CREATE TABLE `shipping_methods` (
 --
 
 DROP TABLE IF EXISTS `shipping_status`;
-CREATE TABLE `shipping_status` (
-  `id` int NOT NULL,
+CREATE TABLE IF NOT EXISTS `shipping_status` (
+  `id` int NOT NULL AUTO_INCREMENT,
   `order_id` int NOT NULL,
   `status` varchar(50) DEFAULT NULL,
   `tracking_no` varchar(50) DEFAULT NULL,
   `created_at` datetime DEFAULT CURRENT_TIMESTAMP,
   `updated_at` datetime DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   `is_deleted` tinyint(1) DEFAULT '0',
-  `deleted_at` datetime DEFAULT NULL
+  `deleted_at` datetime DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  KEY `order_id` (`order_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3;
 
 -- --------------------------------------------------------
@@ -3070,23 +3227,15 @@ CREATE TABLE `shipping_status` (
 --
 
 DROP TABLE IF EXISTS `stock_logs`;
-CREATE TABLE `stock_logs` (
-  `id` int NOT NULL,
+CREATE TABLE IF NOT EXISTS `stock_logs` (
+  `id` int NOT NULL AUTO_INCREMENT,
   `part_id` int NOT NULL,
   `change_amount` int DEFAULT NULL,
   `reason` varchar(255) DEFAULT NULL,
-  `created_at` datetime DEFAULT CURRENT_TIMESTAMP
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3;
-
---
--- A tábla adatainak kiíratása `stock_logs`
---
-
-INSERT INTO `stock_logs` (`id`, `part_id`, `change_amount`, `reason`, `created_at`) VALUES
-(1, 2, -2, 'Order #3', '2026-02-17 09:52:29'),
-(2, 5, -10, 'Order #4', '2026-02-17 13:57:21'),
-(3, 8, -7, 'Order #5', '2026-02-17 13:57:30'),
-(4, 16, -3, 'Order #6', '2026-02-17 13:57:38');
+  `created_at` datetime DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  KEY `part_id` (`part_id`)
+) ENGINE=InnoDB AUTO_INCREMENT=5 DEFAULT CHARSET=utf8mb3;
 
 -- --------------------------------------------------------
 
@@ -3095,8 +3244,8 @@ INSERT INTO `stock_logs` (`id`, `part_id`, `change_amount`, `reason`, `created_a
 --
 
 DROP TABLE IF EXISTS `trucks`;
-CREATE TABLE `trucks` (
-  `id` int NOT NULL,
+CREATE TABLE IF NOT EXISTS `trucks` (
+  `id` int NOT NULL AUTO_INCREMENT,
   `brand` varchar(100) NOT NULL,
   `model` varchar(100) NOT NULL,
   `year_from` int DEFAULT NULL,
@@ -3104,7 +3253,8 @@ CREATE TABLE `trucks` (
   `created_at` datetime DEFAULT CURRENT_TIMESTAMP,
   `updated_at` datetime DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   `is_deleted` tinyint(1) DEFAULT '0',
-  `deleted_at` datetime DEFAULT NULL
+  `deleted_at` datetime DEFAULT NULL,
+  PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3;
 
 -- --------------------------------------------------------
@@ -3114,8 +3264,8 @@ CREATE TABLE `trucks` (
 --
 
 DROP TABLE IF EXISTS `users`;
-CREATE TABLE `users` (
-  `id` int NOT NULL,
+CREATE TABLE IF NOT EXISTS `users` (
+  `id` int NOT NULL AUTO_INCREMENT,
   `email` varchar(50) NOT NULL,
   `username` varchar(30) NOT NULL,
   `password` varchar(255) NOT NULL,
@@ -3137,8 +3287,11 @@ CREATE TABLE `users` (
   `is_deleted` tinyint(1) DEFAULT '0',
   `auth_secret` varchar(255) NOT NULL,
   `guid` char(36) NOT NULL,
-  `registration_token` varchar(255) DEFAULT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3;
+  `registration_token` varchar(255) DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `username` (`username`),
+  UNIQUE KEY `guid` (`guid`)
+) ENGINE=InnoDB AUTO_INCREMENT=19 DEFAULT CHARSET=utf8mb3;
 
 -- --------------------------------------------------------
 
@@ -3147,13 +3300,15 @@ CREATE TABLE `users` (
 --
 
 DROP TABLE IF EXISTS `user_logs`;
-CREATE TABLE `user_logs` (
-  `id` int NOT NULL,
+CREATE TABLE IF NOT EXISTS `user_logs` (
+  `id` int NOT NULL AUTO_INCREMENT,
   `user_id` int NOT NULL,
   `action` varchar(255) NOT NULL,
   `details` text,
-  `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3;
+  `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  KEY `user_id` (`user_id`)
+) ENGINE=InnoDB AUTO_INCREMENT=145 DEFAULT CHARSET=utf8mb3;
 
 -- --------------------------------------------------------
 
@@ -3162,8 +3317,8 @@ CREATE TABLE `user_logs` (
 --
 
 DROP TABLE IF EXISTS `user_twofa`;
-CREATE TABLE `user_twofa` (
-  `id` int NOT NULL,
+CREATE TABLE IF NOT EXISTS `user_twofa` (
+  `id` int NOT NULL AUTO_INCREMENT,
   `user_id` int NOT NULL,
   `twofa_enabled` tinyint(1) DEFAULT '0',
   `twofa_secret` varchar(255) DEFAULT NULL,
@@ -3171,8 +3326,10 @@ CREATE TABLE `user_twofa` (
   `created_at` datetime DEFAULT CURRENT_TIMESTAMP,
   `updated_at` datetime DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   `is_deleted` tinyint(1) DEFAULT '0',
-  `deleted_at` datetime DEFAULT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3;
+  `deleted_at` datetime DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  KEY `user_id` (`user_id`)
+) ENGINE=InnoDB AUTO_INCREMENT=23 DEFAULT CHARSET=utf8mb3;
 
 -- --------------------------------------------------------
 
@@ -3181,13 +3338,14 @@ CREATE TABLE `user_twofa` (
 --
 
 DROP TABLE IF EXISTS `warehouses`;
-CREATE TABLE `warehouses` (
-  `id` int NOT NULL,
+CREATE TABLE IF NOT EXISTS `warehouses` (
+  `id` int NOT NULL AUTO_INCREMENT,
   `name` varchar(50) DEFAULT NULL,
   `location` varchar(255) DEFAULT NULL,
   `created_at` datetime DEFAULT CURRENT_TIMESTAMP,
   `is_deleted` tinyint(1) DEFAULT '0',
-  `deleted_at` datetime DEFAULT NULL
+  `deleted_at` datetime DEFAULT NULL,
+  PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3;
 
 -- --------------------------------------------------------
@@ -3197,414 +3355,19 @@ CREATE TABLE `warehouses` (
 --
 
 DROP TABLE IF EXISTS `warehouse_stock`;
-CREATE TABLE `warehouse_stock` (
-  `id` int NOT NULL,
+CREATE TABLE IF NOT EXISTS `warehouse_stock` (
+  `id` int NOT NULL AUTO_INCREMENT,
   `warehouse_id` int NOT NULL,
   `part_id` int NOT NULL,
   `quantity` int DEFAULT NULL,
   `created_at` datetime DEFAULT CURRENT_TIMESTAMP,
   `updated_at` datetime DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   `is_deleted` tinyint(1) DEFAULT '0',
-  `deleted_at` datetime DEFAULT NULL
+  `deleted_at` datetime DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  KEY `warehouse_id` (`warehouse_id`),
+  KEY `part_id` (`part_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3;
-
---
--- Indexek a kiírt táblákhoz
---
-
---
--- A tábla indexei `addresses`
---
-ALTER TABLE `addresses`
-  ADD PRIMARY KEY (`id`),
-  ADD KEY `user_id` (`user_id`);
-
---
--- A tábla indexei `cars`
---
-ALTER TABLE `cars`
-  ADD PRIMARY KEY (`id`);
-
---
--- A tábla indexei `cart_items`
---
-ALTER TABLE `cart_items`
-  ADD PRIMARY KEY (`id`),
-  ADD KEY `user_id` (`user_id`),
-  ADD KEY `part_id` (`part_id`);
-
---
--- A tábla indexei `email_verifications`
---
-ALTER TABLE `email_verifications`
-  ADD PRIMARY KEY (`id`),
-  ADD UNIQUE KEY `token` (`token`),
-  ADD KEY `user_id` (`user_id`);
-
---
--- A tábla indexei `invoices`
---
-ALTER TABLE `invoices`
-  ADD PRIMARY KEY (`id`),
-  ADD KEY `order_id` (`order_id`),
-  ADD KEY `invoices_ibfk_1` (`order_id`);
-
---
--- A tábla indexei `login_logs`
---
-ALTER TABLE `login_logs`
-  ADD PRIMARY KEY (`id`),
-  ADD KEY `user_id` (`user_id`),
-  ADD KEY `logged_in_at` (`logged_in_at`);
-
---
--- A tábla indexei `manufacturers`
---
-ALTER TABLE `manufacturers`
-  ADD PRIMARY KEY (`id`),
-  ADD UNIQUE KEY `name` (`name`);
-
---
--- A tábla indexei `motors`
---
-ALTER TABLE `motors`
-  ADD PRIMARY KEY (`id`);
-
---
--- A tábla indexei `orders`
---
-ALTER TABLE `orders`
-  ADD PRIMARY KEY (`id`),
-  ADD KEY `user_id` (`user_id`);
-
---
--- A tábla indexei `order_items`
---
-ALTER TABLE `order_items`
-  ADD PRIMARY KEY (`id`),
-  ADD KEY `order_id` (`order_id`),
-  ADD KEY `part_id` (`part_id`);
-
---
--- A tábla indexei `order_logs`
---
-ALTER TABLE `order_logs`
-  ADD PRIMARY KEY (`id`),
-  ADD KEY `order_id` (`order_id`);
-
---
--- A tábla indexei `parts`
---
-ALTER TABLE `parts`
-  ADD PRIMARY KEY (`id`),
-  ADD UNIQUE KEY `sku` (`sku`),
-  ADD KEY `manufacturer_id` (`manufacturer_id`),
-  ADD KEY `category` (`category`);
-
---
--- A tábla indexei `part_compatibility`
---
-ALTER TABLE `part_compatibility`
-  ADD PRIMARY KEY (`id`),
-  ADD UNIQUE KEY `unique_compatibility` (`part_id`,`vehicle_type`,`vehicle_id`),
-  ADD KEY `idx_part_id` (`part_id`),
-  ADD KEY `idx_vehicle_type` (`vehicle_type`),
-  ADD KEY `idx_vehicle_id` (`vehicle_id`),
-  ADD KEY `idx_part_vehicle` (`part_id`,`vehicle_type`,`vehicle_id`);
-
---
--- A tábla indexei `part_images`
---
-ALTER TABLE `part_images`
-  ADD PRIMARY KEY (`id`),
-  ADD KEY `part_id` (`part_id`);
-
---
--- A tábla indexei `part_variants`
---
-ALTER TABLE `part_variants`
-  ADD PRIMARY KEY (`id`),
-  ADD KEY `part_id` (`part_id`);
-
---
--- A tábla indexei `password_resets`
---
-ALTER TABLE `password_resets`
-  ADD PRIMARY KEY (`id`),
-  ADD UNIQUE KEY `token` (`token`),
-  ADD KEY `user_id` (`user_id`),
-  ADD KEY `token_2` (`token`);
-
---
--- A tábla indexei `payments`
---
-ALTER TABLE `payments`
-  ADD PRIMARY KEY (`id`),
-  ADD KEY `order_id` (`order_id`);
-
---
--- A tábla indexei `refunds`
---
-ALTER TABLE `refunds`
-  ADD PRIMARY KEY (`id`),
-  ADD KEY `payment_id` (`payment_id`);
-
---
--- A tábla indexei `reviews`
---
-ALTER TABLE `reviews`
-  ADD PRIMARY KEY (`id`),
-  ADD KEY `user_id` (`user_id`),
-  ADD KEY `part_id` (`part_id`);
-
---
--- A tábla indexei `sessions`
---
-ALTER TABLE `sessions`
-  ADD PRIMARY KEY (`id`),
-  ADD UNIQUE KEY `token` (`token`),
-  ADD KEY `token_2` (`token`),
-  ADD KEY `user_id` (`user_id`);
-
---
--- A tábla indexei `shipping_methods`
---
-ALTER TABLE `shipping_methods`
-  ADD PRIMARY KEY (`id`);
-
---
--- A tábla indexei `shipping_status`
---
-ALTER TABLE `shipping_status`
-  ADD PRIMARY KEY (`id`),
-  ADD KEY `order_id` (`order_id`);
-
---
--- A tábla indexei `stock_logs`
---
-ALTER TABLE `stock_logs`
-  ADD PRIMARY KEY (`id`),
-  ADD KEY `part_id` (`part_id`);
-
---
--- A tábla indexei `trucks`
---
-ALTER TABLE `trucks`
-  ADD PRIMARY KEY (`id`);
-
---
--- A tábla indexei `users`
---
-ALTER TABLE `users`
-  ADD PRIMARY KEY (`id`),
-  ADD UNIQUE KEY `username` (`username`),
-  ADD UNIQUE KEY `guid` (`guid`);
-
---
--- A tábla indexei `user_logs`
---
-ALTER TABLE `user_logs`
-  ADD PRIMARY KEY (`id`),
-  ADD KEY `user_id` (`user_id`);
-
---
--- A tábla indexei `user_twofa`
---
-ALTER TABLE `user_twofa`
-  ADD PRIMARY KEY (`id`),
-  ADD KEY `user_id` (`user_id`);
-
---
--- A tábla indexei `warehouses`
---
-ALTER TABLE `warehouses`
-  ADD PRIMARY KEY (`id`);
-
---
--- A tábla indexei `warehouse_stock`
---
-ALTER TABLE `warehouse_stock`
-  ADD PRIMARY KEY (`id`),
-  ADD KEY `warehouse_id` (`warehouse_id`),
-  ADD KEY `part_id` (`part_id`);
-
---
--- A kiírt táblák AUTO_INCREMENT értéke
---
-
---
--- AUTO_INCREMENT a táblához `addresses`
---
-ALTER TABLE `addresses`
-  MODIFY `id` int NOT NULL AUTO_INCREMENT;
-
---
--- AUTO_INCREMENT a táblához `cars`
---
-ALTER TABLE `cars`
-  MODIFY `id` int NOT NULL AUTO_INCREMENT;
-
---
--- AUTO_INCREMENT a táblához `cart_items`
---
-ALTER TABLE `cart_items`
-  MODIFY `id` int NOT NULL AUTO_INCREMENT;
-
---
--- AUTO_INCREMENT a táblához `email_verifications`
---
-ALTER TABLE `email_verifications`
-  MODIFY `id` int NOT NULL AUTO_INCREMENT;
-
---
--- AUTO_INCREMENT a táblához `invoices`
---
-ALTER TABLE `invoices`
-  MODIFY `id` int NOT NULL AUTO_INCREMENT;
-
---
--- AUTO_INCREMENT a táblához `login_logs`
---
-ALTER TABLE `login_logs`
-  MODIFY `id` int NOT NULL AUTO_INCREMENT;
-
---
--- AUTO_INCREMENT a táblához `manufacturers`
---
-ALTER TABLE `manufacturers`
-  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=75;
-
---
--- AUTO_INCREMENT a táblához `motors`
---
-ALTER TABLE `motors`
-  MODIFY `id` int NOT NULL AUTO_INCREMENT;
-
---
--- AUTO_INCREMENT a táblához `orders`
---
-ALTER TABLE `orders`
-  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=7;
-
---
--- AUTO_INCREMENT a táblához `order_items`
---
-ALTER TABLE `order_items`
-  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
-
---
--- AUTO_INCREMENT a táblához `order_logs`
---
-ALTER TABLE `order_logs`
-  MODIFY `id` int NOT NULL AUTO_INCREMENT;
-
---
--- AUTO_INCREMENT a táblához `parts`
---
-ALTER TABLE `parts`
-  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=160;
-
---
--- AUTO_INCREMENT a táblához `part_compatibility`
---
-ALTER TABLE `part_compatibility`
-  MODIFY `id` int NOT NULL AUTO_INCREMENT;
-
---
--- AUTO_INCREMENT a táblához `part_images`
---
-ALTER TABLE `part_images`
-  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=114;
-
---
--- AUTO_INCREMENT a táblához `part_variants`
---
-ALTER TABLE `part_variants`
-  MODIFY `id` int NOT NULL AUTO_INCREMENT;
-
---
--- AUTO_INCREMENT a táblához `password_resets`
---
-ALTER TABLE `password_resets`
-  MODIFY `id` int NOT NULL AUTO_INCREMENT;
-
---
--- AUTO_INCREMENT a táblához `payments`
---
-ALTER TABLE `payments`
-  MODIFY `id` int NOT NULL AUTO_INCREMENT;
-
---
--- AUTO_INCREMENT a táblához `refunds`
---
-ALTER TABLE `refunds`
-  MODIFY `id` int NOT NULL AUTO_INCREMENT;
-
---
--- AUTO_INCREMENT a táblához `reviews`
---
-ALTER TABLE `reviews`
-  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
-
---
--- AUTO_INCREMENT a táblához `sessions`
---
-ALTER TABLE `sessions`
-  MODIFY `id` int NOT NULL AUTO_INCREMENT;
-
---
--- AUTO_INCREMENT a táblához `shipping_methods`
---
-ALTER TABLE `shipping_methods`
-  MODIFY `id` int NOT NULL AUTO_INCREMENT;
-
---
--- AUTO_INCREMENT a táblához `shipping_status`
---
-ALTER TABLE `shipping_status`
-  MODIFY `id` int NOT NULL AUTO_INCREMENT;
-
---
--- AUTO_INCREMENT a táblához `stock_logs`
---
-ALTER TABLE `stock_logs`
-  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
-
---
--- AUTO_INCREMENT a táblához `trucks`
---
-ALTER TABLE `trucks`
-  MODIFY `id` int NOT NULL AUTO_INCREMENT;
-
---
--- AUTO_INCREMENT a táblához `users`
---
-ALTER TABLE `users`
-  MODIFY `id` int NOT NULL AUTO_INCREMENT;
-
---
--- AUTO_INCREMENT a táblához `user_logs`
---
-ALTER TABLE `user_logs`
-  MODIFY `id` int NOT NULL AUTO_INCREMENT;
-
---
--- AUTO_INCREMENT a táblához `user_twofa`
---
-ALTER TABLE `user_twofa`
-  MODIFY `id` int NOT NULL AUTO_INCREMENT;
-
---
--- AUTO_INCREMENT a táblához `warehouses`
---
-ALTER TABLE `warehouses`
-  MODIFY `id` int NOT NULL AUTO_INCREMENT;
-
---
--- AUTO_INCREMENT a táblához `warehouse_stock`
---
-ALTER TABLE `warehouse_stock`
-  MODIFY `id` int NOT NULL AUTO_INCREMENT;
 
 --
 -- Megkötések a kiírt táblákhoz
