@@ -363,12 +363,14 @@ public class CartItems implements Serializable {
 
             ArrayList<CartItems> cartItemsList = new ArrayList<>();
 
-            for (Object[] record : resultList) {  
+            for (Object[] record : resultList) {
                 Users user = new Users();
                 user.setId(Integer.valueOf(record[1].toString()));
 
                 Parts part = new Parts();
                 part.setId(Integer.valueOf(record[2].toString()));
+                part.setName(record[7] != null ? record[7].toString() : "Ismeretlen termék");
+                part.setPrice(record[8] != null ? new java.math.BigDecimal(record[8].toString()) : null);
 
                 CartItems ci = new CartItems(
                         Integer.valueOf(record[0].toString()),
@@ -379,10 +381,10 @@ public class CartItems implements Serializable {
                         part,
                         user
                 );
-                cartItemsList.add(ci);  
+                cartItemsList.add(ci);
             }
 
-            return cartItemsList;  
+            return cartItemsList;
         } catch (Exception ex) {
             ex.printStackTrace();
             return null;
