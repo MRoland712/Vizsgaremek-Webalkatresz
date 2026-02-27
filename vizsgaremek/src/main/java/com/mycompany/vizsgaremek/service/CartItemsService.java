@@ -189,7 +189,6 @@ public class CartItemsService {
             errors.put("MissingId");
         }
 
-        // If modelexeption
         if (errorAuth.hasErrors(errors)) {
             return errorAuth.createErrorResponse(errors, 400);
         }
@@ -207,20 +206,21 @@ public class CartItemsService {
             cartItemsObj.put("id", item.getId());
             cartItemsObj.put("userId", item.getUserId().getId());
             cartItemsObj.put("partId", item.getPartId().getId());
+            cartItemsObj.put("partName", item.getPartId().getName());
+            cartItemsObj.put("partPrice", item.getPartId().getPrice());
             cartItemsObj.put("quantity", item.getQuantity());
             cartItemsObj.put("addedAt", item.getAddedAt());
             cartItemsObj.put("isDeleted", item.getIsDeleted());
             cartItemsArray.put(cartItemsObj);
-
         }
 
-
         toReturn.put("success", true);
-        toReturn.put("CartItems", cartItemsArray);
+        toReturn.put("cartItems", cartItemsArray);
+        toReturn.put("count", cartItemsList.size());
         toReturn.put("statusCode", 200);
 
         return toReturn;
-    }//getCartItemsByUserId
+    }
 
     public JSONObject softDeleteCartItemService(Integer id) {
         JSONObject toReturn = new JSONObject();

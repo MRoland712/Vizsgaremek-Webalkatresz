@@ -244,6 +244,10 @@ public class Orders implements Serializable {
         this.userId = userId;
     }
 
+    public Orders(Users userId) {
+        this.userId = userId;
+    }
+    
     @Override
     public String toString() {
         return "com.mycompany.vizsgaremek.model.Orders[ id=" + id + " ]";
@@ -271,7 +275,7 @@ public class Orders implements Serializable {
             em.close();
         }
     }
-    
+
     public static Boolean createOrderWithItem(OrderItems createdOrderWithItem, Integer userId) {
         EntityManager em = emf.createEntityManager();
         try {
@@ -378,45 +382,45 @@ public class Orders implements Serializable {
     }
 
     public static ArrayList<Orders> getOrdersByUserId(Integer userId) {
-    EntityManager em = emf.createEntityManager();
-    try {
-        StoredProcedureQuery spq = em.createStoredProcedureQuery("getOrdersByUserId");
-        spq.registerStoredProcedureParameter("idIN", Integer.class, ParameterMode.IN); 
-        spq.setParameter("idIN", userId);
-        spq.execute();
-        
-        List<Object[]> resultList = spq.getResultList();
-        
-        if (resultList == null || resultList.isEmpty()) {  
+        EntityManager em = emf.createEntityManager();
+        try {
+            StoredProcedureQuery spq = em.createStoredProcedureQuery("getOrdersByUserId");
+            spq.registerStoredProcedureParameter("idIN", Integer.class, ParameterMode.IN);
+            spq.setParameter("idIN", userId);
+            spq.execute();
+
+            List<Object[]> resultList = spq.getResultList();
+
+            if (resultList == null || resultList.isEmpty()) {
+                return null;
+            }
+
+            ArrayList<Orders> ordersList = new ArrayList<>();
+
+            for (Object[] record : resultList) {
+                Users user = new Users();
+                user.setId(Integer.valueOf(record[1].toString()));
+
+                Orders order = new Orders(
+                        Integer.valueOf(record[0].toString()), // id
+                        record[2] != null ? record[2].toString() : null, // status
+                        record[3] == null ? null : formatter.parse(record[3].toString()), // created_at
+                        record[4] == null ? null : formatter.parse(record[4].toString()), // updated_at
+                        record[5] != null && Boolean.parseBoolean(record[5].toString()), // is_deleted 
+                        record[6] == null ? null : formatter.parse(record[6].toString()), // deleted_at 
+                        user
+                );
+                ordersList.add(order);
+            }
+
+            return ordersList;
+        } catch (Exception ex) {
+            ex.printStackTrace();
             return null;
+        } finally {
+            em.close();
         }
-        
-        ArrayList<Orders> ordersList = new ArrayList<>();
-        
-        for (Object[] record : resultList) {
-            Users user = new Users();
-            user.setId(Integer.valueOf(record[1].toString()));
-            
-            Orders order = new Orders(
-                Integer.valueOf(record[0].toString()),                           // id
-                record[2] != null ? record[2].toString() : null,                  // status
-                record[3] == null ? null : formatter.parse(record[3].toString()), // created_at
-                record[4] == null ? null : formatter.parse(record[4].toString()), // updated_at
-                record[5] != null && Boolean.parseBoolean(record[5].toString()),  // is_deleted 
-                record[6] == null ? null : formatter.parse(record[6].toString()), // deleted_at 
-                user
-            );
-            ordersList.add(order);
-        }
-        
-        return ordersList;
-    } catch (Exception ex) {
-        ex.printStackTrace();
-        return null;
-    } finally {
-        em.close();
     }
-}
 
     public static Boolean softDeleteOrders(Integer id) {
         EntityManager em = emf.createEntityManager();
@@ -458,7 +462,6 @@ public class Orders implements Serializable {
             spq.setParameter("statusIN", updatedOrders.getStatus());
             spq.setParameter("isDeletedIN", Boolean.TRUE.equals(updatedOrders.getIsDeleted()) ? 1 : 0);
 
-
             spq.execute();
 
             em.getTransaction().commit();
@@ -471,6 +474,34 @@ public class Orders implements Serializable {
             }
             ex.printStackTrace();
             return false;
+        } finally {
+            em.clear();
+            em.close();
+        }
+    }
+
+    public static Integer createOrderFromCart(Integer userId) {
+        EntityManager em = emf.createEntityManager();
+        try {
+            em.getTransaction().begin();
+            StoredProcedureQuery spq = em.createStoredProcedureQuery("createOrderFromCart");
+            spq.registerStoredProcedureParameter("userIdIN", Integer.class, ParameterMode.IN);
+            spq.setParameter("userIdIN", userId);
+            spq.execute();
+            em.getTransaction().commit();
+
+            List<Object[]> resultList = spq.getResultList();
+            if (resultList != null && !resultList.isEmpty()) {
+                Object[] record = resultList.get(0);
+                return Integer.valueOf(record[0].toString());
+            }
+            return null;
+        } catch (Exception ex) {
+            if (em.getTransaction().isActive()) {
+                em.getTransaction().rollback();
+            }
+            ex.printStackTrace();
+            return null;
         } finally {
             em.clear();
             em.close();

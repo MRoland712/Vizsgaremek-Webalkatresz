@@ -66,7 +66,7 @@ public class OrdersService {
         }
 
     }
-    
+
     public JSONObject createOrderWithItemsService(OrderItems createOrders, Integer userId) {
         JSONObject toReturn = new JSONObject();
         JSONArray errors = new JSONArray();
@@ -75,11 +75,11 @@ public class OrdersService {
         if (ordersAuth.isDataMissing(userId)) {
             errors.put("MissingUserId");
         }
-        
+
         if (ordersAuth.isDataMissing(createOrders.getPartId().getId())) {
             errors.put("MissingPartId");
         }
-        
+
         if (ordersAuth.isDataMissing(createOrders.getQuantity())) {
             errors.put("MissingQuantity");
         }
@@ -91,7 +91,7 @@ public class OrdersService {
         if (!ordersAuth.isDataMissing(createOrders.getPartId().getId()) && !ordersAuth.isValidPartId(createOrders.getPartId().getId())) {
             errors.put("InvalidPartId");
         }
-        
+
         if (!ordersAuth.isDataMissing(createOrders.getQuantity()) && !ordersAuth.isValidQuantity(createOrders.getQuantity())) {
             errors.put("InvalidQuantity");
         }
@@ -99,19 +99,18 @@ public class OrdersService {
         if (errorAuth.hasErrors(errors)) {
             return errorAuth.createErrorResponse(errors, 400);
         }
-        
+
         if (Users.getUserById(userId) == null) {
             errors.put("UserNotFound");
         }
-        
+
         if (Parts.getPartsById(createOrders.getPartId().getId()) == null) {
             errors.put("PartNotFound");
         }
-        
+
         if (errorAuth.hasErrors(errors)) {
             return errorAuth.createErrorResponse(errors, 404);
         }
-        
 
         // MODEL HÍVÁS
         if (Orders.createOrderWithItem(createOrders, userId)) {
@@ -214,9 +213,9 @@ public class OrdersService {
             return errorAuth.createErrorResponse(errors, 400);
         }
 
-        ArrayList<Orders> ordersList = Orders.getOrdersByUserId(userId); 
+        ArrayList<Orders> ordersList = Orders.getOrdersByUserId(userId);
 
-        if (ordersAuth.isDataMissing(ordersList)) { 
+        if (ordersAuth.isDataMissing(ordersList)) {
             errors.put("OrdersNotFound");
             return errorAuth.createErrorResponse(errors, 404);
         }
@@ -235,8 +234,8 @@ public class OrdersService {
         }
 
         toReturn.put("success", true);
-        toReturn.put("orders", ordersArray);  
-        toReturn.put("count", ordersList.size()); 
+        toReturn.put("orders", ordersArray);
+        toReturn.put("count", ordersList.size());
         toReturn.put("statusCode", 200);
         return toReturn;
     }
@@ -373,5 +372,47 @@ public class OrdersService {
 
         return toReturn;
     }//updateParts
+
+    public JSONObject createOrderFromCartService(Integer userId) {
+        JSONObject toReturn = new JSONObject();
+        JSONArray errors = new JSONArray();
+
+        // VALIDÁCIÓK
+        if (ordersAuth.isDataMissing(userId)) {
+            errors.put("MissingUserId");
+        }
+
+        if (errorAuth.hasErrors(errors)) {
+            return errorAuth.createErrorResponse(errors, 400);
+        }
+
+        if (!ordersAuth.isValidUserId(userId)) {
+            errors.put("InvalidUserId");
+        }
+
+        if (errorAuth.hasErrors(errors)) {
+            return errorAuth.createErrorResponse(errors, 400);
+        }
+
+        // USER LÉTEZIK
+        if (Users.getUserById(userId) == null) {
+            errors.put("UserNotFound");
+            return errorAuth.createErrorResponse(errors, 404);
+        }
+
+        // MODEL HÍVÁS
+        Integer newOrderId = Orders.createOrderFromCart(userId);
+
+        if (newOrderId == null) {
+            errors.put("CartEmptyOrOrderFailed");
+            return errorAuth.createErrorResponse(errors, 500);
+        }
+
+        toReturn.put("success", true);
+        toReturn.put("message", "Order created from cart successfully");
+        toReturn.put("orderId", newOrderId);
+        toReturn.put("statusCode", 201);
+        return toReturn;
+    }
 
 }

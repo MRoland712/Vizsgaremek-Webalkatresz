@@ -86,7 +86,7 @@ public class OrdersController {
                 .type(MediaType.APPLICATION_JSON)
                 .build();
     }
-    
+
     @POST
     @Path("createOrderWithItem")
     @Consumes(MediaType.APPLICATION_JSON)
@@ -96,11 +96,10 @@ public class OrdersController {
 
         Integer id = null;
         id = (bodyObject.has("userId") ? bodyObject.getInt("userId") : null);
-        
-        
+
         Parts part = new Parts();
         part.setId(bodyObject.has("partId") ? bodyObject.getInt("partId") : null);
-        
+
         OrderItems createdOrderWithItems = new OrderItems(
                 bodyObject.has("quantity") ? bodyObject.getInt("quantity") : null,
                 part
@@ -180,7 +179,7 @@ public class OrdersController {
         if (idIN != null) {
             updatedOrders.setId(idIN);
         }
-        
+
         if (bodyObject.has("status")) {
             updatedOrders.setStatus(bodyObject.getString("status"));
         }
@@ -190,6 +189,22 @@ public class OrdersController {
         }
 
         JSONObject toReturn = layer.updateOrders(updatedOrders);
+
+        return Response.status(Integer.parseInt(toReturn.get("statusCode").toString()))
+                .entity(toReturn.toString())
+                .type(MediaType.APPLICATION_JSON)
+                .build();
+    }
+
+    @POST
+    @Path("createOrderFromCart")
+    @Consumes(MediaType.APPLICATION_JSON)
+    public Response createOrderFromCartController(String body) {
+        JSONObject bodyObject = new JSONObject(body);
+
+        Integer userId = bodyObject.has("userId") ? bodyObject.getInt("userId") : null;
+
+        JSONObject toReturn = layer.createOrderFromCartService(userId);
 
         return Response.status(Integer.parseInt(toReturn.get("statusCode").toString()))
                 .entity(toReturn.toString())
