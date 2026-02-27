@@ -1,1 +1,182 @@
-<p>delivery.component works!</p>
+<app-main-header></app-main-header>
+
+<div class="delivery-page">
+  <!-- Progress bar középen -->
+  <div class="progress-wrapper">
+    <app-checkout-progress [currentStep]="'delivery'"></app-checkout-progress>
+  </div>
+
+  <!-- Cím -->
+  <div class="stage-title">
+    <h1>Szállítás</h1>
+    <div class="stage-title__underline"></div>
+  </div>
+
+  <!-- Fő kártya -->
+  <div class="delivery-card">
+    <div class="delivery-card__title">SZÁLLÍTÁSI ADATOK</div>
+
+    <div class="delivery-body">
+      <!-- Bal panel -->
+      <div class="delivery-left">
+        <i class="fa-solid fa-truck-fast delivery-left__icon"></i>
+        <h2 class="delivery-left__title">HOVA SZÁLLÍTSUNK?</h2>
+        <p class="delivery-left__sub">Kérlek add meg a<br />szállítási adataidat.</p>
+
+        <!-- Vissza gomb -->
+        <button class="btn-orange btn-back" (click)="goBack()">
+          <i class="fa-solid fa-arrow-left btn-arrow"></i>
+          <span class="btn-text">Vissza a kosárhoz</span>
+        </button>
+      </div>
+
+      <!-- Jobb panel: form -->
+      <div class="delivery-form-panel">
+        <!-- Automatikus kitöltés -->
+        <div class="autofill-bar">
+          <button type="button" class="btn-autofill" (click)="autoFill()">
+            <i class="fa-solid fa-wand-magic-sparkles"></i>
+            Automatikus kitöltés
+          </button>
+          @if (autoFillSuccess()) {
+            <span class="autofill-ok">
+              <i class="fa-solid fa-circle-check"></i> Adatok kitöltve!
+            </span>
+          }
+        </div>
+
+        <form [formGroup]="deliveryForm" (ngSubmit)="onSubmit()" class="delivery-form">
+          <!-- Sor 1: Családnév + Keresztnév -->
+          <div class="form-row">
+            <div class="form-field">
+              <input
+                type="text"
+                formControlName="lastname"
+                placeholder="Családnév"
+                [class.invalid]="
+                  deliveryForm.controls.lastname.touched && deliveryForm.controls.lastname.invalid
+                "
+              />
+              @if (
+                deliveryForm.controls.lastname.touched && deliveryForm.controls.lastname.invalid
+              ) {
+                <span class="field-error">Kötelező mező</span>
+              }
+            </div>
+            <div class="form-field">
+              <input
+                type="text"
+                formControlName="firstname"
+                placeholder="Keresztnév"
+                [class.invalid]="
+                  deliveryForm.controls.firstname.touched && deliveryForm.controls.firstname.invalid
+                "
+              />
+              @if (
+                deliveryForm.controls.firstname.touched && deliveryForm.controls.firstname.invalid
+              ) {
+                <span class="field-error">Kötelező mező</span>
+              }
+            </div>
+          </div>
+
+          <!-- Sor 2: Város + Irányítószám -->
+          <div class="form-row">
+            <div class="form-field">
+              <input
+                type="text"
+                formControlName="city"
+                placeholder="Város"
+                [class.invalid]="
+                  deliveryForm.controls.city.touched && deliveryForm.controls.city.invalid
+                "
+              />
+              @if (deliveryForm.controls.city.touched && deliveryForm.controls.city.invalid) {
+                <span class="field-error">Kötelező mező</span>
+              }
+            </div>
+            <div class="form-field">
+              <input
+                type="text"
+                formControlName="postalCode"
+                placeholder="Irányítószám"
+                maxlength="4"
+                [class.invalid]="
+                  deliveryForm.controls.postalCode.touched &&
+                  deliveryForm.controls.postalCode.invalid
+                "
+              />
+              @if (
+                deliveryForm.controls.postalCode.touched && deliveryForm.controls.postalCode.invalid
+              ) {
+                <span class="field-error">4 számjegy</span>
+              }
+            </div>
+          </div>
+
+          <!-- Sor 3: Ország + Telefon -->
+          <div class="form-row">
+            <div class="form-field">
+              <input
+                type="text"
+                formControlName="country"
+                placeholder="Ország"
+                [class.invalid]="
+                  deliveryForm.controls.country.touched && deliveryForm.controls.country.invalid
+                "
+              />
+              @if (deliveryForm.controls.country.touched && deliveryForm.controls.country.invalid) {
+                <span class="field-error">Kötelező mező</span>
+              }
+            </div>
+            <div class="form-field phone-field">
+              <span class="phone-prefix">+36</span>
+              <input
+                type="tel"
+                formControlName="phone"
+                placeholder="Telefonszám"
+                [class.invalid]="
+                  deliveryForm.controls.phone.touched && deliveryForm.controls.phone.invalid
+                "
+              />
+              @if (deliveryForm.controls.phone.touched && deliveryForm.controls.phone.invalid) {
+                <span class="field-error">Érvényes telefonszám</span>
+              }
+            </div>
+          </div>
+
+          <!-- Lakcím -->
+          <div class="form-field form-field--full">
+            <input
+              type="text"
+              formControlName="address"
+              placeholder="Lakcím"
+              [class.invalid]="
+                deliveryForm.controls.address.touched && deliveryForm.controls.address.invalid
+              "
+            />
+            @if (deliveryForm.controls.address.touched && deliveryForm.controls.address.invalid) {
+              <span class="field-error">Kötelező mező</span>
+            }
+          </div>
+
+          <!-- Hírlevél checkbox -->
+          <label class="newsletter-label">
+            <input type="checkbox" formControlName="newsletter" class="newsletter-checkbox" />
+            <span
+              >Igen, a CARCOMPS felveheti velem a kapcsolatot telefonon, SMS-ben vagy e-mailben,
+              hogy tájékoztasson különleges ajánlatokról, felmérésekről és statisztikai
+              adatgyűjtésről. Tudomásul veszem, hogy ezt a beleegyezésemet bármikor
+              visszavonhatom.</span
+            >
+          </label>
+
+          <!-- Submit gomb — dynamic forward button -->
+          <div (click)="onSubmit()">
+            <app-payment-forward-button></app-payment-forward-button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>

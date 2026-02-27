@@ -1,1 +1,134 @@
-<p>summary.component works!</p>
+<app-main-header></app-main-header>
+
+<div class="summary-page">
+  <!-- Progress bar -->
+  <div class="progress-wrapper">
+    <app-checkout-progress [currentStep]="'summary'"></app-checkout-progress>
+  </div>
+
+  <!-- Cím -->
+  <div class="stage-title">
+    <h1>Nyugtázás</h1>
+    <div class="stage-title__underline"></div>
+  </div>
+
+  <!-- Adatok kártya -->
+  <div class="data-card">
+    <div class="data-card__header">Adatok</div>
+    <div class="data-card__body">
+      <!-- Bal: szállítási adatok -->
+      <div class="data-section">
+        <p class="data-name">
+          {{ fullName }}
+          <button class="edit-btn" (click)="editDelivery()" title="Szerkesztés">
+            <i class="fa-solid fa-pen-to-square"></i>
+          </button>
+        </p>
+        <p class="data-address">
+          {{ fullAddress }}
+          <button class="edit-btn" (click)="editDelivery()" title="Szerkesztés">
+            <i class="fa-solid fa-pen-to-square"></i>
+          </button>
+        </p>
+        <p class="data-notice">
+          <i class="fa-solid fa-circle-info"></i>
+          Munkaszüneti napokon a kiszállítás szünetel
+        </p>
+      </div>
+
+      <!-- Jobb: fizetési mód -->
+      <div class="data-section data-section--right">
+        <p class="data-label">
+          Fizetési mód
+          <button class="edit-btn" (click)="editPayment()" title="Szerkesztés">
+            <i class="fa-solid fa-pen-to-square"></i>
+          </button>
+        </p>
+        <i class="fa-solid fa-money-bill payment-icon"></i>
+      </div>
+    </div>
+  </div>
+
+  <!-- Termék lista + összegzés -->
+  <div class="summary-body">
+    <!-- Termék lista -->
+    <div class="item-list-container">
+      <!-- Fejléc -->
+      <div class="item-list-header">
+        <span>Termék kép</span>
+        <span>Márka</span>
+        <span>Termék</span>
+        <span>Mennyiség</span>
+        <span>Összesen</span>
+      </div>
+
+      <!-- Sorok -->
+      @for (item of cartItems(); track item.id) {
+        <div class="cart-row">
+          <div class="cart-row__image">
+            @if (item.imageUrl) {
+              <img [src]="item.imageUrl" [alt]="item.name" />
+            } @else {
+              <div class="cart-row__image-placeholder">
+                <i class="fa-solid fa-gear"></i>
+              </div>
+            }
+          </div>
+          <div class="cart-row__brand">
+            @if (item.brandLogo) {
+              <img [src]="item.brandLogo" [alt]="item.brand" class="brand-logo" />
+            } @else {
+              <span class="brand-badge">{{ item.brand }}</span>
+            }
+          </div>
+          <div class="cart-row__name">{{ item.name }}</div>
+          <div class="cart-row__qty">{{ item.quantity }}</div>
+          <div class="cart-row__total">{{ formatPrice(item.price * item.quantity) }}</div>
+        </div>
+        <hr class="row-divider" />
+      }
+    </div>
+
+    <!-- Összegzés oldalpanel -->
+    <div class="summary-panel">
+      <div class="summary-panel__header">Összegzés</div>
+      <div class="summary-panel__body">
+        <p class="summary-count">
+          <strong>{{ cartItems().length }} termék:</strong>
+        </p>
+        <ul class="summary-items">
+          @for (item of cartItems(); track item.id) {
+            <li>{{ item.name }}</li>
+          }
+        </ul>
+
+        <div class="summary-row">
+          <span>Összesen:</span><span>{{ formatPrice(subtotal()) }}</span>
+        </div>
+        <div class="summary-row">
+          <span>Szállítási díj:</span><span>{{ formatPrice(SHIPPING_FEE) }}</span>
+        </div>
+
+        <hr class="summary-divider" />
+
+        <div class="summary-row summary-row--total">
+          <span>Végösszeg:</span>
+          <span>
+            {{ formatPrice(total()) }}
+            <i class="fa-solid fa-circle-info info-icon"></i>
+          </span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Gombok -->
+  <div class="summary-actions">
+    <button class="btn-invoice" (click)="downloadInvoice()">
+      <i class="fa-solid fa-file-invoice btn-invoice__icon"></i>
+      <span class="btn-invoice__text">Számla letöltése</span>
+    </button>
+  </div>
+</div>
+
+<app-footer></app-footer>

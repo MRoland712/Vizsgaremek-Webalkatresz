@@ -373,6 +373,7 @@ FONTOS: Tartsd ezeket biztonságos helyen!
       taxnumber: this.editForm.value.taxnumber,
     };
     this.shippingAddress.set(data as any);
+    localStorage.setItem('shippingAddress', JSON.stringify(data));
     this.handleSuccess();
   }
 

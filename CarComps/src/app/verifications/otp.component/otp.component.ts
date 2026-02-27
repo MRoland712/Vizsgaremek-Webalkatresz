@@ -98,9 +98,7 @@ export class OtpComponent {
       next: (res) => {
         this.isVerifying.set(false);
 
-        const isSuccess =
-          res.statusCode === 200 &&
-          (res.status === 'success' || res.result?.toLowerCase().includes('success'));
+        const isSuccess = res.result != 'invalid';
 
         if (isSuccess) {
           this.successMessage.set('Email cím sikeresen megerősítve!');

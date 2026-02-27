@@ -1,0 +1,401 @@
+/* ── Wrapper ─────────────────────────────────────────────── */
+.summary-page {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 32px 24px 64px;
+  background: #fffafa;
+  min-height: 100vh;
+}
+
+/* ── Progress bar ────────────────────────────────────────── */
+.progress-wrapper {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 28px;
+}
+
+.progress-wrapper app-checkout-progress {
+  max-width: 560px;
+  width: 100%;
+}
+
+/* ── Cím ─────────────────────────────────────────────────── */
+.stage-title {
+  margin-bottom: 24px;
+}
+
+.stage-title h1 {
+  font-size: 36px;
+  font-weight: 800;
+  color: #2b2b2b;
+  margin: 0 0 8px;
+}
+
+.stage-title__underline {
+  width: 44px;
+  height: 3px;
+  background: #ff6600;
+  border-radius: 2px;
+}
+
+/* ── Adatok kártya ───────────────────────────────────────── */
+.data-card {
+  background: #fff;
+  border-radius: 16px;
+  border: 1px solid #eee;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.07);
+  overflow: hidden;
+  margin-bottom: 24px;
+  max-width: 480px;
+}
+
+.data-card__header {
+  background: #2b2b2b;
+  color: #fff;
+  font-size: 15px;
+  font-weight: 700;
+  text-align: center;
+  padding: 14px 20px;
+  letter-spacing: 0.05em;
+}
+
+.data-card__body {
+  display: flex;
+  justify-content: space-between;
+  padding: 20px 24px 16px;
+  gap: 24px;
+}
+
+.data-section {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.data-name {
+  font-size: 15px;
+  font-weight: 700;
+  color: #2b2b2b;
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.data-address {
+  font-size: 14px;
+  color: #555;
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.data-label {
+  font-size: 14px;
+  font-weight: 600;
+  color: #555;
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.data-section--right {
+  align-items: flex-start;
+}
+
+.payment-icon {
+  font-size: 36px;
+  color: #4caf50;
+  margin-top: 4px;
+}
+
+.edit-btn {
+  background: none;
+  border: none;
+  color: #ff6600;
+  cursor: pointer;
+  font-size: 14px;
+  padding: 0;
+  transition: color 0.2s;
+}
+
+.edit-btn:hover {
+  color: #cc4400;
+}
+
+.data-notice {
+  font-size: 12px;
+  color: #888;
+  margin: 4px 0 0;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.data-notice i {
+  color: #ff6600;
+}
+
+/* ── Body: lista + összegzés ─────────────────────────────── */
+.summary-body {
+  display: flex;
+  gap: 24px;
+  align-items: flex-start;
+}
+
+/* ── Termék lista ────────────────────────────────────────── */
+.item-list-container {
+  flex: 1;
+  background: #fff;
+  border-radius: 16px;
+  border: 1px solid #eee;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.07);
+  overflow: visible;
+}
+
+.item-list-header {
+  display: grid;
+  grid-template-columns: 80px 110px 1fr 110px 110px;
+  padding: 14px 20px;
+  background: #2b2b2b;
+  border-radius: 16px 16px 0 0;
+}
+
+.item-list-header span {
+  font-size: 13px;
+  font-weight: 700;
+  color: #fff;
+  text-align: center;
+}
+
+.item-list-header span:first-child {
+  text-align: left;
+}
+.item-list-header span:nth-child(3) {
+  text-align: left;
+}
+
+.cart-row {
+  display: grid;
+  grid-template-columns: 80px 110px 1fr 110px 110px;
+  align-items: center;
+  padding: 14px 20px;
+}
+
+.row-divider {
+  border: none;
+  border-top: 1px solid #f0f0f0;
+  margin: 0 20px;
+}
+
+.cart-row__image img {
+  width: 56px;
+  height: 48px;
+  object-fit: contain;
+}
+
+.cart-row__image-placeholder {
+  width: 56px;
+  height: 48px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #ccc;
+  font-size: 22px;
+}
+
+.cart-row__brand {
+  display: flex;
+  justify-content: center;
+}
+
+.brand-logo {
+  max-width: 80px;
+  max-height: 36px;
+  object-fit: contain;
+}
+
+.brand-badge {
+  background: #f5f5f5;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  padding: 4px 10px;
+  font-size: 12px;
+  font-weight: 700;
+  color: #2b2b2b;
+}
+
+.cart-row__name {
+  font-size: 14px;
+  color: #2b2b2b;
+  font-weight: 500;
+  text-decoration: underline;
+}
+
+.cart-row__qty {
+  text-align: center;
+  font-size: 14px;
+  font-weight: 600;
+  color: #2b2b2b;
+}
+
+.cart-row__total {
+  text-align: center;
+  font-size: 14px;
+  font-weight: 600;
+  color: #2b2b2b;
+}
+
+/* ── Összegzés panel ─────────────────────────────────────── */
+.summary-panel {
+  width: 260px;
+  flex-shrink: 0;
+  background: #fff;
+  border-radius: 16px;
+  border: 1px solid #eee;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.07);
+  overflow: hidden;
+  position: sticky;
+  top: 20px;
+}
+
+.summary-panel__header {
+  background: #2b2b2b;
+  color: #fff;
+  font-size: 15px;
+  font-weight: 700;
+  text-align: center;
+  padding: 14px 20px;
+}
+
+.summary-panel__body {
+  padding: 14px 0 16px;
+}
+
+.summary-count {
+  font-size: 13px;
+  color: #555;
+  margin: 0 20px 6px;
+}
+
+.summary-items {
+  list-style: none;
+  margin: 0 20px 14px;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.summary-items li {
+  font-size: 13px;
+  color: #888;
+}
+
+.summary-row {
+  display: flex;
+  justify-content: space-between;
+  padding: 4px 20px;
+  font-size: 13px;
+  color: #555;
+}
+
+.summary-divider {
+  border: none;
+  border-top: 1px solid #eee;
+  margin: 10px 20px;
+}
+
+.summary-row--total {
+  font-size: 14px;
+  font-weight: 700;
+  color: #2b2b2b;
+}
+
+.info-icon {
+  color: #ff6600;
+  font-size: 13px;
+  margin-left: 4px;
+}
+
+/* ── Számla gomb ─────────────────────────────────────────── */
+.summary-actions {
+  display: flex;
+  justify-content: center;
+  margin-top: 28px;
+}
+
+.btn-invoice {
+  padding: 14px 32px;
+  background: #ff6600;
+  color: #fff;
+  border: none;
+  border-radius: 30px;
+  font-size: 15px;
+  font-weight: 700;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  overflow: hidden;
+  position: relative;
+  transition: background 0.3s ease;
+  min-width: 240px;
+}
+
+.btn-invoice__icon {
+  font-size: 18px;
+  position: absolute;
+  left: -30px;
+  top: 50%;
+  transform: translateY(-50%);
+  opacity: 0;
+  transition:
+    left 0.35s cubic-bezier(0.25, 0.46, 0.45, 0.94),
+    opacity 0.25s ease;
+}
+
+.btn-invoice__text {
+  transition:
+    opacity 0.2s ease,
+    transform 0.25s ease;
+}
+
+.btn-invoice:hover {
+  background: linear-gradient(to right, #ff6600 0%, #d05604 100%);
+}
+
+.btn-invoice:hover .btn-invoice__icon {
+  left: 50%;
+  transform: translate(-50%, -50%);
+  opacity: 1;
+}
+
+.btn-invoice:hover .btn-invoice__text {
+  opacity: 0;
+  transform: translateX(10px);
+}
+
+/* ── Responsive ──────────────────────────────────────────── */
+@media (max-width: 900px) {
+  .summary-body {
+    flex-direction: column;
+  }
+  .summary-panel {
+    width: 100%;
+    position: static;
+  }
+}
+
+@media (max-width: 640px) {
+  .item-list-header,
+  .cart-row {
+    grid-template-columns: 56px 80px 1fr 80px 80px;
+  }
+  .data-card {
+    max-width: 100%;
+  }
+}

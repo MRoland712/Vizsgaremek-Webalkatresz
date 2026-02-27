@@ -1,1 +1,62 @@
-<p>pay.component works!</p>
+<app-main-header></app-main-header>
+
+<div class="pay-page">
+  <!-- Progress bar -->
+  <div class="progress-wrapper">
+    <app-checkout-progress [currentStep]="'payment'"></app-checkout-progress>
+  </div>
+
+  <!-- Cím -->
+  <div class="stage-title">
+    <h1>Fizetés</h1>
+    <div class="stage-title__underline"></div>
+  </div>
+
+  <!-- Tartalom -->
+  <div class="pay-card">
+    <div class="pay-content">
+      <p class="pay-subtitle">
+        Válaszd ki a neked megfelelő <span class="pay-subtitle__accent">fizetési módot</span>
+      </p>
+
+      <!-- Fizetési módok rács -->
+      <div class="methods-grid">
+        @for (method of paymentMethods; track method.id) {
+          <div
+            class="method-card"
+            [class.method-card--active]="selectedMethod() === method.id"
+            [class.method-card--disabled]="!method.available"
+            (click)="select(method)"
+          >
+            @if (method.icon === 'img') {
+              <img [src]="method.imgSrc" [alt]="method.label" class="method-img" />
+            } @else {
+              <i class="fa-solid method-icon" [class]="method.icon"></i>
+            }
+          </div>
+        }
+      </div>
+
+      <p class="pay-notice">
+        <i class="fa-solid fa-circle-info"></i>
+        Jelenleg csak a <strong>készpénzes fizetés</strong> érhető el.
+      </p>
+
+      <!-- Gombok -->
+      <div class="pay-actions">
+        <!-- Dinamikus forward gomb -->
+        <div class="btn-wrapper" (click)="finalize()">
+          <app-payment-forward-button></app-payment-forward-button>
+        </div>
+
+        <!-- Vissza gomb -->
+        <button class="btn-back" (click)="goBack()">
+          <i class="fa-solid fa-arrow-left btn-back__arrow"></i>
+          <span class="btn-back__text">Vissza a szállításhoz</span>
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<app-footer></app-footer>

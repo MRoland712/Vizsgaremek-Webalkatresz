@@ -13,6 +13,9 @@ import { CartComponent } from '../payment/cart.component/cart.component';
 import { EcommerceDashboardComponent } from '../admin-page/ecommerce.component/ecommerce-dashboard.component';
 import { AdminLandingComponent } from '../admin-page/admin-landing.component/admin-landing.component';
 import { CheckoutProgressComponent } from '../shared/checkoutprogress.component/checkoutprogress.component';
+import { DeliveryComponent } from '../payment/delivery.component/delivery.component';
+import { PayComponent } from '../payment/pay.component/pay.component';
+import { SummaryComponent } from '../payment/summary.component/summary.component';
 
 @Component({
   selector: 'app-homepage',
@@ -31,6 +34,9 @@ import { CheckoutProgressComponent } from '../shared/checkoutprogress.component/
     EcommerceDashboardComponent,
     AdminLandingComponent,
     CheckoutProgressComponent,
+    DeliveryComponent,
+    PayComponent,
+    SummaryComponent,
   ],
   templateUrl: './homepage.component.html',
   styleUrl: './homepage.component.css',

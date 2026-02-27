@@ -1,0 +1,230 @@
+/* ── Wrapper ─────────────────────────────────────────────── */
+.pay-page {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 32px 24px 64px;
+  background: #fffafa;
+  min-height: 100vh;
+}
+
+/* ── Progress bar ────────────────────────────────────────── */
+.progress-wrapper {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 28px;
+}
+
+.progress-wrapper app-checkout-progress {
+  max-width: 560px;
+  width: 100%;
+}
+
+/* ── Cím ─────────────────────────────────────────────────── */
+.stage-title {
+  margin-bottom: 32px;
+}
+
+.stage-title h1 {
+  font-size: 36px;
+  font-weight: 800;
+  color: #2b2b2b;
+  margin: 0 0 8px;
+}
+
+.stage-title__underline {
+  width: 44px;
+  height: 3px;
+  background: #ff6600;
+  border-radius: 2px;
+}
+
+/* ── Kártya ──────────────────────────────────────────────── */
+.pay-card {
+  background: #fff;
+  border-radius: 20px;
+  border: 1px solid #eee;
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.07);
+  padding: 40px 48px;
+  max-width: 700px;
+  margin: 0 auto;
+}
+
+/* ── Tartalom ────────────────────────────────────────────── */
+.pay-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 28px;
+}
+
+.pay-subtitle {
+  font-size: 18px;
+  font-weight: 600;
+  color: #2b2b2b;
+  margin: 0;
+  text-align: center;
+}
+
+.pay-subtitle__accent {
+  color: #ff6600;
+}
+
+/* ── Fizetési módok ──────────────────────────────────────── */
+.methods-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  justify-content: center;
+}
+
+.method-card {
+  width: 160px;
+  height: 140px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  cursor: pointer;
+  border: 2px solid #e0e0e0;
+  border-radius: 12px;
+  background: #fff;
+  transition:
+    border-color 0.2s,
+    box-shadow 0.2s;
+  box-sizing: border-box;
+}
+
+/* Elérhető kártya hover */
+.method-card:not(.method-card--disabled):hover {
+  border-color: #ff6600;
+  box-shadow: 0 0 0 1px #ff6600;
+}
+
+/* Aktív */
+.method-card--active {
+  border-color: #ff6600 !important;
+  box-shadow: 0 0 0 1px #ff6600 !important;
+}
+
+/* Nem elérhető — szürke, nem kattintható */
+.method-card--disabled {
+  cursor: not-allowed;
+  background: #f8f8f8;
+}
+
+.method-card--disabled .method-img,
+.method-card--disabled .method-icon {
+  filter: grayscale(100%) opacity(0.45);
+}
+
+/* Ikon (készpénz) */
+.method-icon {
+  font-size: 48px;
+  color: #4caf50;
+}
+
+/* Kép (mastercard, visa, paypal) */
+.method-img {
+  max-width: 100px;
+  max-height: 60px;
+  object-fit: contain;
+}
+
+/* ── Értesítés ───────────────────────────────────────────── */
+.pay-notice {
+  font-size: 13px;
+  color: #888;
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  margin: 0;
+}
+
+.pay-notice i {
+  color: #ff6600;
+  font-size: 14px;
+  flex-shrink: 0;
+}
+
+.pay-notice strong {
+  color: #2b2b2b;
+}
+
+/* ── Gombok ──────────────────────────────────────────────── */
+.pay-actions {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 14px;
+  width: 100%;
+  max-width: 320px;
+}
+
+.btn-wrapper {
+  width: 100%;
+  cursor: pointer;
+}
+
+/* Vissza gomb — sötét, hover: narancs gradiens + csak nyíl */
+.btn-back {
+  width: 100%;
+  padding: 14px 28px;
+  background: #2b2b2b;
+  color: #fff;
+  border: none;
+  border-radius: 30px;
+  font-size: 15px;
+  font-weight: 700;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  overflow: hidden;
+  position: relative;
+  transition: background 0.3s ease;
+}
+
+/* Nyíl — alapból jobbról kívül */
+.btn-back__arrow {
+  position: absolute;
+  right: -30px;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 18px;
+  opacity: 0;
+  transition:
+    right 0.35s cubic-bezier(0.25, 0.46, 0.45, 0.94),
+    opacity 0.25s ease;
+}
+
+/* Szöveg */
+.btn-back__text {
+  transition:
+    opacity 0.2s ease,
+    transform 0.25s ease;
+}
+
+/* Hover: narancs gradiens, nyíl középre, szöveg eltűnik */
+.btn-back:hover {
+  background: linear-gradient(to right, #ff6600 0%, #d05604 100%);
+}
+
+.btn-back:hover .btn-back__arrow {
+  right: 50%;
+  transform: translate(50%, -50%);
+  opacity: 1;
+}
+
+.btn-back:hover .btn-back__text {
+  opacity: 0;
+  transform: translateX(-10px);
+}
+
+/* ── Responsive ──────────────────────────────────────────── */
+@media (max-width: 480px) {
+  .methods-grid {
+    grid-template-columns: repeat(2, 130px);
+    grid-template-rows: repeat(2, 120px);
+  }
+}
