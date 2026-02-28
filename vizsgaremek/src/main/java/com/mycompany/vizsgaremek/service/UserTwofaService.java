@@ -29,6 +29,11 @@ public class UserTwofaService {
             errors.put("MissingEmail");
         }
 
+        //error check if datas given are missing or invalid
+        if (errorAuth.hasErrors(errors)) {
+            return errorAuth.createErrorResponse(errors, 400);
+        }
+
         if (!userTwofaAuth.isValidEmail(email) && !userTwofaAuth.isDataMissing(email)) {
             errors.put("InvalidEmail");
         }
@@ -49,39 +54,93 @@ public class UserTwofaService {
             return errorAuth.createErrorResponse(errors, 404);
         }
 
-        Integer userId = user.getId();
+        //System.out.println("UserTwofa.getUserTwofaByUserId(user.getId())" + UserTwofa.getUserTwofaByUserId(user.getId()).getId());
+        UserTwofa userTwofaData = UserTwofa.getUserTwofaByUserId(user.getId());
+        Boolean canCreateUserTwoFa = true;
 
-        String secretKey = TFA.generateSecretKey();
-
-        StringBuilder recoveryCodes = new StringBuilder();
-
-        //6 pseudorandom recoveryCodes
-        for (int i = 0; i < 6; i++) {
-            recoveryCodes.append(UUID.randomUUID()).append(";");
-        }
-
-        Boolean modelResponse = UserTwofa.createUserTwofa(userId, false, secretKey, recoveryCodes.toString());
-
-        if (!modelResponse) {
-            errors.put("modelError");
-        }
-
-        //error check if modelError
+        //error check if user has active TFA
         if (errorAuth.hasErrors(errors)) {
-            return errorAuth.createErrorResponse(errors, 404);
+            return errorAuth.createErrorResponse(errors, 409);
         }
 
-        ArrayList<String> list = new ArrayList<>();
+        if (userTwofaData == null) {
+            Integer userId = user.getId();
 
-        String[] parts = recoveryCodes.toString().split(";");
+            String secretKey = TFA.generateSecretKey();
 
-        Collections.addAll(list, parts);
+            StringBuilder recoveryCodes = new StringBuilder();
 
-        toReturn.put("secretKey", secretKey);
-        toReturn.put("recoveryCodes", list);
-        toReturn.put("QR", TFA.generateQRUrl(secretKey, email));
+            //6 pseudorandom recoveryCodes
+            for (int i = 0; i < 6; i++) {
+                recoveryCodes.append(UUID.randomUUID()).append(";");
+            }
 
-        return errorAuth.createOKResponse(toReturn);
+            Boolean modelResponse = UserTwofa.createUserTwofa(userId, false, secretKey, recoveryCodes.toString());
+
+            if (!modelResponse) {
+                errors.put("modelError");
+            }
+
+            //error check if modelError
+            if (errorAuth.hasErrors(errors)) {
+                return errorAuth.createErrorResponse(errors, 404);
+            }
+
+            ArrayList<String> list = new ArrayList<>();
+
+            String[] parts = recoveryCodes.toString().split(";");
+
+            Collections.addAll(list, parts);
+
+            toReturn.put("secretKey", secretKey);
+            toReturn.put("recoveryCodes", list);
+            toReturn.put("QR", TFA.generateQRUrl(secretKey, email));
+
+            return errorAuth.createOKResponse(toReturn);
+        } else {
+            Integer userId = user.getId();
+
+            String secretKey = TFA.generateSecretKey();
+
+            StringBuilder recoveryCodes = new StringBuilder();
+
+            //6 pseudorandom recoveryCodes
+            for (int i = 0; i < 6; i++) {
+                recoveryCodes.append(UUID.randomUUID()).append(";");
+            }
+
+            UserTwofa updatedData = new UserTwofa();
+
+            updatedData.setId(userTwofaData.getId());
+            updatedData.setTwofaSecret(secretKey);
+            updatedData.setRecoveryCodes(recoveryCodes.toString());
+            updatedData.setIsDeleted(false);
+            updatedData.setTwofaEnabled(false);
+
+            Boolean modelResponse = UserTwofa.updateUserTwofa(updatedData);
+
+            if (!modelResponse) {
+                errors.put("modelError");
+            }
+
+            //error check if modelError
+            if (errorAuth.hasErrors(errors)) {
+                return errorAuth.createErrorResponse(errors, 404);
+            }
+
+            ArrayList<String> list = new ArrayList<>();
+
+            String[] parts = recoveryCodes.toString().split(";");
+
+            Collections.addAll(list, parts);
+
+            toReturn.put("secretKey", secretKey);
+            toReturn.put("recoveryCodes", list);
+            toReturn.put("QR", TFA.generateQRUrl(secretKey, email));
+            toReturn.put("message", "Updated user's TFA");
+
+            return errorAuth.createOKResponse(toReturn);
+        }
     }
 
     public static JSONObject getUserTwofaByUserIdService(Integer userId) {
