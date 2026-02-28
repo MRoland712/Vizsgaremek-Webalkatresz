@@ -1,43 +1,67 @@
 <div class="mmt-dropdown-wrapper">
-  <form [formGroup]="mmtForm">
-    <div class="mmt-dropdowns">
-      <div class="brand-dropdown">
-        <!--Márka választó-->
-        <label for="brand" class="dropdown-label"></label>
-        <select name="" id="brand" class="dropdown-select" formControlName="brand">
-          <option value="" disabled selected>Válassz márkát</option>
-          @for (brand of brands; track brand.id) {
-          <option [value]="brand.id">{{ brand.name }}</option>
-          }
-        </select>
-        <i class="fa-solid fa-chevron-down dropdown-icon"></i>
-      </div>
-      <!--Model választó-->
-      <div class="model-dropdown">
-        <label for="model" class="dropdown-label"></label>
-        <select id="model" class="dropdown-select" formControlName="model">
-          <option value="" disabled selected>
-            {{ mmtForm.get('brand')?.value ? 'Válassz modellt' : 'Először válassz márkát' }}
-          </option>
-          @for (model of filteredModels(); track model.id) {
-          <option [value]="model.id">{{ model.name }}</option>
-          }
-        </select>
-        <i class="fa-solid fa-chevron-down dropdown-icon"></i>
-      </div>
-      <!--Évjárat választó-->
-      <div class="year-dropdown">
-        <label for="year" class="dropdown-label"></label>
-        <select id="year" class="dropdown-select" formControlName="year">
-          <option value="" disabled selected>
-            {{ mmtForm.get('model')?.value ? 'Válassz évjáratot' : 'Először válassz modellt' }}
-          </option>
-          @for (year of filteredYears(); track year) {
-          <option [value]="year">{{ year }}</option>
-          }
-        </select>
-        <i class="fa-solid fa-chevron-down dropdown-icon"></i>
-      </div>
+  @if (isLoading()) {
+    <div class="mmt-loading">
+      <i class="fa-solid fa-spinner fa-spin"></i>
+      <span>Autók betöltése...</span>
     </div>
-  </form>
+  } @else if (loadError()) {
+    <div class="mmt-error">
+      <i class="fa-solid fa-triangle-exclamation"></i>
+      <span>Nem sikerült betölteni az autókat</span>
+    </div>
+  } @else {
+    <form [formGroup]="mmtForm">
+      <div class="mmt-dropdowns">
+        <!-- MÁRKA -->
+        <div class="brand-dropdown">
+          <label for="brand" class="dropdown-label"></label>
+          <select id="brand" class="dropdown-select" formControlName="brand">
+            <option value="" disabled selected>Válassz márkát</option>
+            @for (brand of brands(); track brand.id) {
+              <option [value]="brand.id">{{ brand.name }}</option>
+            }
+          </select>
+          <i class="fa-solid fa-chevron-down dropdown-icon"></i>
+        </div>
+
+        <!-- MODELL -->
+        <div class="model-dropdown">
+          <label for="model" class="dropdown-label"></label>
+          <select
+            id="model"
+            class="dropdown-select"
+            formControlName="model"
+            [disabled]="!mmtForm.get('brand')?.value"
+          >
+            <option value="" disabled selected>
+              {{ mmtForm.get('brand')?.value ? 'Válassz modellt' : 'Először válassz márkát' }}
+            </option>
+            @for (model of filteredModels(); track model.id) {
+              <option [value]="model.id">{{ model.name }}</option>
+            }
+          </select>
+          <i class="fa-solid fa-chevron-down dropdown-icon"></i>
+        </div>
+
+        <!-- ÉVJÁRAT -->
+        <div class="year-dropdown">
+          <label for="year" class="dropdown-label"></label>
+          <select
+            id="year"
+            class="dropdown-select"
+            formControlName="year"
+            [disabled]="!mmtForm.get('model')?.value"
+          >
+            <option value="" disabled selected>
+              {{ mmtForm.get('model')?.value ? 'Válassz évjáratot' : 'Először válassz modellt' }}
+            </option>
+            @for (year of filteredYears(); track year) {
+              <option [value]="year">{{ year }}</option>
+            }
+          </select>
+          <i class="fa-solid fa-chevron-down dropdown-icon"></i>
+        </div>
+      </div>
+    </form>
+  }
 </div>

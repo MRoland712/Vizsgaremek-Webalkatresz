@@ -1,81 +1,34 @@
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { inject, Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
+import { TFARequest, TFAResponse, TFAValidationResponse } from '../models/TFA.model';
 
-export interface TFARequest {
-  email: string;
-}
-
-export interface TFAResponseModel {
-  QR: string;
-  secretKey: string;
-  recoveryCodes: string[];
-}
-
-export interface TFAResponse {
-  result: TFAResponseModel; // ✅ objektum, nem tömb
-  status: string;
-  statusCode: number;
-}
-
-export interface TFAValidationRequest {
-  code: string;
-  email: string;
-}
-
-export interface TFAValidationResponse {
-  result: string;
-  statusCode: number;
-  status: string;
-}
-
-@Injectable({
-  providedIn: 'root',
-})
+@Injectable({ providedIn: 'root' })
 export class TfaService {
   private http = inject(HttpClient);
-  // ✅ CORS proxy - ugyanaz mint a login service-ben
   private readonly baseUrl = 'https://api.carcomps.hu/vizsgaremek-1.0-SNAPSHOT/webresources/';
 
-  // ⭐ token header - ugyanaz mint Postman-ben
   private getHeaders(): { headers: HttpHeaders } {
-    const token = localStorage.getItem('jwt');
-    return {
-      headers: new HttpHeaders({
-        'Content-Type': 'application/json',
-        token: token ?? '',
-      }),
-    };
+    const token = localStorage.getItem('jwt') ?? '';
+    return { headers: new HttpHeaders({ 'Content-Type': 'application/json', token }) };
   }
 
-  // ⭐ validateTFACode-hoz text/plain kell (Postman szerint)
-  private getVerifyHeaders(): { headers: HttpHeaders } {
-    const token = localStorage.getItem('jwt');
-    return {
-      headers: new HttpHeaders({
-        'Content-Type': 'application/json',
-        token: token ?? '',
-      }),
-    };
+  // POST TFA/generateQR  — QR kód generálása
+  CreateUserTfa(body: TFARequest): Observable<TFAResponse> {
+    return this.http.post<TFAResponse>(`${this.baseUrl}TFA/generateQR`, body, this.getHeaders());
   }
 
-  CreateUserTfa(email: TFARequest): Observable<TFAResponse> {
-    return this.http.post<TFAResponse>(
-      `${this.baseUrl}UserTwofa/createUserTwofa`,
-      email,
-      this.getHeaders(),
-    );
-  }
-
+  // POST TFA/validateTFACode  — kód ellenőrzése
+  // Response: { result: "valid" | "invalid", statusCode: 200, status: "success" }
   verifyTfaCode(email: string, code: string): Observable<TFAValidationResponse> {
     return this.http.post<TFAValidationResponse>(
       `${this.baseUrl}TFA/validateTFACode`,
       { email, code },
-      this.getVerifyHeaders(), // ⭐ text/plain
+      this.getHeaders(),
     );
   }
 
   disableTfa(email: string): Observable<any> {
-    return this.http.post(`${this.baseUrl}UserTwofa/disable`, { email }, this.getHeaders());
+    return this.http.post(`${this.baseUrl}TFA/disable`, { email }, this.getHeaders());
   }
 }

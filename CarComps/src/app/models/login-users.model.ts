@@ -5,13 +5,14 @@ export interface LoginRequest {
 
 export interface LoginResponse {
   result: {
-    firstName: string;
-    lastName: string;
-    role: string;
-    phone: string;
-    message?: string;
     JWTToken?: string;
-    username: string;
+    Message?: string;
+    userId?: number;
+    username?: string;
+    firstName?: string;
+    lastName?: string;
+    phone?: string;
+    role?: string;
   };
   status: string;
   statusCode: number;
@@ -23,23 +24,42 @@ export interface User {
   username: string;
 }
 
-export interface GetUserByIdResponse {}
+export interface GetUserByIdResponse {
+  result: {
+    id: number;
+    email: string;
+    username: string;
+    firstName: string;
+    lastName: string;
+    phone: string;
+    role: string;
+    isActive: boolean;
+    isDeleted: boolean;
+    isSubscribed: boolean;
+    createdAt: string;
+    lastLogin: string;
+    guid: string;
+    registrationToken: string;
+    authSecret: string;
+  };
+  status: string;
+  statusCode: number;
+}
 
 export interface GetAddressByIdResponse {
-  errors: string[];
   address: {
+    id: number;
+    userId: number;
+    firstName: string;
     lastName: string;
     country: string;
     zipCode: string;
     city: string;
-    taxNumber: string;
-    userId: number;
-    firstName: string;
-    createdAt: string;
-    isDefault: boolean;
     street: string;
+    taxNumber: string;
     company: string;
-    id: number;
+    isDefault: boolean;
+    createdAt: string;
     updatedAt: string;
   };
   success: boolean;

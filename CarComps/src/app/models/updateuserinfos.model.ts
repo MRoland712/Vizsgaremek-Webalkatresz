@@ -1,26 +1,42 @@
 export interface UpdateUserInfosRequest {
-  firstName: string;
-  lastName: string;
-  email: string;
-  username: string;
-  phone: string;
-  isActive: boolean;
-  isSubscribed: boolean;
-  password: string;
-  authSecret: string; //nem kell, csak a backend miatt van benne
-  registrationToken: string; //nem kell, csak a backend miatt van benne
+  firstName?: string;
+  lastName?: string;
+  username?: string;
+  email?: string;
+  phone?: string;
+  password?: string;
+  currentPassword?: string;
+  newPassword?: string;
 }
+
 export interface UpdateUserInfosResponse {
-  errors: string[];
   status: string;
   statusCode: number;
 }
 
 export interface UpdateAddressInfosRequest {
+  firstName?: string;
+  lastName?: string;
+  country?: string;
+  city?: string;
+  zipCode?: string;
+  street?: string;
+  taxNumber?: string;
+  company?: string;
+}
+
+export interface UpdateAddressInfosResponse {
+  success: boolean;
+  message: string;
+  statusCode: number;
+}
+
+export interface CreateAddressRequest {
+  userId: number;
   firstName: string;
   lastName: string;
-  company: string;
-  taxNumber: string;
+  company?: string;
+  taxNumber?: string;
   country: string;
   city: string;
   zipCode: string;
@@ -28,8 +44,7 @@ export interface UpdateAddressInfosRequest {
   isDefault: boolean;
 }
 
-export interface UpdateAddressInfosResponse {
-  errors: string[];
+export interface CreateAddressResponse {
   success: boolean;
   message: string;
   statusCode: number;

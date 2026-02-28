@@ -1,5 +1,5 @@
 <div class="profile-info-selector-box">
-  @for (item of [ProfileDatas]; track $index) {
+  @for (item of [ProfileDatas()]; track $index) {
     <div class="info-row" (click)="openDialog('fullname')">
       <i class="fa-solid fa-address-book info-icon"></i>
       <h3>Teljes név</h3>
@@ -42,7 +42,6 @@
       <p>Cím kezelése</p>
     </div>
 
-    <!-- ⭐ 2FA CARD - zöld ha aktív -->
     <div class="info-row" [class.tfa-active-row]="isTfaActive()" (click)="openDialog('2fa')">
       <i
         class="fa-solid info-icon"
@@ -139,7 +138,7 @@
           </div>
         }
 
-        <!-- ⭐ 2FA DIALOG -->
+        <!-- 2FA DIALOG -->
         @if (currentEditField() === '2fa') {
           @if (isLoadingTFA()) {
             <div class="loading-state">
@@ -154,22 +153,12 @@
             <button class="btn-tfa-full" type="button" (click)="initiate2FA()">
               <i class="fa-solid fa-rotate"></i> Újrapróbálás
             </button>
-          }
-
-          <!-- STEP 1: QR KÉP -->
-          @else if (tfaStep() === 'qr' && tfaData()) {
+          } @else if (tfaStep() === 'qr' && tfaData()) {
             <div class="tfa-step">
-              <p class="tfa-description">
-                Szkenneld be a QR kódot egy hitelesítő alkalmazással (Google Authenticator, Authy,
-                Microsoft Authenticator).
-              </p>
-
-              <!-- ⭐ IGAZI QR KÉP -->
+              <p class="tfa-description">Szkenneld be a QR kódot egy hitelesítő alkalmazással.</p>
               <div class="qr-image-container">
                 <img [src]="tfaData()!.result.QR" alt="2FA QR Code" class="qr-real-image" />
               </div>
-
-              <!-- Secret Key -->
               <div class="secret-key-section">
                 <div class="secret-key-header">
                   <span>Nem tudod beolvasni?</span>
@@ -182,7 +171,6 @@
                     {{ showSecretKey() ? 'Elrejt' : 'Titkos kulcs' }}
                   </button>
                 </div>
-
                 @if (showSecretKey()) {
                   <div class="secret-key-display">
                     <code>{{ tfaData()!.result.secretKey }}</code>
@@ -196,19 +184,13 @@
                   </div>
                 }
               </div>
-
               <button class="btn-tfa-full" type="button" (click)="tfaStep.set('verify')">
-                <i class="fa-solid fa-arrow-right"></i>
-                Tovább az ellenőrzéshez
+                <i class="fa-solid fa-arrow-right"></i> Tovább az ellenőrzéshez
               </button>
             </div>
-          }
-
-          <!-- STEP 2: VERIFY -->
-          @else if (tfaStep() === 'verify') {
+          } @else if (tfaStep() === 'verify') {
             <div class="tfa-step">
               <p class="tfa-description">Add meg az alkalmazásban megjelenő 6 számjegyű kódot.</p>
-
               <div class="form-group">
                 <label>Ellenőrző kód</label>
                 <input
@@ -220,14 +202,12 @@
                   (input)="onVerificationInput($event)"
                 />
               </div>
-
               @if (verificationError()) {
                 <div class="error-message">
                   <i class="fa-solid fa-xmark"></i>
                   <p>{{ verificationError() }}</p>
                 </div>
               }
-
               <div class="tfa-btn-row">
                 <button type="button" class="btn-tfa-back" (click)="tfaStep.set('qr')">
                   <i class="fa-solid fa-arrow-left"></i> Vissza
@@ -246,16 +226,12 @@
                 </button>
               </div>
             </div>
-          }
-
-          <!-- STEP 3: RECOVERY CODES -->
-          @else if (tfaStep() === 'recovery') {
+          } @else if (tfaStep() === 'recovery') {
             <div class="tfa-step">
               <div class="tfa-success-header">
                 <i class="fa-solid fa-circle-check"></i>
                 <h3>2FA sikeresen beállítva!</h3>
               </div>
-
               <div class="warning-box">
                 <i class="fa-solid fa-triangle-exclamation"></i>
                 <div>
@@ -263,7 +239,6 @@
                   <p>Mentsd el ezeket a helyreállítási kódokat biztonságos helyre.</p>
                 </div>
               </div>
-
               <div class="recovery-codes-container">
                 <h4>Helyreállítási kódok:</h4>
                 <div class="recovery-codes-grid">
@@ -275,7 +250,6 @@
                   }
                 </div>
               </div>
-
               <div class="tfa-btn-row">
                 <button type="button" class="btn-tfa-back" (click)="downloadRecoveryCodes()">
                   <i class="fa-solid fa-download"></i> Letöltés
@@ -284,7 +258,6 @@
                   <i class="fa-solid fa-copy"></i> Másolás
                 </button>
               </div>
-
               <button type="button" class="btn-tfa-full" (click)="finish2FASetup()">
                 <i class="fa-solid fa-check-double"></i> Befejezés
               </button>
@@ -299,42 +272,40 @@
               <i class="fa-solid fa-spinner fa-spin"></i>
               <p>Rendelések betöltése...</p>
             </div>
+          } @else if (orders().length === 0) {
+            <div class="empty-state">
+              <i class="fa-solid fa-box-open"></i>
+              <p>Még nincs rendelésed</p>
+            </div>
           } @else {
-            @if (orders().length === 0) {
-              <div class="empty-state">
-                <i class="fa-solid fa-box-open"></i>
-                <p>Még nincs rendelésed</p>
-              </div>
-            } @else {
-              <div class="orders-list">
-                @for (order of orders(); track order.id) {
-                  <div class="order-card">
-                    <div class="order-header">
-                      <div class="order-id">
-                        <strong>Rendelés #{{ order.id }}</strong>
-                        <span class="order-date">{{ order.orderDate }}</span>
-                      </div>
-                      <span [class]="getOrderStatusClass(order.status)" class="order-status">
-                        {{ order.status }}
-                      </span>
+            <div class="orders-list">
+              @for (order of orders(); track order.id) {
+                <div class="order-card">
+                  <div class="order-header">
+                    <div class="order-id">
+                      <strong>Rendelés #{{ order.id }}</strong>
+                      <span class="order-date">{{ order.orderDate }}</span>
                     </div>
-                    <div class="order-items">
-                      @for (item of order.items; track $index) {
-                        <div class="order-item">
-                          <span class="item-name">{{ item.productName }}</span>
-                          <span class="item-quantity">{{ item.quantity }} db</span>
-                          <span class="item-price">{{ item.price }} HUF</span>
-                        </div>
-                      }
-                    </div>
-                    <div class="order-total">
-                      <strong>Végösszeg:</strong>
-                      <strong>{{ order.totalPrice }} HUF</strong>
-                    </div>
+                    <span [class]="getOrderStatusClass(order.status)" class="order-status">
+                      {{ order.status }}
+                    </span>
                   </div>
-                }
-              </div>
-            }
+                  <div class="order-items">
+                    @for (item of order.items; track $index) {
+                      <div class="order-item">
+                        <span class="item-name">{{ item.productName }}</span>
+                        <span class="item-quantity">{{ item.quantity }} db</span>
+                        <span class="item-price">{{ item.price }} HUF</span>
+                      </div>
+                    }
+                  </div>
+                  <div class="order-total">
+                    <strong>Végösszeg:</strong>
+                    <strong>{{ order.totalPrice }} HUF</strong>
+                  </div>
+                </div>
+              }
+            </div>
           }
         }
 
@@ -357,16 +328,10 @@
           <div class="form-group">
             <label>Telefonszám</label>
             <input type="tel" formControlName="phone" placeholder="+36 30 123 4567" />
-            @if (editForm.controls.phone.invalid && editForm.controls.phone.touched) {
-              <span class="error">9-15 számjegy szükséges</span>
-            }
           </div>
           <div class="form-group">
             <label>Adószám</label>
             <input type="text" formControlName="taxnumber" placeholder="Adószám" />
-            @if (editForm.controls.taxnumber.invalid && editForm.controls.taxnumber.touched) {
-              <span class="error">Kötelező mező</span>
-            }
           </div>
           <div class="form-group">
             <label>Ország</label>
@@ -402,9 +367,6 @@
             <div class="form-group">
               <label>Házszám</label>
               <input type="text" formControlName="houseNumber" placeholder="12" />
-              @if (editForm.controls.houseNumber.invalid && editForm.controls.houseNumber.touched) {
-                <span class="error">Kötelező mező</span>
-              }
             </div>
           </div>
         }

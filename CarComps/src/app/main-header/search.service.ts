@@ -15,7 +15,8 @@ export interface SearchResult {
 })
 export class SearchService {
   // TODO: Cseréld le az API endpoint-odra
-  private apiUrl = 'http://api.carcomps.hu/vizsgaremek-1.0-SNAPSHOT/webresources/parts/getAllParts';
+  private apiUrl =
+    'https://api.carcomps.hu/vizsgaremek-1.0-SNAPSHOT/webresources/parts/getAllParts';
 
   constructor(private http: HttpClient) {}
 

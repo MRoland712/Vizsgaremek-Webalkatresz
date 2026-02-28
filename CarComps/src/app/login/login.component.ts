@@ -3,7 +3,6 @@ import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { debounceTime } from 'rxjs';
 import { HttpErrorResponse } from '@angular/common/http';
-
 import { AuthService } from '../services/auth.service';
 import { OtpComponent } from '../verifications/otp.component/otp.component';
 import { LoginService } from '../services/login.service';
@@ -27,7 +26,6 @@ export class LoginComponent implements OnInit {
   private destroyRef = inject(DestroyRef);
   private router = inject(Router);
   private authService = inject(AuthService);
-
   fb = inject(FormBuilder);
   loginService = inject(LoginService);
 
@@ -44,15 +42,15 @@ export class LoginComponent implements OnInit {
       this.loginForm.markAllAsTouched();
       return;
     }
-
     this.loginFailed.set(false);
     const { email, password } = this.loginForm.value;
 
     this.loginService.login({ email: email!, password: password! }).subscribe({
       next: (res) => {
+        // ── Alap adatok mentése ─────────────────────────────
         localStorage.setItem('jwt', res.result.JWTToken!);
         localStorage.setItem('userEmail', email!);
-        localStorage.setItem('userName', res.result.username || email!);
+        localStorage.setItem('userName', res.result.username || '');
         localStorage.setItem('firstName', res.result.firstName || '');
         localStorage.setItem('lastName', res.result.lastName || '');
         localStorage.setItem('phone', res.result.phone || '');
@@ -67,14 +65,33 @@ export class LoginComponent implements OnInit {
           res.result.role,
         );
 
-        console.log('👑 isAdmin:', this.authService.isAdmin());
-        setTimeout(() => this.otpDialog.open(email!), 100);
+        // ── userId mentése a login response-ból ──
+        if (res.result.userId && res.result.userId > 0) {
+          localStorage.setItem('userId', String(res.result.userId));
+          this.authService.setLoggedIn(
+            email,
+            res.result.username,
+            res.result.firstName,
+            res.result.lastName,
+            res.result.phone,
+            res.result.role,
+            res.result.userId,
+          );
+        }
+
+        this.proceedToOtp(email!);
       },
       error: (err: HttpErrorResponse) => {
         console.error('❌ Login hiba:', err);
         this.loginFailed.set(true);
       },
     });
+  }
+
+  private proceedToOtp(email: string) {
+    console.log('👑 isAdmin:', this.authService.isAdmin());
+    console.log('🪪 userId:', localStorage.getItem('userId'));
+    setTimeout(() => this.otpDialog.open(email), 100);
   }
 
   onOTPVerified() {
@@ -113,6 +130,7 @@ export class LoginComponent implements OnInit {
       this.loginForm.controls.email.invalid
     );
   }
+
   get passwordIsInvalid() {
     return (
       this.loginForm.controls.password.touched &&

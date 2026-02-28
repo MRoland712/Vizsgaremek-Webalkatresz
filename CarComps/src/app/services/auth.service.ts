@@ -9,6 +9,7 @@ export class AuthService {
   JWTValidatorService = inject(JWTValidateService);
 
   private _isLoggedIn = signal(false);
+  private _userId = signal<number>(0); // ⭐ ÚJ
   private _userEmail = signal('');
   private _userName = signal('');
   private _lastName = signal('');
@@ -17,6 +18,7 @@ export class AuthService {
   private _isAdmin = signal(false);
 
   isLoggedIn = this._isLoggedIn.asReadonly();
+  userId = this._userId.asReadonly(); // ⭐ ÚJ
   userEmail = this._userEmail.asReadonly();
   userName = this._userName.asReadonly();
   userFirstName = this._firstName.asReadonly();
@@ -31,8 +33,6 @@ export class AuthService {
   private setAdmin(role: string | null | undefined): void {
     const admin = role === 'admin' || role === 'ADMIN';
     this._isAdmin.set(admin);
-    console.log('🔑 role:', role, '→ isAdmin:', admin);
-    // ⭐ Üres stringet NEM mentjük — csak valódi értéket
     if (role && role !== '') localStorage.setItem('userRole', role);
   }
 
@@ -45,6 +45,7 @@ export class AuthService {
     const phone = localStorage.getItem('phone');
     const isUserData = localStorage.getItem('isUserData');
     const savedRole = localStorage.getItem('userRole');
+    const userId = localStorage.getItem('userId'); // ⭐ ÚJ
 
     this._isLoggedIn.set(!!(token || isUserData === 'true'));
     this.setAdmin(savedRole);
@@ -54,25 +55,11 @@ export class AuthService {
     if (firstName) this._firstName.set(firstName);
     if (lastName) this._lastName.set(lastName);
     if (phone) this._phone.set(phone);
+    if (userId) this._userId.set(Number(userId)); // ⭐ ÚJ
   }
 
   refreshUserData() {
-    const token = localStorage.getItem('jwt');
-    const email = localStorage.getItem('userEmail');
-    const name = localStorage.getItem('userName');
-    const firstName = localStorage.getItem('firstName');
-    const lastName = localStorage.getItem('lastName');
-    const phone = localStorage.getItem('phone');
-    const isUserData = localStorage.getItem('isUserData');
-    const savedRole = localStorage.getItem('userRole');
-
-    if (token || isUserData === 'true') this._isLoggedIn.set(true);
-    this.setAdmin(savedRole);
-    if (email) this._userEmail.set(email);
-    if (name) this._userName.set(name);
-    if (firstName) this._firstName.set(firstName);
-    if (lastName) this._lastName.set(lastName);
-    if (phone) this._phone.set(phone);
+    this.checkLoginStatus();
   }
 
   ValidateToken(): void {
@@ -102,6 +89,7 @@ export class AuthService {
     lastName?: string,
     phone?: string,
     role?: string,
+    userId?: number, // ⭐ ÚJ
   ) {
     this._isLoggedIn.set(true);
     this.setAdmin(role);
@@ -126,22 +114,56 @@ export class AuthService {
       this._phone.set(phone);
       localStorage.setItem('phone', phone);
     }
+    if (userId && userId > 0) {
+      // ⭐ ÚJ
+      this._userId.set(userId);
+      localStorage.setItem('userId', String(userId));
+    }
 
     localStorage.setItem('isUserData', 'true');
   }
 
-  logout(navigate: boolean = true) {
-    localStorage.removeItem('jwt');
-    localStorage.removeItem('saved-login-form');
-    localStorage.removeItem('userEmail');
-    localStorage.removeItem('userName');
-    localStorage.removeItem('isUserData');
-    localStorage.removeItem('firstName');
-    localStorage.removeItem('lastName');
-    localStorage.removeItem('phone');
-    localStorage.removeItem('userRole');
+  // ⭐ ÚJ — profil betöltés után hívjuk (getUserById response alapján)
+  setUserProfile(profile: {
+    id: number;
+    firstName: string;
+    lastName: string;
+    username: string;
+    email: string;
+    phone: string;
+    role?: string;
+  }) {
+    this._userId.set(profile.id);
+    this._firstName.set(profile.firstName);
+    this._lastName.set(profile.lastName);
+    this._userName.set(profile.username);
+    this._userEmail.set(profile.email);
+    this._phone.set(profile.phone);
+    if (profile.role) this.setAdmin(profile.role);
 
+    localStorage.setItem('userId', String(profile.id));
+    localStorage.setItem('firstName', profile.firstName);
+    localStorage.setItem('lastName', profile.lastName);
+    localStorage.setItem('userName', profile.username);
+    localStorage.setItem('userEmail', profile.email);
+    localStorage.setItem('phone', profile.phone);
+  }
+
+  logout(navigate: boolean = true) {
+    [
+      'jwt',
+      'saved-login-form',
+      'userEmail',
+      'userName',
+      'isUserData',
+      'firstName',
+      'lastName',
+      'phone',
+      'userRole',
+      'userId',
+    ].forEach((k) => localStorage.removeItem(k));
     this._isLoggedIn.set(false);
+    this._userId.set(0);
     this._userEmail.set('');
     this._userName.set('');
     this._firstName.set('');

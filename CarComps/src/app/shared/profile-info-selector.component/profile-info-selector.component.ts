@@ -1,11 +1,15 @@
-import { Component, inject, signal } from '@angular/core';
+import { Component, inject, signal, OnInit } from '@angular/core';
+import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
-import { HttpClient } from '@angular/common/http';
-import { AuthService } from '../../services/auth.service';
 import { CommonModule } from '@angular/common';
+import { AuthService } from '../../services/auth.service';
 import { TfaService } from '../../services/tfa.service';
 import { TFAResponse } from '../../models/TFA.model';
-
+import { GetUserByIdService } from '../../services/getuserbyid.service';
+import { GetAddressByIdService } from '../../services/getaddresbyid.service';
+import { UpdateUserInfosService } from '../../services/updateuserinfos.service';
+import { UpdateAddressInfosService } from '../../services/updateaddressinfos.service';
+import { CreateAddressService } from '../../services/createaddress.service';
 type EditField =
   | 'fullname'
   | 'username'
@@ -24,7 +28,6 @@ interface Order {
   status: string;
   items: OrderItem[];
 }
-
 interface OrderItem {
   productName: string;
   quantity: number;
@@ -38,24 +41,35 @@ interface OrderItem {
   templateUrl: './profile-info-selector.component.html',
   styleUrl: './profile-info-selector.component.css',
 })
-export class ProfileInfoSelectorComponent {
-  isTfaActive = signal(false);
-  private authService = inject(AuthService);
+export class ProfileInfoSelectorComponent implements OnInit {
+  private auth = inject(AuthService);
   private fb = inject(FormBuilder);
   private http = inject(HttpClient);
-  private TFAService = inject(TfaService);
-  private readonly baseUrl = 'http://api.carcomps.hu/vizsgaremek-1.0-SNAPSHOT/webresources/';
+  private tfaService = inject(TfaService);
+  private getUserByIdSvc = inject(GetUserByIdService);
+  private getAddressByIdSvc = inject(GetAddressByIdService);
+  private updateUserSvc = inject(UpdateUserInfosService);
+  private updateAddressSvc = inject(UpdateAddressInfosService);
+  private createAddressSvc = inject(CreateAddressService);
+  private readonly baseUrl = 'https://api.carcomps.hu/vizsgaremek-1.0-SNAPSHOT/webresources/';
 
-  ProfileDatas = {
-    firstname: this.authService.userFirstName(),
-    lastname: this.authService.userLastName(),
-    username: this.authService.userName(),
-    email: this.authService.userEmail(),
-    password: '********',
-    phone: this.authService.userPhone(),
-  };
+  // ── Fő profil adatok ─────────────────────────────────────
+  ProfileDatas = signal({
+    id: 0,
+    firstname: '',
+    lastname: '',
+    username: '',
+    email: '',
+    phone: '',
+  });
 
-  // 2FA State
+  // A cím id-ja — updatehoz kell (nem a userId, hanem az address.id!)
+  addressId = signal<number>(0);
+
+  isTfaActive = signal(false);
+  isLoadingUser = signal(false);
+
+  // 2FA
   tfaData = signal<TFAResponse | null>(null);
   tfaStep = signal<'qr' | 'verify' | 'recovery'>('qr');
   isLoadingTFA = signal(false);
@@ -69,20 +83,7 @@ export class ProfileInfoSelectorComponent {
   orders = signal<Order[]>([]);
   isLoadingOrders = signal(false);
 
-  // Szállítási cím
-  shippingAddress = signal({
-    country: '',
-    city: '',
-    postalCode: '',
-    street: '',
-    houseNumber: '',
-    taxnumber: '',
-    lastname: '',
-    firstname: '',
-    phone: '',
-  });
-
-  // Dialog state
+  // Dialog
   isDialogOpen = signal(false);
   currentEditField = signal<EditField>(null);
   isSaving = signal(false);
@@ -97,43 +98,144 @@ export class ProfileInfoSelectorComponent {
     currentPassword: [''],
     newPassword: ['', [Validators.minLength(8)]],
     confirmPassword: [''],
-    phone: ['', [Validators.pattern(/^[0-9]{9,15}$/)]],
-    country: ['', [Validators.required]],
-    city: ['', [Validators.required]],
+    phone: ['', [Validators.pattern(/^[+0-9]{9,15}$/)]],
+    country: ['', Validators.required],
+    city: ['', Validators.required],
     postalCode: ['', [Validators.required, Validators.pattern(/^[0-9]{4}$/)]],
-    street: ['', [Validators.required]],
-    houseNumber: ['', [Validators.required]],
-    taxnumber: ['', [Validators.required]],
+    street: ['', Validators.required],
+    houseNumber: [''],
+    taxnumber: [''],
   });
 
+  // ── ngOnInit: getUserById → ProfileDatas feltöltés ───────
+  ngOnInit() {
+    // ⭐ TFA állapot visszaállítása localStorage-ból
+    if (localStorage.getItem('tfaActive') === 'true') {
+      this.isTfaActive.set(true);
+    }
+
+    // 1. Azonnal betöltjük auth signalokból — ez mindig rendelkezésre áll
+    const email = this.auth.userEmail() || localStorage.getItem('userEmail') || '';
+    const userId = this.auth.userId() || Number(localStorage.getItem('userId') || '0');
+
+    this.ProfileDatas.set({
+      id: userId,
+      firstname: this.auth.userFirstName() || localStorage.getItem('firstName') || '',
+      lastname: this.auth.userLastName() || localStorage.getItem('lastName') || '',
+      username: this.auth.userName() || localStorage.getItem('userName') || '',
+      email: email,
+      phone: this.auth.userPhone() || localStorage.getItem('phone') || '',
+    });
+
+    // 2. Ha van userId → getUserById (pontos backend adatok)
+    if (userId > 0) {
+      this.loadUserById(userId);
+      return;
+    }
+
+    // 3. userId=0 → getUserByEmail-lel próbáljuk megszerezni az id-t
+    if (email) {
+      const token = localStorage.getItem('jwt') ?? '';
+      const headers = new HttpHeaders({ token });
+      this.http
+        .get<any>(`${this.baseUrl}user/getUserByEmail`, { params: { email }, headers })
+        .subscribe({
+          next: (res) => {
+            const u = res?.result || res?.user || res;
+            const uid = u?.id;
+            if (uid) {
+              localStorage.setItem('userId', String(uid));
+              this.auth.setUserProfile({
+                id: uid,
+                firstName: u.firstName || '',
+                lastName: u.lastName || '',
+                username: u.username || '',
+                email: u.email || email,
+                phone: u.phone || '',
+                role: u.role || '',
+              });
+              this.ProfileDatas.set({
+                id: uid,
+                firstname: u.firstName || this.ProfileDatas().firstname,
+                lastname: u.lastName || this.ProfileDatas().lastname,
+                username: u.username || this.ProfileDatas().username,
+                email: u.email || email,
+                phone: u.phone || this.ProfileDatas().phone,
+              });
+            }
+          },
+          error: () => {
+            console.warn('⚠️ getUserByEmail endpoint nem elérhető');
+            // userId marad 0 → createAddress nem fog működni
+            // Szólunk a fejlesztőnek hogy kell getUserByEmail endpoint
+          },
+        });
+    }
+  }
+
+  private loadUserById(userId: number) {
+    this.isLoadingUser.set(true);
+    this.getUserByIdSvc.getUserById(userId).subscribe({
+      next: (res) => {
+        const u = res.result;
+        this.auth.setUserProfile({
+          id: u.id,
+          firstName: u.firstName,
+          lastName: u.lastName,
+          username: u.username,
+          email: u.email,
+          phone: u.phone,
+          role: u.role,
+        });
+        this.ProfileDatas.set({
+          id: u.id,
+          firstname: u.firstName,
+          lastname: u.lastName,
+          username: u.username,
+          email: u.email,
+          phone: u.phone,
+        });
+        this.isLoadingUser.set(false);
+      },
+      error: (err) => {
+        console.error('❌ getUserById hiba:', err);
+        // Fallback: auth signalokból töltjük
+        this.ProfileDatas.set({
+          id: 0,
+          firstname: this.auth.userFirstName(),
+          lastname: this.auth.userLastName(),
+          username: this.auth.userName(),
+          email: this.auth.userEmail(),
+          phone: this.auth.userPhone(),
+        });
+        this.isLoadingUser.set(false);
+      },
+    });
+  }
+
+  // ── Dialog megnyitás ──────────────────────────────────────
   openDialog(field: EditField) {
     this.currentEditField.set(field);
     this.isDialogOpen.set(true);
     this.saveSuccess.set(false);
     this.saveError.set(null);
+    const d = this.ProfileDatas();
 
     switch (field) {
       case 'fullname':
-        this.editForm.patchValue({
-          firstname: this.ProfileDatas.firstname,
-          lastname: this.ProfileDatas.lastname,
-        });
+        this.editForm.patchValue({ firstname: d.firstname, lastname: d.lastname });
         break;
       case 'username':
-        this.editForm.patchValue({ username: this.ProfileDatas.username });
+        this.editForm.patchValue({ username: d.username });
         break;
       case 'email':
-        this.editForm.patchValue({ email: this.ProfileDatas.email });
+        this.editForm.patchValue({ email: d.email });
         break;
       case 'phone':
-        this.editForm.patchValue({ phone: this.ProfileDatas.phone });
+        this.editForm.patchValue({ phone: d.phone });
         break;
       case 'password':
-        this.editForm.patchValue({
-          currentPassword: '',
-          newPassword: '',
-          confirmPassword: '',
-        });
+        this.editForm.patchValue({ currentPassword: '', newPassword: '', confirmPassword: '' });
         break;
       case '2fa':
         this.initiate2FA();
@@ -142,7 +244,7 @@ export class ProfileInfoSelectorComponent {
         this.loadOrders();
         break;
       case 'address':
-        this.loadShippingAddress();
+        this.loadAddress();
         break;
     }
   }
@@ -163,10 +265,24 @@ export class ProfileInfoSelectorComponent {
     const field = this.currentEditField();
     if (!field) return;
 
-    if (this.editForm.invalid) {
-      this.editForm.markAllAsTouched();
-      return;
-    }
+    // ⭐ Csak a releváns mezőket validáljuk — ne az egész formot!
+    const relevantControls: Record<string, string[]> = {
+      fullname: ['firstname', 'lastname'],
+      username: ['username'],
+      email: ['email'],
+      password: ['newPassword'],
+      phone: ['phone'],
+      address: ['country', 'city', 'postalCode', 'street'],
+    };
+
+    const controls = relevantControls[field] ?? [];
+    const isInvalid = controls.some((key) => {
+      const ctrl = this.editForm.get(key);
+      ctrl?.markAsTouched();
+      return ctrl?.invalid;
+    });
+
+    if (isInvalid) return;
 
     this.isSaving.set(true);
     this.saveError.set(null);
@@ -188,40 +304,258 @@ export class ProfileInfoSelectorComponent {
         this.updatePhone();
         break;
       case 'address':
-        this.updateShippingAddress();
+        this.updateAddress();
         break;
     }
   }
 
-  // ==========================================
-  // 2FA METHODS
-  // ==========================================
+  // ── Cím betöltése dialog megnyitásakor ────────────────────
+  private loadAddress() {
+    const userId = this.ProfileDatas().id || this.auth.userId();
+    const d = this.ProfileDatas();
 
+    // ⭐ Auto-fill: mindig betöltjük amit már tudunk
+    this.editForm.patchValue({
+      firstname: d.firstname,
+      lastname: d.lastname,
+      phone: d.phone,
+    });
+
+    if (!userId) return;
+
+    this.getAddressByIdSvc.getAddressById(userId).subscribe({
+      next: (res) => {
+        const a = res.address;
+        this.addressId.set(a.id);
+        this.editForm.patchValue({
+          // Keresztnév/Vezetéknév: cím adatból ha van, különben ProfileDatas
+          firstname: a.firstName || d.firstname,
+          lastname: a.lastName || d.lastname,
+          country: a.country || 'Magyarország',
+          city: a.city || '',
+          postalCode: a.zipCode || '',
+          street: a.street || '',
+          taxnumber: a.taxNumber || '',
+          phone: d.phone, // telefon mindig ProfileDatas-ból
+        });
+      },
+      error: (err) => {
+        console.error('❌ getAddressById hiba:', err);
+        // Marad az auto-fill amit fent betöltöttünk
+      },
+    });
+  }
+
+  // ── User adatok update ────────────────────────────────────
+  private updateFullName() {
+    const email = this.ProfileDatas().email;
+    const body = {
+      firstName: this.editForm.value.firstname!,
+      lastName: this.editForm.value.lastname!,
+    };
+    this.updateUserSvc.updateUserInfos(email, body).subscribe({
+      next: () => {
+        this.ProfileDatas.update((d) => ({
+          ...d,
+          firstname: body.firstName,
+          lastname: body.lastName,
+        }));
+        this.auth.setUserProfile({
+          ...this.currentProfile(),
+          firstName: body.firstName,
+          lastName: body.lastName,
+        });
+        this.handleSuccess();
+      },
+      error: (err) => this.handleError(err),
+    });
+  }
+
+  private updateUsername() {
+    const email = this.ProfileDatas().email;
+    const body = { username: this.editForm.value.username! };
+    this.updateUserSvc.updateUserInfos(email, body).subscribe({
+      next: () => {
+        this.ProfileDatas.update((d) => ({ ...d, username: body.username }));
+        this.handleSuccess();
+      },
+      error: (err) => this.handleError(err),
+    });
+  }
+
+  private updateEmail() {
+    const oldEmail = this.ProfileDatas().email;
+    const body = { email: this.editForm.value.email! };
+    this.updateUserSvc.updateUserInfos(oldEmail, body).subscribe({
+      next: () => {
+        this.ProfileDatas.update((d) => ({ ...d, email: body.email }));
+        this.handleSuccess();
+      },
+      error: (err) => this.handleError(err),
+    });
+  }
+
+  private updatePassword() {
+    if (this.editForm.value.newPassword !== this.editForm.value.confirmPassword) {
+      this.saveError.set('Az új jelszavak nem egyeznek!');
+      this.isSaving.set(false);
+      return;
+    }
+    const email = this.ProfileDatas().email;
+    const body = {
+      currentPassword: this.editForm.value.currentPassword!,
+      newPassword: this.editForm.value.newPassword!,
+    };
+    this.updateUserSvc.updateUserInfos(email, body).subscribe({
+      next: () => this.handleSuccess(),
+      error: (err) => this.handleError(err),
+    });
+  }
+
+  private updatePhone() {
+    const email = this.ProfileDatas().email;
+    const body = { phone: this.editForm.value.phone! };
+    this.updateUserSvc.updateUserInfos(email, body).subscribe({
+      next: () => {
+        this.ProfileDatas.update((d) => ({ ...d, phone: body.phone }));
+        this.handleSuccess();
+      },
+      error: (err) => this.handleError(err),
+    });
+  }
+
+  // ── Cím update ────────────────────────────────────────────
+  private updateAddress() {
+    const addrId = this.addressId();
+
+    // Ha nincs addressId → először létrehozzuk a címet
+    if (!addrId) {
+      this.createAddress();
+      return;
+    }
+    const body = {
+      firstName: this.editForm.value.firstname!,
+      lastName: this.editForm.value.lastname!,
+      country: this.editForm.value.country!,
+      city: this.editForm.value.city!,
+      zipCode: this.editForm.value.postalCode!,
+      street: this.editForm.value.street!,
+      taxNumber: this.editForm.value.taxnumber ?? '',
+    };
+    const newPhone = this.editForm.value.phone || this.ProfileDatas().phone;
+
+    this.updateAddressSvc.updateAddressInfos(addrId, body).subscribe({
+      next: () => {
+        // ⭐ Ha a telefon változott, frissítjük ProfileDatas-ban is
+        if (newPhone !== this.ProfileDatas().phone) {
+          this.ProfileDatas.update((d) => ({ ...d, phone: newPhone }));
+          this.auth.setUserProfile({ ...this.currentProfile(), phone: newPhone });
+          // Backend user phone frissítése is
+          this.updateUserSvc
+            .updateUserInfos(this.ProfileDatas().email, { phone: newPhone })
+            .subscribe();
+        }
+
+        // localStorage frissítés → delivery auto-fill
+        localStorage.setItem(
+          'shippingAddress',
+          JSON.stringify({
+            firstname: body.firstName,
+            lastname: body.lastName,
+            country: body.country,
+            city: body.city,
+            postalCode: body.zipCode,
+            street: body.street,
+            phone: newPhone,
+          }),
+        );
+        this.handleSuccess();
+      },
+      error: (err) => this.handleError(err),
+    });
+  }
+
+  private createAddress() {
+    const userId = this.ProfileDatas().id || this.auth.userId();
+    if (!userId) {
+      this.saveError.set('Nem sikerült azonosítani a felhasználót!');
+      this.isSaving.set(false);
+      return;
+    }
+
+    const newPhone = this.editForm.value.phone || this.ProfileDatas().phone;
+    const body = {
+      userId: userId,
+      firstName: this.editForm.value.firstname!,
+      lastName: this.editForm.value.lastname!,
+      company: '',
+      taxNumber: this.editForm.value.taxnumber ?? '',
+      country: this.editForm.value.country!,
+      city: this.editForm.value.city!,
+      zipCode: this.editForm.value.postalCode!,
+      street: this.editForm.value.street!,
+      isDefault: true,
+    };
+
+    this.createAddressSvc.createAddress(body).subscribe({
+      next: (res) => {
+        console.log('✅ Cím létrehozva:', res);
+        // Frissítjük a getAddressById-val hogy megkapjuk az új address.id-t
+        this.getAddressByIdSvc.getAddressById(userId).subscribe({
+          next: (addrRes) => this.addressId.set(addrRes.address.id),
+          error: () => {},
+        });
+        localStorage.setItem(
+          'shippingAddress',
+          JSON.stringify({
+            firstname: body.firstName,
+            lastname: body.lastName,
+            country: body.country,
+            city: body.city,
+            postalCode: body.zipCode,
+            street: body.street,
+            phone: newPhone,
+          }),
+        );
+        this.handleSuccess();
+      },
+      error: (err) => this.handleError(err),
+    });
+  }
+
+  // Helper: ProfileDatas → auth.setUserProfile shape
+  private currentProfile() {
+    const d = this.ProfileDatas();
+    return {
+      id: d.id,
+      firstName: d.firstname,
+      lastName: d.lastname,
+      username: d.username,
+      email: d.email,
+      phone: d.phone,
+    };
+  }
+
+  // ── 2FA ───────────────────────────────────────────────────
   initiate2FA() {
     this.isLoadingTFA.set(true);
     this.tfaError.set(null);
     this.tfaStep.set('qr');
-
-    this.TFAService.CreateUserTfa({ email: this.ProfileDatas.email }).subscribe({
-      next: (response) => {
-        console.log('✅ 2FA Response:', response);
-        this.tfaData.set(response);
+    this.tfaService.CreateUserTfa({ email: this.ProfileDatas().email }).subscribe({
+      next: (res) => {
+        this.tfaData.set(res);
         this.isLoadingTFA.set(false);
       },
       error: (err) => {
-        console.error('❌ 2FA Error:', err);
-        this.tfaError.set(err.error?.message || 'Hiba történt a 2FA aktiválása során');
+        this.tfaError.set(err.error?.message || 'Hiba a 2FA során');
         this.isLoadingTFA.set(false);
       },
     });
   }
 
   openQRCode() {
-    // ✅ result objektum (nem tömb)
-    const qrUrl = this.tfaData()?.result?.QR;
-    if (qrUrl) {
-      window.open(qrUrl, '_blank');
-    }
+    const url = this.tfaData()?.result?.QR;
+    if (url) window.open(url, '_blank');
   }
 
   toggleSecretKey() {
@@ -229,85 +563,70 @@ export class ProfileInfoSelectorComponent {
   }
 
   copyToClipboard(text: string) {
-    navigator.clipboard.writeText(text).then(() => {
-      alert('Másolva a vágólapra!');
-    });
+    navigator.clipboard.writeText(text).then(() => alert('Másolva!'));
   }
 
   onVerificationInput(event: Event) {
     const input = event.target as HTMLInputElement;
-    let value = input.value.replace(/\D/g, '');
-
-    if (value.length > 6) value = value.slice(0, 6);
-    if (value.length > 3) value = value.slice(0, 3) + '-' + value.slice(3);
-
-    this.verificationCode.set(value);
-    input.value = value;
+    let v = input.value.replace(/\D/g, '').slice(0, 6);
+    if (v.length > 3) v = v.slice(0, 3) + '-' + v.slice(3);
+    this.verificationCode.set(v);
+    input.value = v;
   }
 
   verifyCode() {
     const code = this.verificationCode().replace('-', '');
-
     if (code.length !== 6) {
       this.verificationError.set('Add meg a teljes 6 számjegyű kódot');
       return;
     }
-
     this.isVerifying.set(true);
     this.verificationError.set(null);
-
-    this.TFAService.verifyTfaCode(this.ProfileDatas.email, code).subscribe({
+    console.log('🔐 TFA verify küldés:', { email: this.ProfileDatas().email, code });
+    this.tfaService.verifyTfaCode(this.ProfileDatas().email, code).subscribe({
       next: (res) => {
-        console.log('✅ Code verified:', res);
+        console.log('🔐 TFA verify response:', res);
         this.isVerifying.set(false);
+        // Backend result: "invalid" = hibás kód, bármi más = sikeres
+        if (res.result === 'invalid') {
+          this.verificationError.set('Hibás kód! Ellenőrizd az authenticator alkalmazást.');
+          return;
+        }
         this.tfaStep.set('recovery');
       },
       error: (err) => {
-        console.error('❌ Verification failed:', err);
-        this.verificationError.set(err.error?.message || 'Hibás kód. Próbáld újra!');
+        this.verificationError.set(err.error?.message || 'Hibás kód!');
         this.isVerifying.set(false);
       },
     });
   }
 
   downloadRecoveryCodes() {
-    // ✅ result objektum (nem tömb)
     const codes = this.tfaData()?.result?.recoveryCodes || [];
-    const text = `CarComps 2FA Helyreállítási Kódok
-Email: ${this.ProfileDatas.email}
-Dátum: ${new Date().toLocaleDateString('hu-HU')}
-
-${codes.map((code, i) => `${i + 1}. ${code}`).join('\n')}
-
-FONTOS: Tartsd ezeket biztonságos helyen!
-`;
+    const text = `CarComps 2FA Helyreállítási Kódok\nEmail: ${this.ProfileDatas().email}\n\n${codes.map((c, i) => `${i + 1}. ${c}`).join('\n')}`;
     const blob = new Blob([text], { type: 'text/plain;charset=utf-8' });
-    const url = window.URL.createObjectURL(blob);
+    const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = `carcomps-2fa-recovery-${Date.now()}.txt`;
+    a.download = `carcomps-2fa-${Date.now()}.txt`;
     a.click();
-    window.URL.revokeObjectURL(url);
+    URL.revokeObjectURL(url);
   }
 
   copyAllRecoveryCodes() {
-    // ✅ result objektum (nem tömb)
     const codes = this.tfaData()?.result?.recoveryCodes || [];
-    const text = codes.map((code, i) => `${i + 1}. ${code}`).join('\n');
-    navigator.clipboard.writeText(text).then(() => {
-      alert('Összes helyreállítási kód másolva!');
-    });
+    navigator.clipboard
+      .writeText(codes.map((c, i) => `${i + 1}. ${c}`).join('\n'))
+      .then(() => alert('Másolva!'));
   }
 
   finish2FASetup() {
     this.isTfaActive.set(true);
+    localStorage.setItem('tfaActive', 'true');
     this.closeDialog();
   }
 
-  // ==========================================
-  // ORDERS & ADDRESS
-  // ==========================================
-
+  // ── Rendelések (mock — backend endpoint nincs még) ────────
   private loadOrders() {
     this.isLoadingOrders.set(true);
     setTimeout(() => {
@@ -317,10 +636,7 @@ FONTOS: Tartsd ezeket biztonságos helyen!
           orderDate: '2024-01-15',
           totalPrice: 45000,
           status: 'Delivered',
-          items: [
-            { productName: 'Michelin gumiabroncs', quantity: 4, price: 40000 },
-            { productName: 'Bosch fékbetét', quantity: 1, price: 5000 },
-          ],
+          items: [{ productName: 'Michelin gumiabroncs', quantity: 4, price: 40000 }],
         },
         {
           id: 1002,
@@ -334,117 +650,7 @@ FONTOS: Tartsd ezeket biztonságos helyen!
     }, 500);
   }
 
-  private loadShippingAddress() {
-    this.shippingAddress.set({
-      country: 'Magyarország',
-      city: 'Budapest',
-      postalCode: '1234',
-      street: 'Fő utca',
-      houseNumber: '12',
-      taxnumber: '1245252',
-      lastname: 'Kovács',
-      firstname: 'János',
-      phone: '06123456789',
-    });
-
-    this.editForm.patchValue({
-      country: 'Magyarország',
-      city: 'Budapest',
-      postalCode: '1234',
-      street: 'Fő utca',
-      houseNumber: '12',
-      firstname: 'János',
-      lastname: 'Kovács',
-      phone: '06123456789',
-      taxnumber: '1245252',
-    });
-  }
-
-  private updateShippingAddress() {
-    const data = {
-      country: this.editForm.value.country,
-      city: this.editForm.value.city,
-      postalCode: this.editForm.value.postalCode,
-      street: this.editForm.value.street,
-      houseNumber: this.editForm.value.houseNumber,
-      firstname: this.editForm.value.firstname,
-      lastname: this.editForm.value.lastname,
-      phone: this.editForm.value.phone,
-      taxnumber: this.editForm.value.taxnumber,
-    };
-    this.shippingAddress.set(data as any);
-    localStorage.setItem('shippingAddress', JSON.stringify(data));
-    this.handleSuccess();
-  }
-
-  // ==========================================
-  // HTTP METHODS
-  // ==========================================
-
-  private updateFullName() {
-    const data = {
-      firstname: this.editForm.value.firstname,
-      lastname: this.editForm.value.lastname,
-    };
-    this.http.put(`${this.baseUrl}user/updateName`, data).subscribe({
-      next: () => {
-        this.ProfileDatas.firstname = data.firstname!;
-        this.ProfileDatas.lastname = data.lastname!;
-        this.handleSuccess();
-      },
-      error: (err) => this.handleError(err),
-    });
-  }
-
-  private updateUsername() {
-    const data = { username: this.editForm.value.username };
-    this.http.put(`${this.baseUrl}user/updateUsername`, data).subscribe({
-      next: () => {
-        this.ProfileDatas.username = data.username!;
-        this.handleSuccess();
-      },
-      error: (err) => this.handleError(err),
-    });
-  }
-
-  private updateEmail() {
-    const data = { email: this.editForm.value.email };
-    this.http.put(`${this.baseUrl}user/updateEmail`, data).subscribe({
-      next: () => {
-        this.ProfileDatas.email = data.email!;
-        this.handleSuccess();
-      },
-      error: (err) => this.handleError(err),
-    });
-  }
-
-  private updatePassword() {
-    if (this.editForm.value.newPassword !== this.editForm.value.confirmPassword) {
-      this.saveError.set('Az új jelszavak nem egyeznek!');
-      this.isSaving.set(false);
-      return;
-    }
-    const data = {
-      currentPassword: this.editForm.value.currentPassword,
-      newPassword: this.editForm.value.newPassword,
-    };
-    this.http.put(`${this.baseUrl}user/updatePassword`, data).subscribe({
-      next: () => this.handleSuccess(),
-      error: (err) => this.handleError(err),
-    });
-  }
-
-  private updatePhone() {
-    const data = { phone: this.editForm.value.phone };
-    this.http.put(`${this.baseUrl}user/updatePhone`, data).subscribe({
-      next: () => {
-        this.ProfileDatas.phone = data.phone!;
-        this.handleSuccess();
-      },
-      error: (err) => this.handleError(err),
-    });
-  }
-
+  // ── Helpers ───────────────────────────────────────────────
   private handleSuccess() {
     this.isSaving.set(false);
     this.saveSuccess.set(true);
@@ -457,31 +663,18 @@ FONTOS: Tartsd ezeket biztonságos helyen!
     this.saveError.set(err.error?.message || 'Hiba történt a mentés során');
   }
 
-  // ==========================================
-  // HELPERS
-  // ==========================================
-
   getDialogTitle(): string {
-    switch (this.currentEditField()) {
-      case 'fullname':
-        return 'Teljes név szerkesztése';
-      case 'username':
-        return 'Felhasználónév szerkesztése';
-      case 'email':
-        return 'Email cím szerkesztése';
-      case 'password':
-        return 'Jelszó módosítása';
-      case 'phone':
-        return 'Telefonszám szerkesztése';
-      case '2fa':
-        return 'Kétfaktoros hitelesítés beállítása';
-      case 'orders':
-        return 'Rendeléseim';
-      case 'address':
-        return 'Szállítási cím';
-      default:
-        return '';
-    }
+    const map: Record<string, string> = {
+      fullname: 'Teljes név szerkesztése',
+      username: 'Felhasználónév szerkesztése',
+      email: 'Email cím szerkesztése',
+      password: 'Jelszó módosítása',
+      phone: 'Telefonszám szerkesztése',
+      '2fa': 'Kétfaktoros hitelesítés',
+      orders: 'Rendeléseim',
+      address: 'Szállítási cím',
+    };
+    return map[this.currentEditField() ?? ''] ?? '';
   }
 
   getOrderStatusClass(status: string): string {
