@@ -263,7 +263,7 @@ public class SendEmail {
             updateAuthUser.setIsSubscribed(userdata.getIsSubscribed());
             updateAuthUser.setPassword(userdata.getPassword());
             updateAuthUser.setRegistrationToken(userdata.getRegistrationToken());
-            updateAuthUser.setRole(userdata.getRole() == "user" ? "user" : "admin");
+            updateAuthUser.setRole(userdata.getRole().equals("user") ? "user" : "admin");
             Users.updateUser(updateAuthUser);
         } catch (Exception ex) {
             System.err.println("updateUser error: " + ex);

@@ -271,17 +271,17 @@ public class UsersService {
         JSONArray errors = new JSONArray();
 
         System.out.println("id: " + id);
-        
+
         //if id is missing
         if (userAuth.isDataMissing(id)) {
             errors.put("MissingId");
         }
-        
+
         //error check if id is Missing
         if (errorAuth.hasErrors(errors)) {
             return errorAuth.createErrorResponse(errors, 400);
         }
-        
+
         //if id is invalid
         if (!userAuth.isValidId(id) && !userAuth.isDataMissing(id)) {
             errors.put("InvalidId");
@@ -383,7 +383,7 @@ public class UsersService {
         toReturn.put("email", modelResult.getEmail());
 
         return errorAuth.createOKResponse(toReturn);
-    }   
+    }
 
     public JSONObject getUserByEmail(String email) {
         JSONObject toReturn = new JSONObject();
@@ -862,6 +862,14 @@ public class UsersService {
         }
 
         Users adminData = Users.getAdminByEmail(userData.getEmail());
+
+        try {
+            System.out.println("admindata: " + adminData.getRole() + " ; " + adminData.getEmail());
+        } catch (Exception e) {
+            System.out.println("userdata: " + userData.getRole() + " ; " + userData.getEmail());
+        }
+        
+        
         if (adminData == null) {
             UserLogs createdUserLog = new UserLogs();
             createdUserLog.setAction("loginUser");
@@ -908,6 +916,7 @@ public class UsersService {
         toReturn.put("lastName", userData.getLastName());
         toReturn.put("phone", userData.getPhone());
         toReturn.put("role", userData.getRole());
+        toReturn.put("userId", userData.getId());
         return errorAuth.createOKResponse(toReturn);
     }
 
