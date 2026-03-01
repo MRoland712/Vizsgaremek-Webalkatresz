@@ -1,11 +1,11 @@
-import { Component, DestroyRef, inject, signal } from '@angular/core';
+import { Component, DestroyRef, inject, signal, OnInit } from '@angular/core';
 import { FormControl, ReactiveFormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
 import { RouterLink } from '@angular/router';
 import { debounceTime, distinctUntilChanged } from 'rxjs';
 import { SearchResult } from './search.service';
 import { AuthService } from '../services/auth.service';
-import { CartService } from '../services/cart.service'; // ⭐
+import { CartService } from '../services/cart.service';
 
 @Component({
   selector: 'app-main-header',
@@ -13,10 +13,10 @@ import { CartService } from '../services/cart.service'; // ⭐
   templateUrl: './main-header.component.html',
   styleUrl: './main-header.component.css',
 })
-export class MainHeaderComponent {
+export class MainHeaderComponent implements OnInit {
   private destroyRef = inject(DestroyRef);
   authService = inject(AuthService);
-  cartService = inject(CartService); // ⭐
+  cartService = inject(CartService);
 
   imgSrc = '/assets/CarComps_Logo_BigassC.png';
   searchControl = new FormControl('');
@@ -28,7 +28,6 @@ export class MainHeaderComponent {
   userName = this.authService.userName;
   userEmail = this.authService.userEmail;
 
-  // ⭐ CartService computed signals - automatikusan frissülnek
   cartItems = this.cartService.cartItems;
   cartItemCount = this.cartService.cartItemCount;
   cartTotal = this.cartService.cartTotal;
@@ -37,51 +36,49 @@ export class MainHeaderComponent {
   garageModelControl = new FormControl({ value: '', disabled: true });
   garageYearControl = new FormControl({ value: '', disabled: true });
 
-  constructor() {
+  ngOnInit(): void {
     this.authService.refreshUserData();
+    // Bejelentkezve → töltjük a kosarat backendből
+    if (this.authService.isLoggedIn()) {
+      this.cartService.loadCartFromBackend();
+    }
+  }
 
-    const searchSubscription = this.searchControl.valueChanges
+  constructor() {
+    const searchSub = this.searchControl.valueChanges
       .pipe(debounceTime(300), distinctUntilChanged())
-      .subscribe({
-        next: (searchTerm) => {
-          if (searchTerm && searchTerm.trim().length > 0) {
-            this.performSearch(searchTerm.trim());
-          } else {
-            this.searchResults.set([]);
-            this.showDropdown.set(false);
-          }
-        },
+      .subscribe((term) => {
+        if (term && term.trim().length > 0) {
+          this.performSearch(term.trim());
+        } else {
+          this.searchResults.set([]);
+          this.showDropdown.set(false);
+        }
       });
 
-    const garageMakeSubscription = this.garageMakeControl.valueChanges.subscribe((makeId) => {
+    const makeSub = this.garageMakeControl.valueChanges.subscribe((makeId) => {
       this.garageModelControl.setValue('');
       this.garageYearControl.setValue('');
       this.garageYearControl.disable();
-      if (makeId) {
-        this.garageModelControl.enable();
-      } else {
-        this.garageModelControl.disable();
-      }
+      if (makeId) this.garageModelControl.enable();
+      else this.garageModelControl.disable();
     });
 
-    const garageModelSubscription = this.garageModelControl.valueChanges.subscribe((modelId) => {
+    const modelSub = this.garageModelControl.valueChanges.subscribe((modelId) => {
       this.garageYearControl.setValue('');
-      if (modelId) {
-        this.garageYearControl.enable();
-      } else {
-        this.garageYearControl.disable();
-      }
+      if (modelId) this.garageYearControl.enable();
+      else this.garageYearControl.disable();
     });
 
     this.destroyRef.onDestroy(() => {
-      searchSubscription.unsubscribe();
-      garageMakeSubscription.unsubscribe();
-      garageModelSubscription.unsubscribe();
+      searchSub.unsubscribe();
+      makeSub.unsubscribe();
+      modelSub.unsubscribe();
     });
   }
 
   removeFromCart(itemId: number) {
-    this.cartService.removeFromCart(itemId); // ⭐
+    this.cartService.removeFromCart(itemId);
   }
 
   performSearch(searchTerm: string) {
@@ -110,22 +107,16 @@ export class MainHeaderComponent {
   closeDropdown() {
     setTimeout(() => this.showDropdown.set(false), 200);
   }
-
   onSearchSubmit() {
-    const searchTerm = this.searchControl.value?.trim();
-    if (searchTerm) {
-      this.showDropdown.set(false);
-    }
+    this.showDropdown.set(false);
   }
-
   selectGarageCar() {
-    const year = this.garageYearControl.value;
-    if (!year) return;
-    alert(`Kiválasztva: ${year}`);
+    const y = this.garageYearControl.value;
+    if (!y) return;
   }
 
   logout() {
-    this.cartService.clearCart(); // ⭐ Kijelentkezéskor kosár ürítése
+    this.cartService.clearCart();
     this.authService.logout();
   }
 }

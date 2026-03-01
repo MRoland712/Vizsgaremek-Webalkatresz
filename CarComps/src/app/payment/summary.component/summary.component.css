@@ -378,6 +378,31 @@
   opacity: 0;
   transform: translateX(10px);
 }
+/* Email értesítés */
+.email-notice {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 20px;
+  background: #f0faf0;
+  border: 1px solid #c8e6c9;
+  border-radius: 10px;
+  margin-bottom: 20px;
+  font-size: 14px;
+  font-weight: 600;
+  color: #2e7d32;
+}
+.email-notice i {
+  font-size: 22px;
+  color: #43a047;
+  flex-shrink: 0;
+}
+
+/* Ingyenes szállítás */
+.shipping-free {
+  color: #43a047;
+  font-weight: 700;
+}
 
 /* ── Responsive ──────────────────────────────────────────── */
 @media (max-width: 900px) {

@@ -1,25 +1,21 @@
 <app-main-header></app-main-header>
-
 <div class="pay-page">
-  <!-- Progress bar -->
   <div class="progress-wrapper">
     <app-checkout-progress [currentStep]="'payment'"></app-checkout-progress>
   </div>
 
-  <!-- Cím -->
   <div class="stage-title">
     <h1>Fizetés</h1>
     <div class="stage-title__underline"></div>
   </div>
 
-  <!-- Tartalom -->
   <div class="pay-card">
     <div class="pay-content">
       <p class="pay-subtitle">
         Válaszd ki a neked megfelelő <span class="pay-subtitle__accent">fizetési módot</span>
       </p>
 
-      <!-- Fizetési módok rács -->
+      <!-- Fizetési módok — 2 oszlop -->
       <div class="methods-grid">
         @for (method of paymentMethods; track method.id) {
           <div
@@ -33,6 +29,7 @@
             } @else {
               <i class="fa-solid method-icon" [class]="method.icon"></i>
             }
+            <span class="method-label">{{ method.label }}</span>
           </div>
         }
       </div>
@@ -42,14 +39,34 @@
         Jelenleg csak a <strong>készpénzes fizetés</strong> érhető el.
       </p>
 
-      <!-- Gombok -->
+      <!-- Kosár töltés -->
+      @if (cartService.isLoading()) {
+        <div class="pay-loading">
+          <i class="fa-solid fa-spinner fa-spin"></i>
+          <span>Kosár betöltése...</span>
+        </div>
+      }
+
+      <!-- Fizetés feldolgozás -->
+      @if (isProcessing()) {
+        <div class="pay-loading">
+          <i class="fa-solid fa-spinner fa-spin"></i>
+          <span>Fizetés feldolgozása...</span>
+        </div>
+      }
+
+      <!-- Hiba -->
+      @if (payError()) {
+        <p class="pay-error">
+          <i class="fa-solid fa-circle-xmark"></i>
+          {{ payError() }}
+        </p>
+      }
+
       <div class="pay-actions">
-        <!-- Dinamikus forward gomb -->
         <div class="btn-wrapper" (click)="finalize()">
           <app-payment-forward-button></app-payment-forward-button>
         </div>
-
-        <!-- Vissza gomb -->
         <button class="btn-back" (click)="goBack()">
           <i class="fa-solid fa-arrow-left btn-back__arrow"></i>
           <span class="btn-back__text">Vissza a szállításhoz</span>
@@ -58,5 +75,4 @@
     </div>
   </div>
 </div>
-
 <app-footer></app-footer>

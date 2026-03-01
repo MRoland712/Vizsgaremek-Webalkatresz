@@ -522,3 +522,7 @@
     padding: 20px 12px 48px;
   }
 }
+.shipping-free {
+  color: #43a047;
+  font-weight: 700;
+}

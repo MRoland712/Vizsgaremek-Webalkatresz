@@ -26,6 +26,12 @@ interface DeliveryData {
   address: string;
 }
 
+interface PaymentData {
+  method: string;
+  amount: number;
+  orderId: number;
+}
+
 @Component({
   selector: 'app-summary',
   standalone: true,
@@ -37,48 +43,48 @@ export class SummaryComponent implements OnInit {
   private router = inject(Router);
   private auth = inject(AuthService);
 
-  readonly SHIPPING_FEE = 2500;
+  readonly SHIPPING_FEE = 0; // Ingyenes szállítás
 
   cartItems = signal<CartItem[]>([]);
   delivery = signal<DeliveryData | null>(null);
+  paymentData = signal<PaymentData | null>(null);
   paymentMethod = signal<string>('Készpénz');
 
-  subtotal = computed(() => this.cartItems().reduce((sum, i) => sum + i.price * i.quantity, 0));
+  subtotal = computed(() => this.cartItems().reduce((s, i) => s + i.price * i.quantity, 0));
   total = computed(() => this.subtotal() + this.SHIPPING_FEE);
 
   ngOnInit() {
-    // Kosár adatok
-    const cart = localStorage.getItem('cartItems');
-    if (cart) {
-      try {
+    // Kosár adatok localStorage-ból (pay.component mentette fizetés előtt)
+    try {
+      const cart = localStorage.getItem('cartItems');
+      if (cart) {
         this.cartItems.set(JSON.parse(cart));
-      } catch {}
-    } else {
-      // Mock ha nincs localStorage
-      this.cartItems.set([
-        { id: 1, name: 'RIDEX Coil spring', brand: 'RIDEX', price: 13000, quantity: 1 },
-        { id: 2, name: 'RIDEX Lambda sensor', brand: 'RIDEX', price: 8000, quantity: 1 },
-        { id: 3, name: 'RIDEX Starter motor', brand: 'RIDEX', price: 23000, quantity: 1 },
-      ]);
-    }
+        // Olvasás után töröljük - következő vásárlásnál friss kosár legyen
+        localStorage.removeItem('cartItems');
+      }
+    } catch {}
 
     // Szállítási adatok
-    const del = localStorage.getItem('deliveryData');
-    if (del) {
-      try {
-        this.delivery.set(JSON.parse(del));
-      } catch {}
-    } else {
-      this.delivery.set({
-        lastname: 'Doe',
-        firstname: 'John',
-        city: 'Pécs',
-        postalCode: '7633',
-        country: 'Magyarország',
-        phone: '0630123456',
-        address: 'Király utca 4.',
-      });
-    }
+    try {
+      const del = localStorage.getItem('deliveryData');
+      if (del) this.delivery.set(JSON.parse(del));
+    } catch {}
+
+    // Fizetési adatok (pay.component mentette)
+    try {
+      const pay = localStorage.getItem('paymentData');
+      if (pay) {
+        const pd: PaymentData = JSON.parse(pay);
+        this.paymentData.set(pd);
+        const methodMap: Record<string, string> = {
+          cash: 'Készpénz',
+          paypal: 'PayPal',
+          mastercard: 'Mastercard',
+          visa: 'VISA',
+        };
+        this.paymentMethod.set(methodMap[pd.method] ?? pd.method);
+      }
+    } catch {}
   }
 
   get fullName(): string {
@@ -103,9 +109,10 @@ export class SummaryComponent implements OnInit {
   }
 
   downloadInvoice() {
-    // PDF generálás placeholder — majd backend integráció
+    const orderId = this.paymentData()?.orderId ?? '-';
     const content = `CARCOMPS SZÁMLA
 ===================
+Rendelésszám: #${orderId}
 Vevő: ${this.fullName}
 Cím: ${this.fullAddress}
 Fizetési mód: ${this.paymentMethod()}
@@ -125,7 +132,7 @@ Az ár tartalmazza az ÁFÁ-t.
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = `carcomps-szamla-${Date.now()}.txt`;
+    a.download = `carcomps-szamla-${orderId}.txt`;
     a.click();
     URL.revokeObjectURL(url);
   }

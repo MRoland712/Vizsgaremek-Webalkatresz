@@ -13,13 +13,16 @@ export class TfaService {
     return { headers: new HttpHeaders({ 'Content-Type': 'application/json', token }) };
   }
 
-  // POST TFA/generateQR  — QR kód generálása
+  // POST UserTwofa/createUserTwofa — QR kód generálása
   CreateUserTfa(body: TFARequest): Observable<TFAResponse> {
-    return this.http.post<TFAResponse>(`${this.baseUrl}TFA/generateQR`, body, this.getHeaders());
+    return this.http.post<TFAResponse>(
+      `${this.baseUrl}UserTwofa/createUserTwofa`,
+      body,
+      this.getHeaders(),
+    );
   }
 
-  // POST TFA/validateTFACode  — kód ellenőrzése
-  // Response: { result: "valid" | "invalid", statusCode: 200, status: "success" }
+  // POST TFA/validateTFACode — kód ellenőrzése
   verifyTfaCode(email: string, code: string): Observable<TFAValidationResponse> {
     return this.http.post<TFAValidationResponse>(
       `${this.baseUrl}TFA/validateTFACode`,

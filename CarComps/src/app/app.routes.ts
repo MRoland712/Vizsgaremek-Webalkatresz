@@ -9,7 +9,6 @@ export const routes: Routes = [
   { path: '', component: HomepageComponent },
   { path: 'login', component: LoginComponent },
   { path: 'registration', component: RegistrationComponent },
-
   {
     path: 'products/:category',
     loadComponent: () =>
@@ -23,6 +22,32 @@ export const routes: Routes = [
       ),
   },
 
+  // ── Checkout folyamat ─────────────────────────────────────
+  {
+    path: 'cart',
+    loadComponent: () =>
+      import('./payment/cart.component/cart.component').then((m) => m.CartComponent),
+    canActivate: [authGuard],
+  },
+  {
+    path: 'delivery',
+    loadComponent: () =>
+      import('./payment/delivery.component/delivery.component').then((m) => m.DeliveryComponent),
+    canActivate: [authGuard],
+  },
+  {
+    path: 'payment',
+    loadComponent: () =>
+      import('./payment/pay.component/pay.component').then((m) => m.PayComponent),
+    canActivate: [authGuard],
+  },
+  {
+    path: 'summary',
+    loadComponent: () =>
+      import('./payment/summary.component/summary.component').then((m) => m.SummaryComponent),
+    canActivate: [authGuard],
+  },
+
   // ── Védett (bejelentkezés kell) ───────────────────────────
   {
     path: 'profile',
@@ -33,7 +58,7 @@ export const routes: Routes = [
     canActivate: [authGuard],
   },
   {
-    path: 'profile/garage', // ← Garázsom
+    path: 'profile/garage',
     loadComponent: () =>
       import('./profile-page/user-mygarage.component/user-mygarage.component').then(
         (m) => m.UserMygarageComponent,

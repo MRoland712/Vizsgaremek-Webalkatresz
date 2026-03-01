@@ -141,7 +141,7 @@
           </div>
           <div class="summary-row">
             <span>Szállítási díj:</span>
-            <span>{{ formatPrice(SHIPPING_FEE) }}</span>
+            <span class="shipping-free">Ingyenes</span>
           </div>
 
           <hr class="summary-divider" />
@@ -157,7 +157,9 @@
             </span>
           </div>
 
-          <app-payment-forward-button></app-payment-forward-button>
+          <div (click)="goToDelivery()">
+            <app-payment-forward-button></app-payment-forward-button>
+          </div>
         </div>
       </div>
     }
