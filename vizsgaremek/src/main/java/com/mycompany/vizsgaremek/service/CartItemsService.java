@@ -5,6 +5,7 @@
 package com.mycompany.vizsgaremek.service;
 
 import com.mycompany.vizsgaremek.model.CartItems;
+import com.mycompany.vizsgaremek.model.Parts;
 import java.util.ArrayList;
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -34,6 +35,10 @@ public class CartItemsService {
             errors.put("MissingQuantity");
         }
 
+        if (errorAuth.hasErrors(errors)) {
+            return errorAuth.createErrorResponse(errors, 400);
+        }
+
         if (!cartItemsAuth.isDataMissing(createCartItems.getUserId()) && !cartItemsAuth.isValidUserId(createCartItems.getUserId())) {
             errors.put("InvalidUserId");
         }
@@ -48,6 +53,16 @@ public class CartItemsService {
 
         if (errorAuth.hasErrors(errors)) {
             return errorAuth.createErrorResponse(errors, 400);
+        }
+
+        Parts part = Parts.getPartsById(createCartItems.getPartId().getId());
+
+        if (part.getStock() < createCartItems.getQuantity()) {
+            errors.put("RanOutOfStock");
+        }
+
+        if (errorAuth.hasErrors(errors)) {
+            return errorAuth.createErrorResponse(errors, 409);
         }
 
         // MODEL HÍVÁS
@@ -196,8 +211,12 @@ public class CartItemsService {
         ArrayList<CartItems> cartItemsList = CartItems.getCartItemsByUserId(userId);
 
         if (cartItemsAuth.isDataMissing(cartItemsList)) {
-            errors.put("CartItemsNotFound");
-            return errorAuth.createErrorResponse(errors, 404);
+            toReturn.put("success", true);
+            toReturn.put("cartItems", cartItemsList);
+            toReturn.put("count", 0);
+            toReturn.put("statusCode", 200);
+
+            return toReturn;
         }
 
         JSONArray cartItemsArray = new JSONArray();

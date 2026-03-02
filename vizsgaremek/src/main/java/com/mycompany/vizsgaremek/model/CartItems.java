@@ -321,7 +321,7 @@ public class CartItems implements Serializable {
             spq.registerStoredProcedureParameter("userId", Integer.class, ParameterMode.IN);
             spq.registerStoredProcedureParameter("partId", Integer.class, ParameterMode.IN);
             spq.registerStoredProcedureParameter("quantityIN", Integer.class, ParameterMode.IN);
-            spq.registerStoredProcedureParameter("isDeleted", Integer.class, ParameterMode.IN);
+            spq.registerStoredProcedureParameter("isDeleted", Boolean.class, ParameterMode.IN);
 
             spq.setParameter("idIN", updatedCartItems.getId());
             spq.setParameter("userId", updatedCartItems.getUserId().getId());
