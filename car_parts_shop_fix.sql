@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Gép: localhost:8889
--- Létrehozás ideje: 2026. Feb 27. 17:05
+-- Létrehozás ideje: 2026. Már 02. 19:20
 -- Kiszolgáló verziója: 8.0.44
 -- PHP verzió: 8.3.28
 
@@ -631,19 +631,26 @@ CREATE DEFINER=`root`@`localhost` PROCEDURE `createUserTwoFa` (IN `user_idIN` IN
     COMMIT;
 END$$
 
-DROP PROCEDURE IF EXISTS `createWarehouses`$$
-CREATE DEFINER=`root`@`localhost` PROCEDURE `createWarehouses` (IN `nameIN` VARCHAR(50), IN `locationIN` VARCHAR(255))   BEGIN
-    INSERT INTO warehouses (
-        name,
-        location,
-        created_at
-    ) VALUES (
-        nameIN,
-        locationIN,
-        NOW()
+DROP PROCEDURE IF EXISTS `createUserVehicle`$$
+CREATE DEFINER=`root`@`localhost` PROCEDURE `createUserVehicle` (IN `userIdIN` INT(11), IN `vehicleTypeIN` VARCHAR(10), IN `vehicleIdIN` INT(11), IN `yearIN` INT(11))   BEGIN
+    INSERT INTO user_vehicles (
+        user_id,
+        vehicle_type,
+        vehicle_id,
+        year,
+        created_at,
+        is_deleted
+    )
+    VALUES (
+        userIdIN,
+        vehicleTypeIN,
+        vehicleIdIN,
+        yearIN,
+        NOW(),
+        0
     );
-    
-    SELECT LAST_INSERT_ID() AS new_warehouse_id;
+
+    SELECT LAST_INSERT_ID() AS new_user_vehicle_id;
 END$$
 
 DROP PROCEDURE IF EXISTS `getAddressById`$$
@@ -976,20 +983,6 @@ CREATE DEFINER=`root`@`localhost` PROCEDURE `getAllUserTwoFa` ()   BEGIN
     FROM user_twofa
     WHERE is_deleted = 0
     ORDER BY id DESC;
-END$$
-
-DROP PROCEDURE IF EXISTS `getAllWarehouses`$$
-CREATE DEFINER=`root`@`localhost` PROCEDURE `getAllWarehouses` ()   Begin
-	SELECT 
-        id,
-        name,
-        location,
-        created_at,
-        is_deleted,
-        deleted_at
-    FROM warehouses
-    WHERE is_deleted = 0
-    ORDER BY id;
 END$$
 
 DROP PROCEDURE IF EXISTS `getCarsByBrand`$$
@@ -1647,17 +1640,21 @@ CREATE DEFINER=`root`@`localhost` PROCEDURE `getUserTwoFaByUserId` (IN `user_idI
         AND is_deleted = 0;
 END$$
 
-DROP PROCEDURE IF EXISTS `getWarehousesById`$$
-CREATE DEFINER=`root`@`localhost` PROCEDURE `getWarehousesById` (IN `idIN` INT(11))   BEGIN
+DROP PROCEDURE IF EXISTS `getUserVehiclesByUserId`$$
+CREATE DEFINER=`root`@`localhost` PROCEDURE `getUserVehiclesByUserId` (IN `userIdIN` INT(11))   BEGIN
     SELECT 
         id,
-        name,
-        location,
+        user_id,
+        vehicle_type,
+        vehicle_id,
+        year,
         created_at,
         is_deleted,
         deleted_at
-    FROM warehouses
-    WHERE id = idIN;
+    FROM user_vehicles
+    WHERE user_id = userIdIN
+      AND is_deleted = 0
+    ORDER BY created_at DESC;
 END$$
 
 DROP PROCEDURE IF EXISTS `increasePageViewers`$$
@@ -2054,9 +2051,9 @@ CREATE DEFINER=`root`@`localhost` PROCEDURE `softDeleteUserTwoFa` (IN `twofa_idI
     WHERE id = twofa_idIN;
 END$$
 
-DROP PROCEDURE IF EXISTS `softDeleteWarehouses`$$
-CREATE DEFINER=`root`@`localhost` PROCEDURE `softDeleteWarehouses` (IN `idIN` INT(11))   BEGIN
-    UPDATE warehouses
+DROP PROCEDURE IF EXISTS `softDeleteUserVehichles`$$
+CREATE DEFINER=`root`@`localhost` PROCEDURE `softDeleteUserVehichles` (IN `idIN` INT(11))   BEGIN
+    UPDATE user_vehicles
     SET 
         is_deleted = 1,
         deleted_at = NOW()
@@ -2341,18 +2338,6 @@ CREATE DEFINER=`root`@`localhost` PROCEDURE `updateUserTwoFa` (IN `idIN` INT(11)
     COMMIT;
 END$$
 
-DROP PROCEDURE IF EXISTS `updateWarehouses`$$
-CREATE DEFINER=`root`@`localhost` PROCEDURE `updateWarehouses` (IN `idIN` INT(11))   BEGIN
-
-    UPDATE warehouses
-    SET 
-    	name = nameIN,
-        location = locationIN,
-        is_deleted = isDeleted
-    WHERE id = idIN;
-
-END$$
-
 DROP PROCEDURE IF EXISTS `user_login`$$
 CREATE DEFINER=`root`@`localhost` PROCEDURE `user_login` (IN `p_email` VARCHAR(50))   BEGIN
     -- Update last login
@@ -2377,8 +2362,8 @@ DELIMITER ;
 --
 
 DROP TABLE IF EXISTS `addresses`;
-CREATE TABLE IF NOT EXISTS `addresses` (
-  `id` int NOT NULL AUTO_INCREMENT,
+CREATE TABLE `addresses` (
+  `id` int NOT NULL,
   `user_id` int NOT NULL,
   `first_name` varchar(50) DEFAULT NULL,
   `last_name` varchar(50) DEFAULT NULL,
@@ -2392,9 +2377,7 @@ CREATE TABLE IF NOT EXISTS `addresses` (
   `created_at` datetime DEFAULT CURRENT_TIMESTAMP,
   `updated_at` datetime DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   `is_deleted` tinyint(1) DEFAULT '0',
-  `deleted_at` datetime DEFAULT NULL,
-  PRIMARY KEY (`id`),
-  KEY `user_id` (`user_id`)
+  `deleted_at` datetime DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3;
 
 -- --------------------------------------------------------
@@ -2404,8 +2387,8 @@ CREATE TABLE IF NOT EXISTS `addresses` (
 --
 
 DROP TABLE IF EXISTS `cars`;
-CREATE TABLE IF NOT EXISTS `cars` (
-  `id` int NOT NULL AUTO_INCREMENT,
+CREATE TABLE `cars` (
+  `id` int NOT NULL,
   `brand` varchar(100) NOT NULL,
   `model` varchar(100) NOT NULL,
   `year_from` int DEFAULT NULL,
@@ -2413,9 +2396,16 @@ CREATE TABLE IF NOT EXISTS `cars` (
   `created_at` datetime DEFAULT CURRENT_TIMESTAMP,
   `updated_at` datetime DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   `is_deleted` tinyint(1) DEFAULT '0',
-  `deleted_at` datetime DEFAULT NULL,
-  PRIMARY KEY (`id`)
+  `deleted_at` datetime DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3;
+
+--
+-- A tábla adatainak kiíratása `cars`
+--
+
+INSERT INTO `cars` (`id`, `brand`, `model`, `year_from`, `year_to`, `created_at`, `updated_at`, `is_deleted`, `deleted_at`) VALUES
+(1, 'Mercedes', 'C180', 2010, 2015, '2026-03-02 19:11:18', '2026-03-02 19:11:18', 0, NULL),
+(2, 'Ford', 'Focus', 2010, 2020, '2026-03-02 19:11:27', '2026-03-02 19:11:27', 0, NULL);
 
 -- --------------------------------------------------------
 
@@ -2424,18 +2414,15 @@ CREATE TABLE IF NOT EXISTS `cars` (
 --
 
 DROP TABLE IF EXISTS `cart_items`;
-CREATE TABLE IF NOT EXISTS `cart_items` (
-  `id` int NOT NULL AUTO_INCREMENT,
+CREATE TABLE `cart_items` (
+  `id` int NOT NULL,
   `user_id` int NOT NULL,
   `part_id` int NOT NULL,
   `quantity` int DEFAULT '1',
   `added_at` datetime DEFAULT CURRENT_TIMESTAMP,
   `is_deleted` tinyint(1) DEFAULT '0',
-  `deleted_at` datetime DEFAULT NULL,
-  PRIMARY KEY (`id`),
-  KEY `user_id` (`user_id`),
-  KEY `part_id` (`part_id`)
-) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8mb3;
+  `deleted_at` datetime DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3;
 
 --
 -- A tábla adatainak kiíratása `cart_items`
@@ -2451,16 +2438,13 @@ INSERT INTO `cart_items` (`id`, `user_id`, `part_id`, `quantity`, `added_at`, `i
 --
 
 DROP TABLE IF EXISTS `email_verifications`;
-CREATE TABLE IF NOT EXISTS `email_verifications` (
-  `id` int NOT NULL AUTO_INCREMENT,
+CREATE TABLE `email_verifications` (
+  `id` int NOT NULL,
   `user_id` int NOT NULL,
   `token` varchar(255) CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci NOT NULL,
   `verified` tinyint(1) DEFAULT '0',
   `sent_at` datetime DEFAULT CURRENT_TIMESTAMP,
-  `verified_at` datetime DEFAULT NULL,
-  PRIMARY KEY (`id`),
-  UNIQUE KEY `token` (`token`),
-  KEY `user_id` (`user_id`)
+  `verified_at` datetime DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3;
 
 -- --------------------------------------------------------
@@ -2470,17 +2454,14 @@ CREATE TABLE IF NOT EXISTS `email_verifications` (
 --
 
 DROP TABLE IF EXISTS `invoices`;
-CREATE TABLE IF NOT EXISTS `invoices` (
-  `id` int NOT NULL AUTO_INCREMENT,
+CREATE TABLE `invoices` (
+  `id` int NOT NULL,
   `order_id` int NOT NULL,
   `pdf_url` varchar(255) DEFAULT NULL,
   `created_at` datetime DEFAULT CURRENT_TIMESTAMP,
   `is_deleted` tinyint(1) DEFAULT '0',
-  `deleted_at` datetime DEFAULT NULL,
-  PRIMARY KEY (`id`),
-  KEY `order_id` (`order_id`),
-  KEY `invoices_ibfk_1` (`order_id`)
-) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8mb3;
+  `deleted_at` datetime DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3;
 
 --
 -- A tábla adatainak kiíratása `invoices`
@@ -2496,14 +2477,11 @@ INSERT INTO `invoices` (`id`, `order_id`, `pdf_url`, `created_at`, `is_deleted`,
 --
 
 DROP TABLE IF EXISTS `login_logs`;
-CREATE TABLE IF NOT EXISTS `login_logs` (
-  `id` int NOT NULL AUTO_INCREMENT,
+CREATE TABLE `login_logs` (
+  `id` int NOT NULL,
   `user_id` int NOT NULL,
   `user_agent` varchar(255) DEFAULT NULL,
-  `logged_in_at` datetime DEFAULT CURRENT_TIMESTAMP,
-  PRIMARY KEY (`id`),
-  KEY `user_id` (`user_id`),
-  KEY `logged_in_at` (`logged_in_at`)
+  `logged_in_at` datetime DEFAULT CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3;
 
 -- --------------------------------------------------------
@@ -2513,16 +2491,14 @@ CREATE TABLE IF NOT EXISTS `login_logs` (
 --
 
 DROP TABLE IF EXISTS `manufacturers`;
-CREATE TABLE IF NOT EXISTS `manufacturers` (
-  `id` int NOT NULL AUTO_INCREMENT,
+CREATE TABLE `manufacturers` (
+  `id` int NOT NULL,
   `name` varchar(100) NOT NULL,
   `country` varchar(50) DEFAULT NULL,
   `created_at` datetime DEFAULT CURRENT_TIMESTAMP,
   `is_deleted` tinyint(1) DEFAULT '0',
-  `deleted_at` datetime DEFAULT NULL,
-  PRIMARY KEY (`id`),
-  UNIQUE KEY `name` (`name`)
-) ENGINE=InnoDB AUTO_INCREMENT=75 DEFAULT CHARSET=utf8mb3;
+  `deleted_at` datetime DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3;
 
 --
 -- A tábla adatainak kiíratása `manufacturers`
@@ -2611,8 +2587,8 @@ INSERT INTO `manufacturers` (`id`, `name`, `country`, `created_at`, `is_deleted`
 --
 
 DROP TABLE IF EXISTS `motors`;
-CREATE TABLE IF NOT EXISTS `motors` (
-  `id` int NOT NULL AUTO_INCREMENT,
+CREATE TABLE `motors` (
+  `id` int NOT NULL,
   `brand` varchar(100) NOT NULL,
   `model` varchar(100) NOT NULL,
   `year_from` int DEFAULT NULL,
@@ -2620,8 +2596,7 @@ CREATE TABLE IF NOT EXISTS `motors` (
   `created_at` datetime DEFAULT CURRENT_TIMESTAMP,
   `updated_at` datetime DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   `is_deleted` tinyint(1) DEFAULT '0',
-  `deleted_at` datetime DEFAULT NULL,
-  PRIMARY KEY (`id`)
+  `deleted_at` datetime DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3;
 
 -- --------------------------------------------------------
@@ -2631,17 +2606,15 @@ CREATE TABLE IF NOT EXISTS `motors` (
 --
 
 DROP TABLE IF EXISTS `orders`;
-CREATE TABLE IF NOT EXISTS `orders` (
-  `id` int NOT NULL AUTO_INCREMENT,
+CREATE TABLE `orders` (
+  `id` int NOT NULL,
   `user_id` int NOT NULL,
   `status` enum('pending','paid','shipped','delivered','cancelled','refunded') DEFAULT 'pending',
   `created_at` datetime DEFAULT CURRENT_TIMESTAMP,
   `updated_at` datetime DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   `is_deleted` tinyint(1) DEFAULT '0',
-  `deleted_at` datetime DEFAULT NULL,
-  PRIMARY KEY (`id`),
-  KEY `user_id` (`user_id`)
-) ENGINE=InnoDB AUTO_INCREMENT=7 DEFAULT CHARSET=utf8mb3;
+  `deleted_at` datetime DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3;
 
 --
 -- A tábla adatainak kiíratása `orders`
@@ -2662,19 +2635,16 @@ INSERT INTO `orders` (`id`, `user_id`, `status`, `created_at`, `updated_at`, `is
 --
 
 DROP TABLE IF EXISTS `order_items`;
-CREATE TABLE IF NOT EXISTS `order_items` (
-  `id` int NOT NULL AUTO_INCREMENT,
+CREATE TABLE `order_items` (
+  `id` int NOT NULL,
   `order_id` int NOT NULL,
   `part_id` int NOT NULL,
   `quantity` int DEFAULT '1',
   `price` decimal(10,2) DEFAULT NULL,
   `created_at` datetime DEFAULT CURRENT_TIMESTAMP,
   `is_deleted` tinyint(1) DEFAULT '0',
-  `deleted_at` datetime DEFAULT NULL,
-  PRIMARY KEY (`id`),
-  KEY `order_id` (`order_id`),
-  KEY `part_id` (`part_id`)
-) ENGINE=InnoDB AUTO_INCREMENT=5 DEFAULT CHARSET=utf8mb3;
+  `deleted_at` datetime DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3;
 
 --
 -- A tábla adatainak kiíratása `order_items`
@@ -2693,31 +2663,12 @@ INSERT INTO `order_items` (`id`, `order_id`, `part_id`, `quantity`, `price`, `cr
 --
 
 DROP TABLE IF EXISTS `order_logs`;
-CREATE TABLE IF NOT EXISTS `order_logs` (
-  `id` int NOT NULL AUTO_INCREMENT,
+CREATE TABLE `order_logs` (
+  `id` int NOT NULL,
   `order_id` int NOT NULL,
   `old_status` varchar(20) DEFAULT NULL,
   `new_status` varchar(20) DEFAULT NULL,
-  `changed_at` datetime DEFAULT CURRENT_TIMESTAMP,
-  PRIMARY KEY (`id`),
-  KEY `order_id` (`order_id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3;
-
--- --------------------------------------------------------
-
---
--- Tábla szerkezet ehhez a táblához `page_statistics`
---
-
-DROP TABLE IF EXISTS `page_statistics`;
-CREATE TABLE IF NOT EXISTS `page_statistics` (
-  `id` int NOT NULL,
-  `pageName` varchar(255) NOT NULL,
-  `viewersCount` int NOT NULL,
-  `created_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  `updated_at` datetime DEFAULT NULL ON UPDATE CURRENT_TIMESTAMP,
-  `is_deleted` tinyint DEFAULT '0',
-  `deleted_at` datetime DEFAULT NULL
+  `changed_at` datetime DEFAULT CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3;
 
 -- --------------------------------------------------------
@@ -2727,8 +2678,8 @@ CREATE TABLE IF NOT EXISTS `page_statistics` (
 --
 
 DROP TABLE IF EXISTS `parts`;
-CREATE TABLE IF NOT EXISTS `parts` (
-  `id` int NOT NULL AUTO_INCREMENT,
+CREATE TABLE `parts` (
+  `id` int NOT NULL,
   `manufacturer_id` int NOT NULL,
   `sku` varchar(100) NOT NULL,
   `name` varchar(255) NOT NULL,
@@ -2740,12 +2691,8 @@ CREATE TABLE IF NOT EXISTS `parts` (
   `created_at` datetime DEFAULT CURRENT_TIMESTAMP,
   `updated_at` datetime DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   `deleted_at` datetime DEFAULT NULL,
-  `is_deleted` tinyint(1) DEFAULT '0',
-  PRIMARY KEY (`id`),
-  UNIQUE KEY `sku` (`sku`),
-  KEY `manufacturer_id` (`manufacturer_id`),
-  KEY `category` (`category`)
-) ENGINE=InnoDB AUTO_INCREMENT=160 DEFAULT CHARSET=utf8mb3;
+  `is_deleted` tinyint(1) DEFAULT '0'
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3;
 
 --
 -- A tábla adatainak kiíratása `parts`
@@ -2900,22 +2847,548 @@ INSERT INTO `parts` (`id`, `manufacturer_id`, `sku`, `name`, `category`, `price`
 --
 
 DROP TABLE IF EXISTS `part_compatibility`;
-CREATE TABLE IF NOT EXISTS `part_compatibility` (
-  `id` int NOT NULL AUTO_INCREMENT,
+CREATE TABLE `part_compatibility` (
+  `id` int NOT NULL,
   `part_id` int NOT NULL,
   `vehicle_type` enum('car','motor','truck') NOT NULL,
   `vehicle_id` int NOT NULL,
   `created_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
   `updated_at` datetime DEFAULT NULL ON UPDATE CURRENT_TIMESTAMP,
   `deleted_at` datetime DEFAULT NULL,
-  `is_deleted` tinyint(1) DEFAULT '0',
-  PRIMARY KEY (`id`),
-  UNIQUE KEY `unique_compatibility` (`part_id`,`vehicle_type`,`vehicle_id`),
-  KEY `idx_part_id` (`part_id`),
-  KEY `idx_vehicle_type` (`vehicle_type`),
-  KEY `idx_vehicle_id` (`vehicle_id`),
-  KEY `idx_part_vehicle` (`part_id`,`vehicle_type`,`vehicle_id`)
+  `is_deleted` tinyint(1) DEFAULT '0'
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3;
+
+--
+-- A tábla adatainak kiíratása `part_compatibility`
+--
+
+INSERT INTO `part_compatibility` (`id`, `part_id`, `vehicle_type`, `vehicle_id`, `created_at`, `updated_at`, `deleted_at`, `is_deleted`) VALUES
+(1, 1, 'car', 5, '2026-03-01 18:47:50', NULL, NULL, 0),
+(2, 1, 'car', 6, '2026-03-01 18:47:50', NULL, NULL, 0),
+(3, 1, 'car', 7, '2026-03-01 18:47:50', NULL, NULL, 0),
+(4, 1, 'car', 9, '2026-03-01 18:47:50', NULL, NULL, 0),
+(5, 1, 'car', 11, '2026-03-01 18:47:50', NULL, NULL, 0),
+(6, 1, 'car', 13, '2026-03-01 18:47:50', NULL, NULL, 0),
+(7, 1, 'car', 17, '2026-03-01 18:47:50', NULL, NULL, 0),
+(8, 1, 'car', 19, '2026-03-01 18:47:50', NULL, NULL, 0),
+(9, 1, 'car', 20, '2026-03-01 18:47:50', NULL, NULL, 0),
+(10, 2, 'car', 2, '2026-03-01 18:47:50', NULL, NULL, 0),
+(11, 2, 'car', 8, '2026-03-01 18:47:50', NULL, NULL, 0),
+(12, 2, 'car', 10, '2026-03-01 18:47:50', NULL, NULL, 0),
+(13, 2, 'car', 14, '2026-03-01 18:47:50', NULL, NULL, 0),
+(14, 2, 'car', 18, '2026-03-01 18:47:50', NULL, NULL, 0),
+(15, 2, 'car', 21, '2026-03-01 18:47:50', NULL, NULL, 0),
+(16, 2, 'car', 22, '2026-03-01 18:47:50', NULL, NULL, 0),
+(17, 3, 'car', 1, '2026-03-01 18:47:50', NULL, NULL, 0),
+(18, 3, 'car', 3, '2026-03-01 18:47:50', NULL, NULL, 0),
+(19, 3, 'car', 2, '2026-03-01 18:47:50', NULL, NULL, 0),
+(20, 3, 'car', 22, '2026-03-01 18:47:50', NULL, NULL, 0),
+(21, 4, 'car', 5, '2026-03-01 18:47:50', NULL, NULL, 0),
+(22, 4, 'car', 6, '2026-03-01 18:47:50', NULL, NULL, 0),
+(23, 4, 'car', 9, '2026-03-01 18:47:50', NULL, NULL, 0),
+(24, 4, 'car', 13, '2026-03-01 18:47:50', NULL, NULL, 0),
+(25, 4, 'car', 17, '2026-03-01 18:47:50', NULL, NULL, 0),
+(26, 4, 'car', 19, '2026-03-01 18:47:50', NULL, NULL, 0),
+(27, 4, 'car', 20, '2026-03-01 18:47:50', NULL, NULL, 0),
+(28, 10, 'car', 6, '2026-03-01 18:47:50', NULL, NULL, 0),
+(29, 10, 'car', 7, '2026-03-01 18:47:50', NULL, NULL, 0),
+(30, 10, 'car', 11, '2026-03-01 18:47:50', NULL, NULL, 0),
+(31, 10, 'car', 20, '2026-03-01 18:47:50', NULL, NULL, 0),
+(32, 10, 'car', 15, '2026-03-01 18:47:50', NULL, NULL, 0),
+(33, 11, 'car', 6, '2026-03-01 18:47:50', NULL, NULL, 0),
+(34, 11, 'car', 7, '2026-03-01 18:47:50', NULL, NULL, 0),
+(35, 11, 'car', 20, '2026-03-01 18:47:50', NULL, NULL, 0),
+(36, 12, 'car', 6, '2026-03-01 18:47:50', NULL, NULL, 0),
+(37, 12, 'car', 7, '2026-03-01 18:47:50', NULL, NULL, 0),
+(38, 12, 'car', 20, '2026-03-01 18:47:50', NULL, NULL, 0),
+(39, 12, 'car', 13, '2026-03-01 18:47:50', NULL, NULL, 0),
+(40, 13, 'car', 6, '2026-03-01 18:47:50', NULL, NULL, 0),
+(41, 13, 'car', 7, '2026-03-01 18:47:50', NULL, NULL, 0),
+(42, 13, 'car', 20, '2026-03-01 18:47:50', NULL, NULL, 0),
+(43, 14, 'car', 6, '2026-03-01 18:47:50', NULL, NULL, 0),
+(44, 14, 'car', 7, '2026-03-01 18:47:50', NULL, NULL, 0),
+(45, 14, 'car', 20, '2026-03-01 18:47:50', NULL, NULL, 0),
+(46, 14, 'car', 13, '2026-03-01 18:47:50', NULL, NULL, 0),
+(47, 15, 'car', 6, '2026-03-01 18:47:50', NULL, NULL, 0),
+(48, 15, 'car', 7, '2026-03-01 18:47:50', NULL, NULL, 0),
+(49, 15, 'car', 20, '2026-03-01 18:47:50', NULL, NULL, 0),
+(50, 16, 'car', 6, '2026-03-01 18:47:50', NULL, NULL, 0),
+(51, 16, 'car', 7, '2026-03-01 18:47:50', NULL, NULL, 0),
+(52, 16, 'car', 13, '2026-03-01 18:47:50', NULL, NULL, 0),
+(53, 16, 'car', 19, '2026-03-01 18:47:50', NULL, NULL, 0),
+(54, 17, 'car', 6, '2026-03-01 18:47:50', NULL, NULL, 0),
+(55, 17, 'car', 7, '2026-03-01 18:47:50', NULL, NULL, 0),
+(56, 17, 'car', 17, '2026-03-01 18:47:50', NULL, NULL, 0),
+(57, 17, 'car', 19, '2026-03-01 18:47:50', NULL, NULL, 0),
+(58, 18, 'car', 4, '2026-03-01 18:47:50', NULL, NULL, 0),
+(59, 18, 'car', 5, '2026-03-01 18:47:50', NULL, NULL, 0),
+(60, 18, 'car', 15, '2026-03-01 18:47:50', NULL, NULL, 0),
+(61, 18, 'car', 16, '2026-03-01 18:47:50', NULL, NULL, 0),
+(62, 18, 'car', 21, '2026-03-01 18:47:50', NULL, NULL, 0),
+(63, 70, 'car', 8, '2026-03-01 18:47:50', NULL, NULL, 0),
+(64, 70, 'car', 9, '2026-03-01 18:47:50', NULL, NULL, 0),
+(65, 70, 'car', 10, '2026-03-01 18:47:50', NULL, NULL, 0),
+(66, 70, 'car', 17, '2026-03-01 18:47:50', NULL, NULL, 0),
+(67, 70, 'car', 18, '2026-03-01 18:47:50', NULL, NULL, 0),
+(68, 70, 'car', 19, '2026-03-01 18:47:50', NULL, NULL, 0),
+(69, 70, 'truck', 3, '2026-03-01 18:47:50', NULL, NULL, 0),
+(70, 71, 'car', 5, '2026-03-01 18:47:50', NULL, NULL, 0),
+(71, 71, 'car', 8, '2026-03-01 18:47:50', NULL, NULL, 0),
+(72, 71, 'car', 14, '2026-03-01 18:47:50', NULL, NULL, 0),
+(73, 71, 'car', 21, '2026-03-01 18:47:50', NULL, NULL, 0),
+(74, 71, 'truck', 2, '2026-03-01 18:47:50', NULL, NULL, 0),
+(75, 71, 'truck', 4, '2026-03-01 18:47:50', NULL, NULL, 0),
+(76, 72, 'car', 2, '2026-03-01 18:47:50', NULL, NULL, 0),
+(77, 72, 'car', 8, '2026-03-01 18:47:50', NULL, NULL, 0),
+(78, 72, 'car', 18, '2026-03-01 18:47:50', NULL, NULL, 0),
+(79, 72, 'motor', 1, '2026-03-01 18:47:50', NULL, NULL, 0),
+(80, 72, 'motor', 2, '2026-03-01 18:47:50', NULL, NULL, 0),
+(81, 72, 'motor', 4, '2026-03-01 18:47:50', NULL, NULL, 0),
+(82, 74, 'car', 1, '2026-03-01 18:47:50', NULL, NULL, 0),
+(83, 74, 'car', 3, '2026-03-01 18:47:50', NULL, NULL, 0),
+(84, 74, 'truck', 1, '2026-03-01 18:47:50', NULL, NULL, 0),
+(85, 75, 'car', 1, '2026-03-01 18:47:50', NULL, NULL, 0),
+(86, 75, 'car', 3, '2026-03-01 18:47:50', NULL, NULL, 0),
+(87, 75, 'truck', 1, '2026-03-01 18:47:50', NULL, NULL, 0),
+(88, 82, 'car', 8, '2026-03-01 18:47:50', NULL, NULL, 0),
+(89, 82, 'car', 9, '2026-03-01 18:47:50', NULL, NULL, 0),
+(90, 82, 'car', 17, '2026-03-01 18:47:50', NULL, NULL, 0),
+(91, 82, 'car', 19, '2026-03-01 18:47:50', NULL, NULL, 0),
+(92, 82, 'truck', 3, '2026-03-01 18:47:50', NULL, NULL, 0),
+(93, 83, 'car', 4, '2026-03-01 18:47:50', NULL, NULL, 0),
+(94, 83, 'car', 5, '2026-03-01 18:47:50', NULL, NULL, 0),
+(95, 83, 'car', 15, '2026-03-01 18:47:50', NULL, NULL, 0),
+(96, 83, 'car', 16, '2026-03-01 18:47:50', NULL, NULL, 0),
+(97, 83, 'car', 23, '2026-03-01 18:47:50', NULL, NULL, 0),
+(98, 66, 'car', 8, '2026-03-01 18:47:50', NULL, NULL, 0),
+(99, 66, 'car', 9, '2026-03-01 18:47:50', NULL, NULL, 0),
+(100, 66, 'car', 10, '2026-03-01 18:47:50', NULL, NULL, 0),
+(101, 66, 'car', 17, '2026-03-01 18:47:50', NULL, NULL, 0),
+(102, 66, 'car', 18, '2026-03-01 18:47:50', NULL, NULL, 0),
+(103, 66, 'car', 19, '2026-03-01 18:47:50', NULL, NULL, 0),
+(104, 66, 'truck', 3, '2026-03-01 18:47:50', NULL, NULL, 0),
+(105, 67, 'car', 2, '2026-03-01 18:47:50', NULL, NULL, 0),
+(106, 67, 'car', 8, '2026-03-01 18:47:50', NULL, NULL, 0),
+(107, 67, 'car', 18, '2026-03-01 18:47:50', NULL, NULL, 0),
+(108, 67, 'motor', 1, '2026-03-01 18:47:50', NULL, NULL, 0),
+(109, 67, 'motor', 2, '2026-03-01 18:47:50', NULL, NULL, 0),
+(110, 67, 'motor', 3, '2026-03-01 18:47:50', NULL, NULL, 0),
+(111, 67, 'motor', 4, '2026-03-01 18:47:50', NULL, NULL, 0),
+(112, 68, 'car', 4, '2026-03-01 18:47:50', NULL, NULL, 0),
+(113, 68, 'car', 6, '2026-03-01 18:47:50', NULL, NULL, 0),
+(114, 68, 'car', 7, '2026-03-01 18:47:50', NULL, NULL, 0),
+(115, 68, 'car', 23, '2026-03-01 18:47:50', NULL, NULL, 0),
+(116, 68, 'motor', 1, '2026-03-01 18:47:50', NULL, NULL, 0),
+(117, 68, 'motor', 4, '2026-03-01 18:47:50', NULL, NULL, 0),
+(118, 69, 'car', 5, '2026-03-01 18:47:50', NULL, NULL, 0),
+(119, 69, 'car', 8, '2026-03-01 18:47:50', NULL, NULL, 0),
+(120, 69, 'car', 9, '2026-03-01 18:47:50', NULL, NULL, 0),
+(121, 69, 'car', 14, '2026-03-01 18:47:50', NULL, NULL, 0),
+(122, 69, 'car', 21, '2026-03-01 18:47:50', NULL, NULL, 0),
+(123, 69, 'truck', 2, '2026-03-01 18:47:50', NULL, NULL, 0),
+(124, 69, 'truck', 4, '2026-03-01 18:47:50', NULL, NULL, 0),
+(125, 76, 'car', 8, '2026-03-01 18:47:50', NULL, NULL, 0),
+(126, 76, 'car', 9, '2026-03-01 18:47:50', NULL, NULL, 0),
+(127, 76, 'car', 10, '2026-03-01 18:47:50', NULL, NULL, 0),
+(128, 76, 'car', 17, '2026-03-01 18:47:50', NULL, NULL, 0),
+(129, 76, 'car', 18, '2026-03-01 18:47:50', NULL, NULL, 0),
+(130, 76, 'truck', 3, '2026-03-01 18:47:50', NULL, NULL, 0),
+(131, 78, 'car', 5, '2026-03-01 18:47:50', NULL, NULL, 0),
+(132, 78, 'car', 4, '2026-03-01 18:47:50', NULL, NULL, 0),
+(133, 78, 'car', 13, '2026-03-01 18:47:50', NULL, NULL, 0),
+(134, 78, 'car', 14, '2026-03-01 18:47:50', NULL, NULL, 0),
+(135, 78, 'truck', 2, '2026-03-01 18:47:50', NULL, NULL, 0),
+(136, 78, 'truck', 4, '2026-03-01 18:47:50', NULL, NULL, 0),
+(137, 79, 'car', 8, '2026-03-01 18:47:50', NULL, NULL, 0),
+(138, 79, 'car', 2, '2026-03-01 18:47:50', NULL, NULL, 0),
+(139, 79, 'car', 19, '2026-03-01 18:47:50', NULL, NULL, 0),
+(140, 79, 'car', 18, '2026-03-01 18:47:50', NULL, NULL, 0),
+(141, 79, 'truck', 3, '2026-03-01 18:47:50', NULL, NULL, 0),
+(142, 110, 'car', 1, '2026-03-01 18:47:50', NULL, NULL, 0),
+(143, 110, 'car', 3, '2026-03-01 18:47:50', NULL, NULL, 0),
+(144, 110, 'car', 2, '2026-03-01 18:47:50', NULL, NULL, 0),
+(145, 110, 'truck', 1, '2026-03-01 18:47:50', NULL, NULL, 0),
+(146, 111, 'car', 8, '2026-03-01 18:47:50', NULL, NULL, 0),
+(147, 111, 'car', 9, '2026-03-01 18:47:50', NULL, NULL, 0),
+(148, 111, 'car', 10, '2026-03-01 18:47:50', NULL, NULL, 0),
+(149, 111, 'car', 17, '2026-03-01 18:47:50', NULL, NULL, 0),
+(150, 111, 'car', 18, '2026-03-01 18:47:50', NULL, NULL, 0),
+(151, 111, 'truck', 3, '2026-03-01 18:47:50', NULL, NULL, 0),
+(152, 111, 'truck', 4, '2026-03-01 18:47:50', NULL, NULL, 0),
+(153, 112, 'car', 8, '2026-03-01 18:47:50', NULL, NULL, 0),
+(154, 112, 'car', 9, '2026-03-01 18:47:50', NULL, NULL, 0),
+(155, 112, 'car', 17, '2026-03-01 18:47:50', NULL, NULL, 0),
+(156, 112, 'car', 19, '2026-03-01 18:47:50', NULL, NULL, 0),
+(157, 112, 'truck', 3, '2026-03-01 18:47:50', NULL, NULL, 0),
+(158, 113, 'car', 8, '2026-03-01 18:47:50', NULL, NULL, 0),
+(159, 113, 'car', 9, '2026-03-01 18:47:50', NULL, NULL, 0),
+(160, 113, 'car', 10, '2026-03-01 18:47:50', NULL, NULL, 0),
+(161, 113, 'car', 2, '2026-03-01 18:47:50', NULL, NULL, 0),
+(162, 113, 'car', 17, '2026-03-01 18:47:50', NULL, NULL, 0),
+(163, 113, 'car', 18, '2026-03-01 18:47:50', NULL, NULL, 0),
+(164, 113, 'truck', 3, '2026-03-01 18:47:50', NULL, NULL, 0),
+(165, 115, 'car', 8, '2026-03-01 18:47:50', NULL, NULL, 0),
+(166, 115, 'car', 10, '2026-03-01 18:47:50', NULL, NULL, 0),
+(167, 115, 'car', 2, '2026-03-01 18:47:50', NULL, NULL, 0),
+(168, 115, 'car', 18, '2026-03-01 18:47:50', NULL, NULL, 0),
+(169, 115, 'truck', 3, '2026-03-01 18:47:50', NULL, NULL, 0),
+(170, 117, 'car', 5, '2026-03-01 18:47:50', NULL, NULL, 0),
+(171, 117, 'truck', 2, '2026-03-01 18:47:50', NULL, NULL, 0),
+(172, 118, 'car', 8, '2026-03-01 18:47:50', NULL, NULL, 0),
+(173, 118, 'car', 9, '2026-03-01 18:47:50', NULL, NULL, 0),
+(174, 118, 'car', 10, '2026-03-01 18:47:50', NULL, NULL, 0),
+(175, 118, 'car', 17, '2026-03-01 18:47:50', NULL, NULL, 0),
+(176, 118, 'car', 18, '2026-03-01 18:47:50', NULL, NULL, 0),
+(177, 118, 'truck', 3, '2026-03-01 18:47:50', NULL, NULL, 0),
+(178, 118, 'truck', 4, '2026-03-01 18:47:50', NULL, NULL, 0),
+(179, 93, 'motor', 1, '2026-03-01 18:47:50', NULL, NULL, 0),
+(180, 93, 'motor', 2, '2026-03-01 18:47:50', NULL, NULL, 0),
+(181, 93, 'motor', 3, '2026-03-01 18:47:50', NULL, NULL, 0),
+(182, 93, 'motor', 4, '2026-03-01 18:47:50', NULL, NULL, 0),
+(183, 94, 'car', 6, '2026-03-01 18:47:50', NULL, NULL, 0),
+(184, 94, 'car', 7, '2026-03-01 18:47:50', NULL, NULL, 0),
+(185, 94, 'car', 11, '2026-03-01 18:47:50', NULL, NULL, 0),
+(186, 94, 'car', 13, '2026-03-01 18:47:50', NULL, NULL, 0),
+(187, 94, 'car', 20, '2026-03-01 18:47:50', NULL, NULL, 0),
+(188, 94, 'motor', 1, '2026-03-01 18:47:50', NULL, NULL, 0),
+(189, 94, 'motor', 4, '2026-03-01 18:47:50', NULL, NULL, 0),
+(190, 95, 'car', 8, '2026-03-01 18:47:50', NULL, NULL, 0),
+(191, 95, 'car', 9, '2026-03-01 18:47:50', NULL, NULL, 0),
+(192, 95, 'car', 5, '2026-03-01 18:47:50', NULL, NULL, 0),
+(193, 95, 'car', 14, '2026-03-01 18:47:50', NULL, NULL, 0),
+(194, 95, 'car', 21, '2026-03-01 18:47:50', NULL, NULL, 0),
+(195, 95, 'motor', 2, '2026-03-01 18:47:50', NULL, NULL, 0),
+(196, 95, 'motor', 3, '2026-03-01 18:47:50', NULL, NULL, 0),
+(197, 96, 'car', 8, '2026-03-01 18:47:50', NULL, NULL, 0),
+(198, 96, 'car', 9, '2026-03-01 18:47:50', NULL, NULL, 0),
+(199, 96, 'car', 5, '2026-03-01 18:47:50', NULL, NULL, 0),
+(200, 96, 'car', 13, '2026-03-01 18:47:50', NULL, NULL, 0),
+(201, 96, 'car', 21, '2026-03-01 18:47:50', NULL, NULL, 0),
+(202, 96, 'truck', 2, '2026-03-01 18:47:50', NULL, NULL, 0),
+(203, 96, 'truck', 3, '2026-03-01 18:47:50', NULL, NULL, 0),
+(204, 97, 'car', 1, '2026-03-01 18:47:50', NULL, NULL, 0),
+(205, 97, 'car', 3, '2026-03-01 18:47:50', NULL, NULL, 0),
+(206, 97, 'car', 2, '2026-03-01 18:47:50', NULL, NULL, 0),
+(207, 97, 'car', 22, '2026-03-01 18:47:50', NULL, NULL, 0),
+(208, 97, 'truck', 1, '2026-03-01 18:47:50', NULL, NULL, 0),
+(209, 97, 'truck', 4, '2026-03-01 18:47:50', NULL, NULL, 0),
+(210, 98, 'car', 5, '2026-03-01 18:47:50', NULL, NULL, 0),
+(211, 98, 'car', 4, '2026-03-01 18:47:50', NULL, NULL, 0),
+(212, 98, 'car', 14, '2026-03-01 18:47:50', NULL, NULL, 0),
+(213, 98, 'car', 13, '2026-03-01 18:47:50', NULL, NULL, 0),
+(214, 98, 'truck', 2, '2026-03-01 18:47:50', NULL, NULL, 0),
+(215, 98, 'truck', 4, '2026-03-01 18:47:50', NULL, NULL, 0),
+(216, 99, 'car', 8, '2026-03-01 18:47:50', NULL, NULL, 0),
+(217, 99, 'car', 9, '2026-03-01 18:47:50', NULL, NULL, 0),
+(218, 99, 'car', 17, '2026-03-01 18:47:50', NULL, NULL, 0),
+(219, 99, 'car', 18, '2026-03-01 18:47:50', NULL, NULL, 0),
+(220, 99, 'truck', 3, '2026-03-01 18:47:50', NULL, NULL, 0),
+(221, 100, 'car', 14, '2026-03-01 18:47:50', NULL, NULL, 0),
+(222, 100, 'car', 13, '2026-03-01 18:47:50', NULL, NULL, 0),
+(223, 100, 'truck', 4, '2026-03-01 18:47:50', NULL, NULL, 0),
+(224, 101, 'car', 6, '2026-03-01 18:47:50', NULL, NULL, 0),
+(225, 101, 'car', 7, '2026-03-01 18:47:50', NULL, NULL, 0),
+(226, 101, 'car', 11, '2026-03-01 18:47:50', NULL, NULL, 0),
+(227, 101, 'car', 20, '2026-03-01 18:47:50', NULL, NULL, 0),
+(228, 101, 'car', 13, '2026-03-01 18:47:50', NULL, NULL, 0),
+(229, 102, 'car', 8, '2026-03-01 18:47:50', NULL, NULL, 0),
+(230, 102, 'car', 10, '2026-03-01 18:47:50', NULL, NULL, 0),
+(231, 102, 'car', 18, '2026-03-01 18:47:50', NULL, NULL, 0),
+(232, 102, 'car', 2, '2026-03-01 18:47:50', NULL, NULL, 0),
+(233, 102, 'truck', 3, '2026-03-01 18:47:50', NULL, NULL, 0),
+(234, 103, 'car', 13, '2026-03-01 18:47:50', NULL, NULL, 0),
+(235, 103, 'car', 14, '2026-03-01 18:47:50', NULL, NULL, 0),
+(236, 103, 'car', 4, '2026-03-01 18:47:50', NULL, NULL, 0),
+(237, 104, 'car', 2, '2026-03-01 18:47:50', NULL, NULL, 0),
+(238, 104, 'car', 10, '2026-03-01 18:47:50', NULL, NULL, 0),
+(239, 104, 'car', 18, '2026-03-01 18:47:50', NULL, NULL, 0),
+(240, 104, 'truck', 3, '2026-03-01 18:47:50', NULL, NULL, 0),
+(241, 106, 'car', 8, '2026-03-01 18:47:50', NULL, NULL, 0),
+(242, 106, 'car', 9, '2026-03-01 18:47:50', NULL, NULL, 0),
+(243, 106, 'car', 17, '2026-03-01 18:47:50', NULL, NULL, 0),
+(244, 106, 'truck', 3, '2026-03-01 18:47:50', NULL, NULL, 0),
+(245, 108, 'car', 5, '2026-03-01 18:47:50', NULL, NULL, 0),
+(246, 108, 'car', 4, '2026-03-01 18:47:50', NULL, NULL, 0),
+(247, 108, 'car', 23, '2026-03-01 18:47:50', NULL, NULL, 0),
+(248, 108, 'truck', 2, '2026-03-01 18:47:50', NULL, NULL, 0),
+(249, 109, 'car', 6, '2026-03-01 18:47:50', NULL, NULL, 0),
+(250, 109, 'car', 7, '2026-03-01 18:47:50', NULL, NULL, 0),
+(251, 109, 'car', 13, '2026-03-01 18:47:50', NULL, NULL, 0),
+(252, 109, 'car', 11, '2026-03-01 18:47:50', NULL, NULL, 0),
+(253, 19, 'car', 1, '2026-03-01 18:47:50', NULL, NULL, 0),
+(254, 19, 'car', 3, '2026-03-01 18:47:50', NULL, NULL, 0),
+(255, 19, 'truck', 1, '2026-03-01 18:47:50', NULL, NULL, 0),
+(256, 20, 'car', 1, '2026-03-01 18:47:50', NULL, NULL, 0),
+(257, 20, 'car', 3, '2026-03-01 18:47:50', NULL, NULL, 0),
+(258, 20, 'truck', 1, '2026-03-01 18:47:50', NULL, NULL, 0),
+(259, 21, 'car', 8, '2026-03-01 18:47:50', NULL, NULL, 0),
+(260, 21, 'car', 9, '2026-03-01 18:47:50', NULL, NULL, 0),
+(261, 21, 'car', 10, '2026-03-01 18:47:50', NULL, NULL, 0),
+(262, 21, 'car', 17, '2026-03-01 18:47:50', NULL, NULL, 0),
+(263, 21, 'car', 18, '2026-03-01 18:47:50', NULL, NULL, 0),
+(264, 21, 'truck', 3, '2026-03-01 18:47:50', NULL, NULL, 0),
+(265, 22, 'car', 2, '2026-03-01 18:47:50', NULL, NULL, 0),
+(266, 22, 'car', 8, '2026-03-01 18:47:50', NULL, NULL, 0),
+(267, 22, 'car', 10, '2026-03-01 18:47:50', NULL, NULL, 0),
+(268, 22, 'car', 18, '2026-03-01 18:47:50', NULL, NULL, 0),
+(269, 22, 'truck', 3, '2026-03-01 18:47:50', NULL, NULL, 0),
+(270, 23, 'car', 5, '2026-03-01 18:47:50', NULL, NULL, 0),
+(271, 23, 'car', 8, '2026-03-01 18:47:50', NULL, NULL, 0),
+(272, 23, 'car', 4, '2026-03-01 18:47:50', NULL, NULL, 0),
+(273, 23, 'car', 21, '2026-03-01 18:47:50', NULL, NULL, 0),
+(274, 23, 'truck', 2, '2026-03-01 18:47:50', NULL, NULL, 0),
+(275, 24, 'car', 5, '2026-03-01 18:47:50', NULL, NULL, 0),
+(276, 24, 'car', 8, '2026-03-01 18:47:50', NULL, NULL, 0),
+(277, 24, 'car', 9, '2026-03-01 18:47:50', NULL, NULL, 0),
+(278, 24, 'car', 14, '2026-03-01 18:47:50', NULL, NULL, 0),
+(279, 24, 'car', 21, '2026-03-01 18:47:50', NULL, NULL, 0),
+(280, 24, 'truck', 2, '2026-03-01 18:47:50', NULL, NULL, 0),
+(281, 24, 'truck', 3, '2026-03-01 18:47:50', NULL, NULL, 0),
+(282, 25, 'car', 1, '2026-03-01 18:47:50', NULL, NULL, 0),
+(283, 25, 'car', 3, '2026-03-01 18:47:50', NULL, NULL, 0),
+(284, 25, 'truck', 1, '2026-03-01 18:47:50', NULL, NULL, 0),
+(285, 26, 'car', 2, '2026-03-01 18:47:50', NULL, NULL, 0),
+(286, 26, 'car', 10, '2026-03-01 18:47:50', NULL, NULL, 0),
+(287, 26, 'car', 18, '2026-03-01 18:47:50', NULL, NULL, 0),
+(288, 26, 'truck', 3, '2026-03-01 18:47:50', NULL, NULL, 0),
+(289, 27, 'car', 8, '2026-03-01 18:47:50', NULL, NULL, 0),
+(290, 27, 'car', 9, '2026-03-01 18:47:50', NULL, NULL, 0),
+(291, 27, 'car', 5, '2026-03-01 18:47:50', NULL, NULL, 0),
+(292, 27, 'car', 13, '2026-03-01 18:47:50', NULL, NULL, 0),
+(293, 27, 'car', 14, '2026-03-01 18:47:50', NULL, NULL, 0),
+(294, 27, 'truck', 2, '2026-03-01 18:47:50', NULL, NULL, 0),
+(295, 27, 'truck', 4, '2026-03-01 18:47:50', NULL, NULL, 0),
+(296, 28, 'car', 6, '2026-03-01 18:47:50', NULL, NULL, 0),
+(297, 28, 'car', 7, '2026-03-01 18:47:50', NULL, NULL, 0),
+(298, 28, 'car', 20, '2026-03-01 18:47:50', NULL, NULL, 0),
+(299, 28, 'car', 11, '2026-03-01 18:47:50', NULL, NULL, 0),
+(300, 29, 'car', 4, '2026-03-01 18:47:50', NULL, NULL, 0),
+(301, 29, 'car', 5, '2026-03-01 18:47:50', NULL, NULL, 0),
+(302, 29, 'car', 13, '2026-03-01 18:47:50', NULL, NULL, 0),
+(303, 29, 'car', 11, '2026-03-01 18:47:50', NULL, NULL, 0),
+(304, 29, 'truck', 2, '2026-03-01 18:47:50', NULL, NULL, 0),
+(305, 29, 'truck', 4, '2026-03-01 18:47:50', NULL, NULL, 0),
+(306, 30, 'car', 8, '2026-03-01 18:47:50', NULL, NULL, 0),
+(307, 30, 'car', 9, '2026-03-01 18:47:50', NULL, NULL, 0),
+(308, 30, 'car', 17, '2026-03-01 18:47:50', NULL, NULL, 0),
+(309, 30, 'car', 19, '2026-03-01 18:47:50', NULL, NULL, 0),
+(310, 31, 'car', 6, '2026-03-01 18:47:50', NULL, NULL, 0),
+(311, 31, 'car', 7, '2026-03-01 18:47:50', NULL, NULL, 0),
+(312, 31, 'car', 19, '2026-03-01 18:47:50', NULL, NULL, 0),
+(313, 31, 'car', 20, '2026-03-01 18:47:50', NULL, NULL, 0),
+(314, 123, 'car', 8, '2026-03-01 18:47:50', NULL, NULL, 0),
+(315, 123, 'car', 9, '2026-03-01 18:47:50', NULL, NULL, 0),
+(316, 123, 'car', 5, '2026-03-01 18:47:50', NULL, NULL, 0),
+(317, 123, 'car', 13, '2026-03-01 18:47:50', NULL, NULL, 0),
+(318, 123, 'truck', 2, '2026-03-01 18:47:50', NULL, NULL, 0),
+(319, 123, 'truck', 3, '2026-03-01 18:47:50', NULL, NULL, 0),
+(320, 124, 'car', 2, '2026-03-01 18:47:50', NULL, NULL, 0),
+(321, 124, 'car', 10, '2026-03-01 18:47:50', NULL, NULL, 0),
+(322, 124, 'car', 18, '2026-03-01 18:47:50', NULL, NULL, 0),
+(323, 124, 'truck', 3, '2026-03-01 18:47:50', NULL, NULL, 0),
+(324, 125, 'car', 4, '2026-03-01 18:47:50', NULL, NULL, 0),
+(325, 125, 'car', 6, '2026-03-01 18:47:50', NULL, NULL, 0),
+(326, 125, 'car', 23, '2026-03-01 18:47:50', NULL, NULL, 0),
+(327, 125, 'car', 16, '2026-03-01 18:47:50', NULL, NULL, 0),
+(328, 126, 'car', 6, '2026-03-01 18:47:50', NULL, NULL, 0),
+(329, 126, 'car', 7, '2026-03-01 18:47:50', NULL, NULL, 0),
+(330, 126, 'car', 11, '2026-03-01 18:47:50', NULL, NULL, 0),
+(331, 126, 'car', 12, '2026-03-01 18:47:50', NULL, NULL, 0),
+(332, 127, 'car', 1, '2026-03-01 18:47:50', NULL, NULL, 0),
+(333, 127, 'car', 3, '2026-03-01 18:47:50', NULL, NULL, 0),
+(334, 127, 'truck', 1, '2026-03-01 18:47:50', NULL, NULL, 0),
+(335, 84, 'car', 5, '2026-03-01 18:47:50', NULL, NULL, 0),
+(336, 84, 'car', 8, '2026-03-01 18:47:50', NULL, NULL, 0),
+(337, 84, 'car', 14, '2026-03-01 18:47:50', NULL, NULL, 0),
+(338, 84, 'truck', 2, '2026-03-01 18:47:50', NULL, NULL, 0),
+(339, 85, 'car', 4, '2026-03-01 18:47:50', NULL, NULL, 0),
+(340, 85, 'car', 5, '2026-03-01 18:47:50', NULL, NULL, 0),
+(341, 85, 'car', 16, '2026-03-01 18:47:50', NULL, NULL, 0),
+(342, 85, 'car', 15, '2026-03-01 18:47:50', NULL, NULL, 0),
+(343, 86, 'car', 2, '2026-03-01 18:47:50', NULL, NULL, 0),
+(344, 86, 'car', 10, '2026-03-01 18:47:50', NULL, NULL, 0),
+(345, 86, 'car', 18, '2026-03-01 18:47:50', NULL, NULL, 0),
+(346, 86, 'truck', 3, '2026-03-01 18:47:50', NULL, NULL, 0),
+(347, 87, 'car', 8, '2026-03-01 18:47:50', NULL, NULL, 0),
+(348, 87, 'car', 9, '2026-03-01 18:47:50', NULL, NULL, 0),
+(349, 87, 'car', 17, '2026-03-01 18:47:50', NULL, NULL, 0),
+(350, 87, 'truck', 3, '2026-03-01 18:47:50', NULL, NULL, 0),
+(351, 88, 'car', 6, '2026-03-01 18:47:50', NULL, NULL, 0),
+(352, 88, 'car', 7, '2026-03-01 18:47:50', NULL, NULL, 0),
+(353, 88, 'car', 13, '2026-03-01 18:47:50', NULL, NULL, 0),
+(354, 88, 'car', 11, '2026-03-01 18:47:50', NULL, NULL, 0),
+(355, 88, 'car', 20, '2026-03-01 18:47:50', NULL, NULL, 0),
+(356, 88, 'truck', 4, '2026-03-01 18:47:50', NULL, NULL, 0),
+(357, 141, 'car', 1, '2026-03-01 18:47:50', NULL, NULL, 0),
+(358, 141, 'car', 3, '2026-03-01 18:47:50', NULL, NULL, 0),
+(359, 141, 'truck', 1, '2026-03-01 18:47:50', NULL, NULL, 0),
+(360, 142, 'car', 8, '2026-03-01 18:47:50', NULL, NULL, 0),
+(361, 142, 'car', 9, '2026-03-01 18:47:50', NULL, NULL, 0),
+(362, 142, 'car', 17, '2026-03-01 18:47:50', NULL, NULL, 0),
+(363, 142, 'truck', 3, '2026-03-01 18:47:50', NULL, NULL, 0),
+(364, 143, 'car', 2, '2026-03-01 18:47:50', NULL, NULL, 0),
+(365, 143, 'car', 10, '2026-03-01 18:47:50', NULL, NULL, 0),
+(366, 143, 'car', 18, '2026-03-01 18:47:50', NULL, NULL, 0),
+(367, 143, 'truck', 3, '2026-03-01 18:47:50', NULL, NULL, 0),
+(368, 145, 'car', 1, '2026-03-01 18:47:50', NULL, NULL, 0),
+(369, 145, 'car', 3, '2026-03-01 18:47:50', NULL, NULL, 0),
+(370, 145, 'truck', 1, '2026-03-01 18:47:50', NULL, NULL, 0),
+(371, 147, 'car', 2, '2026-03-01 18:47:50', NULL, NULL, 0),
+(372, 147, 'car', 18, '2026-03-01 18:47:50', NULL, NULL, 0),
+(373, 89, 'car', 9, '2026-03-01 18:47:50', NULL, NULL, 0),
+(374, 89, 'car', 17, '2026-03-01 18:47:50', NULL, NULL, 0),
+(375, 89, 'car', 19, '2026-03-01 18:47:50', NULL, NULL, 0),
+(376, 89, 'truck', 3, '2026-03-01 18:47:50', NULL, NULL, 0),
+(377, 90, 'car', 2, '2026-03-01 18:47:50', NULL, NULL, 0),
+(378, 90, 'car', 10, '2026-03-01 18:47:50', NULL, NULL, 0),
+(379, 90, 'car', 18, '2026-03-01 18:47:50', NULL, NULL, 0),
+(380, 90, 'truck', 3, '2026-03-01 18:47:50', NULL, NULL, 0),
+(381, 91, 'car', 5, '2026-03-01 18:47:50', NULL, NULL, 0),
+(382, 91, 'car', 8, '2026-03-01 18:47:50', NULL, NULL, 0),
+(383, 91, 'car', 14, '2026-03-01 18:47:50', NULL, NULL, 0),
+(384, 91, 'truck', 2, '2026-03-01 18:47:50', NULL, NULL, 0),
+(385, 91, 'truck', 4, '2026-03-01 18:47:50', NULL, NULL, 0),
+(386, 92, 'car', 4, '2026-03-01 18:47:50', NULL, NULL, 0),
+(387, 92, 'car', 21, '2026-03-01 18:47:50', NULL, NULL, 0),
+(388, 92, 'car', 22, '2026-03-01 18:47:50', NULL, NULL, 0),
+(389, 92, 'car', 23, '2026-03-01 18:47:50', NULL, NULL, 0),
+(390, 128, 'car', 8, '2026-03-01 18:47:50', NULL, NULL, 0),
+(391, 128, 'car', 9, '2026-03-01 18:47:50', NULL, NULL, 0),
+(392, 128, 'car', 17, '2026-03-01 18:47:50', NULL, NULL, 0),
+(393, 128, 'truck', 3, '2026-03-01 18:47:50', NULL, NULL, 0),
+(394, 129, 'car', 5, '2026-03-01 18:47:50', NULL, NULL, 0),
+(395, 129, 'car', 4, '2026-03-01 18:47:50', NULL, NULL, 0),
+(396, 129, 'car', 21, '2026-03-01 18:47:50', NULL, NULL, 0),
+(397, 129, 'truck', 2, '2026-03-01 18:47:50', NULL, NULL, 0),
+(398, 131, 'car', 8, '2026-03-01 18:47:50', NULL, NULL, 0),
+(399, 131, 'car', 9, '2026-03-01 18:47:50', NULL, NULL, 0),
+(400, 131, 'car', 19, '2026-03-01 18:47:50', NULL, NULL, 0),
+(401, 131, 'truck', 3, '2026-03-01 18:47:50', NULL, NULL, 0),
+(402, 132, 'car', 2, '2026-03-01 18:47:50', NULL, NULL, 0),
+(403, 132, 'car', 10, '2026-03-01 18:47:50', NULL, NULL, 0),
+(404, 132, 'car', 18, '2026-03-01 18:47:50', NULL, NULL, 0),
+(405, 132, 'truck', 3, '2026-03-01 18:47:50', NULL, NULL, 0),
+(406, 134, 'car', 5, '2026-03-01 18:47:50', NULL, NULL, 0),
+(407, 134, 'car', 4, '2026-03-01 18:47:50', NULL, NULL, 0),
+(408, 134, 'car', 14, '2026-03-01 18:47:50', NULL, NULL, 0),
+(409, 134, 'truck', 2, '2026-03-01 18:47:50', NULL, NULL, 0),
+(410, 134, 'truck', 4, '2026-03-01 18:47:50', NULL, NULL, 0),
+(411, 136, 'car', 8, '2026-03-01 18:47:50', NULL, NULL, 0),
+(412, 136, 'car', 9, '2026-03-01 18:47:50', NULL, NULL, 0),
+(413, 136, 'car', 17, '2026-03-01 18:47:50', NULL, NULL, 0),
+(414, 136, 'truck', 3, '2026-03-01 18:47:50', NULL, NULL, 0),
+(415, 138, 'car', 8, '2026-03-01 18:47:50', NULL, NULL, 0),
+(416, 138, 'car', 10, '2026-03-01 18:47:50', NULL, NULL, 0),
+(417, 138, 'car', 18, '2026-03-01 18:47:50', NULL, NULL, 0),
+(418, 138, 'truck', 3, '2026-03-01 18:47:50', NULL, NULL, 0),
+(419, 140, 'car', 8, '2026-03-01 18:47:50', NULL, NULL, 0),
+(420, 140, 'car', 9, '2026-03-01 18:47:50', NULL, NULL, 0),
+(421, 140, 'car', 17, '2026-03-01 18:47:50', NULL, NULL, 0),
+(422, 140, 'truck', 3, '2026-03-01 18:47:50', NULL, NULL, 0),
+(423, 43, 'car', 2, '2026-03-01 18:47:50', NULL, NULL, 0),
+(424, 43, 'car', 8, '2026-03-01 18:47:50', NULL, NULL, 0),
+(425, 43, 'car', 10, '2026-03-01 18:47:50', NULL, NULL, 0),
+(426, 43, 'car', 18, '2026-03-01 18:47:50', NULL, NULL, 0),
+(427, 43, 'car', 17, '2026-03-01 18:47:50', NULL, NULL, 0),
+(428, 46, 'car', 4, '2026-03-01 18:47:50', NULL, NULL, 0),
+(429, 46, 'car', 5, '2026-03-01 18:47:50', NULL, NULL, 0),
+(430, 46, 'car', 21, '2026-03-01 18:47:50', NULL, NULL, 0),
+(431, 46, 'car', 23, '2026-03-01 18:47:50', NULL, NULL, 0),
+(432, 46, 'car', 16, '2026-03-01 18:47:50', NULL, NULL, 0),
+(433, 47, 'car', 1, '2026-03-01 18:47:50', NULL, NULL, 0),
+(434, 47, 'car', 3, '2026-03-01 18:47:50', NULL, NULL, 0),
+(435, 47, 'truck', 1, '2026-03-01 18:47:50', NULL, NULL, 0),
+(436, 50, 'car', 8, '2026-03-01 18:47:50', NULL, NULL, 0),
+(437, 50, 'car', 9, '2026-03-01 18:47:50', NULL, NULL, 0),
+(438, 50, 'car', 17, '2026-03-01 18:47:50', NULL, NULL, 0),
+(439, 50, 'car', 19, '2026-03-01 18:47:50', NULL, NULL, 0),
+(440, 51, 'car', 2, '2026-03-01 18:47:50', NULL, NULL, 0),
+(441, 51, 'car', 8, '2026-03-01 18:47:50', NULL, NULL, 0),
+(442, 51, 'car', 10, '2026-03-01 18:47:50', NULL, NULL, 0),
+(443, 51, 'car', 18, '2026-03-01 18:47:50', NULL, NULL, 0),
+(444, 51, 'truck', 3, '2026-03-01 18:47:50', NULL, NULL, 0),
+(445, 52, 'car', 23, '2026-03-01 18:47:50', NULL, NULL, 0),
+(446, 52, 'car', 16, '2026-03-01 18:47:50', NULL, NULL, 0),
+(447, 52, 'car', 15, '2026-03-01 18:47:50', NULL, NULL, 0),
+(448, 53, 'car', 5, '2026-03-01 18:47:50', NULL, NULL, 0),
+(449, 53, 'car', 8, '2026-03-01 18:47:50', NULL, NULL, 0),
+(450, 53, 'car', 14, '2026-03-01 18:47:50', NULL, NULL, 0),
+(451, 53, 'truck', 2, '2026-03-01 18:47:50', NULL, NULL, 0),
+(452, 54, 'car', 13, '2026-03-01 18:47:50', NULL, NULL, 0),
+(453, 54, 'car', 14, '2026-03-01 18:47:50', NULL, NULL, 0),
+(454, 54, 'truck', 4, '2026-03-01 18:47:50', NULL, NULL, 0),
+(455, 55, 'car', 1, '2026-03-01 18:47:50', NULL, NULL, 0),
+(456, 55, 'car', 3, '2026-03-01 18:47:50', NULL, NULL, 0),
+(457, 55, 'truck', 1, '2026-03-01 18:47:50', NULL, NULL, 0),
+(458, 56, 'car', 8, '2026-03-01 18:47:50', NULL, NULL, 0),
+(459, 56, 'car', 9, '2026-03-01 18:47:50', NULL, NULL, 0),
+(460, 56, 'car', 10, '2026-03-01 18:47:50', NULL, NULL, 0),
+(461, 56, 'car', 17, '2026-03-01 18:47:50', NULL, NULL, 0),
+(462, 56, 'car', 18, '2026-03-01 18:47:50', NULL, NULL, 0),
+(463, 56, 'truck', 3, '2026-03-01 18:47:50', NULL, NULL, 0),
+(464, 57, 'car', 2, '2026-03-01 18:47:50', NULL, NULL, 0),
+(465, 57, 'car', 18, '2026-03-01 18:47:50', NULL, NULL, 0),
+(466, 58, 'car', 5, '2026-03-01 18:47:50', NULL, NULL, 0),
+(467, 58, 'car', 4, '2026-03-01 18:47:50', NULL, NULL, 0),
+(468, 58, 'car', 21, '2026-03-01 18:47:50', NULL, NULL, 0),
+(469, 58, 'truck', 2, '2026-03-01 18:47:50', NULL, NULL, 0),
+(470, 59, 'car', 5, '2026-03-01 18:47:50', NULL, NULL, 0),
+(471, 59, 'truck', 2, '2026-03-01 18:47:50', NULL, NULL, 0),
+(472, 60, 'car', 2, '2026-03-01 18:47:50', NULL, NULL, 0),
+(473, 60, 'car', 18, '2026-03-01 18:47:50', NULL, NULL, 0),
+(474, 61, 'car', 8, '2026-03-01 18:47:50', NULL, NULL, 0),
+(475, 61, 'car', 9, '2026-03-01 18:47:50', NULL, NULL, 0),
+(476, 61, 'car', 17, '2026-03-01 18:47:50', NULL, NULL, 0),
+(477, 61, 'truck', 3, '2026-03-01 18:47:50', NULL, NULL, 0),
+(478, 62, 'car', 5, '2026-03-01 18:47:50', NULL, NULL, 0),
+(479, 62, 'car', 4, '2026-03-01 18:47:50', NULL, NULL, 0),
+(480, 62, 'car', 14, '2026-03-01 18:47:50', NULL, NULL, 0),
+(481, 62, 'truck', 2, '2026-03-01 18:47:50', NULL, NULL, 0),
+(482, 62, 'truck', 4, '2026-03-01 18:47:50', NULL, NULL, 0),
+(483, 63, 'car', 8, '2026-03-01 18:47:50', NULL, NULL, 0),
+(484, 63, 'car', 10, '2026-03-01 18:47:50', NULL, NULL, 0),
+(485, 63, 'car', 18, '2026-03-01 18:47:50', NULL, NULL, 0),
+(486, 63, 'truck', 3, '2026-03-01 18:47:50', NULL, NULL, 0),
+(487, 64, 'car', 8, '2026-03-01 18:47:50', NULL, NULL, 0),
+(488, 64, 'car', 9, '2026-03-01 18:47:50', NULL, NULL, 0),
+(489, 64, 'car', 17, '2026-03-01 18:47:50', NULL, NULL, 0),
+(490, 64, 'car', 19, '2026-03-01 18:47:50', NULL, NULL, 0),
+(491, 65, 'car', 2, '2026-03-01 18:47:50', NULL, NULL, 0),
+(492, 65, 'car', 10, '2026-03-01 18:47:50', NULL, NULL, 0),
+(493, 65, 'car', 18, '2026-03-01 18:47:50', NULL, NULL, 0),
+(494, 65, 'truck', 3, '2026-03-01 18:47:50', NULL, NULL, 0),
+(495, 148, 'car', 8, '2026-03-01 18:47:50', NULL, NULL, 0),
+(496, 148, 'car', 9, '2026-03-01 18:47:50', NULL, NULL, 0),
+(497, 148, 'car', 17, '2026-03-01 18:47:50', NULL, NULL, 0),
+(498, 148, 'truck', 3, '2026-03-01 18:47:50', NULL, NULL, 0),
+(499, 149, 'car', 5, '2026-03-01 18:47:50', NULL, NULL, 0),
+(500, 149, 'car', 4, '2026-03-01 18:47:50', NULL, NULL, 0),
+(501, 149, 'car', 14, '2026-03-01 18:47:50', NULL, NULL, 0),
+(502, 149, 'truck', 2, '2026-03-01 18:47:50', NULL, NULL, 0),
+(503, 149, 'truck', 4, '2026-03-01 18:47:50', NULL, NULL, 0),
+(504, 150, 'car', 2, '2026-03-01 18:47:50', NULL, NULL, 0),
+(505, 150, 'car', 18, '2026-03-01 18:47:50', NULL, NULL, 0),
+(506, 151, 'car', 6, '2026-03-01 18:47:50', NULL, NULL, 0),
+(507, 151, 'car', 7, '2026-03-01 18:47:50', NULL, NULL, 0),
+(508, 151, 'car', 13, '2026-03-01 18:47:50', NULL, NULL, 0),
+(509, 151, 'car', 20, '2026-03-01 18:47:50', NULL, NULL, 0),
+(510, 153, 'car', 1, '2026-03-01 18:47:50', NULL, NULL, 0),
+(511, 153, 'car', 3, '2026-03-01 18:47:50', NULL, NULL, 0),
+(512, 153, 'truck', 1, '2026-03-01 18:47:50', NULL, NULL, 0),
+(513, 33, 'car', 2, '2026-03-01 18:47:50', NULL, NULL, 0),
+(514, 34, 'car', 9, '2026-03-01 18:47:50', NULL, NULL, 0),
+(515, 34, 'car', 17, '2026-03-01 18:47:50', NULL, NULL, 0),
+(516, 35, 'car', 12, '2026-03-01 18:47:50', NULL, NULL, 0),
+(517, 35, 'car', 11, '2026-03-01 18:47:50', NULL, NULL, 0),
+(518, 38, 'car', 18, '2026-03-01 18:47:50', NULL, NULL, 0),
+(519, 39, 'car', 4, '2026-03-01 18:47:50', NULL, NULL, 0),
+(520, 40, 'car', 8, '2026-03-01 18:47:50', NULL, NULL, 0),
+(521, 40, 'car', 18, '2026-03-01 18:47:50', NULL, NULL, 0),
+(522, 41, 'car', 8, '2026-03-01 18:47:50', NULL, NULL, 0),
+(523, 41, 'car', 9, '2026-03-01 18:47:50', NULL, NULL, 0),
+(524, 41, 'car', 10, '2026-03-01 18:47:50', NULL, NULL, 0),
+(525, 41, 'car', 17, '2026-03-01 18:47:50', NULL, NULL, 0),
+(526, 41, 'car', 18, '2026-03-01 18:47:50', NULL, NULL, 0);
 
 -- --------------------------------------------------------
 
@@ -2924,17 +3397,15 @@ CREATE TABLE IF NOT EXISTS `part_compatibility` (
 --
 
 DROP TABLE IF EXISTS `part_images`;
-CREATE TABLE IF NOT EXISTS `part_images` (
-  `id` int NOT NULL AUTO_INCREMENT,
+CREATE TABLE `part_images` (
+  `id` int NOT NULL,
   `part_id` int NOT NULL,
   `url` varchar(255) NOT NULL,
   `is_primary` tinyint(1) DEFAULT '0',
   `created_at` datetime DEFAULT CURRENT_TIMESTAMP,
   `is_deleted` tinyint(1) DEFAULT '0',
-  `deleted_at` datetime DEFAULT NULL,
-  PRIMARY KEY (`id`),
-  KEY `part_id` (`part_id`)
-) ENGINE=InnoDB AUTO_INCREMENT=114 DEFAULT CHARSET=utf8mb3;
+  `deleted_at` datetime DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3;
 
 --
 -- A tábla adatainak kiíratása `part_images`
@@ -3060,17 +3531,15 @@ INSERT INTO `part_images` (`id`, `part_id`, `url`, `is_primary`, `created_at`, `
 --
 
 DROP TABLE IF EXISTS `part_variants`;
-CREATE TABLE IF NOT EXISTS `part_variants` (
-  `id` int NOT NULL AUTO_INCREMENT,
+CREATE TABLE `part_variants` (
+  `id` int NOT NULL,
   `part_id` int NOT NULL,
   `name` varchar(100) DEFAULT NULL,
   `value` varchar(100) DEFAULT NULL,
   `additional_price` decimal(10,2) DEFAULT '0.00',
   `created_at` datetime DEFAULT CURRENT_TIMESTAMP,
   `is_deleted` tinyint(1) DEFAULT '0',
-  `deleted_at` datetime DEFAULT NULL,
-  PRIMARY KEY (`id`),
-  KEY `part_id` (`part_id`)
+  `deleted_at` datetime DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3;
 
 -- --------------------------------------------------------
@@ -3080,17 +3549,13 @@ CREATE TABLE IF NOT EXISTS `part_variants` (
 --
 
 DROP TABLE IF EXISTS `password_resets`;
-CREATE TABLE IF NOT EXISTS `password_resets` (
-  `id` int NOT NULL AUTO_INCREMENT,
+CREATE TABLE `password_resets` (
+  `id` int NOT NULL,
   `user_id` int NOT NULL,
   `token` varchar(255) NOT NULL,
   `expires_at` datetime NOT NULL,
   `used` tinyint(1) DEFAULT '0',
-  `created_at` datetime DEFAULT CURRENT_TIMESTAMP,
-  PRIMARY KEY (`id`),
-  UNIQUE KEY `token` (`token`),
-  KEY `user_id` (`user_id`),
-  KEY `token_2` (`token`)
+  `created_at` datetime DEFAULT CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3;
 
 -- --------------------------------------------------------
@@ -3100,8 +3565,8 @@ CREATE TABLE IF NOT EXISTS `password_resets` (
 --
 
 DROP TABLE IF EXISTS `payments`;
-CREATE TABLE IF NOT EXISTS `payments` (
-  `id` int NOT NULL AUTO_INCREMENT,
+CREATE TABLE `payments` (
+  `id` int NOT NULL,
   `order_id` int NOT NULL,
   `amount` decimal(10,2) DEFAULT NULL,
   `method` varchar(50) DEFAULT NULL,
@@ -3109,10 +3574,8 @@ CREATE TABLE IF NOT EXISTS `payments` (
   `paid_at` datetime DEFAULT NULL,
   `created_at` datetime DEFAULT CURRENT_TIMESTAMP,
   `is_deleted` tinyint(1) DEFAULT '0',
-  `deleted_at` datetime DEFAULT NULL,
-  PRIMARY KEY (`id`),
-  KEY `order_id` (`order_id`)
-) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8mb3;
+  `deleted_at` datetime DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3;
 
 -- --------------------------------------------------------
 
@@ -3121,16 +3584,14 @@ CREATE TABLE IF NOT EXISTS `payments` (
 --
 
 DROP TABLE IF EXISTS `refunds`;
-CREATE TABLE IF NOT EXISTS `refunds` (
-  `id` int NOT NULL AUTO_INCREMENT,
+CREATE TABLE `refunds` (
+  `id` int NOT NULL,
   `payment_id` int NOT NULL,
   `amount` decimal(10,2) DEFAULT NULL,
   `reason` varchar(255) DEFAULT NULL,
   `refunded_at` datetime DEFAULT CURRENT_TIMESTAMP,
   `is_deleted` tinyint(1) DEFAULT '0',
-  `deleted_at` datetime DEFAULT NULL,
-  PRIMARY KEY (`id`),
-  KEY `payment_id` (`payment_id`)
+  `deleted_at` datetime DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3;
 
 -- --------------------------------------------------------
@@ -3140,19 +3601,16 @@ CREATE TABLE IF NOT EXISTS `refunds` (
 --
 
 DROP TABLE IF EXISTS `reviews`;
-CREATE TABLE IF NOT EXISTS `reviews` (
-  `id` int NOT NULL AUTO_INCREMENT,
+CREATE TABLE `reviews` (
+  `id` int NOT NULL,
   `user_id` int NOT NULL,
   `part_id` int NOT NULL,
   `rating` int DEFAULT NULL,
   `comment` text,
   `created_at` datetime DEFAULT CURRENT_TIMESTAMP,
   `is_deleted` tinyint(1) DEFAULT '0',
-  `deleted_at` datetime DEFAULT NULL,
-  PRIMARY KEY (`id`),
-  KEY `user_id` (`user_id`),
-  KEY `part_id` (`part_id`)
-) ENGINE=InnoDB AUTO_INCREMENT=5 DEFAULT CHARSET=utf8mb3;
+  `deleted_at` datetime DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3;
 
 --
 -- A tábla adatainak kiíratása `reviews`
@@ -3169,17 +3627,13 @@ INSERT INTO `reviews` (`id`, `user_id`, `part_id`, `rating`, `comment`, `created
 --
 
 DROP TABLE IF EXISTS `sessions`;
-CREATE TABLE IF NOT EXISTS `sessions` (
-  `id` int NOT NULL AUTO_INCREMENT,
+CREATE TABLE `sessions` (
+  `id` int NOT NULL,
   `user_id` int NOT NULL,
   `token` varchar(255) NOT NULL,
   `expires_at` datetime NOT NULL,
   `created_at` datetime DEFAULT CURRENT_TIMESTAMP,
-  `revoked` tinyint(1) DEFAULT '0',
-  PRIMARY KEY (`id`),
-  UNIQUE KEY `token` (`token`),
-  KEY `token_2` (`token`),
-  KEY `user_id` (`user_id`)
+  `revoked` tinyint(1) DEFAULT '0'
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3;
 
 -- --------------------------------------------------------
@@ -3189,15 +3643,14 @@ CREATE TABLE IF NOT EXISTS `sessions` (
 --
 
 DROP TABLE IF EXISTS `shipping_methods`;
-CREATE TABLE IF NOT EXISTS `shipping_methods` (
-  `id` int NOT NULL AUTO_INCREMENT,
+CREATE TABLE `shipping_methods` (
+  `id` int NOT NULL,
   `name` varchar(50) DEFAULT NULL,
   `price` decimal(10,2) DEFAULT NULL,
   `duration` varchar(50) DEFAULT NULL,
   `created_at` datetime DEFAULT CURRENT_TIMESTAMP,
   `is_deleted` tinyint(1) DEFAULT '0',
-  `deleted_at` datetime DEFAULT NULL,
-  PRIMARY KEY (`id`)
+  `deleted_at` datetime DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3;
 
 -- --------------------------------------------------------
@@ -3207,17 +3660,15 @@ CREATE TABLE IF NOT EXISTS `shipping_methods` (
 --
 
 DROP TABLE IF EXISTS `shipping_status`;
-CREATE TABLE IF NOT EXISTS `shipping_status` (
-  `id` int NOT NULL AUTO_INCREMENT,
+CREATE TABLE `shipping_status` (
+  `id` int NOT NULL,
   `order_id` int NOT NULL,
   `status` varchar(50) DEFAULT NULL,
   `tracking_no` varchar(50) DEFAULT NULL,
   `created_at` datetime DEFAULT CURRENT_TIMESTAMP,
   `updated_at` datetime DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   `is_deleted` tinyint(1) DEFAULT '0',
-  `deleted_at` datetime DEFAULT NULL,
-  PRIMARY KEY (`id`),
-  KEY `order_id` (`order_id`)
+  `deleted_at` datetime DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3;
 
 -- --------------------------------------------------------
@@ -3227,15 +3678,23 @@ CREATE TABLE IF NOT EXISTS `shipping_status` (
 --
 
 DROP TABLE IF EXISTS `stock_logs`;
-CREATE TABLE IF NOT EXISTS `stock_logs` (
-  `id` int NOT NULL AUTO_INCREMENT,
+CREATE TABLE `stock_logs` (
+  `id` int NOT NULL,
   `part_id` int NOT NULL,
   `change_amount` int DEFAULT NULL,
   `reason` varchar(255) DEFAULT NULL,
-  `created_at` datetime DEFAULT CURRENT_TIMESTAMP,
-  PRIMARY KEY (`id`),
-  KEY `part_id` (`part_id`)
-) ENGINE=InnoDB AUTO_INCREMENT=5 DEFAULT CHARSET=utf8mb3;
+  `created_at` datetime DEFAULT CURRENT_TIMESTAMP
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3;
+
+--
+-- A tábla adatainak kiíratása `stock_logs`
+--
+
+INSERT INTO `stock_logs` (`id`, `part_id`, `change_amount`, `reason`, `created_at`) VALUES
+(1, 2, -2, 'Order #3', '2026-02-17 09:52:29'),
+(2, 5, -10, 'Order #4', '2026-02-17 13:57:21'),
+(3, 8, -7, 'Order #5', '2026-02-17 13:57:30'),
+(4, 16, -3, 'Order #6', '2026-02-17 13:57:38');
 
 -- --------------------------------------------------------
 
@@ -3244,8 +3703,8 @@ CREATE TABLE IF NOT EXISTS `stock_logs` (
 --
 
 DROP TABLE IF EXISTS `trucks`;
-CREATE TABLE IF NOT EXISTS `trucks` (
-  `id` int NOT NULL AUTO_INCREMENT,
+CREATE TABLE `trucks` (
+  `id` int NOT NULL,
   `brand` varchar(100) NOT NULL,
   `model` varchar(100) NOT NULL,
   `year_from` int DEFAULT NULL,
@@ -3253,8 +3712,7 @@ CREATE TABLE IF NOT EXISTS `trucks` (
   `created_at` datetime DEFAULT CURRENT_TIMESTAMP,
   `updated_at` datetime DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   `is_deleted` tinyint(1) DEFAULT '0',
-  `deleted_at` datetime DEFAULT NULL,
-  PRIMARY KEY (`id`)
+  `deleted_at` datetime DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3;
 
 -- --------------------------------------------------------
@@ -3264,8 +3722,8 @@ CREATE TABLE IF NOT EXISTS `trucks` (
 --
 
 DROP TABLE IF EXISTS `users`;
-CREATE TABLE IF NOT EXISTS `users` (
-  `id` int NOT NULL AUTO_INCREMENT,
+CREATE TABLE `users` (
+  `id` int NOT NULL,
   `email` varchar(50) NOT NULL,
   `username` varchar(30) NOT NULL,
   `password` varchar(255) NOT NULL,
@@ -3287,11 +3745,8 @@ CREATE TABLE IF NOT EXISTS `users` (
   `is_deleted` tinyint(1) DEFAULT '0',
   `auth_secret` varchar(255) NOT NULL,
   `guid` char(36) NOT NULL,
-  `registration_token` varchar(255) DEFAULT NULL,
-  PRIMARY KEY (`id`),
-  UNIQUE KEY `username` (`username`),
-  UNIQUE KEY `guid` (`guid`)
-) ENGINE=InnoDB AUTO_INCREMENT=19 DEFAULT CHARSET=utf8mb3;
+  `registration_token` varchar(255) DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3;
 
 -- --------------------------------------------------------
 
@@ -3300,15 +3755,13 @@ CREATE TABLE IF NOT EXISTS `users` (
 --
 
 DROP TABLE IF EXISTS `user_logs`;
-CREATE TABLE IF NOT EXISTS `user_logs` (
-  `id` int NOT NULL AUTO_INCREMENT,
+CREATE TABLE `user_logs` (
+  `id` int NOT NULL,
   `user_id` int NOT NULL,
   `action` varchar(255) NOT NULL,
   `details` text,
-  `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  PRIMARY KEY (`id`),
-  KEY `user_id` (`user_id`)
-) ENGINE=InnoDB AUTO_INCREMENT=145 DEFAULT CHARSET=utf8mb3;
+  `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3;
 
 -- --------------------------------------------------------
 
@@ -3317,8 +3770,8 @@ CREATE TABLE IF NOT EXISTS `user_logs` (
 --
 
 DROP TABLE IF EXISTS `user_twofa`;
-CREATE TABLE IF NOT EXISTS `user_twofa` (
-  `id` int NOT NULL AUTO_INCREMENT,
+CREATE TABLE `user_twofa` (
+  `id` int NOT NULL,
   `user_id` int NOT NULL,
   `twofa_enabled` tinyint(1) DEFAULT '0',
   `twofa_secret` varchar(255) DEFAULT NULL,
@@ -3326,48 +3779,418 @@ CREATE TABLE IF NOT EXISTS `user_twofa` (
   `created_at` datetime DEFAULT CURRENT_TIMESTAMP,
   `updated_at` datetime DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   `is_deleted` tinyint(1) DEFAULT '0',
-  `deleted_at` datetime DEFAULT NULL,
-  PRIMARY KEY (`id`),
-  KEY `user_id` (`user_id`)
-) ENGINE=InnoDB AUTO_INCREMENT=23 DEFAULT CHARSET=utf8mb3;
-
--- --------------------------------------------------------
-
---
--- Tábla szerkezet ehhez a táblához `warehouses`
---
-
-DROP TABLE IF EXISTS `warehouses`;
-CREATE TABLE IF NOT EXISTS `warehouses` (
-  `id` int NOT NULL AUTO_INCREMENT,
-  `name` varchar(50) DEFAULT NULL,
-  `location` varchar(255) DEFAULT NULL,
-  `created_at` datetime DEFAULT CURRENT_TIMESTAMP,
-  `is_deleted` tinyint(1) DEFAULT '0',
-  `deleted_at` datetime DEFAULT NULL,
-  PRIMARY KEY (`id`)
+  `deleted_at` datetime DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3;
 
 -- --------------------------------------------------------
 
 --
--- Tábla szerkezet ehhez a táblához `warehouse_stock`
+-- Tábla szerkezet ehhez a táblához `user_vehicles`
 --
 
-DROP TABLE IF EXISTS `warehouse_stock`;
-CREATE TABLE IF NOT EXISTS `warehouse_stock` (
-  `id` int NOT NULL AUTO_INCREMENT,
-  `warehouse_id` int NOT NULL,
-  `part_id` int NOT NULL,
-  `quantity` int DEFAULT NULL,
-  `created_at` datetime DEFAULT CURRENT_TIMESTAMP,
-  `updated_at` datetime DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+DROP TABLE IF EXISTS `user_vehicles`;
+CREATE TABLE `user_vehicles` (
+  `id` int NOT NULL,
+  `user_id` int NOT NULL,
+  `vehicle_type` enum('car','motor','truck') NOT NULL,
+  `vehicle_id` int NOT NULL,
+  `year` int NOT NULL,
+  `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
   `is_deleted` tinyint(1) DEFAULT '0',
-  `deleted_at` datetime DEFAULT NULL,
-  PRIMARY KEY (`id`),
-  KEY `warehouse_id` (`warehouse_id`),
-  KEY `part_id` (`part_id`)
+  `deleted_at` timestamp NULL DEFAULT NULL ON UPDATE CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3;
+
+--
+-- A tábla adatainak kiíratása `user_vehicles`
+--
+
+INSERT INTO `user_vehicles` (`id`, `user_id`, `vehicle_type`, `vehicle_id`, `year`, `created_at`, `is_deleted`, `deleted_at`) VALUES
+(1, 1, 'car', 5, 2010, '2026-03-02 18:09:29', 0, NULL),
+(2, 1, 'car', 2, 2010, '2026-03-02 18:11:50', 0, NULL);
+
+--
+-- Indexek a kiírt táblákhoz
+--
+
+--
+-- A tábla indexei `addresses`
+--
+ALTER TABLE `addresses`
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `user_id` (`user_id`);
+
+--
+-- A tábla indexei `cars`
+--
+ALTER TABLE `cars`
+  ADD PRIMARY KEY (`id`);
+
+--
+-- A tábla indexei `cart_items`
+--
+ALTER TABLE `cart_items`
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `user_id` (`user_id`),
+  ADD KEY `part_id` (`part_id`);
+
+--
+-- A tábla indexei `email_verifications`
+--
+ALTER TABLE `email_verifications`
+  ADD PRIMARY KEY (`id`),
+  ADD UNIQUE KEY `token` (`token`),
+  ADD KEY `user_id` (`user_id`);
+
+--
+-- A tábla indexei `invoices`
+--
+ALTER TABLE `invoices`
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `order_id` (`order_id`),
+  ADD KEY `invoices_ibfk_1` (`order_id`);
+
+--
+-- A tábla indexei `login_logs`
+--
+ALTER TABLE `login_logs`
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `user_id` (`user_id`),
+  ADD KEY `logged_in_at` (`logged_in_at`);
+
+--
+-- A tábla indexei `manufacturers`
+--
+ALTER TABLE `manufacturers`
+  ADD PRIMARY KEY (`id`),
+  ADD UNIQUE KEY `name` (`name`);
+
+--
+-- A tábla indexei `motors`
+--
+ALTER TABLE `motors`
+  ADD PRIMARY KEY (`id`);
+
+--
+-- A tábla indexei `orders`
+--
+ALTER TABLE `orders`
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `user_id` (`user_id`);
+
+--
+-- A tábla indexei `order_items`
+--
+ALTER TABLE `order_items`
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `order_id` (`order_id`),
+  ADD KEY `part_id` (`part_id`);
+
+--
+-- A tábla indexei `order_logs`
+--
+ALTER TABLE `order_logs`
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `order_id` (`order_id`);
+
+--
+-- A tábla indexei `parts`
+--
+ALTER TABLE `parts`
+  ADD PRIMARY KEY (`id`),
+  ADD UNIQUE KEY `sku` (`sku`),
+  ADD KEY `manufacturer_id` (`manufacturer_id`),
+  ADD KEY `category` (`category`);
+
+--
+-- A tábla indexei `part_compatibility`
+--
+ALTER TABLE `part_compatibility`
+  ADD PRIMARY KEY (`id`),
+  ADD UNIQUE KEY `unique_compatibility` (`part_id`,`vehicle_type`,`vehicle_id`),
+  ADD KEY `idx_part_id` (`part_id`),
+  ADD KEY `idx_vehicle_type` (`vehicle_type`),
+  ADD KEY `idx_vehicle_id` (`vehicle_id`),
+  ADD KEY `idx_part_vehicle` (`part_id`,`vehicle_type`,`vehicle_id`);
+
+--
+-- A tábla indexei `part_images`
+--
+ALTER TABLE `part_images`
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `part_id` (`part_id`);
+
+--
+-- A tábla indexei `part_variants`
+--
+ALTER TABLE `part_variants`
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `part_id` (`part_id`);
+
+--
+-- A tábla indexei `password_resets`
+--
+ALTER TABLE `password_resets`
+  ADD PRIMARY KEY (`id`),
+  ADD UNIQUE KEY `token` (`token`),
+  ADD KEY `user_id` (`user_id`),
+  ADD KEY `token_2` (`token`);
+
+--
+-- A tábla indexei `payments`
+--
+ALTER TABLE `payments`
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `order_id` (`order_id`);
+
+--
+-- A tábla indexei `refunds`
+--
+ALTER TABLE `refunds`
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `payment_id` (`payment_id`);
+
+--
+-- A tábla indexei `reviews`
+--
+ALTER TABLE `reviews`
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `user_id` (`user_id`),
+  ADD KEY `part_id` (`part_id`);
+
+--
+-- A tábla indexei `sessions`
+--
+ALTER TABLE `sessions`
+  ADD PRIMARY KEY (`id`),
+  ADD UNIQUE KEY `token` (`token`),
+  ADD KEY `token_2` (`token`),
+  ADD KEY `user_id` (`user_id`);
+
+--
+-- A tábla indexei `shipping_methods`
+--
+ALTER TABLE `shipping_methods`
+  ADD PRIMARY KEY (`id`);
+
+--
+-- A tábla indexei `shipping_status`
+--
+ALTER TABLE `shipping_status`
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `order_id` (`order_id`);
+
+--
+-- A tábla indexei `stock_logs`
+--
+ALTER TABLE `stock_logs`
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `part_id` (`part_id`);
+
+--
+-- A tábla indexei `trucks`
+--
+ALTER TABLE `trucks`
+  ADD PRIMARY KEY (`id`);
+
+--
+-- A tábla indexei `users`
+--
+ALTER TABLE `users`
+  ADD PRIMARY KEY (`id`),
+  ADD UNIQUE KEY `username` (`username`),
+  ADD UNIQUE KEY `guid` (`guid`);
+
+--
+-- A tábla indexei `user_logs`
+--
+ALTER TABLE `user_logs`
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `user_id` (`user_id`);
+
+--
+-- A tábla indexei `user_twofa`
+--
+ALTER TABLE `user_twofa`
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `user_id` (`user_id`);
+
+--
+-- A tábla indexei `user_vehicles`
+--
+ALTER TABLE `user_vehicles`
+  ADD PRIMARY KEY (`id`);
+
+--
+-- A kiírt táblák AUTO_INCREMENT értéke
+--
+
+--
+-- AUTO_INCREMENT a táblához `addresses`
+--
+ALTER TABLE `addresses`
+  MODIFY `id` int NOT NULL AUTO_INCREMENT;
+
+--
+-- AUTO_INCREMENT a táblához `cars`
+--
+ALTER TABLE `cars`
+  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
+
+--
+-- AUTO_INCREMENT a táblához `cart_items`
+--
+ALTER TABLE `cart_items`
+  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
+
+--
+-- AUTO_INCREMENT a táblához `email_verifications`
+--
+ALTER TABLE `email_verifications`
+  MODIFY `id` int NOT NULL AUTO_INCREMENT;
+
+--
+-- AUTO_INCREMENT a táblához `invoices`
+--
+ALTER TABLE `invoices`
+  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
+
+--
+-- AUTO_INCREMENT a táblához `login_logs`
+--
+ALTER TABLE `login_logs`
+  MODIFY `id` int NOT NULL AUTO_INCREMENT;
+
+--
+-- AUTO_INCREMENT a táblához `manufacturers`
+--
+ALTER TABLE `manufacturers`
+  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=75;
+
+--
+-- AUTO_INCREMENT a táblához `motors`
+--
+ALTER TABLE `motors`
+  MODIFY `id` int NOT NULL AUTO_INCREMENT;
+
+--
+-- AUTO_INCREMENT a táblához `orders`
+--
+ALTER TABLE `orders`
+  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=7;
+
+--
+-- AUTO_INCREMENT a táblához `order_items`
+--
+ALTER TABLE `order_items`
+  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
+
+--
+-- AUTO_INCREMENT a táblához `order_logs`
+--
+ALTER TABLE `order_logs`
+  MODIFY `id` int NOT NULL AUTO_INCREMENT;
+
+--
+-- AUTO_INCREMENT a táblához `parts`
+--
+ALTER TABLE `parts`
+  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=160;
+
+--
+-- AUTO_INCREMENT a táblához `part_compatibility`
+--
+ALTER TABLE `part_compatibility`
+  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=527;
+
+--
+-- AUTO_INCREMENT a táblához `part_images`
+--
+ALTER TABLE `part_images`
+  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=114;
+
+--
+-- AUTO_INCREMENT a táblához `part_variants`
+--
+ALTER TABLE `part_variants`
+  MODIFY `id` int NOT NULL AUTO_INCREMENT;
+
+--
+-- AUTO_INCREMENT a táblához `password_resets`
+--
+ALTER TABLE `password_resets`
+  MODIFY `id` int NOT NULL AUTO_INCREMENT;
+
+--
+-- AUTO_INCREMENT a táblához `payments`
+--
+ALTER TABLE `payments`
+  MODIFY `id` int NOT NULL AUTO_INCREMENT;
+
+--
+-- AUTO_INCREMENT a táblához `refunds`
+--
+ALTER TABLE `refunds`
+  MODIFY `id` int NOT NULL AUTO_INCREMENT;
+
+--
+-- AUTO_INCREMENT a táblához `reviews`
+--
+ALTER TABLE `reviews`
+  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
+
+--
+-- AUTO_INCREMENT a táblához `sessions`
+--
+ALTER TABLE `sessions`
+  MODIFY `id` int NOT NULL AUTO_INCREMENT;
+
+--
+-- AUTO_INCREMENT a táblához `shipping_methods`
+--
+ALTER TABLE `shipping_methods`
+  MODIFY `id` int NOT NULL AUTO_INCREMENT;
+
+--
+-- AUTO_INCREMENT a táblához `shipping_status`
+--
+ALTER TABLE `shipping_status`
+  MODIFY `id` int NOT NULL AUTO_INCREMENT;
+
+--
+-- AUTO_INCREMENT a táblához `stock_logs`
+--
+ALTER TABLE `stock_logs`
+  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
+
+--
+-- AUTO_INCREMENT a táblához `trucks`
+--
+ALTER TABLE `trucks`
+  MODIFY `id` int NOT NULL AUTO_INCREMENT;
+
+--
+-- AUTO_INCREMENT a táblához `users`
+--
+ALTER TABLE `users`
+  MODIFY `id` int NOT NULL AUTO_INCREMENT;
+
+--
+-- AUTO_INCREMENT a táblához `user_logs`
+--
+ALTER TABLE `user_logs`
+  MODIFY `id` int NOT NULL AUTO_INCREMENT;
+
+--
+-- AUTO_INCREMENT a táblához `user_twofa`
+--
+ALTER TABLE `user_twofa`
+  MODIFY `id` int NOT NULL AUTO_INCREMENT;
+
+--
+-- AUTO_INCREMENT a táblához `user_vehicles`
+--
+ALTER TABLE `user_vehicles`
+  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
 
 --
 -- Megkötések a kiírt táblákhoz
@@ -3501,13 +4324,6 @@ ALTER TABLE `user_logs`
 --
 ALTER TABLE `user_twofa`
   ADD CONSTRAINT `user_twofa_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE;
-
---
--- Megkötések a táblához `warehouse_stock`
---
-ALTER TABLE `warehouse_stock`
-  ADD CONSTRAINT `warehouse_stock_ibfk_1` FOREIGN KEY (`warehouse_id`) REFERENCES `warehouses` (`id`) ON DELETE CASCADE,
-  ADD CONSTRAINT `warehouse_stock_ibfk_2` FOREIGN KEY (`part_id`) REFERENCES `parts` (`id`) ON DELETE CASCADE;
 COMMIT;
 
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
