@@ -1,4 +1,4 @@
-import { Component, DestroyRef, inject, signal, OnInit } from '@angular/core';
+import { Component, DestroyRef, inject, signal, OnInit, computed } from '@angular/core';
 import { FormControl, ReactiveFormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
 import { RouterLink } from '@angular/router';
@@ -6,6 +6,12 @@ import { debounceTime, distinctUntilChanged } from 'rxjs';
 import { SearchResult } from './search.service';
 import { AuthService } from '../services/auth.service';
 import { CartService } from '../services/cart.service';
+
+interface SavedCar {
+  brand: string;
+  model: string;
+  year: number;
+}
 
 @Component({
   selector: 'app-main-header',
@@ -32,16 +38,48 @@ export class MainHeaderComponent implements OnInit {
   cartItemCount = this.cartService.cartItemCount;
   cartTotal = this.cartService.cartTotal;
 
+  // ── Garázs: mentett autók localStorage-ból ───────────────
+  savedCars = signal<SavedCar[]>([]);
+  selectedCar = signal<SavedCar | null>(null);
+
   garageMakeControl = new FormControl('');
   garageModelControl = new FormControl({ value: '', disabled: true });
   garageYearControl = new FormControl({ value: '', disabled: true });
 
   ngOnInit(): void {
     this.authService.refreshUserData();
-    // Bejelentkezve → töltjük a kosarat backendből
     if (this.authService.isLoggedIn()) {
       this.cartService.loadCartFromBackend();
+      this.loadSavedCars();
     }
+  }
+
+  private loadSavedCars() {
+    const raw = localStorage.getItem('my-garage');
+    if (raw) {
+      try {
+        this.savedCars.set(JSON.parse(raw));
+      } catch {}
+    }
+    // Visszaállítjuk a korábban kiválasztott autót is
+    const selected = localStorage.getItem('selected-garage-car');
+    if (selected) {
+      try {
+        this.selectedCar.set(JSON.parse(selected));
+      } catch {}
+    }
+  }
+
+  selectSavedCar(car: SavedCar) {
+    this.selectedCar.set(car);
+    localStorage.setItem('selected-garage-car', JSON.stringify(car));
+    // TODO: szűrőservice-t itt hívni a terméklistán való szűréshez
+    console.log('🚗 Kiválasztott autó:', car);
+  }
+
+  clearSelectedCar() {
+    this.selectedCar.set(null);
+    localStorage.removeItem('selected-garage-car');
   }
 
   constructor() {

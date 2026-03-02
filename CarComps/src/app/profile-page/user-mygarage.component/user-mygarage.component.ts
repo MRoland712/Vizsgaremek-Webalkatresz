@@ -1,15 +1,18 @@
 import { Component, computed, DestroyRef, inject, OnInit, signal } from '@angular/core';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { CommonModule } from '@angular/common';
-
-import { HttpHeaders } from '@angular/common/http';
 import { ProfileSidenavComponent } from '../../side-navbar.component/side-navbar.component';
-import { CreateCarsService } from '../../services/createcars.service';
+import { CreateUserVehicleService } from '../../services/getusercars.service';
 import { GetAllCarsService } from '../../services/getallcars.service';
+import { AuthService } from '../../services/auth.service';
 import { GetAllCarsModel } from '../../models/cars.model';
 
-interface BrandOption {
+interface ModelOption {
   name: string;
+  brand: string;
+  vehicleId: number;
+  yearFrom: number;
+  yearTo: number;
 }
 interface ModelOption {
   name: string;
@@ -32,8 +35,9 @@ interface SavedCar {
 })
 export class UserMygarageComponent implements OnInit {
   private destroyRef = inject(DestroyRef);
-  private createCarsService = inject(CreateCarsService);
+  private createVehicleService = inject(CreateUserVehicleService);
   private getAllCarsService = inject(GetAllCarsService);
+  private auth = inject(AuthService);
 
   // ── Backend adatok ────────────────────────────────────────
   allCars = signal<GetAllCarsModel[]>([]);
@@ -51,7 +55,13 @@ export class UserMygarageComponent implements OnInit {
     if (!brand) return [];
     return this.allCars()
       .filter((c) => c.Brand === brand)
-      .map((c) => ({ name: c.Model, brand: c.Brand, yearFrom: c.YearFrom, yearTo: c.YearTo }));
+      .map((c) => ({
+        name: c.Model,
+        brand: c.Brand,
+        vehicleId: c.id,
+        yearFrom: c.YearFrom,
+        yearTo: c.YearTo,
+      }));
   });
 
   filteredYears = computed<number[]>(() => {
@@ -122,7 +132,7 @@ export class UserMygarageComponent implements OnInit {
     });
   }
 
-  // ── Backend: autó mentése (createCars) ────────────────────
+  // ── Backend: autó mentése (createUserVehicle) ────────────
   saveCar() {
     if (this.garageForm.invalid) {
       this.garageForm.markAllAsTouched();
@@ -131,27 +141,34 @@ export class UserMygarageComponent implements OnInit {
 
     const { brand, model, year } = this.garageForm.getRawValue();
 
-    // Keressük ki a YearFrom/YearTo-t a kiválasztott autóhoz
-    const carData = this.allCars().find((c) => c.Brand === brand && c.Model === model);
-    if (!carData) return;
+    // vehicleId a filteredModels computed-ból
+    const selectedModelObj = this.filteredModels().find((m) => m.name === model);
+    if (!selectedModelObj) {
+      this.showError('Nem sikerült azonosítani a kiválasztott modellt.');
+      return;
+    }
 
-    this.isSaving.set(true);
+    const userId = this.auth.userId() || Number(localStorage.getItem('userId') || '0');
+    if (!userId) {
+      this.showError('Nem sikerült azonosítani a felhasználót. Kérjük, lépj be újra!');
+      return;
+    }
 
     const selectedYear = parseInt(year as string, 10);
+    this.isSaving.set(true);
 
-    this.createCarsService
-      .CreateCars({
-        brand: brand!,
-        model: model!,
-        yearFrom: selectedYear, // ⭐ a user által kiválasztott év
-        yearTo: selectedYear, // ⭐ ugyanaz
+    this.createVehicleService
+      .createUserVehicle({
+        vehicleType: 'car',
+        vehicleId: selectedModelObj.vehicleId,
+        year: selectedYear,
+        userId: userId,
       })
       .subscribe({
         next: (res) => {
-          console.log('✅ CreateCars response:', res);
+          console.log('✅ createUserVehicle response:', res);
           this.isSaving.set(false);
 
-          // Lokálisan is mentjük
           const newCar: SavedCar = { brand: brand!, model: model!, year: selectedYear };
           const exists = this.savedCars().some(
             (c) => c.brand === newCar.brand && c.model === newCar.model && c.year === newCar.year,
@@ -168,9 +185,11 @@ export class UserMygarageComponent implements OnInit {
           this.showSuccess();
         },
         error: (err) => {
-          console.error('❌ CreateCars hiba:', err);
+          console.error('❌ createUserVehicle hiba:', err);
           this.isSaving.set(false);
-          this.showError('Mentés sikertelen, próbáld újra!');
+          const msg =
+            err.error?.message || err.error?.errors?.[0] || 'Mentés sikertelen, próbáld újra!';
+          this.showError(msg);
         },
       });
   }
