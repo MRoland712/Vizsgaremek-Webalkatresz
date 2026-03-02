@@ -1,4 +1,4 @@
-import { Component, inject, signal, OnInit } from '@angular/core';
+import { Component, inject, signal, OnInit, ViewChild } from '@angular/core';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { CommonModule } from '@angular/common';
@@ -10,6 +10,7 @@ import { GetAddressByIdService } from '../../services/getaddresbyid.service';
 import { UpdateUserInfosService } from '../../services/updateuserinfos.service';
 import { UpdateAddressInfosService } from '../../services/updateaddressinfos.service';
 import { CreateAddressService } from '../../services/createaddress.service';
+import { TfaVerifyDialogComponent } from '../../verifications/to-fa.component/to-fa.component';
 
 type EditField =
   | 'fullname'
@@ -38,7 +39,7 @@ interface OrderItem {
 @Component({
   selector: 'app-profile-info-selector',
   standalone: true,
-  imports: [ReactiveFormsModule, CommonModule],
+  imports: [ReactiveFormsModule, CommonModule, TfaVerifyDialogComponent],
   templateUrl: './profile-info-selector.component.html',
   styleUrl: './profile-info-selector.component.css',
 })
@@ -54,6 +55,8 @@ export class ProfileInfoSelectorComponent implements OnInit {
   private createAddressSvc = inject(CreateAddressService);
   private readonly baseUrl = 'https://api.carcomps.hu/vizsgaremek-1.0-SNAPSHOT/webresources/';
 
+  @ViewChild(TfaVerifyDialogComponent) tfaVerifyDialog!: TfaVerifyDialogComponent;
+
   ProfileDatas = signal({
     id: 0,
     firstname: '',
@@ -66,6 +69,7 @@ export class ProfileInfoSelectorComponent implements OnInit {
   addressId = signal<number>(0);
   isTfaActive = signal(false);
   isLoadingUser = signal(false);
+  pendingField = signal<'email' | 'password' | null>(null);
 
   // 2FA
   tfaData = signal<TFAResponse | null>(null);
@@ -78,6 +82,7 @@ export class ProfileInfoSelectorComponent implements OnInit {
   verificationError = signal<string | null>(null);
   isDisabling = signal(false);
   disableError = signal<string | null>(null);
+  tfaRecordId = signal<number>(0);
 
   // Rendelések
   orders = signal<Order[]>([]);
@@ -238,14 +243,11 @@ export class ProfileInfoSelectorComponent implements OnInit {
     }
   }
 
-  // ── 2FA dialog megnyitás logika ───────────────────────────
   private open2FADialog() {
     if (this.isTfaActive()) {
-      // TFA már aktív → disable nézet
       this.tfaStep.set('disable');
       this.disableError.set(null);
     } else {
-      // TFA nincs aktív → setup flow
       this.initiate2FA();
     }
   }
@@ -285,6 +287,13 @@ export class ProfileInfoSelectorComponent implements OnInit {
 
     if (isInvalid) return;
 
+    // Email vagy jelszó változtatás + TFA aktív → TFA ellenőrzés először
+    if ((field === 'email' || field === 'password') && this.isTfaActive()) {
+      this.pendingField.set(field as 'email' | 'password');
+      setTimeout(() => this.tfaVerifyDialog.open(this.ProfileDatas().email), 50);
+      return;
+    }
+
     this.isSaving.set(true);
     this.saveError.set(null);
 
@@ -310,14 +319,25 @@ export class ProfileInfoSelectorComponent implements OnInit {
     }
   }
 
+  // TFA verify után folytatja a mentést
+  onTFAVerifiedForSave() {
+    const field = this.pendingField();
+    this.pendingField.set(null);
+    this.isSaving.set(true);
+    this.saveError.set(null);
+    if (field === 'email') this.updateEmail();
+    else if (field === 'password') this.updatePassword();
+  }
+
+  onTFACancelledForSave() {
+    this.pendingField.set(null);
+  }
+
   private loadAddress() {
     const userId = this.ProfileDatas().id || this.auth.userId();
     const d = this.ProfileDatas();
-
     this.editForm.patchValue({ firstname: d.firstname, lastname: d.lastname, phone: d.phone });
-
     if (!userId) return;
-
     this.getAddressByIdSvc.getAddressById(userId).subscribe({
       next: (res) => {
         const a = res.address;
@@ -420,7 +440,6 @@ export class ProfileInfoSelectorComponent implements OnInit {
       this.createAddress();
       return;
     }
-
     const body = {
       firstName: this.editForm.value.firstname!,
       lastName: this.editForm.value.lastname!,
@@ -431,7 +450,6 @@ export class ProfileInfoSelectorComponent implements OnInit {
       taxNumber: this.editForm.value.taxnumber ?? '',
     };
     const newPhone = this.editForm.value.phone || this.ProfileDatas().phone;
-
     this.updateAddressSvc.updateAddressInfos(addrId, body).subscribe({
       next: () => {
         if (newPhone !== this.ProfileDatas().phone) {
@@ -466,7 +484,6 @@ export class ProfileInfoSelectorComponent implements OnInit {
       this.isSaving.set(false);
       return;
     }
-
     const newPhone = this.editForm.value.phone || this.ProfileDatas().phone;
     const body = {
       userId,
@@ -480,7 +497,6 @@ export class ProfileInfoSelectorComponent implements OnInit {
       street: this.editForm.value.street!,
       isDefault: true,
     };
-
     this.createAddressSvc.createAddress(body).subscribe({
       next: () => {
         this.getAddressByIdSvc.getAddressById(userId).subscribe({
@@ -517,7 +533,6 @@ export class ProfileInfoSelectorComponent implements OnInit {
     };
   }
 
-  // ── 2FA setup ─────────────────────────────────────────────
   initiate2FA() {
     this.isLoadingTFA.set(true);
     this.tfaError.set(null);
@@ -529,7 +544,6 @@ export class ProfileInfoSelectorComponent implements OnInit {
       },
       error: (err) => {
         this.isLoadingTFA.set(false);
-        // 409 UserHasActiveTFA → TFA már be van kapcsolva a backenden is
         if (err.status === 409 && err.error?.errors?.includes('UserHasActiveTFA')) {
           this.isTfaActive.set(true);
           localStorage.setItem('tfaActive', 'true');
@@ -541,21 +555,36 @@ export class ProfileInfoSelectorComponent implements OnInit {
     });
   }
 
-  // ── 2FA disable ───────────────────────────────────────────
   disableTFA() {
     this.isDisabling.set(true);
     this.disableError.set(null);
-    this.tfaService.disableTfa(this.ProfileDatas().email).subscribe({
-      next: () => {
-        this.isTfaActive.set(false);
-        localStorage.removeItem('tfaActive');
-        this.isDisabling.set(false);
-        this.closeDialog();
+    const userId = Number(localStorage.getItem('userId') || '0');
+    if (!userId) {
+      this.disableError.set('Nem található a felhasználó azonosítója!');
+      this.isDisabling.set(false);
+      return;
+    }
+    this.tfaService.getUserTwofa(userId).subscribe({
+      next: (res) => {
+        const tfaId = res.result.id;
+        this.tfaService.disableTfa(tfaId).subscribe({
+          next: () => {
+            this.isTfaActive.set(false);
+            localStorage.removeItem('tfaActive');
+            this.isDisabling.set(false);
+            this.closeDialog();
+          },
+          error: (err) => {
+            this.disableError.set(
+              err.error?.message || err.error?.errors?.[0] || 'Hiba a 2FA kikapcsolásakor',
+            );
+            this.isDisabling.set(false);
+          },
+        });
       },
       error: (err) => {
-        this.disableError.set(
-          err.error?.message || err.error?.errors?.[0] || 'Hiba a 2FA kikapcsolásakor',
-        );
+        console.error('❌ getUserTwofa hiba:', err);
+        this.disableError.set('Nem sikerült lekérdezni a 2FA adatokat');
         this.isDisabling.set(false);
       },
     });

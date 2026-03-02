@@ -6,6 +6,7 @@ import { HttpErrorResponse } from '@angular/common/http';
 import { AuthService } from '../services/auth.service';
 import { OtpComponent } from '../verifications/otp.component/otp.component';
 import { LoginService } from '../services/login.service';
+import { TfaVerifyDialogComponent } from '../verifications/to-fa.component/to-fa.component';
 
 let initialEmailValue = '';
 let initialPasswordValue = '';
@@ -18,7 +19,7 @@ if (savedForm) {
 
 @Component({
   selector: 'app-login',
-  imports: [ReactiveFormsModule, RouterLink, OtpComponent],
+  imports: [ReactiveFormsModule, RouterLink, OtpComponent, TfaVerifyDialogComponent],
   templateUrl: './login.component.html',
   styleUrl: './login.component.css',
 })
@@ -30,6 +31,8 @@ export class LoginComponent implements OnInit {
   loginService = inject(LoginService);
 
   @ViewChild(OtpComponent) otpDialog!: OtpComponent;
+  @ViewChild(TfaVerifyDialogComponent) tfaDialog!: TfaVerifyDialogComponent;
+
   loginFailed = signal(false);
 
   loginForm = this.fb.nonNullable.group({
@@ -47,7 +50,6 @@ export class LoginComponent implements OnInit {
 
     this.loginService.login({ email: email!, password: password! }).subscribe({
       next: (res) => {
-        // ── Alap adatok mentése ─────────────────────────────
         localStorage.setItem('jwt', res.result.JWTToken!);
         localStorage.setItem('userEmail', email!);
         localStorage.setItem('userName', res.result.username || '');
@@ -56,16 +58,6 @@ export class LoginComponent implements OnInit {
         localStorage.setItem('phone', res.result.phone || '');
         localStorage.setItem('role', res.result.role || '');
 
-        this.authService.setLoggedIn(
-          email,
-          res.result.username,
-          res.result.firstName,
-          res.result.lastName,
-          res.result.phone,
-          res.result.role,
-        );
-
-        // ── userId mentése a login response-ból ──
         if (res.result.userId && res.result.userId > 0) {
           localStorage.setItem('userId', String(res.result.userId));
           this.authService.setLoggedIn(
@@ -77,9 +69,23 @@ export class LoginComponent implements OnInit {
             res.result.role,
             res.result.userId,
           );
+        } else {
+          this.authService.setLoggedIn(
+            email,
+            res.result.username,
+            res.result.firstName,
+            res.result.lastName,
+            res.result.phone,
+            res.result.role,
+          );
         }
 
-        this.proceedToOtp(email!);
+        // TFA aktív → TFA dialog, különben OTP
+        if (localStorage.getItem('tfaActive') === 'true') {
+          setTimeout(() => this.tfaDialog.open(email!), 100);
+        } else {
+          this.proceedToOtp(email!);
+        }
       },
       error: (err: HttpErrorResponse) => {
         console.error('❌ Login hiba:', err);
@@ -94,6 +100,7 @@ export class LoginComponent implements OnInit {
     setTimeout(() => this.otpDialog.open(email), 100);
   }
 
+  // OTP verified → navigálás
   onOTPVerified() {
     localStorage.setItem('emailVerified', 'true');
     if (this.authService.isAdmin()) {
@@ -104,6 +111,20 @@ export class LoginComponent implements OnInit {
   }
 
   onOTPCancelled() {
+    this.authService.logout(false);
+  }
+
+  // TFA verified → OTP kihagyva, egyből navigálás
+  onTFAVerified() {
+    localStorage.setItem('emailVerified', 'true');
+    if (this.authService.isAdmin()) {
+      this.router.navigate(['/admin']);
+    } else {
+      this.router.navigate(['/']);
+    }
+  }
+
+  onTFACancelled() {
     this.authService.logout(false);
   }
 
