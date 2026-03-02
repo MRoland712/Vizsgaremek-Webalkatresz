@@ -22,6 +22,7 @@ import com.mycompany.vizsgaremek.model.Payments;
 import com.mycompany.vizsgaremek.model.Reviews;
 import com.mycompany.vizsgaremek.model.Trucks;
 import com.mycompany.vizsgaremek.model.UserTwofa;
+import com.mycompany.vizsgaremek.model.UserVehicles;
 import io.jsonwebtoken.Claims;
 import java.math.BigDecimal;
 import java.util.ArrayList;
@@ -236,7 +237,7 @@ public class AuthenticationService {
         public boolean isValidRegistrationToken(String token) {
             return token.length() == 36;
         }
-        
+
         public boolean isValidRole(String role) {
             return role.length() <= 20;
         }
@@ -1115,6 +1116,7 @@ public class AuthenticationService {
         }
 
     } //Order Items Auth Class closer
+
     /*
     commented if needed
     public static class orderItemsAuth {
@@ -1177,7 +1179,6 @@ public class AuthenticationService {
         }
 
     } //OrderItems Auth Class closer*/
-     
     //CartItems
     public static class cartItemsAuth {
 
@@ -1522,6 +1523,62 @@ public class AuthenticationService {
         }
 
     } //PartCompatibility Auth Class closer
+
+    public static class userVehiclesAuth {
+
+        public boolean isDataMissing(String data) {
+            return (data == null || data.trim().isEmpty());
+        }
+
+        public boolean isDataMissing(UserVehicles data) {
+            return (data == null);
+        }
+
+        public boolean isDataMissing(Users data) {
+            return (data == null);
+        }
+
+        public boolean isDataMissing(Integer data) {
+            return (data == null);
+        }
+
+        public boolean isDataMissing(ArrayList<UserVehicles> data) {
+            return (data == null || data.isEmpty());
+        }
+
+        public boolean isDataMissing(Boolean data) {
+            return (data == null);
+        }
+
+        public boolean isDataMissing(List<Object[]> data) {
+            return (data == null || data.isEmpty());
+        }
+
+        public boolean isValidId(Integer id) {
+            return id > 0 && id.toString().length() <= 11;
+        }
+
+        public boolean isValidUserId(Integer userId) {
+            return userId > 0 && userId.toString().length() <= 11;
+        }
+
+        public boolean isValidVehicleId(Integer vehicleId) {
+            return vehicleId > 0 && vehicleId.toString().length() <= 11;
+        }
+
+        public boolean isValidVehicleType(String vehicleType) {
+            return vehicleType.equals("car") || vehicleType.equals("motor") || vehicleType.equals("truck");
+        }
+
+        public boolean isValidYear(Integer year) {
+            return year >= 1900 && year <= 2026;
+        }
+
+        public boolean isUserVehicleDeleted(Boolean isDeleted) {
+            return (isDeleted == true);
+        }
+
+    } // userVehiclesAuth Class closer
 
 }//Auth Service Class closer
 

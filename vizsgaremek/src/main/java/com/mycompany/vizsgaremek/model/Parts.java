@@ -119,7 +119,6 @@ public class Parts implements Serializable {
     @ManyToOne(optional = false)
     private Manufacturers manufacturerId;
     @OneToMany(cascade = CascadeType.ALL, mappedBy = "partId")
-    private Collection<WarehouseStock> warehouseStockCollection;
     
     static EntityManagerFactory emf = Persistence.createEntityManagerFactory("com.mycompany_vizsgaremek_war_1.0-SNAPSHOTPU");
     public static SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
@@ -351,15 +350,6 @@ public class Parts implements Serializable {
 
     public void setManufacturerId(Manufacturers manufacturerId) {
         this.manufacturerId = manufacturerId;
-    }
-
-    @XmlTransient
-    public Collection<WarehouseStock> getWarehouseStockCollection() {
-        return warehouseStockCollection;
-    }
-
-    public void setWarehouseStockCollection(Collection<WarehouseStock> warehouseStockCollection) {
-        this.warehouseStockCollection = warehouseStockCollection;
     }
 
     @Override
