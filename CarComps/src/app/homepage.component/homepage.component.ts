@@ -16,6 +16,7 @@ import { CheckoutProgressComponent } from '../shared/checkoutprogress.component/
 import { DeliveryComponent } from '../payment/delivery.component/delivery.component';
 import { PayComponent } from '../payment/pay.component/pay.component';
 import { SummaryComponent } from '../payment/summary.component/summary.component';
+import { AdvertisementComponent } from '../shared/advertisement.component/advertisement.component';
 
 @Component({
   selector: 'app-homepage',
@@ -37,6 +38,7 @@ import { SummaryComponent } from '../payment/summary.component/summary.component
     DeliveryComponent,
     PayComponent,
     SummaryComponent,
+    AdvertisementComponent,
   ],
   templateUrl: './homepage.component.html',
   styleUrl: './homepage.component.css',

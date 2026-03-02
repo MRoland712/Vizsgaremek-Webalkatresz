@@ -140,7 +140,40 @@
 
         <!-- 2FA DIALOG -->
         @if (currentEditField() === '2fa') {
-          @if (isLoadingTFA()) {
+          <!-- DISABLE NÉZET — ha már aktív -->
+          @if (tfaStep() === 'disable') {
+            <div class="tfa-step">
+              <div class="tfa-active-header">
+                <i class="fa-solid fa-shield-halved icon-active"></i>
+                <h3>A kétfaktoros hitelesítés aktív</h3>
+              </div>
+              <p class="tfa-description">
+                A fiókod védve van a kétfaktoros hitelesítéssel. Ha ki szeretnéd kapcsolni, kattints
+                az alábbi gombra.
+              </p>
+              @if (disableError()) {
+                <div class="error-message">
+                  <i class="fa-solid fa-triangle-exclamation"></i>
+                  <p>{{ disableError() }}</p>
+                </div>
+              }
+              <button
+                class="btn-tfa-danger"
+                type="button"
+                (click)="disableTFA()"
+                [disabled]="isDisabling()"
+              >
+                @if (isDisabling()) {
+                  <i class="fa-solid fa-spinner fa-spin"></i> Kikapcsolás...
+                } @else {
+                  <i class="fa-solid fa-shield-xmark"></i> 2FA kikapcsolása
+                }
+              </button>
+            </div>
+          }
+
+          <!-- SETUP FLOW -->
+          @else if (isLoadingTFA()) {
             <div class="loading-state">
               <i class="fa-solid fa-spinner fa-spin"></i>
               <p>2FA beállítás indítása...</p>

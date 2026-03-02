@@ -27,24 +27,20 @@ export class NewProductComponent implements OnInit {
   private mfService = inject(GetallmanufacturersService);
   private createService = inject(CreatePartService);
 
-  // ── Adatok ─────────────────────────────────────────────────
   vehicleCategories = VEHICLE_CATEGORIES;
   manufacturers: ManufacturersModel[] = [];
   partCategories: string[] = [];
 
-  // ── UI állapot ──────────────────────────────────────────────
   isLoading = signal(false);
   isSuccess = signal(false);
   errorMsg = signal<string | null>(null);
   createdPartId = signal<number | null>(null);
 
-  // ── Kép ─────────────────────────────────────────────────────
   selectedFile = signal<File | null>(null);
   imagePreviewUrl = signal<string | null>(null);
   isUploadingImg = signal(false);
   uploadSuccess = signal(false);
 
-  // ── Form ─────────────────────────────────────────────────────
   productForm = this.fb.nonNullable.group({
     vehicleCategory: ['', Validators.required],
     manufacturerId: ['', Validators.required],
@@ -61,7 +57,6 @@ export class NewProductComponent implements OnInit {
     this.loadManufacturers();
     this.loadCategories();
 
-    // SKU automatikus nagybetűsítés
     this.productForm.controls.sku.valueChanges.subscribe((val) => {
       if (val !== val.toUpperCase()) {
         this.productForm.controls.sku.setValue(val.toUpperCase(), { emitEvent: false });
@@ -92,10 +87,7 @@ export class NewProductComponent implements OnInit {
     const input = event.target as HTMLInputElement;
     const file = input.files?.[0];
     if (!file) return;
-
     this.selectedFile.set(file);
-
-    // Preview
     const reader = new FileReader();
     reader.onload = (e) => this.imagePreviewUrl.set(e.target?.result as string);
     reader.readAsDataURL(file);
@@ -116,6 +108,7 @@ export class NewProductComponent implements OnInit {
     this.errorMsg.set(null);
 
     const v = this.productForm.getRawValue();
+    const sku = v.sku; // SKU alapján keressük meg a létrehozott terméket
 
     const body = {
       manufacturerId: Number(v.manufacturerId),
@@ -130,31 +123,49 @@ export class NewProductComponent implements OnInit {
 
     this.createService.createPart(body).subscribe({
       next: (res) => {
-        console.log('✅ Termék létrehozva:', res);
+        console.log('✅ Termék létrehozva (raw response):', res);
 
-        if (res.statusCode === 201 || res.success === true) {
-          // Ha van kép, feltöltjük
-          const file = this.selectedFile();
-          if (file && res.statusCode) {
-            // A backend a 201 Created válaszban sajnos nem adja vissza az id-t
-            // ezért a listából kell majd lekérni — egyelőre a képet manuálisan is fel lehet tölteni
-            // Ha a backend visszaadja az id-t, azt használjuk
-            const partId = (res as any).id ?? (res as any).partId ?? null;
-            if (partId) {
-              this.uploadImage(partId, file);
-            } else {
+        const isOk = res.statusCode === 201 || res.statusCode === 200 || res.success === true;
+        if (!isOk) {
+          this.isLoading.set(false);
+          this.errorMsg.set(res.errors?.join(', ') ?? 'Ismeretlen hiba');
+          return;
+        }
+
+        const file = this.selectedFile();
+        if (!file) {
+          // Nincs kép → kész
+          this.isLoading.set(false);
+          this.isSuccess.set(true);
+          return;
+        }
+
+        // ⭐ Van kép → SKU alapján keressük meg az id-t az összes termék között
+        console.log('🔍 PartId keresése SKU alapján:', sku);
+        this.partsService.getAllParts().subscribe({
+          next: (partsRes) => {
+            const created = partsRes.parts?.find((p) => p.sku?.toUpperCase() === sku.toUpperCase());
+
+            if (!created?.id) {
+              console.warn('⚠️ PartId nem található SKU alapján:', sku);
               this.isLoading.set(false);
               this.isSuccess.set(true);
+              this.errorMsg.set(
+                'A termék létrejött, de a képet nem sikerült hozzárendelni (id nem található).',
+              );
+              return;
             }
-          } else {
+
+            console.log('✅ PartId megtalálva:', created.id);
+            this.uploadImage(created.id, file);
+          },
+          error: (err) => {
+            console.error('❌ getAllParts hiba (id keresés):', err);
             this.isLoading.set(false);
             this.isSuccess.set(true);
-          }
-        } else {
-          this.isLoading.set(false);
-          const errList = res.errors?.join(', ') ?? 'Ismeretlen hiba';
-          this.errorMsg.set(errList);
-        }
+            this.errorMsg.set('A termék létrejött, de a képet nem sikerült hozzárendelni.');
+          },
+        });
       },
       error: (err) => {
         console.error('❌ Hiba:', err);
@@ -167,6 +178,7 @@ export class NewProductComponent implements OnInit {
 
   private uploadImage(partId: number, file: File): void {
     this.isUploadingImg.set(true);
+    console.log('📤 Képfeltöltés:', partId, file.name);
     this.createService.uploadPartImage(partId, file, true).subscribe({
       next: (res) => {
         console.log('✅ Kép feltöltve:', res);
@@ -179,7 +191,6 @@ export class NewProductComponent implements OnInit {
         console.error('❌ Képfeltöltési hiba:', err);
         this.isUploadingImg.set(false);
         this.isLoading.set(false);
-        // Termék létrejött, csak a kép nem ment fel
         this.isSuccess.set(true);
         this.errorMsg.set('A termék létrejött, de a kép feltöltése sikertelen volt.');
       },

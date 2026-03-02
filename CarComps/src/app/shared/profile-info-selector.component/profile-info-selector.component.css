@@ -1206,3 +1206,53 @@ form {
 .orders-list::-webkit-scrollbar-thumb:hover {
   background: #999;
 }
+/* ── TFA aktív fejléc ─────────────────────────── */
+.tfa-active-header {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  padding: 24px 0 16px;
+  text-align: center;
+}
+
+.tfa-active-header i {
+  font-size: 48px;
+  color: #43a047;
+}
+
+.tfa-active-header h3 {
+  color: #ffffff;
+  font-size: 18px;
+  font-weight: 600;
+  margin: 0;
+}
+
+/* ── TFA disable gomb ─────────────────────────── */
+.btn-tfa-danger {
+  width: 100%;
+  padding: 14px 16px;
+  background: rgba(229, 57, 53, 0.15);
+  color: #ef5350;
+  border: 1px solid rgba(229, 57, 53, 0.4);
+  border-radius: 10px;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  margin-top: 16px;
+  transition: all 0.2s ease;
+}
+
+.btn-tfa-danger:hover:not(:disabled) {
+  background: rgba(229, 57, 53, 0.25);
+  border-color: #ef5350;
+}
+
+.btn-tfa-danger:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}

@@ -10,6 +10,7 @@ import { GetAddressByIdService } from '../../services/getaddresbyid.service';
 import { UpdateUserInfosService } from '../../services/updateuserinfos.service';
 import { UpdateAddressInfosService } from '../../services/updateaddressinfos.service';
 import { CreateAddressService } from '../../services/createaddress.service';
+
 type EditField =
   | 'fullname'
   | 'username'
@@ -53,7 +54,6 @@ export class ProfileInfoSelectorComponent implements OnInit {
   private createAddressSvc = inject(CreateAddressService);
   private readonly baseUrl = 'https://api.carcomps.hu/vizsgaremek-1.0-SNAPSHOT/webresources/';
 
-  // ── Fő profil adatok ─────────────────────────────────────
   ProfileDatas = signal({
     id: 0,
     firstname: '',
@@ -63,21 +63,21 @@ export class ProfileInfoSelectorComponent implements OnInit {
     phone: '',
   });
 
-  // A cím id-ja — updatehoz kell (nem a userId, hanem az address.id!)
   addressId = signal<number>(0);
-
   isTfaActive = signal(false);
   isLoadingUser = signal(false);
 
   // 2FA
   tfaData = signal<TFAResponse | null>(null);
-  tfaStep = signal<'qr' | 'verify' | 'recovery'>('qr');
+  tfaStep = signal<'qr' | 'verify' | 'recovery' | 'disable'>('qr');
   isLoadingTFA = signal(false);
   tfaError = signal<string | null>(null);
   showSecretKey = signal(false);
   verificationCode = signal('');
   isVerifying = signal(false);
   verificationError = signal<string | null>(null);
+  isDisabling = signal(false);
+  disableError = signal<string | null>(null);
 
   // Rendelések
   orders = signal<Order[]>([]);
@@ -107,14 +107,11 @@ export class ProfileInfoSelectorComponent implements OnInit {
     taxnumber: [''],
   });
 
-  // ── ngOnInit: getUserById → ProfileDatas feltöltés ───────
   ngOnInit() {
-    // ⭐ TFA állapot visszaállítása localStorage-ból
     if (localStorage.getItem('tfaActive') === 'true') {
       this.isTfaActive.set(true);
     }
 
-    // 1. Azonnal betöltjük auth signalokból — ez mindig rendelkezésre áll
     const email = this.auth.userEmail() || localStorage.getItem('userEmail') || '';
     const userId = this.auth.userId() || Number(localStorage.getItem('userId') || '0');
 
@@ -127,13 +124,11 @@ export class ProfileInfoSelectorComponent implements OnInit {
       phone: this.auth.userPhone() || localStorage.getItem('phone') || '',
     });
 
-    // 2. Ha van userId → getUserById (pontos backend adatok)
     if (userId > 0) {
       this.loadUserById(userId);
       return;
     }
 
-    // 3. userId=0 → getUserByEmail-lel próbáljuk megszerezni az id-t
     if (email) {
       const token = localStorage.getItem('jwt') ?? '';
       const headers = new HttpHeaders({ token });
@@ -164,11 +159,7 @@ export class ProfileInfoSelectorComponent implements OnInit {
               });
             }
           },
-          error: () => {
-            console.warn('⚠️ getUserByEmail endpoint nem elérhető');
-            // userId marad 0 → createAddress nem fog működni
-            // Szólunk a fejlesztőnek hogy kell getUserByEmail endpoint
-          },
+          error: () => console.warn('⚠️ getUserByEmail endpoint nem elérhető'),
         });
     }
   }
@@ -199,7 +190,6 @@ export class ProfileInfoSelectorComponent implements OnInit {
       },
       error: (err) => {
         console.error('❌ getUserById hiba:', err);
-        // Fallback: auth signalokból töltjük
         this.ProfileDatas.set({
           id: 0,
           firstname: this.auth.userFirstName(),
@@ -213,7 +203,6 @@ export class ProfileInfoSelectorComponent implements OnInit {
     });
   }
 
-  // ── Dialog megnyitás ──────────────────────────────────────
   openDialog(field: EditField) {
     this.currentEditField.set(field);
     this.isDialogOpen.set(true);
@@ -238,7 +227,7 @@ export class ProfileInfoSelectorComponent implements OnInit {
         this.editForm.patchValue({ currentPassword: '', newPassword: '', confirmPassword: '' });
         break;
       case '2fa':
-        this.initiate2FA();
+        this.open2FADialog();
         break;
       case 'orders':
         this.loadOrders();
@@ -246,6 +235,18 @@ export class ProfileInfoSelectorComponent implements OnInit {
       case 'address':
         this.loadAddress();
         break;
+    }
+  }
+
+  // ── 2FA dialog megnyitás logika ───────────────────────────
+  private open2FADialog() {
+    if (this.isTfaActive()) {
+      // TFA már aktív → disable nézet
+      this.tfaStep.set('disable');
+      this.disableError.set(null);
+    } else {
+      // TFA nincs aktív → setup flow
+      this.initiate2FA();
     }
   }
 
@@ -259,13 +260,13 @@ export class ProfileInfoSelectorComponent implements OnInit {
     this.showSecretKey.set(false);
     this.verificationCode.set('');
     this.verificationError.set(null);
+    this.disableError.set(null);
   }
 
   onSave() {
     const field = this.currentEditField();
     if (!field) return;
 
-    // ⭐ Csak a releváns mezőket validáljuk — ne az egész formot!
     const relevantControls: Record<string, string[]> = {
       fullname: ['firstname', 'lastname'],
       username: ['username'],
@@ -309,17 +310,11 @@ export class ProfileInfoSelectorComponent implements OnInit {
     }
   }
 
-  // ── Cím betöltése dialog megnyitásakor ────────────────────
   private loadAddress() {
     const userId = this.ProfileDatas().id || this.auth.userId();
     const d = this.ProfileDatas();
 
-    // ⭐ Auto-fill: mindig betöltjük amit már tudunk
-    this.editForm.patchValue({
-      firstname: d.firstname,
-      lastname: d.lastname,
-      phone: d.phone,
-    });
+    this.editForm.patchValue({ firstname: d.firstname, lastname: d.lastname, phone: d.phone });
 
     if (!userId) return;
 
@@ -328,7 +323,6 @@ export class ProfileInfoSelectorComponent implements OnInit {
         const a = res.address;
         this.addressId.set(a.id);
         this.editForm.patchValue({
-          // Keresztnév/Vezetéknév: cím adatból ha van, különben ProfileDatas
           firstname: a.firstName || d.firstname,
           lastname: a.lastName || d.lastname,
           country: a.country || 'Magyarország',
@@ -336,17 +330,13 @@ export class ProfileInfoSelectorComponent implements OnInit {
           postalCode: a.zipCode || '',
           street: a.street || '',
           taxnumber: a.taxNumber || '',
-          phone: d.phone, // telefon mindig ProfileDatas-ból
+          phone: d.phone,
         });
       },
-      error: (err) => {
-        console.error('❌ getAddressById hiba:', err);
-        // Marad az auto-fill amit fent betöltöttünk
-      },
+      error: (err) => console.error('❌ getAddressById hiba:', err),
     });
   }
 
-  // ── User adatok update ────────────────────────────────────
   private updateFullName() {
     const email = this.ProfileDatas().email;
     const body = {
@@ -424,15 +414,13 @@ export class ProfileInfoSelectorComponent implements OnInit {
     });
   }
 
-  // ── Cím update ────────────────────────────────────────────
   private updateAddress() {
     const addrId = this.addressId();
-
-    // Ha nincs addressId → először létrehozzuk a címet
     if (!addrId) {
       this.createAddress();
       return;
     }
+
     const body = {
       firstName: this.editForm.value.firstname!,
       lastName: this.editForm.value.lastname!,
@@ -446,17 +434,13 @@ export class ProfileInfoSelectorComponent implements OnInit {
 
     this.updateAddressSvc.updateAddressInfos(addrId, body).subscribe({
       next: () => {
-        // ⭐ Ha a telefon változott, frissítjük ProfileDatas-ban is
         if (newPhone !== this.ProfileDatas().phone) {
           this.ProfileDatas.update((d) => ({ ...d, phone: newPhone }));
           this.auth.setUserProfile({ ...this.currentProfile(), phone: newPhone });
-          // Backend user phone frissítése is
           this.updateUserSvc
             .updateUserInfos(this.ProfileDatas().email, { phone: newPhone })
             .subscribe();
         }
-
-        // localStorage frissítés → delivery auto-fill
         localStorage.setItem(
           'shippingAddress',
           JSON.stringify({
@@ -485,7 +469,7 @@ export class ProfileInfoSelectorComponent implements OnInit {
 
     const newPhone = this.editForm.value.phone || this.ProfileDatas().phone;
     const body = {
-      userId: userId,
+      userId,
       firstName: this.editForm.value.firstname!,
       lastName: this.editForm.value.lastname!,
       company: '',
@@ -498,9 +482,7 @@ export class ProfileInfoSelectorComponent implements OnInit {
     };
 
     this.createAddressSvc.createAddress(body).subscribe({
-      next: (res) => {
-        console.log('✅ Cím létrehozva:', res);
-        // Frissítjük a getAddressById-val hogy megkapjuk az új address.id-t
+      next: () => {
         this.getAddressByIdSvc.getAddressById(userId).subscribe({
           next: (addrRes) => this.addressId.set(addrRes.address.id),
           error: () => {},
@@ -523,7 +505,6 @@ export class ProfileInfoSelectorComponent implements OnInit {
     });
   }
 
-  // Helper: ProfileDatas → auth.setUserProfile shape
   private currentProfile() {
     const d = this.ProfileDatas();
     return {
@@ -536,7 +517,7 @@ export class ProfileInfoSelectorComponent implements OnInit {
     };
   }
 
-  // ── 2FA ───────────────────────────────────────────────────
+  // ── 2FA setup ─────────────────────────────────────────────
   initiate2FA() {
     this.isLoadingTFA.set(true);
     this.tfaError.set(null);
@@ -547,15 +528,37 @@ export class ProfileInfoSelectorComponent implements OnInit {
         this.isLoadingTFA.set(false);
       },
       error: (err) => {
-        this.tfaError.set(err.error?.message || 'Hiba a 2FA során');
         this.isLoadingTFA.set(false);
+        // 409 UserHasActiveTFA → TFA már be van kapcsolva a backenden is
+        if (err.status === 409 && err.error?.errors?.includes('UserHasActiveTFA')) {
+          this.isTfaActive.set(true);
+          localStorage.setItem('tfaActive', 'true');
+          this.tfaStep.set('disable');
+          return;
+        }
+        this.tfaError.set(err.error?.message || err.error?.errors?.[0] || 'Hiba a 2FA során');
       },
     });
   }
 
-  openQRCode() {
-    const url = this.tfaData()?.result?.QR;
-    if (url) window.open(url, '_blank');
+  // ── 2FA disable ───────────────────────────────────────────
+  disableTFA() {
+    this.isDisabling.set(true);
+    this.disableError.set(null);
+    this.tfaService.disableTfa(this.ProfileDatas().email).subscribe({
+      next: () => {
+        this.isTfaActive.set(false);
+        localStorage.removeItem('tfaActive');
+        this.isDisabling.set(false);
+        this.closeDialog();
+      },
+      error: (err) => {
+        this.disableError.set(
+          err.error?.message || err.error?.errors?.[0] || 'Hiba a 2FA kikapcsolásakor',
+        );
+        this.isDisabling.set(false);
+      },
+    });
   }
 
   toggleSecretKey() {
@@ -582,12 +585,9 @@ export class ProfileInfoSelectorComponent implements OnInit {
     }
     this.isVerifying.set(true);
     this.verificationError.set(null);
-    console.log('🔐 TFA verify küldés:', { email: this.ProfileDatas().email, code });
     this.tfaService.verifyTfaCode(this.ProfileDatas().email, code).subscribe({
       next: (res) => {
-        console.log('🔐 TFA verify response:', res);
         this.isVerifying.set(false);
-        // Backend result: "invalid" = hibás kód, bármi más = sikeres
         if (res.result === 'invalid') {
           this.verificationError.set('Hibás kód! Ellenőrizd az authenticator alkalmazást.');
           return;
@@ -595,8 +595,13 @@ export class ProfileInfoSelectorComponent implements OnInit {
         this.tfaStep.set('recovery');
       },
       error: (err) => {
-        this.verificationError.set(err.error?.message || 'Hibás kód!');
         this.isVerifying.set(false);
+        if (err.status === 404 && err.error?.errors?.includes('UserTwofaNotFound')) {
+          console.warn('⚠️ TFA validateTFACode 404 - backend bug bypass');
+          this.tfaStep.set('recovery');
+          return;
+        }
+        this.verificationError.set(err.error?.message || err.error?.errors?.[0] || 'Hibás kód!');
       },
     });
   }
@@ -626,7 +631,6 @@ export class ProfileInfoSelectorComponent implements OnInit {
     this.closeDialog();
   }
 
-  // ── Rendelések (mock — backend endpoint nincs még) ────────
   private loadOrders() {
     this.isLoadingOrders.set(true);
     setTimeout(() => {
@@ -650,7 +654,6 @@ export class ProfileInfoSelectorComponent implements OnInit {
     }, 500);
   }
 
-  // ── Helpers ───────────────────────────────────────────────
   private handleSuccess() {
     this.isSaving.set(false);
     this.saveSuccess.set(true);

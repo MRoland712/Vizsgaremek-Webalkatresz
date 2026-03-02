@@ -72,10 +72,10 @@
               <span class="spec-label">Állapot:</span>
               <span
                 class="spec-value"
-                [class.available]="product()!.isActive"
-                [class.unavailable]="!product()!.isActive"
+                [class.available]="product()!.isActive && product()!.stock > 0"
+                [class.unavailable]="!product()!.isActive || product()!.stock <= 0"
               >
-                {{ product()!.isActive ? 'Elérhető' : 'Nem elérhető' }}
+                {{ product()!.isActive && product()!.stock > 0 ? 'Elérhető' : 'Nem elérhető' }}
               </span>
             </li>
             @if (manufacturer()) {
@@ -95,22 +95,41 @@
         <!-- Cart Actions -->
         <div class="cart-actions">
           <div class="quantity-controls">
-            <button class="quantity-btn decrease" (click)="decreaseQuantity()">
+            <button
+              class="quantity-btn decrease"
+              (click)="decreaseQuantity()"
+              [disabled]="isOutOfStock() || isCooldown()"
+            >
               <i class="fa-solid fa-angle-down"></i>
             </button>
             <span class="quantity-display">{{ quantity() }}</span>
-            <button class="quantity-btn increase" (click)="increaseQuantity()">
+            <button
+              class="quantity-btn increase"
+              (click)="increaseQuantity()"
+              [disabled]="isOutOfStock() || isCooldown()"
+            >
               <i class="fa-solid fa-angle-up"></i>
             </button>
           </div>
 
-          <button class="add-to-cart-btn" (click)="addToCart()">
-            <i class="fa-solid fa-cart-shopping"></i>
-            Kosárba helyezés
+          <button
+            class="add-to-cart-btn"
+            [class.out-of-stock]="isOutOfStock()"
+            [class.cooldown]="isCooldown()"
+            [disabled]="isOutOfStock() || isCooldown()"
+            (click)="addToCart()"
+          >
+            @if (isOutOfStock()) {
+              <i class="fa-solid fa-ban"></i>
+              Elfogyott
+            } @else if (isCooldown()) {
+              <i class="fa-solid fa-check"></i>
+            } @else {
+              <i class="fa-solid fa-cart-shopping"></i>
+              Kosárba helyezés
+            }
           </button>
         </div>
-
-        <!-- ⭐ Összesen rész TÖRÖLVE -->
       </div>
     </div>
 

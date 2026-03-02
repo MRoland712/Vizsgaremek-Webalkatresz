@@ -1,4 +1,4 @@
-import { Component, inject, OnInit, signal } from '@angular/core';
+import { Component, inject, OnInit, signal, computed } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { forkJoin } from 'rxjs';
 import { CommonModule } from '@angular/common';
@@ -11,7 +11,7 @@ import { DynamicBreadcrumbsComponent } from '../../shared/dynamic-breadcrumbs.co
 import { GetallmanufacturersService } from '../../services/getallmanufacturers.service';
 import { BreadcrumbService } from '../../services/breadcrumb.service';
 import { ManufacturersModel } from '../../models/manufacturers.model';
-import { CartService } from '../../services/cart.service'; // ⭐
+import { CartService } from '../../services/cart.service';
 
 interface Review {
   id: number;
@@ -35,7 +35,7 @@ export class ProductDetailComponent implements OnInit {
   private partImagesService = inject(GetallpartimgagesService);
   private manufacturersService = inject(GetallmanufacturersService);
   private breadcrumbService = inject(BreadcrumbService);
-  private cartService = inject(CartService); // ⭐
+  private cartService = inject(CartService);
 
   product = signal<PartsModel | null>(null);
   images = signal<string[]>([]);
@@ -46,6 +46,15 @@ export class ProductDetailComponent implements OnInit {
   rating = signal(4.5);
   reviewCount = signal(128);
   activeTab = signal<'description' | 'reviews'>('description');
+
+  // Stock=0 vagy isActive=false → elfogyott
+  isOutOfStock = computed(() => {
+    const p = this.product();
+    return !p || !p.isActive || (p.stock ?? 0) <= 0;
+  });
+
+  isCooldown = signal(false);
+  private cooldownTimer: any;
 
   reviews = signal<Review[]>([
     {
@@ -101,25 +110,19 @@ export class ProductDetailComponent implements OnInit {
           .sort((a, b) => (a.isPrimary ? -1 : b.isPrimary ? 1 : 0))
           .map((img) => img.url);
 
-        if (productImages.length === 0) {
-          productImages.push('assets/placeholder.jpg');
-        }
+        if (productImages.length === 0) productImages.push('assets/placeholder.jpg');
 
         const foundManufacturer = manufacturers.Manufacturers.find(
           (m) => m.id === foundProduct.manufacturerId,
         );
 
-        this.product.set({
-          ...foundProduct,
-          imageUrl: productImages[0],
-        });
+        this.product.set({ ...foundProduct, imageUrl: productImages[0] });
         this.images.set(productImages);
         this.selectedImage.set(productImages[0]);
         this.manufacturer.set(foundManufacturer || null);
         this.isLoading.set(false);
 
-        const categoryFromProduct = foundProduct.category.toLowerCase();
-        this.breadcrumbService.setLastCategory(categoryFromProduct);
+        this.breadcrumbService.setLastCategory(foundProduct.category.toLowerCase());
         this.breadcrumbService.updateProductName(productId, foundProduct.name);
       },
       error: (err) => {
@@ -137,15 +140,13 @@ export class ProductDetailComponent implements OnInit {
   increaseQuantity(): void {
     this.quantity.update((q) => q + 1);
   }
-
   decreaseQuantity(): void {
     this.quantity.update((q) => (q > 1 ? q - 1 : 1));
   }
 
-  // ⭐ CartService használata
   addToCart(): void {
     const prod = this.product();
-    if (!prod) return;
+    if (!prod || this.isOutOfStock() || this.isCooldown()) return;
 
     this.cartService.addToCart({
       id: prod.id,
@@ -156,16 +157,19 @@ export class ProductDetailComponent implements OnInit {
       sku: prod.sku,
     });
 
-    // Quantity visszaállítása 1-re
     this.quantity.set(1);
+    this.isCooldown.set(true);
+
+    clearTimeout(this.cooldownTimer);
+    this.cooldownTimer = setTimeout(() => {
+      this.isCooldown.set(false);
+    }, 3000);
   }
 
   getStars(): boolean[] {
     const stars: boolean[] = [];
     const fullStars = Math.floor(this.rating());
-    for (let i = 0; i < 5; i++) {
-      stars.push(i < fullStars);
-    }
+    for (let i = 0; i < 5; i++) stars.push(i < fullStars);
     return stars;
   }
 
