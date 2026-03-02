@@ -5,6 +5,7 @@
 package com.mycompany.vizsgaremek.service;
 
 import com.mycompany.vizsgaremek.model.CartItems;
+import com.mycompany.vizsgaremek.model.Parts;
 import java.util.ArrayList;
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -33,6 +34,10 @@ public class CartItemsService {
         if (cartItemsAuth.isDataMissing(createCartItems.getQuantity())) {
             errors.put("MissingQuantity");
         }
+        
+        if (errorAuth.hasErrors(errors)) {
+            return errorAuth.createErrorResponse(errors, 400);
+        }
 
         if (!cartItemsAuth.isDataMissing(createCartItems.getUserId()) && !cartItemsAuth.isValidUserId(createCartItems.getUserId())) {
             errors.put("InvalidUserId");
@@ -48,6 +53,16 @@ public class CartItemsService {
 
         if (errorAuth.hasErrors(errors)) {
             return errorAuth.createErrorResponse(errors, 400);
+        }
+        
+        Parts part = Parts.getPartsById(createCartItems.getPartId().getId());
+        
+        if(part.getStock()<createCartItems.getQuantity()){
+            errors.put("RanOutOfStock");
+        } 
+        
+        if (errorAuth.hasErrors(errors)) {
+            return errorAuth.createErrorResponse(errors, 409);
         }
 
         // MODEL HÍVÁS
