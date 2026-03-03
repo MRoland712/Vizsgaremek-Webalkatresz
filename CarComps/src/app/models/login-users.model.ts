@@ -5,13 +5,14 @@ export interface LoginRequest {
 
 export interface LoginResponse {
   result: {
-    firstName: string;
-    lastName: string;
-    role: string; // ← result-on BELÜL van
-    phone: string;
-    message?: string;
     JWTToken?: string;
-    username: string;
+    Message?: string;
+    userId?: number;
+    username?: string;
+    firstName?: string;
+    lastName?: string;
+    phone?: string;
+    role?: string;
   };
   status: string;
   statusCode: number;
@@ -21,4 +22,46 @@ export interface User {
   id: number;
   email: string;
   username: string;
+}
+
+export interface GetUserByIdResponse {
+  result: {
+    id: number;
+    email: string;
+    username: string;
+    firstName: string;
+    lastName: string;
+    phone: string;
+    role: string;
+    isActive: boolean;
+    isDeleted: boolean;
+    isSubscribed: boolean;
+    createdAt: string;
+    lastLogin: string;
+    guid: string;
+    registrationToken: string;
+    authSecret: string;
+  };
+  status: string;
+  statusCode: number;
+}
+
+export interface GetAddressByIdResponse {
+  address: {
+    id: number;
+    userId: number;
+    firstName: string;
+    lastName: string;
+    country: string;
+    zipCode: string;
+    city: string;
+    street: string;
+    taxNumber: string;
+    company: string;
+    isDefault: boolean;
+    createdAt: string;
+    updatedAt: string;
+  };
+  success: boolean;
+  statusCode: number;
 }

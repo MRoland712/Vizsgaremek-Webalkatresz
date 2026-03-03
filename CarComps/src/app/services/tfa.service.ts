@@ -1,68 +1,27 @@
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { inject, Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
+import {
+  TFARequest,
+  TFAResponse,
+  TFAValidationResponse,
+  TFARecordResponse,
+} from '../models/TFA.model';
 
-export interface TFARequest {
-  email: string;
-}
-
-export interface TFAResponseModel {
-  QR: string;
-  secretKey: string;
-  recoveryCodes: string[];
-}
-
-export interface TFAResponse {
-  result: TFAResponseModel; // ✅ objektum, nem tömb
-  status: string;
-  statusCode: number;
-}
-
-export interface TFAValidationRequest {
-  code: string;
-  email: string;
-}
-
-export interface TFAValidationResponse {
-  result: string;
-  statusCode: number;
-  status: string;
-}
-
-@Injectable({
-  providedIn: 'root',
-})
+@Injectable({ providedIn: 'root' })
 export class TfaService {
   private http = inject(HttpClient);
-  // ✅ CORS proxy - ugyanaz mint a login service-ben
   private readonly baseUrl = 'https://api.carcomps.hu/vizsgaremek-1.0-SNAPSHOT/webresources/';
 
-  // ⭐ token header - ugyanaz mint Postman-ben
   private getHeaders(): { headers: HttpHeaders } {
-    const token = localStorage.getItem('jwt');
-    return {
-      headers: new HttpHeaders({
-        'Content-Type': 'application/json',
-        token: token ?? '',
-      }),
-    };
+    const token = localStorage.getItem('jwt') ?? '';
+    return { headers: new HttpHeaders({ 'Content-Type': 'application/json', token }) };
   }
 
-  // ⭐ validateTFACode-hoz text/plain kell (Postman szerint)
-  private getVerifyHeaders(): { headers: HttpHeaders } {
-    const token = localStorage.getItem('jwt');
-    return {
-      headers: new HttpHeaders({
-        'Content-Type': 'application/json',
-        token: token ?? '',
-      }),
-    };
-  }
-
-  CreateUserTfa(email: TFARequest): Observable<TFAResponse> {
+  CreateUserTfa(body: TFARequest): Observable<TFAResponse> {
     return this.http.post<TFAResponse>(
       `${this.baseUrl}UserTwofa/createUserTwofa`,
-      email,
+      body,
       this.getHeaders(),
     );
   }
@@ -71,11 +30,23 @@ export class TfaService {
     return this.http.post<TFAValidationResponse>(
       `${this.baseUrl}TFA/validateTFACode`,
       { email, code },
-      this.getVerifyHeaders(), // ⭐ text/plain
+      this.getHeaders(),
     );
   }
 
-  disableTfa(email: string): Observable<any> {
-    return this.http.post(`${this.baseUrl}UserTwofa/disable`, { email }, this.getHeaders());
+  // ÚJ: TFA rekord lekérdezése userId alapján
+  getUserTwofa(userId: number): Observable<TFARecordResponse> {
+    return this.http.get<TFARecordResponse>(
+      `${this.baseUrl}UserTwofa/getUserTwofaByUserId?userId=${userId}`,
+      this.getHeaders(),
+    );
+  }
+
+  // ÚJ: TFA törlése a rekord id-jával
+  disableTfa(tfaRecordId: number): Observable<any> {
+    return this.http.delete(
+      `${this.baseUrl}UserTwofa/softDeleteUserTwofa?id=${tfaRecordId}`,
+      this.getHeaders(),
+    );
   }
 }

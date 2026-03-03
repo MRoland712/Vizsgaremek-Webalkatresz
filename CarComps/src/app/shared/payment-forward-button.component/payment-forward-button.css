@@ -1,10 +1,64 @@
-.payment-forward {
-  background-color: #ff6600;
-}
-.payment-forward:hover {
-  background: linear-gradient(to right, #ff6600 0%, #d05604 50%);
-}
 .payment-forward-container {
-  border: solid 1px transparent;
+  width: 100%;
+  padding: 16px 20px 4px;
+}
+
+.payment-forward {
+  width: 100%;
+  padding: 14px 24px;
+  background: #ff6600;
+  color: #fff;
+  border: none;
   border-radius: 30px;
+  font-size: 15px;
+  font-weight: 700;
+  cursor: pointer;
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  transition: background 0.3s ease;
+}
+
+/* Szöveg */
+.payment-forward .btn-text {
+  position: relative;
+  z-index: 2;
+  transition:
+    opacity 0.25s ease,
+    transform 0.25s ease;
+}
+
+/* Truck ikon — alapból bal oldalt kívül */
+.payment-forward .btn-truck {
+  position: absolute;
+  left: -40px;
+  font-size: 20px;
+  z-index: 2;
+  opacity: 0;
+  transition:
+    left 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94),
+    opacity 0.3s ease;
+}
+
+/* Hover: truck beúszik középre, szöveg eltűnik */
+.payment-forward:hover .btn-truck {
+  left: 50%;
+  transform: translateX(-50%);
+  opacity: 1;
+}
+
+.payment-forward:hover .btn-text {
+  opacity: 0;
+  transform: translateX(20px);
+}
+
+.payment-forward:hover {
+  background: #2b2b2b;
+}
+
+.payment-forward:hover .btn-truck {
+  color: #ff6600;
 }

@@ -1,5 +1,30 @@
+/* Loading / Error állapotok */
+.mmt-loading,
+.mmt-error {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 20px;
+  font-size: 15px;
+  color: #666;
+}
+.mmt-loading i {
+  color: #ff6600;
+  animation: spin 1s linear infinite;
+}
+.mmt-error {
+  color: #c0392b;
+}
+.mmt-error i {
+  color: #c0392b;
+}
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
 .mmt-dropdown-wrapper {
-  border: 2px solid transparent; /* ← 'none' helyett 'transparent' */
+  border: 2px solid transparent; /* â† 'none' helyett 'transparent' */
   border-radius: 10px;
   padding: 16px;
   display: inline-block;
@@ -24,7 +49,7 @@
 }
 
 /* ==========================================
-   DROPDOWN SELECT - Javított igazítás
+   DROPDOWN SELECT - JavÃ­tott igazÃ­tÃ¡s
    ========================================== */
 
 .dropdown-select {
@@ -42,8 +67,8 @@
   -moz-appearance: none;
   outline: none;
   transition: all 0.3s ease;
-  width: 280px; /* ← FIX szélesség, nem min-width! */
-  max-width: 280px; /* ← Maximum is fix */
+  width: 280px; /* â† FIX szÃ©lessÃ©g, nem min-width! */
+  max-width: 280px; /* â† Maximum is fix */
 }
 
 .dropdown-select:hover {
@@ -62,14 +87,14 @@
 }
 
 /* ==========================================
-   CHEVRON ICON - VERTIKÁLIS KÖZÉPRE
+   CHEVRON ICON - VERTIKÃLIS KÃ–ZÃ‰PRE
    ========================================== */
 
 .dropdown-icon {
   position: absolute;
-  right: 16px; /* ← Kicsit közelebb a szélhez */
-  top: 50%; /* ← VERTIKÁLIS KÖZÉPRE */
-  transform: translateY(-50%); /* ← Pontos középre igazítás */
+  right: 16px; /* â† Kicsit kÃ¶zelebb a szÃ©lhez */
+  top: 50%; /* â† VERTIKÃLIS KÃ–ZÃ‰PRE */
+  transform: translateY(-50%); /* â† Pontos kÃ¶zÃ©pre igazÃ­tÃ¡s */
   color: #ff6600;
   font-size: 14px;
   pointer-events: none;
@@ -126,7 +151,7 @@
   }
 
   .dropdown-select {
-    width: 100%; /* ← Mobil: teljes szélesség */
+    width: 100%; /* â† Mobil: teljes szÃ©lessÃ©g */
     max-width: 100%;
   }
 
@@ -147,12 +172,12 @@
 
   .dropdown-select {
     font-size: 14px;
-    padding: 8px 32px; /* ← EGYFORMA padding mobilon is */
+    padding: 8px 32px; /* â† EGYFORMA padding mobilon is */
   }
 
   .dropdown-icon {
     right: 12px;
-    top: 50%; /* ← Középre mobilon is */
+    top: 50%; /* â† KÃ¶zÃ©pre mobilon is */
     transform: translateY(-50%);
   }
 }
