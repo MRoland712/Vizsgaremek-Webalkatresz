@@ -1,0 +1,155 @@
+.tfa-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.7);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 10001;
+  animation: fadeIn 0.2s ease;
+}
+
+.tfa-dialog {
+  background: #fffafa;
+  border-radius: 20px;
+  width: 90%;
+  max-width: 420px;
+  padding: 40px 32px;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.4);
+  animation: slideUp 0.3s ease;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+@keyframes slideUp {
+  from {
+    transform: translateY(40px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+.tfa-header {
+  text-align: center;
+  margin-bottom: 28px;
+}
+
+.icon-circle {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #ff6600, #ff8833);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 20px;
+}
+.icon-circle i {
+  font-size: 36px;
+  color: #fffafa;
+}
+
+.tfa-header h2 {
+  margin: 0 0 12px;
+  font-size: 24px;
+  font-weight: 700;
+  color: #2b2b2b;
+}
+.tfa-header .subtitle {
+  margin: 0;
+  font-size: 14px;
+  color: #666;
+  line-height: 1.5;
+}
+
+.code-input-wrapper {
+  margin-bottom: 20px;
+}
+
+.tfa-code-input {
+  width: 100%;
+  padding: 16px;
+  font-size: 32px;
+  text-align: center;
+  letter-spacing: 8px;
+  border: 3px solid #e0e0e0;
+  border-radius: 12px;
+  outline: none;
+  font-family: 'Courier New', monospace;
+  transition: all 0.3s;
+  box-sizing: border-box;
+}
+.tfa-code-input:focus {
+  border-color: #ff6600;
+  box-shadow: 0 0 0 4px rgba(255, 102, 0, 0.1);
+}
+
+.error-banner {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 16px;
+  margin-bottom: 16px;
+  background: rgba(255, 68, 68, 0.1);
+  border-left: 4px solid #ff4444;
+  border-radius: 8px;
+}
+.error-banner i {
+  color: #ff4444;
+}
+.error-banner p {
+  margin: 0;
+  font-size: 14px;
+  color: #2b2b2b;
+}
+
+.verify-btn {
+  width: 100%;
+  padding: 14px;
+  background: linear-gradient(135deg, #ff6600, #ff8833);
+  color: white;
+  border: none;
+  border-radius: 12px;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  margin-bottom: 12px;
+  transition: all 0.2s;
+}
+.verify-btn:hover:not(:disabled) {
+  background: linear-gradient(135deg, #e65a00, #ff7722);
+  transform: translateY(-2px);
+}
+.verify-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.cancel-btn {
+  width: 100%;
+  padding: 12px;
+  background: #e0e0e0;
+  color: #2b2b2b;
+  border: none;
+  border-radius: 12px;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.cancel-btn:hover {
+  background: #d0d0d0;
+}

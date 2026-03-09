@@ -18,6 +18,7 @@ import com.mycompany.vizsgaremek.model.PartCompatibility;
 import com.mycompany.vizsgaremek.model.PartImages;
 import com.mycompany.vizsgaremek.model.PartVariants;
 import com.mycompany.vizsgaremek.model.Parts;
+import com.mycompany.vizsgaremek.model.PasswordResets;
 import com.mycompany.vizsgaremek.model.Payments;
 import com.mycompany.vizsgaremek.model.Reviews;
 import com.mycompany.vizsgaremek.model.Trucks;
@@ -1579,6 +1580,53 @@ public class AuthenticationService {
         }
 
     } // userVehiclesAuth Class closer
+
+    public static class passwordResetsAuth {
+
+        public boolean isDataMissing(String data) {
+            return (data == null || data.trim().isEmpty());
+        }
+
+        public boolean isDataMissing(Integer data) {
+            return (data == null);
+        }
+
+        public boolean isDataMissing(Boolean data) {
+            return (data == null);
+        }
+
+        public boolean isDataMissing(PasswordResets data) {
+            return (data == null);
+        }
+
+        public boolean isDataMissing(ArrayList<PasswordResets> data) {
+            return (data == null || data.isEmpty());
+        }
+
+        public boolean isDataMissing(List<Object[]> data) {
+            return (data == null || data.isEmpty());
+        }
+
+        public boolean isValidId(Integer id) {
+            return id > 0 && id.toString().length() <= 11;
+        }
+
+        public boolean isValidToken(String token) {
+            return token.length() <= 255;
+        }
+
+        public boolean isValidEmail(String email) {
+            return email.matches("^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+$") && email.length() <= 255;
+        }
+
+        public boolean isValidPassword(String password) {
+            return password.length() >= 8 && password.length() <= 255;
+        }
+
+        public boolean isPasswordResetUsed(Boolean used) {
+            return (used == true);
+        }
+    } // passwordResetsAuth Class closer
 
 }//Auth Service Class closer
 

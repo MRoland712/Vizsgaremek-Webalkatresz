@@ -1,1 +1,44 @@
-<p>to-fa.component works!</p>
+@if (isOpen()) {
+  <div class="tfa-overlay" (click)="close()">
+    <div class="tfa-dialog" (click)="$event.stopPropagation()">
+      <div class="tfa-header">
+        <div class="icon-circle">
+          <i class="fa-solid fa-shield-halved"></i>
+        </div>
+        <h2>Kétfaktoros hitelesítés</h2>
+        <p class="subtitle">Add meg az authenticator alkalmazásban megjelenő 6 számjegyű kódot</p>
+      </div>
+
+      <form [formGroup]="tfaForm" (ngSubmit)="verify()">
+        <div class="code-input-wrapper">
+          <input
+            type="text"
+            formControlName="code"
+            class="tfa-code-input"
+            placeholder="123-456"
+            maxlength="7"
+            (input)="onInput($event)"
+            autofocus
+          />
+        </div>
+
+        @if (errorMessage()) {
+          <div class="error-banner">
+            <i class="fa-solid fa-circle-exclamation"></i>
+            <p>{{ errorMessage() }}</p>
+          </div>
+        }
+
+        <button type="submit" class="verify-btn" [disabled]="isVerifying() || tfaForm.invalid">
+          @if (isVerifying()) {
+            <i class="fa-solid fa-spinner fa-spin"></i> Ellenőrzés...
+          } @else {
+            <i class="fa-solid fa-check"></i> Megerősítés
+          }
+        </button>
+
+        <button type="button" class="cancel-btn" (click)="close()">Mégse</button>
+      </form>
+    </div>
+  </div>
+}

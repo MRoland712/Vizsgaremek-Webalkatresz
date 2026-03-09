@@ -1,0 +1,114 @@
+/* ── Wrapper ─────────────────────────────────────────────── */
+.progress-wrapper {
+  width: 100%;
+  padding: 24px 40px;
+  background: #2b2b2b;
+  border-radius: 16px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+  display: flex;
+  justify-content: center;
+  box-sizing: border-box;
+}
+
+/* ── Track ───────────────────────────────────────────────── */
+.progress-track {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  max-width: 480px;
+}
+
+/* ── Connector vonal ─────────────────────────────────────── */
+.connector {
+  flex: 1;
+  height: 1px;
+  background: #666;
+  transition: background 0.4s ease;
+}
+
+.connector--active {
+  background: #ff6600;
+}
+
+/* ── Step ────────────────────────────────────────────────── */
+.step {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+/* ── Circle ──────────────────────────────────────────────── */
+.step__circle {
+  width: 46px;
+  height: 46px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 17px;
+  font-weight: 700;
+  transition: all 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+/* Inactive — fehér kör sötét számmal */
+.step--inactive .step__circle {
+  background: #ffffff;
+  color: #2b2b2b;
+  border: none;
+}
+
+/* Active — narancssárga kör fehér számmal */
+.step--active .step__circle {
+  background: #ff6600;
+  color: #ffffff;
+  border: none;
+  transform: scale(1.05);
+}
+
+/* Completed — narancssárga kör fehér pipával */
+.step--completed .step__circle {
+  background: #ff6600;
+  color: #ffffff;
+  border: none;
+}
+
+.step--completed .step__circle i {
+  font-size: 16px;
+}
+
+/* ── Label ───────────────────────────────────────────────── */
+.step__label {
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  white-space: nowrap;
+  transition: color 0.3s ease;
+}
+
+.step--inactive .step__label {
+  color: #aaa;
+}
+.step--active .step__label {
+  color: #ffffff;
+}
+.step--completed .step__label {
+  color: #aaa;
+}
+
+/* ── Responsive ──────────────────────────────────────────── */
+@media (max-width: 480px) {
+  .progress-wrapper {
+    padding: 20px 20px;
+  }
+  .step__circle {
+    width: 38px;
+    height: 38px;
+    font-size: 14px;
+  }
+  .step__label {
+    font-size: 9px;
+  }
+}

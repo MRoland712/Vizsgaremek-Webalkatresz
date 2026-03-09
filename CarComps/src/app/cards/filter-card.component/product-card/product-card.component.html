@@ -17,7 +17,19 @@
       <h3>Article Number: {{ product().sku }}</h3>
       <ul>
         @for (detail of productDetails(); track $index) {
-          <li>{{ detail.label }}: {{ detail.value }}</li>
+          <li>
+            <span>{{ detail.label }}:</span>
+            @if (detail.label === 'Állapot') {
+              <span
+                [class.status-available]="detail.available"
+                [class.status-unavailable]="!detail.available"
+              >
+                {{ detail.value }}
+              </span>
+            } @else {
+              <span>{{ detail.value }}</span>
+            }
+          </li>
         }
       </ul>
     </div>
@@ -28,18 +40,42 @@
 
     <div class="button-container">
       <div class="quantity-controls">
-        <button type="button" class="quantity-btn decrease" (click)="decreaseQuantity()">
+        <button
+          type="button"
+          class="quantity-btn decrease"
+          (click)="decreaseQuantity()"
+          [disabled]="isCooldown() || isOutOfStock()"
+        >
           <i class="fa-solid fa-angle-down"></i>
         </button>
         <span class="quantity-display">{{ quantity() }}</span>
-        <button type="button" class="quantity-btn increase" (click)="increaseQuantity()">
+        <button
+          type="button"
+          class="quantity-btn increase"
+          (click)="increaseQuantity()"
+          [disabled]="isCooldown() || isOutOfStock()"
+        >
           <i class="fa-solid fa-angle-up"></i>
         </button>
       </div>
 
-      <!-- ⭐ Sima kosárba gomb - NINCS animáció -->
-      <button type="button" class="add-to-cart-btn" (click)="addToCart()" title="Kosárba">
-        <i class="fa-solid fa-cart-shopping"></i>
+      <button
+        type="button"
+        class="add-to-cart-btn"
+        [class.cooldown]="isCooldown()"
+        [class.out-of-stock]="isOutOfStock()"
+        (click)="addToCart()"
+        [disabled]="isCooldown() || isOutOfStock()"
+        [title]="isOutOfStock() ? 'Elfogyott' : 'Kosárba'"
+      >
+        @if (isOutOfStock()) {
+          <i class="fa-solid fa-ban"></i>
+          <span>Elfogyott</span>
+        } @else if (isCooldown()) {
+          <i class="fa-solid fa-check"></i>
+        } @else {
+          <i class="fa-solid fa-cart-shopping"></i>
+        }
       </button>
     </div>
   </div>
