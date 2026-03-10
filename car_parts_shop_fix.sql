@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Gép: localhost:8889
--- Létrehozás ideje: 2026. Már 02. 19:20
+-- Létrehozás ideje: 2026. Már 10. 08:46
 -- Kiszolgáló verziója: 8.0.44
 -- PHP verzió: 8.3.28
 
@@ -288,6 +288,13 @@ CREATE DEFINER=`root`@`localhost` PROCEDURE `createOrderFromCart` (IN `userIdIN`
     
     START TRANSACTION;
     
+    -- Zárolás a race condition ellen
+    SELECT p.stock FROM parts p
+    INNER JOIN cart_items ci ON p.id = ci.part_id
+    WHERE ci.user_id = userIdIN 
+      AND ci.is_deleted = 0
+    FOR UPDATE;
+    
     -- Van termék a kosárban vagy nincs
     SELECT COUNT(*) INTO cartCount
     FROM cart_items
@@ -476,6 +483,26 @@ CREATE DEFINER=`root`@`localhost` PROCEDURE `createPartVariants` (IN `partIdIN` 
            
          SELECT LAST_INSERT_ID()AS new_part_variants;
          COMMIT;
+END$$
+
+DROP PROCEDURE IF EXISTS `createPasswordReset`$$
+CREATE DEFINER=`root`@`localhost` PROCEDURE `createPasswordReset` (IN `userIdIN` INT(11), IN `tokenIN` VARCHAR(255))   BEGIN
+    INSERT INTO password_resets (
+        user_id,
+        token,
+        expires_at,
+        used,
+        created_at
+    )
+    VALUES (
+        userIdIN,
+        tokenIN,
+        DATE_ADD(NOW(), INTERVAL 1 HOUR),
+        0,
+        NOW()
+    );
+
+    SELECT LAST_INSERT_ID() AS new_password_reset_id;
 END$$
 
 DROP PROCEDURE IF EXISTS `createPayments`$$
@@ -1444,6 +1471,21 @@ CREATE DEFINER=`root`@`localhost` PROCEDURE `getPartVariantsByValue` (IN `partVa
     WHERE value = partVariantsValue;
 END$$
 
+DROP PROCEDURE IF EXISTS `getPasswordResetByToken`$$
+CREATE DEFINER=`root`@`localhost` PROCEDURE `getPasswordResetByToken` (IN `tokenIN` VARCHAR(255))   BEGIN
+    SELECT 
+        id,
+        user_id,
+        token,
+        expires_at,
+        used,
+        created_at
+    FROM password_resets
+    WHERE token = tokenIN
+      AND used = 0
+      AND expires_at > NOW();
+END$$
+
 DROP PROCEDURE IF EXISTS `getPaymentById`$$
 CREATE DEFINER=`root`@`localhost` PROCEDURE `getPaymentById` (IN `idIN` INT)   BEGIN
     SELECT
@@ -1812,6 +1854,45 @@ CREATE DEFINER=`root`@`localhost` PROCEDURE `processRefund` (IN `paymentIdIN` IN
     SELECT newRefundId AS new_refund_id;
 END$$
 
+DROP PROCEDURE IF EXISTS `resetPassword`$$
+CREATE DEFINER=`root`@`localhost` PROCEDURE `resetPassword` (IN `tokenIN` VARCHAR(255), IN `newPasswordIN` VARCHAR(255))   BEGIN
+    DECLARE userIdVar INT DEFAULT NULL;
+
+    DECLARE CONTINUE HANDLER FOR NOT FOUND SET userIdVar = NULL;
+
+    DECLARE EXIT HANDLER FOR SQLEXCEPTION
+    BEGIN
+        ROLLBACK;
+        SELECT 'ERROR: Password reset failed' AS error_message;
+    END;
+
+    START TRANSACTION;
+
+    SELECT user_id INTO userIdVar
+    FROM password_resets
+    WHERE token = tokenIN
+      AND used = 0
+      AND expires_at > NOW()
+    FOR UPDATE;
+
+    IF userIdVar IS NULL THEN
+        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'InvalidOrExpiredToken';
+    END IF;
+
+    UPDATE users
+    SET password = newPasswordIN
+    WHERE id = userIdVar;
+
+    UPDATE password_resets
+    SET used = 1
+    WHERE token = tokenIN
+      AND user_id = userIdVar;
+
+    COMMIT;
+
+    SELECT userIdVar AS userId;
+END$$
+
 DROP PROCEDURE IF EXISTS `softDeleteAddress`$$
 CREATE DEFINER=`root`@`localhost` PROCEDURE `softDeleteAddress` (IN `p_address_id` INT)   BEGIN
     UPDATE addresses
@@ -1963,6 +2044,13 @@ CREATE DEFINER=`root`@`localhost` PROCEDURE `softDeletePartVariants` (IN `partVa
         is_deleted = TRUE,
         deleted_at = NOW()
     WHERE id = partVaraintsId;
+END$$
+
+DROP PROCEDURE IF EXISTS `softDeletePasswordReset`$$
+CREATE DEFINER=`root`@`localhost` PROCEDURE `softDeletePasswordReset` (IN `idIN` INT(11))   BEGIN
+    UPDATE password_resets
+    SET used = 1
+    WHERE id = idIN;
 END$$
 
 DROP PROCEDURE IF EXISTS `softDeletePayment`$$
@@ -2250,6 +2338,13 @@ CREATE DEFINER=`root`@`localhost` PROCEDURE `updatePartVariants` (IN `idIN` INT(
         additional_price = additionalPriceIN,
         is_deleted = isDeletedIN
     WHERE id = idIN;
+END$$
+
+DROP PROCEDURE IF EXISTS `updatePasswordReset`$$
+CREATE DEFINER=`root`@`localhost` PROCEDURE `updatePasswordReset` (IN `tokenIN` VARCHAR(255))   BEGIN
+    UPDATE password_resets
+    SET used = 1
+    WHERE token = tokenIN;
 END$$
 
 DROP PROCEDURE IF EXISTS `updatePayment`$$
@@ -2645,16 +2740,6 @@ CREATE TABLE `order_items` (
   `is_deleted` tinyint(1) DEFAULT '0',
   `deleted_at` datetime DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3;
-
---
--- A tábla adatainak kiíratása `order_items`
---
-
-INSERT INTO `order_items` (`id`, `order_id`, `part_id`, `quantity`, `price`, `created_at`, `is_deleted`, `deleted_at`) VALUES
-(1, 3, 2, 2, 22679.00, '2026-02-17 09:52:29', 1, NULL),
-(2, 4, 5, 10, 12100.00, '2026-02-17 13:57:21', 0, NULL),
-(3, 5, 8, 7, 49957.00, '2026-02-17 13:57:30', 0, NULL),
-(4, 6, 16, 3, 14300.00, '2026-02-17 13:57:38', 0, NULL);
 
 -- --------------------------------------------------------
 
@@ -3686,16 +3771,6 @@ CREATE TABLE `stock_logs` (
   `created_at` datetime DEFAULT CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3;
 
---
--- A tábla adatainak kiíratása `stock_logs`
---
-
-INSERT INTO `stock_logs` (`id`, `part_id`, `change_amount`, `reason`, `created_at`) VALUES
-(1, 2, -2, 'Order #3', '2026-02-17 09:52:29'),
-(2, 5, -10, 'Order #4', '2026-02-17 13:57:21'),
-(3, 8, -7, 'Order #5', '2026-02-17 13:57:30'),
-(4, 16, -3, 'Order #6', '2026-02-17 13:57:38');
-
 -- --------------------------------------------------------
 
 --
@@ -4082,7 +4157,7 @@ ALTER TABLE `orders`
 -- AUTO_INCREMENT a táblához `order_items`
 --
 ALTER TABLE `order_items`
-  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
+  MODIFY `id` int NOT NULL AUTO_INCREMENT;
 
 --
 -- AUTO_INCREMENT a táblához `order_logs`
@@ -4160,7 +4235,7 @@ ALTER TABLE `shipping_status`
 -- AUTO_INCREMENT a táblához `stock_logs`
 --
 ALTER TABLE `stock_logs`
-  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
+  MODIFY `id` int NOT NULL AUTO_INCREMENT;
 
 --
 -- AUTO_INCREMENT a táblához `trucks`
