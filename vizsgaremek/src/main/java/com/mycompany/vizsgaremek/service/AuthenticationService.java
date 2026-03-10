@@ -4,26 +4,8 @@
  */
 package com.mycompany.vizsgaremek.service;
 
-import com.mycompany.vizsgaremek.model.Users;
+import com.mycompany.vizsgaremek.model.*;
 import com.mycompany.vizsgaremek.config.Encrypt;
-import com.mycompany.vizsgaremek.model.Addresses;
-import com.mycompany.vizsgaremek.model.Cars;
-import com.mycompany.vizsgaremek.model.CartItems;
-import com.mycompany.vizsgaremek.model.Invoices;
-import com.mycompany.vizsgaremek.model.Manufacturers;
-import com.mycompany.vizsgaremek.model.Motors;
-import com.mycompany.vizsgaremek.model.OrderItems;
-import com.mycompany.vizsgaremek.model.Orders;
-import com.mycompany.vizsgaremek.model.PartCompatibility;
-import com.mycompany.vizsgaremek.model.PartImages;
-import com.mycompany.vizsgaremek.model.PartVariants;
-import com.mycompany.vizsgaremek.model.Parts;
-import com.mycompany.vizsgaremek.model.PasswordResets;
-import com.mycompany.vizsgaremek.model.Payments;
-import com.mycompany.vizsgaremek.model.Reviews;
-import com.mycompany.vizsgaremek.model.Trucks;
-import com.mycompany.vizsgaremek.model.UserTwofa;
-import com.mycompany.vizsgaremek.model.UserVehicles;
 import io.jsonwebtoken.Claims;
 import java.math.BigDecimal;
 import java.util.ArrayList;
@@ -1627,6 +1609,33 @@ public class AuthenticationService {
             return (used == true);
         }
     } // passwordResetsAuth Class closer
+    
+    public static class sessionsAuth {
+        
+        public boolean isDataMissing(String data) {
+            return (data == null || data.trim().isEmpty());
+        }
+
+        public boolean isDataMissing(Integer data) {
+            return (data == null);
+        }
+
+        public boolean isDataMissing(Boolean data) {
+            return (data == null);
+        }
+
+        public boolean isDataMissing(Sessions data) {
+            return (data == null);
+        }
+
+        public boolean isDataMissing(ArrayList<Sessions> data) {
+            return (data == null || data.isEmpty());
+        }
+
+        public boolean isDataMissing(List<Object[]> data) {
+            return (data == null || data.isEmpty());
+        }
+    }
 
 }//Auth Service Class closer
 

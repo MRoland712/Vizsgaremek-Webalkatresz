@@ -26,9 +26,9 @@ public class JwtUtil {
 
     // Token validity: 24 hours 24 * 60 * 60 * 1000
     private static final long TOKEN_VALIDITY = 24 * 60 * 60 * 1000;
-    
+
     private static final AuthenticationService.JWTAuth JWTAuth = new AuthenticationService.JWTAuth();
-    
+
     private static final AuthenticationService.errorAuth errorAuth = new AuthenticationService.errorAuth();
 
     /**
@@ -80,7 +80,7 @@ public class JwtUtil {
      */
     public static boolean validateToken(String token) {
         try {
-            Jwts.parserBuilder() 
+            Jwts.parserBuilder()
                     .setSigningKey(getSigningKey())
                     .build()
                     .parseClaimsJws(token);
@@ -99,7 +99,7 @@ public class JwtUtil {
      */
     public static Integer extractUserId(String token) {
         Claims claims = extractAllClaims(token);
-        return (Integer) claims.get("id");  
+        return (Integer) claims.get("id");
     }
 
     /**
@@ -185,7 +185,7 @@ public class JwtUtil {
                 .parseClaimsJws(token)
                 .getBody();
     }
-    
+
     public static Response validateJwtAndReturnError(String jwtToken) {
         JSONArray errors = new JSONArray();
 
@@ -218,6 +218,51 @@ public class JwtUtil {
 
         return null; // Token valid
     }
+
+    /**
+     * Generate Session Token (UUID-based, separate from JWT)
+     *
+     * @return Session token string (UUID)
+     */
+    public static String createSessionToken() {
+        return java.util.UUID.randomUUID().toString();
+    }
+
+    /**
+     * Generate Session Token with custom expiration time
+     *
+     * @param expirationMillis Expiration time in milliseconds from now
+     * @return Map with token and expiration timestamp
+     */
+    public static Map<String, Object> createSessionTokenWithExpiry(long expirationMillis) {
+        String token = java.util.UUID.randomUUID().toString();
+        Date expiresAt = new Date(System.currentTimeMillis() + expirationMillis);
+
+        Map<String, Object> result = new HashMap<>();
+        result.put("token", token);
+        result.put("expiresAt", expiresAt);
+
+        return result;
+    }
+
+    /**
+     * Generate Session Token with default 24-hour expiration
+     *
+     * @return Map with token and expiration timestamp
+     */
+    public static Map<String, Object> createSessionToken24h() {
+        return createSessionTokenWithExpiry(24 * 60 * 60 * 1000L); // 24 hours
+    }
+
+    /**
+     * Generate Session Token with 1-hour expiration
+     *
+     * @return Map with token and expiration timestamp
+     */
+    public static Map<String, Object> createSessionToken1h() {
+        return createSessionTokenWithExpiry(60 * 60 * 1000L); // 1 hour
+    }
+
     /**
      * Example usage
      */

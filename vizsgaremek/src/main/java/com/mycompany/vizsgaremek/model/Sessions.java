@@ -4,11 +4,13 @@
  */
 package com.mycompany.vizsgaremek.model;
 
+import static com.mycompany.vizsgaremek.model.Trucks.emf;
 import java.io.Serializable;
 import java.util.Date;
 import javax.persistence.Basic;
 import javax.persistence.Column;
 import javax.persistence.Entity;
+import javax.persistence.EntityManager;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
@@ -16,6 +18,8 @@ import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 import javax.persistence.NamedQueries;
 import javax.persistence.NamedQuery;
+import javax.persistence.ParameterMode;
+import javax.persistence.StoredProcedureQuery;
 import javax.persistence.Table;
 import javax.persistence.Temporal;
 import javax.persistence.TemporalType;
@@ -75,6 +79,20 @@ public class Sessions implements Serializable {
         this.id = id;
         this.token = token;
         this.expiresAt = expiresAt;
+    }
+
+    public Sessions(String token, Users userId) {
+        this.token = token;
+        this.userId = userId;
+    }
+    
+    public Sessions(Integer id, String token, Date expiresAt, Date createdAt, Boolean revoked, Users userId) {
+        this.id = id;
+        this.token = token;
+        this.expiresAt = expiresAt;
+        this.createdAt = createdAt;
+        this.revoked = revoked;
+        this.userId = userId;
     }
 
     public Integer getId() {
@@ -148,6 +166,29 @@ public class Sessions implements Serializable {
     @Override
     public String toString() {
         return "com.mycompany.vizsgaremek.model.Sessions[ id=" + id + " ]";
+    }
+    
+    public static Boolean createSession(Sessions session) {
+        EntityManager em = emf.createEntityManager();
+        try {
+            StoredProcedureQuery spq = em.createStoredProcedureQuery("createSession");
+
+            spq.registerStoredProcedureParameter("tokenIN", String.class, ParameterMode.IN);
+            spq.registerStoredProcedureParameter("userIdIN", Integer.class, ParameterMode.IN);
+
+            spq.setParameter("tokenIN", session.getToken());
+            spq.setParameter("userIdIN", session.getUserId().getId());
+
+            spq.execute();
+
+            return true;
+
+        } catch (Exception ex) {
+            ex.printStackTrace();
+            return false;
+        } finally {
+            em.close();
+        }
     }
     
 }
