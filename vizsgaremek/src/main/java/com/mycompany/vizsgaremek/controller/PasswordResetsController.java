@@ -136,13 +136,12 @@ public class PasswordResetsController {
         String token = bodyObject.has("token") ? bodyObject.getString("token") : null;
         String newPassword = bodyObject.has("newPassword") ? bodyObject.getString("newPassword") : null;
 
-        JSONObject toReturn = layer.updatePasswordResetService(token, newPassword);
+        JSONObject toReturn = layer.resetPasswordService(token, newPassword);
 
         return Response.status(Integer.parseInt(toReturn.get("statusCode").toString()))
                 .entity(toReturn.toString())
                 .type(MediaType.APPLICATION_JSON)
                 .build();
     }
-    
 
 }
