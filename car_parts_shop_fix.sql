@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Gép: localhost:8889
--- Létrehozás ideje: 2026. Már 10. 08:46
+-- Létrehozás ideje: 2026. Már 20. 19:53
 -- Kiszolgáló verziója: 8.0.44
 -- PHP verzió: 8.3.28
 
@@ -288,13 +288,6 @@ CREATE DEFINER=`root`@`localhost` PROCEDURE `createOrderFromCart` (IN `userIdIN`
     
     START TRANSACTION;
     
-    -- Zárolás a race condition ellen
-    SELECT p.stock FROM parts p
-    INNER JOIN cart_items ci ON p.id = ci.part_id
-    WHERE ci.user_id = userIdIN 
-      AND ci.is_deleted = 0
-    FOR UPDATE;
-    
     -- Van termék a kosárban vagy nincs
     SELECT COUNT(*) INTO cartCount
     FROM cart_items
@@ -434,34 +427,17 @@ CREATE DEFINER=`root`@`localhost` PROCEDURE `createPartImages` (IN `partIdIN` IN
 END$$
 
 DROP PROCEDURE IF EXISTS `createParts`$$
-CREATE DEFINER=`root`@`localhost` PROCEDURE `createParts` (IN `p_manufacturer_id` INT, IN `p_sku` VARCHAR(255), IN `p_name` VARCHAR(255), IN `p_category` VARCHAR(100), IN `p_price` DECIMAL(10.2), IN `p_stock` INT, IN `p_status` VARCHAR(50), IN `p_is_active` TINYINT)   BEGIN
-	START TRANSACTION;
+CREATE DEFINER=`root`@`localhost` PROCEDURE `createParts` (IN `p_manufacturer_id` INT, IN `p_sku` VARCHAR(255), IN `p_name` VARCHAR(255), IN `p_description` TEXT, IN `p_category` VARCHAR(100), IN `p_price` DECIMAL(10.2), IN `p_stock` INT, IN `p_status` VARCHAR(50), IN `p_is_active` TINYINT)   BEGIN
+    START TRANSACTION;
     INSERT INTO parts(
-        manufacturer_id,
-        sku,
-        name,
-        category,
-        price,
-        stock,
-        status,
-        is_active,
-        created_at,
-        updated_at
-        )VALUES(
-            p_manufacturer_id,
-            p_sku,
-            p_name,
-            p_category,
-            p_price,
-            p_stock,
-            p_status,
-            p_is_active,
-            NOW(),
-            NOW()
-           );
-           
-         SELECT LAST_INSERT_ID()AS new_parts_id;
-         COMMIT;
+        manufacturer_id, sku, name, description, category,
+        price, stock, status, is_active, created_at, updated_at
+    ) VALUES(
+        p_manufacturer_id, p_sku, p_name, p_description, p_category,
+        p_price, p_stock, p_status, p_is_active, NOW(), NOW()
+    );
+    SELECT LAST_INSERT_ID() AS new_parts_id;
+    COMMIT;
 END$$
 
 DROP PROCEDURE IF EXISTS `createPartVariants`$$
@@ -552,6 +528,29 @@ INSERT INTO reviews(
         NULL
         );
      SELECT LAST_INSERT_ID() AS new_review_id;
+END$$
+
+DROP PROCEDURE IF EXISTS `createSession`$$
+CREATE DEFINER=`root`@`localhost` PROCEDURE `createSession` (IN `tokenIN` VARCHAR(255), IN `userIdIN` INT(11))   BEGIN
+    -- létrehozunk a usernek egy session tokent
+    INSERT INTO sessions (
+        user_id,
+        token,
+        expires_at,
+        created_at,
+        revoked
+    ) VALUES (
+        userIdIN,
+        tokenIN,
+        NOW() + INTERVAL 7 DAY,
+        NOW(),
+        0
+    );
+    
+    SELECT revoked, created_at, expires_at, token, user_id, id
+	FROM sessions
+    WHERE sessions.token = tokenIN;
+    
 END$$
 
 DROP PROCEDURE IF EXISTS `createTrucks`$$
@@ -920,25 +919,24 @@ CREATE DEFINER=`root`@`localhost` PROCEDURE `getAllPartImages` ()   BEGIN
 END$$
 
 DROP PROCEDURE IF EXISTS `getAllParts`$$
-CREATE DEFINER=`root`@`localhost` PROCEDURE `getAllParts` ()   BEGIN
-	SELECT
-    	id,
-        manufacturer_id,
-        sku,
-        name,
-        category,
-        price,
-        stock,
-        status,
-        is_active,
-        created_at,
-        updated_at,
-        deleted_at,
-        is_deleted
-	FROM parts
-    WHERE is_deleted = 0
-    ORDER BY id;
-END$$
+CREATE DEFINER=`root`@`localhost` PROCEDURE `getAllParts` ()   SELECT
+    id,
+    manufacturer_id,
+    sku,
+    name,
+    description,
+    category,
+    price,
+    stock,
+    status,
+    is_active,
+    created_at,
+    updated_at,
+    deleted_at,
+    is_deleted
+FROM parts
+WHERE is_deleted = 0
+ORDER BY id$$
 
 DROP PROCEDURE IF EXISTS `getAllPartVariants`$$
 CREATE DEFINER=`root`@`localhost` PROCEDURE `getAllPartVariants` ()   SELECT id, part_id, name, value, additional_price, created_at, is_deleted, deleted_at
@@ -1241,6 +1239,7 @@ CREATE DEFINER=`root`@`localhost` PROCEDURE `getOrdersByUserId` (IN `idIN` INT(1
         id,
         user_id,
         status,
+
         created_at,
         updated_at,
         is_deleted,
@@ -1564,6 +1563,15 @@ CREATE DEFINER=`root`@`localhost` PROCEDURE `getReviewsByUserId` (IN `userIdIN` 
     WHERE user_id = userIdIN
         AND is_deleted = 0
     ORDER BY created_at DESC;
+END$$
+
+DROP PROCEDURE IF EXISTS `getSessionTokenByUserId`$$
+CREATE DEFINER=`root`@`localhost` PROCEDURE `getSessionTokenByUserId` (IN `userIdIN` INT)   BEGIN
+
+SELECT * 
+from sessions
+where sessions.user_id = userIdIN AND sessions.revoked = 0;
+
 END$$
 
 DROP PROCEDURE IF EXISTS `getTrucksByBrand`$$
@@ -1891,6 +1899,13 @@ CREATE DEFINER=`root`@`localhost` PROCEDURE `resetPassword` (IN `tokenIN` VARCHA
     COMMIT;
 
     SELECT userIdVar AS userId;
+END$$
+
+DROP PROCEDURE IF EXISTS `revokeSessionTokenByUserId`$$
+CREATE DEFINER=`root`@`localhost` PROCEDURE `revokeSessionTokenByUserId` (IN `userIdIN` INT)   BEGIN
+UPDATE sessions
+SET sessions.revoked = 1
+WHERE sessions.user_id = userIdIN AND sessions.revoked = 0;
 END$$
 
 DROP PROCEDURE IF EXISTS `softDeleteAddress`$$
@@ -2307,14 +2322,12 @@ CREATE DEFINER=`root`@`localhost` PROCEDURE `updatePartImages` (IN `IdIN` INT(11
 END$$
 
 DROP PROCEDURE IF EXISTS `updateParts`$$
-CREATE DEFINER=`root`@`localhost` PROCEDURE `updateParts` (IN `p_part_id` INT(11), IN `p_manufacturer_id` INT(11), IN `p_sku` VARCHAR(100), IN `p_name` VARCHAR(255), IN `p_category` VARCHAR(100), IN `p_price` DECIMAL(10,2), IN `p_stock` INT(11), IN `p_status` VARCHAR(20), IN `p_is_active` TINYINT, IN `p_is_deleted` TINYINT)   BEGIN
-    START TRANSACTION;
-    
-    UPDATE parts
-    SET 
+CREATE DEFINER=`root`@`localhost` PROCEDURE `updateParts` (IN `p_part_id` INT(11), IN `p_manufacturer_id` INT(11), IN `p_sku` VARCHAR(100), IN `p_name` VARCHAR(255), IN `p_description` TEXT, IN `p_category` VARCHAR(100), IN `p_price` DECIMAL(10,2), IN `p_stock` INT(11), IN `p_status` VARCHAR(20), IN `p_is_active` TINYINT, IN `p_is_deleted` TINYINT)   BEGIN
+    UPDATE parts SET
         manufacturer_id = p_manufacturer_id,
         sku = p_sku,
         name = p_name,
+        description = p_description,
         category = p_category,
         price = p_price,
         stock = p_stock,
@@ -2323,8 +2336,6 @@ CREATE DEFINER=`root`@`localhost` PROCEDURE `updateParts` (IN `p_part_id` INT(11
         is_deleted = p_is_deleted,
         updated_at = NOW()
     WHERE id = p_part_id;
-    
-    COMMIT;
 END$$
 
 DROP PROCEDURE IF EXISTS `updatePartVariants`$$
@@ -2500,7 +2511,37 @@ CREATE TABLE `cars` (
 
 INSERT INTO `cars` (`id`, `brand`, `model`, `year_from`, `year_to`, `created_at`, `updated_at`, `is_deleted`, `deleted_at`) VALUES
 (1, 'Mercedes', 'C180', 2010, 2015, '2026-03-02 19:11:18', '2026-03-02 19:11:18', 0, NULL),
-(2, 'Ford', 'Focus', 2010, 2020, '2026-03-02 19:11:27', '2026-03-02 19:11:27', 0, NULL);
+(2, 'Ford', 'Focus', 2010, 2020, '2026-03-02 19:11:27', '2026-03-02 19:11:27', 0, NULL),
+(3, 'BMW', 'M2 CS', 2025, 2026, '2026-03-02 22:42:34', '2026-03-02 22:42:34', 0, NULL),
+(4, 'BMW', 'i5', 2023, 2026, '2026-03-02 22:42:34', '2026-03-02 22:42:34', 0, NULL),
+(5, 'BMW', 'X2', 2024, 2026, '2026-03-02 22:42:34', '2026-03-02 22:42:34', 0, NULL),
+(6, 'Mercedes-Benz', 'EQE SUV', 2023, 2026, '2026-03-02 22:42:34', '2026-03-02 22:42:34', 0, NULL),
+(7, 'Mercedes-Benz', 'CLE Coupé', 2024, 2026, '2026-03-02 22:42:34', '2026-03-02 22:42:34', 0, NULL),
+(8, 'Mercedes-Benz', 'GLC Coupé', 2023, 2026, '2026-03-02 22:42:34', '2026-03-02 22:42:34', 0, NULL),
+(9, 'Ford', 'Mustang GTD', 2024, 2026, '2026-03-02 22:42:34', '2026-03-02 22:42:34', 0, NULL),
+(10, 'Ford', 'Explorer EV', 2024, 2026, '2026-03-02 22:42:34', '2026-03-02 22:42:34', 0, NULL),
+(11, 'Ford', 'Ranger', 2023, 2026, '2026-03-02 22:42:34', '2026-03-02 22:42:34', 0, NULL),
+(12, 'Toyota', 'Crown Signia', 2024, 2026, '2026-03-02 22:42:34', '2026-03-02 22:42:34', 0, NULL),
+(13, 'Toyota', 'Land Cruiser 250', 2024, 2026, '2026-03-02 22:42:34', '2026-03-02 22:42:34', 0, NULL),
+(14, 'Toyota', 'Prius', 2023, 2026, '2026-03-02 22:42:34', '2026-03-02 22:42:34', 0, NULL),
+(15, 'Mitsubishi', 'Outlander PHEV', 2024, 2026, '2026-03-02 22:42:34', '2026-03-02 22:42:34', 0, NULL),
+(16, 'Mitsubishi', 'Eclipse Cross', 2023, 2026, '2026-03-02 22:42:34', '2026-03-02 22:42:34', 0, NULL),
+(17, 'Mitsubishi', 'Outlander 1.5T Hybrid', 2026, 2026, '2026-03-02 22:42:34', '2026-03-02 22:42:34', 0, NULL),
+(18, 'Hyundai', 'Ioniq 7', 2024, 2026, '2026-03-02 22:42:34', '2026-03-02 22:42:34', 0, NULL),
+(19, 'Hyundai', 'Kona Electric', 2023, 2026, '2026-03-02 22:42:34', '2026-03-02 22:42:34', 0, NULL),
+(20, 'Hyundai', 'Santa Fe', 2024, 2026, '2026-03-02 22:42:34', '2026-03-02 22:42:34', 0, NULL),
+(21, 'Kia', 'EV9', 2024, 2026, '2026-03-02 22:42:34', '2026-03-02 22:42:34', 0, NULL),
+(22, 'Kia', 'Sportage Hybrid', 2023, 2026, '2026-03-02 22:42:34', '2026-03-02 22:42:34', 0, NULL),
+(23, 'Kia', 'Sorento', 2024, 2026, '2026-03-02 22:42:34', '2026-03-02 22:42:34', 0, NULL),
+(24, 'Volkswagen', 'ID. Buzz', 2023, 2026, '2026-03-02 22:42:34', '2026-03-02 22:42:34', 0, NULL),
+(25, 'Volkswagen', 'Tiguan', 2024, 2026, '2026-03-02 22:42:34', '2026-03-02 22:42:34', 0, NULL),
+(26, 'Volkswagen', 'Passat Variant', 2024, 2026, '2026-03-02 22:42:34', '2026-03-02 22:42:34', 0, NULL),
+(27, 'Nissan', 'Ariya', 2023, 2026, '2026-03-02 22:42:34', '2026-03-02 22:42:34', 0, NULL),
+(28, 'Nissan', 'Qashqai e-Power', 2023, 2026, '2026-03-02 22:42:34', '2026-03-02 22:42:34', 0, NULL),
+(29, 'Nissan', 'X-Trail e-Power', 2023, 2026, '2026-03-02 22:42:34', '2026-03-02 22:42:34', 0, NULL),
+(30, 'Volvo', 'EX90', 2024, 2026, '2026-03-02 22:42:34', '2026-03-02 22:42:34', 0, NULL),
+(31, 'Volvo', 'EX30', 2023, 2026, '2026-03-02 22:42:34', '2026-03-02 22:42:34', 0, NULL),
+(32, 'Volvo', 'XC60 (facelift)', 2024, 2026, '2026-03-02 22:42:34', '2026-03-02 22:42:34', 0, NULL);
 
 -- --------------------------------------------------------
 
@@ -2519,13 +2560,6 @@ CREATE TABLE `cart_items` (
   `deleted_at` datetime DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3;
 
---
--- A tábla adatainak kiíratása `cart_items`
---
-
-INSERT INTO `cart_items` (`id`, `user_id`, `part_id`, `quantity`, `added_at`, `is_deleted`, `deleted_at`) VALUES
-(1, 6, 6, 10, '2026-02-27 10:16:32', 0, NULL);
-
 -- --------------------------------------------------------
 
 --
@@ -2536,7 +2570,7 @@ DROP TABLE IF EXISTS `email_verifications`;
 CREATE TABLE `email_verifications` (
   `id` int NOT NULL,
   `user_id` int NOT NULL,
-  `token` varchar(255) CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci NOT NULL,
+  `token` varchar(255) NOT NULL,
   `verified` tinyint(1) DEFAULT '0',
   `sent_at` datetime DEFAULT CURRENT_TIMESTAMP,
   `verified_at` datetime DEFAULT NULL
@@ -2557,13 +2591,6 @@ CREATE TABLE `invoices` (
   `is_deleted` tinyint(1) DEFAULT '0',
   `deleted_at` datetime DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3;
-
---
--- A tábla adatainak kiíratása `invoices`
---
-
-INSERT INTO `invoices` (`id`, `order_id`, `pdf_url`, `created_at`, `is_deleted`, `deleted_at`) VALUES
-(1, 3, NULL, '2026-02-23 13:53:41', 0, NULL);
 
 -- --------------------------------------------------------
 
@@ -2721,7 +2748,10 @@ INSERT INTO `orders` (`id`, `user_id`, `status`, `created_at`, `updated_at`, `is
 (3, 3, 'paid', '2026-02-17 09:52:29', '2026-02-23 13:53:41', 0, NULL),
 (4, 4, 'pending', '2026-02-17 13:57:21', '2026-02-17 13:57:21', 0, NULL),
 (5, 10, 'pending', '2026-02-17 13:57:30', '2026-02-17 13:57:30', 0, NULL),
-(6, 6, 'pending', '2026-02-17 13:57:38', '2026-02-17 13:57:38', 0, NULL);
+(6, 6, 'pending', '2026-02-17 13:57:38', '2026-02-17 13:57:38', 0, NULL),
+(7, 19, 'paid', '2026-03-03 12:08:35', '2026-03-03 12:08:35', 0, NULL),
+(8, 17, 'paid', '2026-03-13 10:56:35', '2026-03-13 10:56:35', 0, NULL),
+(9, 17, 'paid', '2026-03-13 11:04:36', '2026-03-13 11:04:36', 0, NULL);
 
 -- --------------------------------------------------------
 
@@ -2768,6 +2798,7 @@ CREATE TABLE `parts` (
   `manufacturer_id` int NOT NULL,
   `sku` varchar(100) NOT NULL,
   `name` varchar(255) NOT NULL,
+  `description` text,
   `category` varchar(100) DEFAULT NULL,
   `price` decimal(10,2) NOT NULL,
   `stock` int DEFAULT '0',
@@ -2783,147 +2814,139 @@ CREATE TABLE `parts` (
 -- A tábla adatainak kiíratása `parts`
 --
 
-INSERT INTO `parts` (`id`, `manufacturer_id`, `sku`, `name`, `category`, `price`, `stock`, `status`, `is_active`, `created_at`, `updated_at`, `deleted_at`, `is_deleted`) VALUES
-(1, 42, 'ALLSEASON-TIRES-001', 'Maxxis Premitra All Season 185/65 R15 92H XL M+S négyévszakos gumi', 'Gumik és felnik', 15930.00, 24, 'available', 1, '2026-02-02 14:04:32', '2026-02-17 11:24:00', NULL, 0),
-(2, 56, 'ALLSEASON-TIRES-002', 'Tristar All Season Power 215/45 R17 91W M+S négyévszakos gumi', 'Gumik és felnik', 22679.00, 18, 'available', 1, '2026-02-02 14:06:18', '2026-02-17 09:52:29', NULL, 0),
-(3, 8, 'ALLSEASON-TIRES-003', 'Dunlop Sport Bluresponse 225/50 R17 98W XL', 'Gumik és felnik', 46120.00, 42, 'available', 1, '2026-02-02 14:10:27', '2026-02-05 12:47:42', NULL, 0),
-(4, 12, 'ALLSEASON-TIRES-004', 'Bridgestone Blizzak LM005 185/65 R15 88T M+S ', 'Gumik és felnik', 36700.00, 52, 'available', 1, '2026-02-02 14:11:38', '2026-02-05 12:49:16', NULL, 0),
-(5, 4, 'RIM-TIRES-001', 'ALUTEC Tormenta 19 col ezüst alufelni', 'Gumik és felnik', 12100.00, 18, 'available', 1, '2026-02-02 14:13:30', '2026-02-17 13:57:21', NULL, 0),
-(6, 64, 'RIM-TIRES-002', 'BROCK B41 20 col fekete alufeln', 'Gumik és felnik', 159332.00, 16, 'available', 1, '2026-02-03 10:29:17', '2026-02-03 10:29:17', NULL, 0),
-(7, 31, 'RIM-TIRES-003', 'KESKIN WHEELS KT17 Hurricane 18 col matt fekete alufeln', 'Gumik és felnik', 115133.00, 8, 'available', 1, '2026-02-03 10:30:08', '2026-02-03 10:30:08', NULL, 0),
-(8, 65, 'RIM-TIRES-004', 'DOTZ Mugello 15 col matt fekete front polírozott alufeln', 'Gumik és felnik', 49957.00, 25, 'available', 1, '2026-02-03 10:33:54', '2026-02-17 13:57:30', NULL, 0),
-(9, 6, 'RIM-TIRES-005', 'ATS Mizar 19 col fekete alufeln', 'Gumik és felnik', 147566.00, 22, 'available', 1, '2026-02-03 10:34:57', '2026-02-03 10:34:57', NULL, 0),
-(10, 53, 'SUMMER-TIRES-001', 'TBB Tires Fortezza 175/70 R14 84T nyárigumi', 'Gumik és felnik', 12782.00, 67, 'available', 1, '2026-02-03 10:40:46', '2026-02-03 10:40:46', NULL, 0),
-(11, 56, 'SUMMER-TIRES-002', 'Tristar Ecopower 3 145/70 R12 69T nyárigumi', 'Gumik és felnik', 13808.00, 12, 'available', 1, '2026-02-03 11:10:13', '2026-02-03 11:10:13', NULL, 0),
-(12, 56, 'SUMMER-TIRES-003', 'Tristar Ecopower 3 145/70 R13 71T nyárigumi', 'Gumik és felnik', 13808.00, 12, 'available', 1, '2026-02-03 11:10:35', '2026-02-03 11:10:35', NULL, 0),
-(13, 26, 'SUMMER-TIRES-004', 'Imperial Ecodriver 4 145/70 R12 69T nyárigumi', 'Gumik és felnik', 13808.00, 12, 'available', 1, '2026-02-03 11:12:06', '2026-02-03 11:12:06', NULL, 0),
-(14, 51, 'WINTER-TIRES-001', 'Star Performer Stratos HP 155/80 R13 79T M+S téligumi', 'Gumik és felnik', 13589.00, 20, 'available', 1, '2026-02-03 11:13:45', '2026-02-03 11:13:45', NULL, 0),
-(15, 56, 'WINTER-TIRES-002', 'Tristar Snowpower HP 145/70 R13 71T M+S téligumi', 'Gumik és felnik', 15144.00, 24, 'available', 1, '2026-02-03 11:14:16', '2026-02-03 11:14:16', NULL, 0),
-(16, 43, 'WINTER-TIRES-003', 'Minerva FROSTRACK HP M+S 3 155/65 R13 73T M+S téligumi', 'Gumik és felnik', 14300.00, 25, 'available', 1, '2026-02-03 11:14:41', '2026-02-17 13:57:38', NULL, 0),
-(17, 52, 'WINTER-TIRES-004', 'Superia Bluewin HP 155/70 R13 75T M+S téligumi', 'Gumik és felnik', 14570.00, 32, 'available', 1, '2026-02-03 11:15:14', '2026-02-03 11:15:14', NULL, 0),
-(18, 45, 'WINTER-TIRES-005', 'Nankang SV-3 Winter 165/70 R14 81T M+S téligumi', 'Gumik és felnik', 14799.00, 20, 'available', 1, '2026-02-03 11:16:04', '2026-02-03 11:16:04', NULL, 0),
-(19, 11, 'DISC-BRAKE-001', 'BREMBO Prime 09.B436.51 Féktárcsa', 'Fékrendszer', 20677.00, 8, 'available', 1, '2026-02-03 11:18:46', '2026-02-03 11:18:46', NULL, 0),
-(20, 11, 'DISC-BRAKE-002', 'BREMBO Prime 09.9313.33 Féktárcsa', 'Fékrendszer', 16000.00, 12, 'available', 1, '2026-02-03 11:19:37', '2026-02-09 10:31:19', NULL, 0),
-(21, 63, 'DISC-BRAKE-003', 'ZIMMERMANN SPORT COAT Z 600.3250.52 Féktárcsa', 'Fékrendszer', 3200.00, 10, 'available', 1, '2026-02-03 11:20:12', '2026-02-09 10:31:03', NULL, 0),
-(22, 54, 'DISC-BRAKE-004', 'TEXTAR PRO 92082503 Féktárcsa', 'Fékrendszer', 8719.00, 10, 'available', 1, '2026-02-03 11:21:02', '2026-02-03 11:21:02', NULL, 0),
-(23, 1, 'DISC-BRAKE-005', 'BOSCH 0 986 479 A01 Féktárcsa', 'Fékrendszer', 17442.00, 22, 'available', 1, '2026-02-03 11:21:35', '2026-02-03 11:21:35', NULL, 0),
-(24, 1, 'PAD-BRAKE-001', 'BOSCH 0 986 424 098 Fékbetét készlet, tárcsafékű', 'Fékrendszer', 5668.00, 36, 'available', 1, '2026-02-03 11:23:25', '2026-02-03 11:23:25', NULL, 0),
-(25, 11, 'PAD-BRAKE-002', 'BREMBO Prime P 50 051 Fékbetét készlet, tárcsafék MERCEDES-BENZ VIANO, VITO', 'Fékrendszer', 11031.00, 40, 'available', 1, '2026-02-03 11:24:02', '2026-02-03 11:24:02', NULL, 0),
-(26, 54, 'PAD-BRAKE-003', 'TEXTAR 2166404 Fékbetét készlet, tárcsafék', 'Fékrendszer', 11607.00, 22, 'available', 1, '2026-02-03 11:24:50', '2026-02-03 11:24:50', NULL, 0),
-(27, 57, 'PAD-BRAKE-004', 'TRW GDB1956 Fékbetét készlet, tárcsafék', 'Fékrendszer', 19070.00, 32, 'available', 1, '2026-02-03 11:26:01', '2026-02-03 11:26:01', NULL, 0),
-(28, 17, 'DRUM-BRAKE-001', 'FEBI BILSTEIN 37562 Fék készlet, dobfék', 'Fékrendszer', 22795.00, 4, 'available', 1, '2026-02-03 11:27:32', '2026-02-03 11:27:32', NULL, 0),
-(29, 1, 'DRUM-BRAKE-002', 'BOSCH 0 204 114 554 Fék készlet, dobfék', 'Fékrendszer', 24157.00, 8, 'available', 1, '2026-02-03 11:28:10', '2026-02-03 11:28:10', NULL, 0),
-(30, 34, 'DRUM-BRAKE-003', 'LPR EASY KIT OEK614 Fék készlet, dobfék', 'Fékrendszer', 39666.00, 12, 'available', 1, '2026-02-03 11:29:17', '2026-02-03 11:29:17', NULL, 0),
-(31, 17, 'DRUM-BRAKE-004', 'FEBI BILSTEIN 38746 Fék készlet, dobfék', 'Fékrendszer', 23015.00, 16, 'available', 1, '2026-02-03 11:29:48', '2026-02-03 11:29:48', NULL, 0),
-(32, 58, 'HEAD-LAMP-001', 'TYC 20-5488-08-2 Fényszóró OPEL ASTRA', 'Világitás', 18207.00, 6, 'available', 1, '2026-02-03 11:31:51', '2026-02-03 11:31:51', NULL, 0),
-(33, 58, 'HEAD-LAMP-002', 'TYC 20-0008-05-2 Fényszóró AUDI A4', 'Világitás', 36200.00, 6, 'available', 1, '2026-02-03 11:32:23', '2026-02-03 11:32:23', NULL, 0),
-(34, 58, 'HEAD-LAMP-003', 'TYC 20-12033-05-2 Fényszóró Polo 6r', 'Világitás', 29266.00, 8, 'available', 1, '2026-02-03 11:33:43', '2026-02-03 11:33:43', NULL, 0),
-(35, 58, 'HEAD-LAMP-004', 'TYC 20-0166-05-2 Fényszóró PEUGEOT 307', 'Világitás', 29160.00, 10, 'available', 1, '2026-02-03 11:34:14', '2026-02-03 11:34:14', NULL, 0),
-(36, 23, 'HEAD-LAMP-005', 'HELLA 1EL 011 937-311 Fényszóró VW Touareg 7p', 'Világitás', 225177.00, 4, 'available', 1, '2026-02-03 11:34:52', '2026-02-03 11:34:52', NULL, 0),
-(37, 2, 'TAIL-LAMP-001', 'ABAKUS 231-1940L-A Hátsólámpa Ford Ranger EQ', 'Világitás', 7197.00, 4, 'available', 1, '2026-02-03 11:37:13', '2026-02-03 11:37:13', NULL, 0),
-(38, 2, 'TAIL-LAMP-002', 'ABAKUS 665-1912L-UE Hátsólámpa Skoda Octavia 2 Kombi', 'Világitás', 13478.00, 4, 'available', 1, '2026-02-03 11:37:42', '2026-02-03 11:37:42', NULL, 0),
-(39, 2, 'TAIL-LAMP-003', 'ABAKUS 214-1952L-A Hátsólámpa Mitsubishi L200 K60T', 'Világitás', 7500.00, 8, 'available', 1, '2026-02-03 11:38:16', '2026-02-03 11:38:16', NULL, 0),
-(40, 3, 'SIDE-MIRROR-001', 'ALKAR 6126127 Külső visszapillantó VOLKSWAGEN GOLF, BORA', 'Karosszéria', 12056.00, 10, 'available', 1, '2026-02-03 12:50:05', '2026-02-03 12:50:05', NULL, 0),
-(41, 3, 'SIDE-MIRROR-COVER-001', 'ALKAR 6343438 Borítás, külső visszapillantó', 'Karosszéria', 2895.00, 40, 'available', 1, '2026-02-03 12:51:47', '2026-02-03 12:51:47', NULL, 0),
-(42, 3, 'SIDE-MIRROR-GLASS-001', 'ALKAR 6432438 Tükör üveg, külső visszapillantó pár OPEL ASTRA', 'Karosszéria', 8450.00, 22, 'available', 1, '2026-02-03 12:53:14', '2026-02-03 12:53:14', NULL, 0),
-(43, 7, 'SUSPENSION-001', 'BILSTEIN B4 OE Replacement 22-105813 Lengéscsillapító', 'Lengéscsillapító', 22726.00, 44, 'available', 1, '2026-02-03 12:59:56', '2026-02-03 12:59:56', NULL, 0),
-(44, 57, 'SUSPENSION-002', 'TRW TWIN JGM5967T Lengéscsillapító Fiat Panda 169', 'Lengéscsillapító', 15053.00, 38, 'available', 1, '2026-02-03 13:00:32', '2026-02-03 13:00:32', NULL, 0),
-(46, 16, 'SUSPENSION-004', 'DACO Germany 533701 Lengéscsillapító', 'Lengéscsillapító', 7814.00, 20, 'available', 1, '2026-02-03 13:02:44', '2026-02-03 13:02:44', NULL, 0),
-(47, 47, 'SPRING-SUSPENSION-001', 'SACHS 996 072 Futómű rugó MERCEDES-BENZ 124-es széria, E-osztály', 'Futómű', 10201.00, 34, 'available', 1, '2026-02-03 13:09:40', '2026-02-03 13:09:40', NULL, 0),
-(48, 33, 'SPRING-SUSPENSION-002', 'KYB K-Flex RA6028 Futómű rugó Subaru Forester SG', 'Futómű', 19577.00, 30, 'available', 1, '2026-02-03 13:10:27', '2026-02-03 13:10:27', NULL, 0),
-(49, 44, 'SPRING-SUSPENSION-003', 'MONROE SP3675 Futómű rugó SMART ROADSTER', 'Futómű', 5890.00, 10, 'available', 1, '2026-02-03 13:11:34', '2026-02-03 13:11:34', NULL, 0),
-(50, 40, 'SPRING-SUSPENSION-004', 'MAPCO 72876 Futómű rugó', 'Futómű', 3100.00, 8, 'available', 1, '2026-02-03 13:12:10', '2026-02-03 13:12:10', NULL, 0),
-(51, 17, 'STRUTBEARING-SUSPENSION-001', 'FEBI BILSTEIN 37884 Javítókészlet, gólyaláb támasztó csapágy', 'Futómű', 15000.00, 63, 'available', 1, '2026-02-06 15:07:57', '2026-02-06 15:07:57', NULL, 0),
-(52, 66, 'STRUTBEARING-SUSPENSION-002', 'SNR KB674.03 Javítókészlet, gólyaláb támasztó csapágy HONDA CIVIC', 'Futómű', 22640.00, 28, 'available', 1, '2026-02-06 15:13:06', '2026-02-06 15:13:06', NULL, 0),
-(53, 17, 'STRUTBEARING-SUSPENSION-003', 'FEBI BILSTEIN 14116 Javítókészlet, gólyaláb támasztó csapágy', 'Futómű', 4900.00, 65, 'available', 1, '2026-02-06 15:14:27', '2026-02-06 15:14:27', NULL, 0),
-(54, 44, 'STRUTBEARING-SUSPENSION-004', 'MONROE MK199 Javítókészlet, gólyaláb támasztó csapágy RENAULT LAGUNA, VEL SATIS, ESPACE', 'Futómű', 18000.00, 54, 'available', 1, '2026-02-06 15:19:50', '2026-02-06 15:20:17', NULL, 0),
-(55, 35, 'STRUTBEARING-SUSPENSION-005', 'LEMFÖRDER 31770 01 Javítókészlet, gólyaláb támasztó csapágy', 'Futómű', 10790.00, 34, 'available', 1, '2026-02-06 15:20:51', '2026-02-06 15:20:51', NULL, 0),
-(56, 55, 'CONTROLARM-SUSPENSION-001', 'TOPRAN 115 800 Lengőkar szett', 'Futómű', 46453.00, 23, 'available', 1, '2026-02-06 15:24:29', '2026-02-06 15:24:29', NULL, 0),
-(57, 35, 'CONTROLARM-SUSPENSION-002', 'LEMFÖRDER 31913 01 Lengőkar szett AUDI A4', 'Futómű', 291999.00, 35, 'available', 1, '2026-02-06 15:26:51', '2026-02-06 15:27:03', NULL, 0),
-(58, 40, 'CONTROLARM-SUSPENSION-003', 'MAPCO 53742/1 Lengőkar szett', 'Futómű', 132900.00, 13, 'available', 1, '2026-02-06 15:28:29', '2026-02-06 15:28:29', NULL, 0),
-(59, 22, 'CONTROLARM-SUSPENSION-004', 'GT-BERGMANN GT20-087 Lengőkar, kerékfelfüggesztés FORD FOCUS', 'Futómű', 37238.00, 21, 'available', 1, '2026-02-06 15:30:30', '2026-02-06 15:30:30', NULL, 0),
-(60, 67, 'CONTROLARM-SUSPENSION-005', 'MEYLE 116 050 0223/HD Lengőkar szett AUDI A5, A4, Q5', 'Futómű', 260891.00, 4, 'available', 1, '2026-02-06 15:33:25', '2026-02-06 15:33:25', NULL, 0),
-(61, 55, 'HUBCOVER-SUSPENSION-001', 'TOPRAN 206 440 Védőfedél, kerékagy', 'Futómű', 732.00, 4, 'available', 1, '2026-02-06 15:47:34', '2026-02-06 15:47:34', NULL, 0),
-(62, 68, 'HUBCOVER-SUSPENSION-002', 'AUTOMEGA 110150110 Védőfedél, kerékagy', 'Futómű', 732.00, 123, 'available', 1, '2026-02-06 15:52:51', '2026-02-06 15:52:51', NULL, 0),
-(63, 55, 'HUBCOVER-SUSPENSION-003', 'TOPRAN 104 189 Védőfedél, kerékagy', 'Futómű', 482.00, 82, 'available', 1, '2026-02-06 15:53:59', '2026-02-06 15:53:59', NULL, 0),
-(64, 55, 'WHEELBEARING-SUSPENSION-001', 'TOPRAN 200 398 Kerékagy', 'Futómű', 482.00, 36, 'available', 1, '2026-02-06 15:55:09', '2026-02-06 15:55:09', NULL, 0),
-(65, 66, 'WHEELBEARING-SUSPENSION-002', 'SNR R154.61 Kerékcsapágy készlet', 'Futómű', 31676.00, 32, 'available', 1, '2026-02-06 15:55:42', '2026-02-06 15:55:42', NULL, 0),
-(66, 38, 'AIR-FILTER-001', 'MANN-FILTER C 934 x Légszűrő', 'Szűrők', 6382.00, 11, 'available', 1, '2026-02-09 10:09:32', '2026-02-09 10:09:32', NULL, 0),
-(67, 32, 'AIR-FILTER-002', 'K&N Filters 33-2964 Légszűrő', 'Szűrők', 30245.00, 9, 'available', 1, '2026-02-09 10:10:42', '2026-02-09 10:10:42', NULL, 0),
-(68, 29, 'AIR-FILTER-003', 'JAPANPARTS FA-108S Légszűrő', 'Szűrők', 3370.00, 5, 'available', 1, '2026-02-09 10:12:17', '2026-02-09 10:12:17', NULL, 0),
-(69, 1, 'AIR-FILTER-004', 'BOSCH F 026 400 492 Légszűrő', 'Szűrők', 5405.00, 7, 'available', 1, '2026-02-09 10:15:03', '2026-02-09 10:15:03', NULL, 0),
-(70, 20, 'OIL-FILTER-001', 'FILTRON OP 629/1 Olajszűrő', 'Szűrők', 2857.00, 27, 'available', 1, '2026-02-09 10:17:03', '2026-02-09 10:17:03', NULL, 0),
-(71, 1, 'OIL-FILTER-002', 'BOSCH 0 986 452 028 Olajszűrő', 'Szűrők', 1987.00, 10, 'available', 1, '2026-02-09 10:17:42', '2026-02-09 10:17:42', NULL, 0),
-(72, 32, 'OIL-FILTER-003', 'Olajszűrő K&N Filters KN-204-1', 'Szűrők', 5135.00, 9, 'available', 1, '2026-02-09 10:18:27', '2026-02-09 10:18:27', NULL, 0),
-(74, 1, 'OIL-FILTER-004', 'BOSCH 0 451 103 261 Olajszűrő', 'Szűrők', 2184.00, 20, 'available', 1, '2026-02-09 10:19:12', '2026-02-09 10:19:12', NULL, 0),
-(75, 24, 'OIL-FILTER-005', 'HENGST FILTER H13W01 Olajszűrő', 'Szűrők', 2469.00, 17, 'available', 1, '2026-02-09 10:20:12', '2026-02-09 10:20:12', NULL, 0),
-(76, 38, 'AIR-FILTER-005', 'MANN-FILTER FP 25 007 Szűrő, utastér levegő', 'Szűrők', 7521.00, 15, 'available', 1, '2026-02-09 10:21:41', '2026-02-09 10:21:41', NULL, 0),
-(77, 1, 'AIR-FILTER-006', 'BOSCH 0 986 628 583 Szűrő, utastér levegő TESLA MODEL X, MODEL 3, MODEL Y', 'Szűrők', 6129.00, 30, 'available', 1, '2026-02-09 10:22:19', '2026-02-09 10:22:19', NULL, 0),
-(78, 20, 'AIR-FILTER-007', 'FILTRON K 1311A Szűrő, utastér levegő', 'Szűrők', 5100.00, 18, 'available', 1, '2026-02-09 10:23:32', '2026-02-09 10:23:32', NULL, 0),
-(79, 1, 'AIR-FILTER-008', 'BOSCH 1 987 432 397 Szűrő, utastér levegő', 'Szűrők', 3878.00, 14, 'available', 1, '2026-02-09 10:24:50', '2026-02-09 10:24:50', NULL, 0),
-(82, 20, 'OIL-FILTER-006', 'FILTRON OP 629/1 Olajszűrő', 'Szűrők', 2857.00, 13, 'available', 1, '2026-02-09 10:28:47', '2026-02-09 10:28:47', NULL, 0),
-(83, 1, 'OIL-FILTER-007', 'BOSCH 0 986 452 028 Olajszűrő', 'Szűrők', 1987.00, 10, 'available', 1, '2026-02-09 10:29:43', '2026-02-09 10:29:43', NULL, 0),
-(84, 1, 'WATER-PUMP-KIT-001', 'BOSCH 1 987 948 738 Vezérműszíj készlet vízpumpával', 'Motoralkatrész', 36039.00, 10, 'available', 1, '2026-02-09 10:40:18', '2026-02-09 10:40:18', NULL, 0),
-(85, 15, 'WATER-PUMP-KIT-002', 'CONTITECH CT1140WP1 Vezérműszíj készlet vízpumpával', 'Motoralkatrész', 41062.00, 9, 'available', 1, '2026-02-09 10:41:37', '2026-02-09 10:41:37', NULL, 0),
-(86, 27, 'WATER-PUMP-KIT-003', 'INA 530 0550 32 Vezérműszíj készlet vízpumpával', 'Motoralkatrész', 53831.00, 6, 'available', 1, '2026-02-09 10:42:36', '2026-02-09 10:42:36', NULL, 0),
-(87, 17, 'WATER-PUMP-KIT-004', 'FEBI BILSTEIN 172599 Vezérműszíj készlet vízpumpával', 'Motoralkatrész', 12649.00, 20, 'available', 1, '2026-02-09 10:45:10', '2026-02-09 10:45:10', NULL, 0),
-(88, 15, 'WATER-PUMP-KIT-005', 'CONTITECH CT504WP1 Vezérműszíj készlet vízpumpával', 'Motoralkatrész', 19551.00, 10, 'available', 1, '2026-02-09 10:45:45', '2026-02-09 10:45:45', NULL, 0),
-(89, 13, 'TURBO-BASE-001', 'BTS TURBO ORIGINAL T911332 Turbó VOLKSWAGEN POLO, CADDY', 'Motoralkatrész', 418532.00, 3, 'available', 1, '2026-02-09 10:50:06', '2026-02-09 10:51:35', NULL, 0),
-(90, 10, 'TURBO-BASE-002', 'BorgWarner 5303 988 0207 Turbó', 'Motoralkatrész', 339251.00, 5, 'available', 1, '2026-02-09 10:51:25', '2026-02-09 10:51:25', NULL, 0),
-(91, 21, 'TURBO-BASE-003', 'GARRETT 753420-5006S Turbó', 'Motoralkatrész', 186710.00, 10, 'available', 1, '2026-02-09 10:52:30', '2026-02-09 10:52:30', NULL, 0),
-(92, 21, 'TURBO-BASE-004', 'GARRETT 753420-9006S Turbó', 'Motoralkatrész', 165809.00, 5, 'available', 1, '2026-02-09 10:53:05', '2026-02-09 10:53:05', NULL, 0),
-(93, 62, 'STARTER-BATTERY-001', 'YUASA HJ-S46B24L(S) Indító akkumulátor', 'Generátor', 89803.00, 11, 'available', 1, '2026-02-09 10:57:36', '2026-02-09 10:57:36', NULL, 0),
-(94, 62, 'STARTER-BATTERY-002', 'YUASA 570901076 Indító akkumulátor', 'Generátor', 68371.00, 17, 'available', 1, '2026-02-09 10:58:13', '2026-02-09 10:58:13', NULL, 0),
-(95, 62, 'STARTER-BATTERY-003', 'YUASA YBX7053 Indító akkumulátor', 'Generátor', 44713.00, 10, 'available', 1, '2026-02-09 10:58:50', '2026-02-09 10:58:50', NULL, 0),
-(96, 1, 'STARTER-BATTERY-004', 'BOSCH S3 008 Indító akkumulátor', 'Generátor', 35789.00, 12, 'available', 1, '2026-02-09 10:59:34', '2026-02-09 10:59:34', NULL, 0),
-(97, 61, 'STARTER-BATTERY-005', 'VARTA N70 Indító akkumulátor', 'Generátor', 63931.00, 12, 'available', 1, '2026-02-09 11:00:44', '2026-02-09 11:00:44', NULL, 0),
-(98, 36, 'GENERATOR-BASIC-001', 'LUCAS LRB00183 Generátor', 'Generátor', 26677.00, 20, 'available', 1, '2026-02-09 11:01:36', '2026-02-09 11:01:36', NULL, 0),
-(99, 5, 'GENERATOR-BASIC-002', 'AS-PL A9011 Generátor', 'Generátor', 42420.00, 11, 'available', 1, '2026-02-09 11:02:24', '2026-02-09 11:02:24', NULL, 0),
-(100, 50, 'GENERATOR-BASIC-003', 'STARDAX STX102224 Generátor RENAULT MEGANE', 'Generátor', 33345.00, 7, 'available', 1, '2026-02-09 11:03:02', '2026-02-09 11:03:02', NULL, 0),
-(101, 36, 'GENERATOR-BASIC-004', 'LUCAS LRB00502 Generátor', 'Generátor', 33129.00, 7, 'available', 1, '2026-02-09 11:03:41', '2026-02-09 11:03:41', NULL, 0),
-(102, 5, 'GENERATOR-BASIC-005', 'AS-PL A9011PR Generátor', 'Generátor', 38100.00, 20, 'available', 1, '2026-02-09 11:04:23', '2026-02-09 11:04:23', NULL, 0),
-(103, 41, 'STARTER-BASIC-001', 'MASTER-SPORT 2101-3708300-PCS-MS Önindító', 'Generátor', 3705.00, 32, 'available', 1, '2026-02-09 11:14:22', '2026-02-09 11:14:22', NULL, 0),
-(104, 1, 'STARTER-BASIC-002', 'BOSCH 0 986 025 940 Önindító', 'Generátor', 51000.00, 10, 'available', 1, '2026-02-09 11:14:55', '2026-02-09 11:14:55', NULL, 0),
-(106, 1, 'STARTER-BASIC-003', 'BOSCH 0 986 018 310 Önindító', 'Generátor', 36317.00, 14, 'available', 1, '2026-02-09 11:15:31', '2026-02-09 11:15:31', NULL, 0),
-(108, 5, 'STARTER-BASIC-004', 'AS-PL S0128 Önindító', 'Generátor', 38813.00, 10, 'available', 1, '2026-02-09 11:16:05', '2026-02-09 11:16:05', NULL, 0),
-(109, 5, 'STARTER-BASIC-005', 'AS-PL S0005 Önindító', 'Generátor', 43500.00, 7, 'available', 1, '2026-02-09 11:16:26', '2026-02-09 11:16:26', NULL, 0),
-(110, 18, 'ENGINE-OIL-001', '2217610 ELF Evolution R-Tech ELITE 1L', 'Folyadékok', 23176.00, 12, 'available', 1, '2026-02-09 11:28:12', '2026-02-09 11:28:12', NULL, 0),
-(111, 48, 'ENGINE-OIL-002', '550042279 SHELL Helix Ultra Prof AF', 'Folyadékok', 19738.00, 20, 'available', 1, '2026-02-09 11:28:55', '2026-02-09 11:28:55', NULL, 0),
-(112, 17, 'ENGINE-OIL-003', '32943 FEBI BILSTEIN Longlife', 'Folyadékok', 14389.00, 5, 'available', 1, '2026-02-09 11:44:26', '2026-02-09 11:44:26', NULL, 0),
-(113, 59, 'ENGINE-OIL-004', 'GS55502M4 VAG Special G', 'Folyadékok', 19423.00, 11, 'available', 1, '2026-02-09 11:47:45', '2026-02-09 11:47:45', NULL, 0),
-(115, 59, 'ENGINE-OIL-005', 'GS60107M4 VAG Special e', 'Folyadékok', 15404.00, 11, 'available', 1, '2026-02-09 11:50:36', '2026-02-09 11:50:36', NULL, 0),
-(117, 14, 'ENGINE-OIL-006', '151A95 CASTROL Magnatec Professional Ford E', 'Folyadékok', 26235.00, 20, 'available', 1, '2026-02-09 11:51:43', '2026-02-09 11:51:43', NULL, 0),
-(118, 39, 'ENGINE-OIL-007', 'MN7715-5 MANNOL Longlife 504/507', 'Folyadékok', 11107.00, 30, 'available', 1, '2026-02-09 11:52:40', '2026-02-09 11:52:40', NULL, 0),
-(123, 1, 'OXYGEN-SENSOR-001', 'BOSCH 0 258 003 957 Lambdaszonda', 'Motoralkatrész', 23789.00, 40, 'available', 1, '2026-02-09 12:47:03', '2026-02-09 12:47:03', NULL, 0),
-(124, 1, 'OXYGEN-SENSOR-002', 'BOSCH 0 258 017 617 Lambdaszonda', 'Motoralkatrész', 27762.00, 40, 'available', 1, '2026-02-09 12:47:31', '2026-02-09 12:47:31', NULL, 0),
-(125, 71, 'OXYGEN-SENSOR-003', 'DENSO Direct Fit DOX-0351 Lambdaszonda', 'Motoralkatrész', 29695.00, 40, 'available', 1, '2026-02-09 12:49:51', '2026-02-09 12:49:51', NULL, 0),
-(126, 46, 'OXYGEN-SENSOR-004', 'NTY ESL-SK-000 Lambdaszonda', 'Motoralkatrész', 13488.00, 22, 'available', 1, '2026-02-09 12:51:55', '2026-02-09 12:51:55', NULL, 0),
-(127, 1, 'OXYGEN-SENSOR-005', 'BOSCH 0 258 006 206 Lambdaszonda', 'Motoralkatrész', 17168.00, 30, 'available', 1, '2026-02-09 12:52:17', '2026-02-09 12:52:17', NULL, 0),
-(128, 30, 'EXHAUST-BASE-001', 'JMJ 02-50ST Kipufogócső', 'Kipufogó', 15029.00, 45, 'available', 1, '2026-02-09 12:54:34', '2026-02-09 12:54:34', NULL, 0),
-(129, 72, 'EXHAUST-BASE-002', 'BM CATALYSTS BM90854H Katalizátor', 'Kipufogó', 42028.00, 10, 'available', 1, '2026-02-09 12:55:59', '2026-02-09 12:55:59', NULL, 0),
-(130, 28, 'EXHAUST-BASE-003', 'IZAWIT 22.053 Katalizátor DAEWOO MATIZ', 'Kipufogó', 32830.00, 12, 'available', 1, '2026-02-09 12:56:34', '2026-02-09 12:56:34', NULL, 0),
-(131, 30, 'EXHAUST-BASE-004', 'JMJ 1090138 Katalizátor', 'Kipufogó', 36419.00, 6, 'available', 1, '2026-02-09 12:57:11', '2026-02-09 12:57:11', NULL, 0),
-(132, 30, 'EXHAUST-BASE-005', 'JMJ 1091391 Katalizátor', 'Kipufogó', 120249.00, 11, 'available', 1, '2026-02-09 12:57:47', '2026-02-09 12:57:47', NULL, 0),
-(134, 73, 'EXHAUST-BASE-006', 'DR.MOTOR AUTOMOTIVE DRM0562 Cső, kipuf.gáz visszavezető szelep', 'Kipufogó', 16750.00, 23, 'available', 1, '2026-02-09 13:00:42', '2026-02-09 13:00:42', NULL, 0),
-(136, 74, 'EXHAUST-BASE-007', 'AUTLOG AV6126 Vákuumvezérlő szelep, kipufogógáz-visszavezetés', 'Kipufogó', 9178.00, 33, 'available', 1, '2026-02-09 13:03:57', '2026-02-09 13:03:57', NULL, 0),
-(138, 2, 'EXHAUST-BASE-008', 'ABAKUS 121-01-017 AGR-szelep', 'Kipufogó', 9286.00, 22, 'available', 1, '2026-02-09 13:04:58', '2026-02-09 13:04:58', NULL, 0),
-(140, 46, 'EXHAUST-BASE-009', 'NTY EGR-VW-046 Cső, kipuf.gáz visszavezető szelep', 'Kipufogó', 20366.00, 17, 'available', 1, '2026-02-09 13:05:40', '2026-02-09 13:05:40', NULL, 0),
-(141, 25, 'TIMING-SYSTEM-001', 'HEPU 21-0421 Vezérműlánc készlet', 'Motoralkatrész', 87470.00, 13, 'available', 1, '2026-02-09 13:10:54', '2026-02-09 13:10:54', NULL, 0),
-(142, 49, 'TIMING-SYSTEM-002', 'SKF VKML 84005 Vezérműlánc készlet', 'Motoralkatrész', 75345.00, 7, 'available', 1, '2026-02-09 13:11:39', '2026-02-09 13:11:39', NULL, 0),
-(143, 27, 'TIMING-SYSTEM-003', 'INA 560 0002 10 Vezérműlánc készlet', 'Motoralkatrész', 206088.00, 10, 'available', 1, '2026-02-09 13:12:32', '2026-02-09 13:12:32', NULL, 0),
-(145, 60, 'TIMING-SYSTEM-004', 'VAICO V30-10007 Vezérműlánc készlet', 'Motoralkatrész', 937079.00, 3, 'available', 1, '2026-02-09 13:13:34', '2026-02-09 13:13:34', NULL, 0),
-(147, 25, 'TIMING-SYSTEM-005', 'HEPU 21-0548 Vezérműlánc készlet AUDI A4, A8, A6', 'Motoralkatrész', 250271.00, 6, 'available', 1, '2026-02-09 13:14:17', '2026-02-09 13:14:17', NULL, 0),
-(148, 37, 'CLUTCH-SYSTEM-001', 'LuK RepSet 618 0740 00 Kuplung, szett', 'Egyéb', 25118.00, 25, 'available', 1, '2026-02-09 13:20:28', '2026-02-09 13:20:28', NULL, 0),
-(149, 47, 'CLUTCH-SYSTEM-002', 'SACHS 3000 951 427 Kuplung, szett', 'Egyéb', 23790.00, 20, 'available', 1, '2026-02-09 13:20:58', '2026-02-09 13:20:58', NULL, 0),
-(150, 37, 'CLUTCH-SYSTEM-003', 'LuK RepSet DMF 600 0144 00 Kuplung, szett AUDI A5, A4, Q5', 'Egyéb', 212782.00, 13, 'available', 1, '2026-02-09 13:21:41', '2026-02-09 13:21:41', NULL, 0),
-(151, 37, 'CLUTCH-SYSTEM-004', 'LuK 624 3226 33 Kuplung, szett', 'Egyéb', 97123.00, 9, 'available', 1, '2026-02-09 13:22:17', '2026-02-09 13:22:17', NULL, 0),
-(153, 37, 'CLUTCH-SYSTEM-005', 'LuK 600 0371 00 Kuplung, szett', 'Egyéb', 172793.00, 7, 'available', 1, '2026-02-09 13:22:45', '2026-02-09 13:22:45', NULL, 0),
-(154, 9, 'BRAKE-DISC-010', 'TESZT', 'Féktárcsa', 19.00, 20, 'available', 1, '2026-02-22 18:40:06', '2026-02-22 18:40:06', NULL, 0),
-(155, 9, 'BRAKE-DISC-011', 'TESZT2', 'Féktárcsa', 19.00, 20, 'available', 1, '2026-02-22 19:13:54', '2026-02-22 19:13:54', NULL, 0),
-(156, 1, 'TESZT-TERMEK12345', 'teszttermekfrontend', 'Fékrendszer', 12000.00, 24, 'available', 1, '2026-02-22 20:15:09', '2026-02-22 20:15:09', NULL, 0),
-(157, 1, 'TESZT-FRONTEND123', 'anyád', 'Gumik és felnik', 20.00, 2, 'available', 1, '2026-02-22 20:19:01', '2026-02-22 20:19:01', NULL, 0),
-(158, 4, 'TESZT3', 'tesztfrontednecske', 'Gumik és felnik', 30.00, 28, 'available', 1, '2026-02-22 20:36:59', '2026-02-22 20:36:59', NULL, 0),
-(159, 1, 'TESZT5', 'teszt5', 'Gumik és felnik', 45.00, 2, 'available', 1, '2026-02-22 20:38:16', '2026-02-22 20:38:16', NULL, 0);
+INSERT INTO `parts` (`id`, `manufacturer_id`, `sku`, `name`, `description`, `category`, `price`, `stock`, `status`, `is_active`, `created_at`, `updated_at`, `deleted_at`, `is_deleted`) VALUES
+(1, 42, 'ALLSEASON-TIRES-001', 'Maxxis Premitra All Season 185/65 R15 92H XL M+S négyévszakos gumi', 'Maxxis négyévszakos gumi 185/65 R15 méretben, XL és M+S minősítéssel. Kiváló tapadás száraz és nedves úton egyaránt, egész évben használható.', 'Gumik és felnik', 15930.00, 24, 'available', 1, '2026-02-02 14:04:32', '2026-03-20 10:30:23', NULL, 0),
+(2, 56, 'ALLSEASON-TIRES-002', 'Tristar All Season Power 215/45 R17 91W M+S négyévszakos gumi', 'Tristar négyévszakos gumi 215/45 R17 méretben, M+S minősítéssel. Sportosabb profil, megbízható teljesítmény minden évszakban.', 'Gumik és felnik', 22679.00, 18, 'available', 1, '2026-02-02 14:06:18', '2026-03-20 10:30:23', NULL, 0),
+(3, 8, 'ALLSEASON-TIRES-003', 'Dunlop Sport Bluresponse 225/50 R17 98W XL', 'Dunlop nyárigumi 225/50 R17 méretben, XL minősítéssel. Kiváló szárazúti és nedves úti tapadás, sportos vezetési élmény.', 'Gumik és felnik', 46120.00, 42, 'available', 1, '2026-02-02 14:10:27', '2026-03-20 10:30:23', NULL, 0),
+(4, 12, 'ALLSEASON-TIRES-004', 'Bridgestone Blizzak LM005 185/65 R15 88T M+S ', 'Bridgestone Blizzak téligumi 185/65 R15 méretben, M+S minősítéssel. Biztonságos tapadás havas és jeges útviszonyok között.', 'Gumik és felnik', 36700.00, 52, 'available', 1, '2026-02-02 14:11:38', '2026-03-20 10:30:23', NULL, 0),
+(5, 4, 'RIM-TIRES-001', 'ALUTEC Tormenta 19 col ezüst alufelni', 'ALUTEC Tormenta 19 colos ezüst alufelni. Könnyű ötvözetből készült, elegáns megjelenés és kiváló teljesítmény.', 'Gumik és felnik', 12100.00, 18, 'available', 1, '2026-02-02 14:13:30', '2026-03-20 10:30:23', NULL, 0),
+(6, 64, 'RIM-TIRES-002', 'BROCK B41 20 col fekete alufeln', 'BROCK B41 20 colos fekete alufelni. Prémium minőségű felni, feltűnő megjelenés és tartós kialakítás.', 'Gumik és felnik', 159332.00, 16, 'available', 1, '2026-02-03 10:29:17', '2026-03-20 10:30:23', NULL, 0),
+(7, 31, 'RIM-TIRES-003', 'KESKIN WHEELS KT17 Hurricane 18 col matt fekete alufeln', 'KESKIN WHEELS KT17 Hurricane 18 colos matt fekete alufelni. Agresszív dizájn, könnyű és erős szerkezet.', 'Gumik és felnik', 115133.00, 8, 'available', 1, '2026-02-03 10:30:08', '2026-03-20 10:30:23', NULL, 0),
+(8, 65, 'RIM-TIRES-004', 'DOTZ Mugello 15 col matt fekete front polírozott alufeln', 'DOTZ Mugello 15 colos matt fekete front polírozott alufelni. Egyedi megjelenés, kiváló minőség, ideális mindennapi használatra.', 'Gumik és felnik', 49957.00, 25, 'available', 1, '2026-02-03 10:33:54', '2026-03-20 10:30:23', NULL, 0),
+(9, 6, 'RIM-TIRES-005', 'ATS Mizar 19 col fekete alufeln', 'ATS Mizar 19 colos fekete alufelni. Prémium gyártású felni, sportos megjelenés és megbízható teljesítmény.', 'Gumik és felnik', 147566.00, 22, 'available', 1, '2026-02-03 10:34:57', '2026-03-20 10:30:23', NULL, 0),
+(10, 53, 'SUMMER-TIRES-001', 'TBB Tires Fortezza 175/70 R14 84T nyárigumi', 'TBB Tires Fortezza nyárigumi 175/70 R14 méretben. Megbízható tapadás száraz és nedves úton, hosszú élettartam.', 'Gumik és felnik', 12782.00, 67, 'available', 1, '2026-02-03 10:40:46', '2026-03-20 10:30:23', NULL, 0),
+(11, 56, 'SUMMER-TIRES-002', 'Tristar Ecopower 3 145/70 R12 69T nyárigumi', 'Tristar Ecopower 3 nyárigumi 145/70 R12 méretben. Gazdaságos üzemanyag-fogyasztás, csendes menetteljesítmény.', 'Gumik és felnik', 13808.00, 12, 'available', 1, '2026-02-03 11:10:13', '2026-03-20 10:30:23', NULL, 0),
+(12, 56, 'SUMMER-TIRES-003', 'Tristar Ecopower 3 145/70 R13 71T nyárigumi', 'Tristar Ecopower 3 nyárigumi 145/70 R13 méretben. Gazdaságos üzemanyag-fogyasztás, csendes menetteljesítmény.', 'Gumik és felnik', 13808.00, 12, 'available', 1, '2026-02-03 11:10:35', '2026-03-20 10:30:23', NULL, 0),
+(13, 26, 'SUMMER-TIRES-004', 'Imperial Ecodriver 4 145/70 R12 69T nyárigumi', 'Imperial Ecodriver 4 nyárigumi 145/70 R12 méretben. Kiváló kopásállóság, jó tapadás nyári körülmények között.', 'Gumik és felnik', 13808.00, 12, 'available', 1, '2026-02-03 11:12:06', '2026-03-20 10:30:23', NULL, 0),
+(14, 51, 'WINTER-TIRES-001', 'Star Performer Stratos HP 155/80 R13 79T M+S téligumi', 'Star Performer Stratos HP téligumi 155/80 R13 méretben, M+S minősítéssel. Biztonságos menetteljesítmény téli körülmények között.', 'Gumik és felnik', 13589.00, 20, 'available', 1, '2026-02-03 11:13:45', '2026-03-20 10:30:23', NULL, 0),
+(15, 56, 'WINTER-TIRES-002', 'Tristar Snowpower HP 145/70 R13 71T M+S téligumi', 'Tristar Snowpower HP téligumi 145/70 R13 méretben, M+S minősítéssel. Megbízható tapadás havas és jeges úton.', 'Gumik és felnik', 15144.00, 24, 'available', 1, '2026-02-03 11:14:16', '2026-03-20 10:30:23', NULL, 0),
+(16, 43, 'WINTER-TIRES-003', 'Minerva FROSTRACK HP M+S 3 155/65 R13 73T M+S téligumi', 'Minerva FROSTRACK HP téligumi 155/65 R13 méretben, M+S és 3PMSF minősítéssel. Biztonságos téli menetteljesítmény.', 'Gumik és felnik', 14300.00, 25, 'available', 1, '2026-02-03 11:14:41', '2026-03-20 10:30:23', NULL, 0),
+(17, 52, 'WINTER-TIRES-004', 'Superia Bluewin HP 155/70 R13 75T M+S téligumi', 'Superia Bluewin HP téligumi 155/70 R13 méretben, M+S minősítéssel. Kiváló tapadás hideg, havas és jeges útviszonyokon.', 'Gumik és felnik', 14570.00, 32, 'available', 1, '2026-02-03 11:15:14', '2026-03-20 10:30:23', NULL, 0),
+(18, 45, 'WINTER-TIRES-005', 'Nankang SV-3 Winter 165/70 R14 81T M+S téligumi', 'Nankang SV-3 Winter téligumi 165/70 R14 méretben, M+S minősítéssel. Megbízható téli teljesítmény, jó ár-érték arány.', 'Gumik és felnik', 14799.00, 20, 'available', 1, '2026-02-03 11:16:04', '2026-03-20 10:30:23', NULL, 0),
+(19, 11, 'DISC-BRAKE-001', 'BREMBO Prime 09.B436.51 Féktárcsa', 'BREMBO Prime féktárcsa, prémium minőségű szellőztetett kivitel. Kiváló fékezési teljesítmény és hőelvezetés.', 'Fékrendszer', 20677.00, 8, 'available', 1, '2026-02-03 11:18:46', '2026-03-20 10:30:23', NULL, 0),
+(20, 11, 'DISC-BRAKE-002', 'BREMBO Prime 09.9313.33 Féktárcsa', 'BREMBO Prime féktárcsa, megbízható fékezési teljesítmény. Tartós anyagból készült, hosszú élettartam.', 'Fékrendszer', 16000.00, 12, 'available', 1, '2026-02-03 11:19:37', '2026-03-20 10:30:23', NULL, 0),
+(21, 63, 'DISC-BRAKE-003', 'ZIMMERMANN SPORT COAT Z 600.3250.52 Féktárcsa', 'ZIMMERMANN SPORT COAT Z féktárcsa, sportos felhasználásra tervezve. Bevonatos kialakítás a korrózió ellen.', 'Fékrendszer', 3200.00, 10, 'available', 1, '2026-02-03 11:20:12', '2026-03-20 10:30:23', NULL, 0),
+(22, 54, 'DISC-BRAKE-004', 'TEXTAR PRO 92082503 Féktárcsa', 'TEXTAR PRO féktárcsa, professzionális minőség. Kiváló fékezési teljesítmény mindennapi és sportos használatra.', 'Fékrendszer', 8719.00, 10, 'available', 1, '2026-02-03 11:21:02', '2026-03-20 10:30:23', NULL, 0),
+(23, 1, 'DISC-BRAKE-005', 'BOSCH 0 986 479 A01 Féktárcsa', 'BOSCH féktárcsa, OEM minőségű gyártmány. Megbízható fékezési teljesítmény és hosszú élettartam.', 'Fékrendszer', 17442.00, 22, 'available', 1, '2026-02-03 11:21:35', '2026-03-20 10:30:23', NULL, 0),
+(24, 1, 'PAD-BRAKE-001', 'BOSCH 0 986 424 098 Fékbetét készlet, tárcsafékű', 'BOSCH fékbetét készlet tárcsafékhez. Alacsony porzás, csendes működés, kiváló fékezési teljesítmény.', 'Fékrendszer', 5668.00, 36, 'available', 1, '2026-02-03 11:23:25', '2026-03-20 10:30:23', NULL, 0),
+(25, 11, 'PAD-BRAKE-002', 'BREMBO Prime P 50 051 Fékbetét készlet, tárcsafék MERCEDES-BENZ VIANO, VITO', 'BREMBO Prime fékbetét készlet Mercedes-Benz Viano és Vito modellekhez. Prémium minőség, megbízható fékezés.', 'Fékrendszer', 11031.00, 40, 'available', 1, '2026-02-03 11:24:02', '2026-03-20 10:30:23', NULL, 0),
+(26, 54, 'PAD-BRAKE-003', 'TEXTAR 2166404 Fékbetét készlet, tárcsafék', 'TEXTAR fékbetét készlet tárcsafékhez. Kiváló kopásállóság, alacsony zajszint és megbízható fékezési teljesítmény.', 'Fékrendszer', 11607.00, 22, 'available', 1, '2026-02-03 11:24:50', '2026-03-20 10:30:23', NULL, 0),
+(27, 57, 'PAD-BRAKE-004', 'TRW GDB1956 Fékbetét készlet, tárcsafék', 'TRW fékbetét készlet tárcsafékhez. Prémium minőség, kiváló hőállóság és megbízható fékezési teljesítmény.', 'Fékrendszer', 19070.00, 32, 'available', 1, '2026-02-03 11:26:01', '2026-03-20 10:30:23', NULL, 0),
+(28, 17, 'DRUM-BRAKE-001', 'FEBI BILSTEIN 37562 Fék készlet, dobfék', 'FEBI BILSTEIN dobfék készlet. Teljes szett a dobfék rendszer karbantartásához, minden szükséges alkatrésszel.', 'Fékrendszer', 22795.00, 4, 'available', 1, '2026-02-03 11:27:32', '2026-03-20 10:30:23', NULL, 0),
+(29, 1, 'DRUM-BRAKE-002', 'BOSCH 0 204 114 554 Fék készlet, dobfék', 'BOSCH dobfék készlet. Komplett szett, OEM minőség, megbízható fékezési teljesítmény hátulsó dobfékekhez.', 'Fékrendszer', 24157.00, 8, 'available', 1, '2026-02-03 11:28:10', '2026-03-20 10:30:23', NULL, 0),
+(30, 34, 'DRUM-BRAKE-003', 'LPR EASY KIT OEK614 Fék készlet, dobfék', 'LPR EASY KIT dobfék készlet. Könnyű szerelés, minden szükséges alkatrésszel a dobfék felújításához.', 'Fékrendszer', 39666.00, 12, 'available', 1, '2026-02-03 11:29:17', '2026-03-20 10:30:23', NULL, 0),
+(31, 17, 'DRUM-BRAKE-004', 'FEBI BILSTEIN 38746 Fék készlet, dobfék', 'FEBI BILSTEIN dobfék készlet. Kiváló minőség, hosszú élettartam, megbízható fékezési teljesítmény.', 'Fékrendszer', 23015.00, 16, 'available', 1, '2026-02-03 11:29:48', '2026-03-20 10:30:23', NULL, 0),
+(32, 58, 'HEAD-LAMP-001', 'TYC 20-5488-08-2 Fényszóró OPEL ASTRA', 'TYC fényszóró Opel Astra modellhez. OEM minőségű csere fényszóró, könnyű beszerelés, tökéletes illeszkedés.', 'Világitás', 18207.00, 6, 'available', 1, '2026-02-03 11:31:51', '2026-03-20 10:30:23', NULL, 0),
+(33, 58, 'HEAD-LAMP-002', 'TYC 20-0008-05-2 Fényszóró AUDI A4', 'TYC fényszóró Audi A4 modellhez. Prémium minőségű csere fényszóró, kiváló fényteljesítmény.', 'Világitás', 36200.00, 6, 'available', 1, '2026-02-03 11:32:23', '2026-03-20 10:30:23', NULL, 0),
+(34, 58, 'HEAD-LAMP-003', 'TYC 20-12033-05-2 Fényszóró Polo 6r', 'TYC fényszóró VW Polo 6R modellhez. Tökéletes illeszkedés, egyszerű csere, kiváló fényteljesítmény.', 'Világitás', 29266.00, 7, 'available', 1, '2026-02-03 11:33:43', '2026-03-20 10:30:23', NULL, 0),
+(35, 58, 'HEAD-LAMP-004', 'TYC 20-0166-05-2 Fényszóró PEUGEOT 307', 'TYC fényszóró Peugeot 307 modellhez. OEM minőségű csere fényszóró, könnyű beszerelés.', 'Világitás', 29160.00, 10, 'available', 1, '2026-02-03 11:34:14', '2026-03-20 10:30:23', NULL, 0),
+(36, 23, 'HEAD-LAMP-005', 'HELLA 1EL 011 937-311 Fényszóró VW Touareg 7p', 'HELLA fényszóró VW Touareg 7P modellhez. Prémium minőség, kiváló fényteljesítmény, OEM szintű illeszkedés.', 'Világitás', 225177.00, 4, 'available', 1, '2026-02-03 11:34:52', '2026-03-20 10:30:23', NULL, 0),
+(37, 2, 'TAIL-LAMP-001', 'ABAKUS 231-1940L-A Hátsólámpa Ford Ranger EQ', 'ABAKUS hátsólámpa Ford Ranger EQ modellhez. Tökéletes illeszkedés, tartós kialakítás, egyszerű csere.', 'Világitás', 7197.00, 4, 'available', 1, '2026-02-03 11:37:13', '2026-03-20 10:30:23', NULL, 0),
+(38, 2, 'TAIL-LAMP-002', 'ABAKUS 665-1912L-UE Hátsólámpa Skoda Octavia 2 Kombi', 'ABAKUS hátsólámpa Skoda Octavia 2 Kombi modellhez. OEM minőség, tökéletes illeszkedés, könnyen szerezhető.', 'Világitás', 13478.00, 4, 'available', 1, '2026-02-03 11:37:42', '2026-03-20 10:30:23', NULL, 0),
+(39, 2, 'TAIL-LAMP-003', 'ABAKUS 214-1952L-A Hátsólámpa Mitsubishi L200 K60T', 'ABAKUS hátsólámpa Mitsubishi L200 K60T modellhez. Tartós kialakítás, tökéletes illeszkedés, egyszerű csere.', 'Világitás', 7500.00, 8, 'available', 1, '2026-02-03 11:38:16', '2026-03-20 10:30:23', NULL, 0),
+(40, 3, 'SIDE-MIRROR-001', 'ALKAR 6126127 Külső visszapillantó VOLKSWAGEN GOLF, BORA', 'ALKAR külső visszapillantó tükör VW Golf és Bora modellekhez. OEM minőség, tökéletes illeszkedés, egyszerű szerelés.', 'Karosszéria', 12056.00, 10, 'available', 1, '2026-02-03 12:50:05', '2026-03-20 10:30:23', NULL, 0),
+(41, 3, 'SIDE-MIRROR-COVER-001', 'ALKAR 6343438 Borítás, külső visszapillantó', 'ALKAR visszapillantó tükör burkolat. Tartós anyagból készült, tökéletes illeszkedés, egyszerű csere.', 'Karosszéria', 2895.00, 40, 'available', 1, '2026-02-03 12:51:47', '2026-03-20 10:30:23', NULL, 0),
+(42, 3, 'SIDE-MIRROR-GLASS-001', 'ALKAR 6432438 Tükör üveg, külső visszapillantó pár OPEL ASTRA', 'ALKAR visszapillantó tükörüveg pár Opel Astra modellhez. Kiváló láthatóság, könnyű csere.', 'Karosszéria', 8450.00, 20, 'available', 1, '2026-02-03 12:53:14', '2026-03-20 10:30:23', NULL, 0),
+(43, 7, 'SUSPENSION-001', 'BILSTEIN B4 OE Replacement 22-105813 Lengéscsillapító', 'BILSTEIN B4 OE Replacement lengéscsillapító. OEM minőségű csere, kiváló kényelmi és menetdinamikai jellemzők.', 'Lengéscsillapító', 22726.00, 43, 'available', 1, '2026-02-03 12:59:56', '2026-03-20 10:30:23', NULL, 0),
+(44, 57, 'SUSPENSION-002', 'TRW TWIN JGM5967T Lengéscsillapító Fiat Panda 169', 'TRW TWIN lengéscsillapító Fiat Panda 169 modellhez. Megbízható teljesítmény, komfortos menet, hosszú élettartam.', 'Lengéscsillapító', 15053.00, 38, 'available', 1, '2026-02-03 13:00:32', '2026-03-20 10:30:23', NULL, 0),
+(46, 16, 'SUSPENSION-004', 'DACO Germany 533701 Lengéscsillapító', 'DACO Germany lengéscsillapító. Kiváló minőség, megbízható teljesítmény, jó ár-érték arány.', 'Lengéscsillapító', 7814.00, 20, 'available', 1, '2026-02-03 13:02:44', '2026-03-20 10:30:23', NULL, 0),
+(47, 47, 'SPRING-SUSPENSION-001', 'SACHS 996 072 Futómű rugó MERCEDES-BENZ 124-es széria, E-osztály', 'SACHS futómű rugó Mercedes-Benz 124-es szériához és E-osztályhoz. OEM minőség, tartós kialakítás, tökéletes illeszkedés.', 'Futómű', 10201.00, 34, 'available', 1, '2026-02-03 13:09:40', '2026-03-20 10:30:23', NULL, 0),
+(48, 33, 'SPRING-SUSPENSION-002', 'KYB K-Flex RA6028 Futómű rugó Subaru Forester SG', 'KYB K-Flex futómű rugó Subaru Forester SG modellhez. Kiváló rugózási komfort, megbízható teljesítmény.', 'Futómű', 19577.00, 30, 'available', 1, '2026-02-03 13:10:27', '2026-03-20 10:30:23', NULL, 0),
+(49, 44, 'SPRING-SUSPENSION-003', 'MONROE SP3675 Futómű rugó SMART ROADSTER', 'MONROE futómű rugó Smart Roadster modellhez. Könnyű és erős kialakítás, tökéletes illeszkedés.', 'Futómű', 5890.00, 10, 'available', 1, '2026-02-03 13:11:34', '2026-03-20 10:30:23', NULL, 0),
+(50, 40, 'SPRING-SUSPENSION-004', 'MAPCO 72876 Futómű rugó', 'MAPCO futómű rugó. Megbízható minőség, jó ár-érték arány, egyszerű beszerelés.', 'Futómű', 3100.00, 8, 'available', 1, '2026-02-03 13:12:10', '2026-03-20 10:30:23', NULL, 0),
+(51, 17, 'STRUTBEARING-SUSPENSION-001', 'FEBI BILSTEIN 37884 Javítókészlet, gólyaláb támasztó csapágy', 'FEBI BILSTEIN javítókészlet gólyaláb támasztó csapágyhoz. Teljes szett, minden szükséges alkatrésszel.', 'Futómű', 15000.00, 63, 'available', 1, '2026-02-06 15:07:57', '2026-03-20 10:30:23', NULL, 0),
+(52, 66, 'STRUTBEARING-SUSPENSION-002', 'SNR KB674.03 Javítókészlet, gólyaláb támasztó csapágy HONDA CIVIC', 'SNR javítókészlet gólyaláb támasztó csapágyhoz Honda Civic modellhez. OEM minőség, tökéletes illeszkedés.', 'Futómű', 22640.00, 28, 'available', 1, '2026-02-06 15:13:06', '2026-03-20 10:30:23', NULL, 0),
+(53, 17, 'STRUTBEARING-SUSPENSION-003', 'FEBI BILSTEIN 14116 Javítókészlet, gólyaláb támasztó csapágy', 'FEBI BILSTEIN javítókészlet gólyaláb támasztó csapágyhoz. Tartós kialakítás, egyszerű szerelés.', 'Futómű', 4900.00, 65, 'available', 1, '2026-02-06 15:14:27', '2026-03-20 10:30:23', NULL, 0),
+(54, 44, 'STRUTBEARING-SUSPENSION-004', 'MONROE MK199 Javítókészlet, gólyaláb támasztó csapágy RENAULT LAGUNA, VEL SATIS, ESPACE', 'MONROE javítókészlet gólyaláb támasztó csapágyhoz Renault Laguna, Vel Satis és Espace modellekhez.', 'Futómű', 18000.00, 54, 'available', 1, '2026-02-06 15:19:50', '2026-03-20 10:30:23', NULL, 0),
+(55, 35, 'STRUTBEARING-SUSPENSION-005', 'LEMFÖRDER 31770 01 Javítókészlet, gólyaláb támasztó csapágy', 'LEMFÖRDER javítókészlet gólyaláb támasztó csapágyhoz. Prémium minőség, OEM szintű teljesítmény.', 'Futómű', 10790.00, 34, 'available', 1, '2026-02-06 15:20:51', '2026-03-20 10:30:23', NULL, 0),
+(56, 55, 'CONTROLARM-SUSPENSION-001', 'TOPRAN 115 800 Lengőkar szett', 'TOPRAN lengőkar szett. Teljes szett a felfüggesztés felújításához, kiváló minőségű alkatrészek.', 'Futómű', 46453.00, 23, 'available', 1, '2026-02-06 15:24:29', '2026-03-20 10:30:23', NULL, 0),
+(57, 35, 'CONTROLARM-SUSPENSION-002', 'LEMFÖRDER 31913 01 Lengőkar szett AUDI A4', 'LEMFÖRDER lengőkar szett Audi A4 modellhez. Prémium OEM minőség, tökéletes illeszkedés és hosszú élettartam.', 'Futómű', 291999.00, 35, 'available', 1, '2026-02-06 15:26:51', '2026-03-20 10:30:23', NULL, 0),
+(58, 40, 'CONTROLARM-SUSPENSION-003', 'MAPCO 53742/1 Lengőkar szett', 'MAPCO lengőkar szett. Megbízható minőség, teljes szett a felfüggesztés javításához.', 'Futómű', 132900.00, 13, 'available', 1, '2026-02-06 15:28:29', '2026-03-20 10:30:23', NULL, 0),
+(59, 22, 'CONTROLARM-SUSPENSION-004', 'GT-BERGMANN GT20-087 Lengőkar, kerékfelfüggesztés FORD FOCUS', 'GT-BERGMANN lengőkar Ford Focus modellhez. Tartós kialakítás, tökéletes illeszkedés, egyszerű szerelés.', 'Futómű', 37238.00, 21, 'available', 1, '2026-02-06 15:30:30', '2026-03-20 10:30:23', NULL, 0),
+(60, 67, 'CONTROLARM-SUSPENSION-005', 'MEYLE 116 050 0223/HD Lengőkar szett AUDI A5, A4, Q5', 'MEYLE HD lengőkar szett Audi A5, A4 és Q5 modellekhez. Megerősített kivitel, hosszabb élettartam az OEM alkatrésztől.', 'Futómű', 260891.00, 4, 'available', 1, '2026-02-06 15:33:25', '2026-03-20 10:30:23', NULL, 0),
+(61, 55, 'HUBCOVER-SUSPENSION-001', 'TOPRAN 206 440 Védőfedél, kerékagy', 'TOPRAN kerékagy védőfedél. Tartós anyagból készült, védi a kerékagyat a szennyeződéstől és korróziótól.', 'Futómű', 732.00, 4, 'available', 1, '2026-02-06 15:47:34', '2026-03-20 10:30:23', NULL, 0),
+(62, 68, 'HUBCOVER-SUSPENSION-002', 'AUTOMEGA 110150110 Védőfedél, kerékagy', 'AUTOMEGA kerékagy védőfedél. Kiváló minőség, tökéletes illeszkedés, tartós kialakítás.', 'Futómű', 732.00, 123, 'available', 1, '2026-02-06 15:52:51', '2026-03-20 10:30:23', NULL, 0),
+(63, 55, 'HUBCOVER-SUSPENSION-003', 'TOPRAN 104 189 Védőfedél, kerékagy', 'TOPRAN kerékagy védőfedél. Megbízható védelem, egyszerű csere, jó ár-érték arány.', 'Futómű', 482.00, 82, 'available', 1, '2026-02-06 15:53:59', '2026-03-20 10:30:23', NULL, 0),
+(64, 55, 'WHEELBEARING-SUSPENSION-001', 'TOPRAN 200 398 Kerékagy', 'TOPRAN kerékagy. Kiváló minőségű csere kerékagy, tökéletes illeszkedés és megbízható teljesítmény.', 'Futómű', 482.00, 36, 'available', 1, '2026-02-06 15:55:09', '2026-03-20 10:30:23', NULL, 0),
+(65, 66, 'WHEELBEARING-SUSPENSION-002', 'SNR R154.61 Kerékcsapágy készlet', 'SNR kerékcsapágy készlet. Prémium minőségű csapágy, alacsony zajszint, hosszú élettartam.', 'Futómű', 31676.00, 32, 'available', 1, '2026-02-06 15:55:42', '2026-03-20 10:30:23', NULL, 0),
+(66, 38, 'AIR-FILTER-001', 'MANN-FILTER C 934 x Légszűrő', 'MANN-FILTER légszűrő. Kiváló szűrési hatékonyság, megvédi a motort a szennyeződéstől, hosszú csereintervallum.', 'Szűrők', 6382.00, 11, 'available', 1, '2026-02-09 10:09:32', '2026-03-20 10:30:23', NULL, 0),
+(67, 32, 'AIR-FILTER-002', 'K&N Filters 33-2964 Légszűrő', 'K&N sportlégszűrő. Megnövelt légáramlás, mosható és újrahasználható, teljesítménynövelő hatás.', 'Szűrők', 30245.00, 9, 'available', 1, '2026-02-09 10:10:42', '2026-03-20 10:30:23', NULL, 0),
+(68, 29, 'AIR-FILTER-003', 'JAPANPARTS FA-108S Légszűrő', 'JAPANPARTS légszűrő. Megbízható szűrési teljesítmény, jó ár-érték arány, egyszerű csere.', 'Szűrők', 3370.00, 5, 'available', 1, '2026-02-09 10:12:17', '2026-03-20 10:30:23', NULL, 0),
+(69, 1, 'AIR-FILTER-004', 'BOSCH F 026 400 492 Légszűrő', 'BOSCH légszűrő. OEM minőség, kiváló szűrési hatékonyság, megvédi a motor belső részeit.', 'Szűrők', 5405.00, 7, 'available', 1, '2026-02-09 10:15:03', '2026-03-20 10:30:23', NULL, 0),
+(70, 20, 'OIL-FILTER-001', 'FILTRON OP 629/1 Olajszűrő', 'FILTRON olajszűrő. Kiváló szűrési hatékonyság, megvédi a motor belső részeit a szennyeződéstől.', 'Szűrők', 2857.00, 27, 'available', 1, '2026-02-09 10:17:03', '2026-03-20 10:30:23', NULL, 0),
+(71, 1, 'OIL-FILTER-002', 'BOSCH 0 986 452 028 Olajszűrő', 'BOSCH olajszűrő. OEM minőség, megbízható szűrési teljesítmény, hosszú csereintervallum.', 'Szűrők', 1987.00, 10, 'available', 1, '2026-02-09 10:17:42', '2026-03-20 10:30:23', NULL, 0),
+(72, 32, 'OIL-FILTER-003', 'Olajszűrő K&N Filters KN-204-1', 'K&N olajszűrő. Megerősített fémházas kialakítás, kiváló szűrési hatékonyság, motorsport minőség.', 'Szűrők', 5135.00, 9, 'available', 1, '2026-02-09 10:18:27', '2026-03-20 10:30:23', NULL, 0),
+(74, 1, 'OIL-FILTER-004', 'BOSCH 0 451 103 261 Olajszűrő', 'BOSCH olajszűrő. Prémium minőség, kiváló szűrési hatékonyság, OEM szintű teljesítmény.', 'Szűrők', 2184.00, 20, 'available', 1, '2026-02-09 10:19:12', '2026-03-20 10:30:23', NULL, 0),
+(75, 24, 'OIL-FILTER-005', 'HENGST FILTER H13W01 Olajszűrő', 'HENGST olajszűrő. Megbízható szűrési teljesítmény, tartós kialakítás, hosszú élettartam.', 'Szűrők', 2469.00, 17, 'available', 1, '2026-02-09 10:20:12', '2026-03-20 10:30:23', NULL, 0),
+(76, 38, 'AIR-FILTER-005', 'MANN-FILTER FP 25 007 Szűrő, utastér levegő', 'MANN-FILTER utastér levegőszűrő. Hatékonyan szűri a port, pollent és egyéb szennyeződéseket az utastérből.', 'Szűrők', 7521.00, 15, 'available', 1, '2026-02-09 10:21:41', '2026-03-20 10:30:23', NULL, 0),
+(77, 1, 'AIR-FILTER-006', 'BOSCH 0 986 628 583 Szűrő, utastér levegő TESLA MODEL X, MODEL 3, MODEL Y', 'BOSCH utastér levegőszűrő Tesla Model X, Model 3 és Model Y modellekhez. Kiváló szűrési hatékonyság.', 'Szűrők', 6129.00, 30, 'available', 1, '2026-02-09 10:22:19', '2026-03-20 10:30:23', NULL, 0),
+(78, 20, 'AIR-FILTER-007', 'FILTRON K 1311A Szűrő, utastér levegő', 'FILTRON utastér levegőszűrő. Hatékonyan szűri a pollent és szennyeződéseket, kellemes levegőminőség az utastérben.', 'Szűrők', 5100.00, 18, 'available', 1, '2026-02-09 10:23:32', '2026-03-20 10:30:23', NULL, 0),
+(79, 1, 'AIR-FILTER-008', 'BOSCH 1 987 432 397 Szűrő, utastér levegő', 'BOSCH utastér levegőszűrő. Kiváló szűrési hatékonyság, megbízható minőség, egyszerű csere.', 'Szűrők', 3878.00, 14, 'available', 1, '2026-02-09 10:24:50', '2026-03-20 10:30:23', NULL, 0),
+(82, 20, 'OIL-FILTER-006', 'FILTRON OP 629/1 Olajszűrő', 'FILTRON olajszűrő. Kiváló szűrési hatékonyság, megvédi a motor belső részeit, hosszú csereintervallum.', 'Szűrők', 2857.00, 13, 'available', 1, '2026-02-09 10:28:47', '2026-03-20 10:30:23', NULL, 0),
+(83, 1, 'OIL-FILTER-007', 'BOSCH 0 986 452 028 Olajszűrő', 'BOSCH olajszűrő. OEM minőség, megbízható teljesítmény, tartós kialakítás.', 'Szűrők', 1987.00, 10, 'available', 1, '2026-02-09 10:29:43', '2026-03-20 10:30:23', NULL, 0),
+(84, 1, 'WATER-PUMP-KIT-001', 'BOSCH 1 987 948 738 Vezérműszíj készlet vízpumpával', 'BOSCH vezérműszíj készlet vízpumpával. Teljes szett, OEM minőség, minden szükséges alkatrésszel.', 'Motoralkatrész', 36039.00, 10, 'available', 1, '2026-02-09 10:40:18', '2026-03-20 10:30:23', NULL, 0),
+(85, 15, 'WATER-PUMP-KIT-002', 'CONTITECH CT1140WP1 Vezérműszíj készlet vízpumpával', 'CONTITECH vezérműszíj készlet vízpumpával. Prémium minőség, teljes csere szett, hosszú élettartam.', 'Motoralkatrész', 41062.00, 9, 'available', 1, '2026-02-09 10:41:37', '2026-03-20 10:30:23', NULL, 0),
+(86, 27, 'WATER-PUMP-KIT-003', 'INA 530 0550 32 Vezérműszíj készlet vízpumpával', 'INA vezérműszíj készlet vízpumpával. Komplett szett, prémium minőségű alkatrészek, megbízható teljesítmény.', 'Motoralkatrész', 53831.00, 6, 'available', 1, '2026-02-09 10:42:36', '2026-03-20 10:30:23', NULL, 0),
+(87, 17, 'WATER-PUMP-KIT-004', 'FEBI BILSTEIN 172599 Vezérműszíj készlet vízpumpával', 'FEBI BILSTEIN vezérműszíj készlet vízpumpával. Teljes szett, jó ár-érték arány, egyszerű szerelés.', 'Motoralkatrész', 12649.00, 20, 'available', 1, '2026-02-09 10:45:10', '2026-03-20 10:30:23', NULL, 0),
+(88, 15, 'WATER-PUMP-KIT-005', 'CONTITECH CT504WP1 Vezérműszíj készlet vízpumpával', 'CONTITECH vezérműszíj készlet vízpumpával. Megbízható minőség, komplett szett a vezérmű rendszer felújításához.', 'Motoralkatrész', 19551.00, 10, 'available', 1, '2026-02-09 10:45:45', '2026-03-20 10:30:23', NULL, 0),
+(89, 13, 'TURBO-BASE-001', 'BTS TURBO ORIGINAL T911332 Turbó VOLKSWAGEN POLO, CADDY', 'BTS TURBO turbó VW Polo és Caddy modellekhez. Felújított vagy új turbó, OEM szintű teljesítmény.', 'Motoralkatrész', 418532.00, 3, 'available', 1, '2026-02-09 10:50:06', '2026-03-20 10:30:23', NULL, 0),
+(90, 10, 'TURBO-BASE-002', 'BorgWarner 5303 988 0207 Turbó', 'BorgWarner turbó. Prémium gyártású turbófeltöltő, kiváló teljesítmény és megbízhatóság.', 'Motoralkatrész', 339251.00, 5, 'available', 1, '2026-02-09 10:51:25', '2026-03-20 10:30:23', NULL, 0),
+(91, 21, 'TURBO-BASE-003', 'GARRETT 753420-5006S Turbó', 'GARRETT turbó. Világhírű gyártó, kiváló teljesítmény, megbízható működés, hosszú élettartam.', 'Motoralkatrész', 186710.00, 10, 'available', 1, '2026-02-09 10:52:30', '2026-03-20 10:30:23', NULL, 0),
+(92, 21, 'TURBO-BASE-004', 'GARRETT 753420-9006S Turbó', 'GARRETT turbó. Prémium turbófeltöltő, kiváló teljesítmény és hatékonyság, motorsport minőség.', 'Motoralkatrész', 165809.00, 5, 'available', 1, '2026-02-09 10:53:05', '2026-03-20 10:30:23', NULL, 0),
+(93, 62, 'STARTER-BATTERY-001', 'YUASA HJ-S46B24L(S) Indító akkumulátor', 'YUASA indító akkumulátor. Prémium minőségű akkumulátor, megbízható indítási teljesítmény, hosszú élettartam.', 'Generátor', 89803.00, 11, 'available', 1, '2026-02-09 10:57:36', '2026-03-20 10:30:23', NULL, 0),
+(94, 62, 'STARTER-BATTERY-002', 'YUASA 570901076 Indító akkumulátor', 'YUASA indító akkumulátor. Kiváló hidegindítási teljesítmény, tartós kialakítás, megbízható működés.', 'Generátor', 68371.00, 17, 'available', 1, '2026-02-09 10:58:13', '2026-03-20 10:30:23', NULL, 0),
+(95, 62, 'STARTER-BATTERY-003', 'YUASA YBX7053 Indító akkumulátor', 'YUASA YBX7000 sorozatú indító akkumulátor. AGM technológia, start-stop rendszerekhez is alkalmas.', 'Generátor', 44713.00, 10, 'available', 1, '2026-02-09 10:58:50', '2026-03-20 10:30:23', NULL, 0),
+(96, 1, 'STARTER-BATTERY-004', 'BOSCH S3 008 Indító akkumulátor', 'BOSCH S3 indító akkumulátor. Megbízható indítási teljesítmény, hosszú élettartam, jó ár-érték arány.', 'Generátor', 35789.00, 12, 'available', 1, '2026-02-09 10:59:34', '2026-03-20 10:30:23', NULL, 0),
+(97, 61, 'STARTER-BATTERY-005', 'VARTA N70 Indító akkumulátor', 'VARTA N70 indító akkumulátor. Prémium minőség, kiváló hidegindítási teljesítmény, tartós kialakítás.', 'Generátor', 63931.00, 12, 'available', 1, '2026-02-09 11:00:44', '2026-03-20 10:30:23', NULL, 0),
+(98, 36, 'GENERATOR-BASIC-001', 'LUCAS LRB00183 Generátor', 'LUCAS generátor. Felújított vagy új generátor, OEM szintű teljesítmény, megbízható töltési teljesítmény.', 'Generátor', 26677.00, 20, 'available', 1, '2026-02-09 11:01:36', '2026-03-20 10:30:23', NULL, 0),
+(99, 5, 'GENERATOR-BASIC-002', 'AS-PL A9011 Generátor', 'AS-PL generátor. Megbízható töltési teljesítmény, tartós kialakítás, jó ár-érték arány.', 'Generátor', 42420.00, 11, 'available', 1, '2026-02-09 11:02:24', '2026-03-20 10:30:23', NULL, 0),
+(100, 50, 'GENERATOR-BASIC-003', 'STARDAX STX102224 Generátor RENAULT MEGANE', 'STARDAX generátor Renault Megane modellhez. OEM minőség, tökéletes illeszkedés, megbízható működés.', 'Generátor', 33345.00, 7, 'available', 1, '2026-02-09 11:03:02', '2026-03-20 10:30:23', NULL, 0),
+(101, 36, 'GENERATOR-BASIC-004', 'LUCAS LRB00502 Generátor', 'LUCAS generátor. Kiváló töltési teljesítmény, tartós kialakítás, megbízható működés.', 'Generátor', 33129.00, 7, 'available', 1, '2026-02-09 11:03:41', '2026-03-20 10:30:23', NULL, 0),
+(102, 5, 'GENERATOR-BASIC-005', 'AS-PL A9011PR Generátor', 'AS-PL generátor. Prémium minőség, megbízható töltési teljesítmény, hosszú élettartam.', 'Generátor', 38100.00, 20, 'available', 1, '2026-02-09 11:04:23', '2026-03-20 10:30:23', NULL, 0),
+(103, 41, 'STARTER-BASIC-001', 'MASTER-SPORT 2101-3708300-PCS-MS Önindító', 'MASTER-SPORT önindító. Megbízható indítási teljesítmény, tartós kialakítás, jó ár-érték arány.', 'Generátor', 3705.00, 32, 'available', 1, '2026-02-09 11:14:22', '2026-03-20 10:30:23', NULL, 0),
+(104, 1, 'STARTER-BASIC-002', 'BOSCH 0 986 025 940 Önindító', 'BOSCH önindító. OEM minőség, megbízható indítási teljesítmény, hosszú élettartam.', 'Generátor', 51000.00, 10, 'available', 1, '2026-02-09 11:14:55', '2026-03-20 10:30:23', NULL, 0),
+(106, 1, 'STARTER-BASIC-003', 'BOSCH 0 986 018 310 Önindító', 'BOSCH önindító. Prémium minőség, erős indítási teljesítmény, tartós kialakítás.', 'Generátor', 36317.00, 14, 'available', 1, '2026-02-09 11:15:31', '2026-03-20 10:30:23', NULL, 0),
+(108, 5, 'STARTER-BASIC-004', 'AS-PL S0128 Önindító', 'AS-PL önindító. Megbízható indítási teljesítmény, tartós kialakítás, egyszerű csere.', 'Generátor', 38813.00, 10, 'available', 1, '2026-02-09 11:16:05', '2026-03-20 10:30:23', NULL, 0),
+(109, 5, 'STARTER-BASIC-005', 'AS-PL S0005 Önindító', 'AS-PL önindító. Kiváló indítási teljesítmény, prémium minőség, hosszú élettartam.', 'Generátor', 43500.00, 7, 'available', 1, '2026-02-09 11:16:26', '2026-03-20 10:30:23', NULL, 0),
+(110, 18, 'ENGINE-OIL-001', '2217610 ELF Evolution R-Tech ELITE 1L', 'ELF Evolution R-Tech Elite motorolaj 1L. Teljesen szintetikus olaj, kiváló motorvédelem és teljesítmény.', 'Folyadékok', 23176.00, 12, 'available', 1, '2026-02-09 11:28:12', '2026-03-20 10:30:23', NULL, 0),
+(111, 48, 'ENGINE-OIL-002', '550042279 SHELL Helix Ultra Prof AF', 'SHELL Helix Ultra Prof AF motorolaj. Teljesen szintetikus, kiváló motorvédelem, Ford és Peugeot-Citroen modellekhez ajánlott.', 'Folyadékok', 19738.00, 20, 'available', 1, '2026-02-09 11:28:55', '2026-03-20 10:30:23', NULL, 0),
+(112, 17, 'ENGINE-OIL-003', '32943 FEBI BILSTEIN Longlife', 'FEBI BILSTEIN Longlife motorolaj. Hosszú csereintervallumra tervezett szintetikus olaj, kiváló motorvédelem.', 'Folyadékok', 14389.00, 5, 'available', 1, '2026-02-09 11:44:26', '2026-03-20 10:30:23', NULL, 0),
+(113, 59, 'ENGINE-OIL-004', 'GS55502M4 VAG Special G', 'VAG Special G motorolaj. VW csoport gyártók által előírt olaj, tökéletes kompatibilitás VAG modellekkel.', 'Folyadékok', 19423.00, 11, 'available', 1, '2026-02-09 11:47:45', '2026-03-20 10:30:23', NULL, 0),
+(115, 59, 'ENGINE-OIL-005', 'GS60107M4 VAG Special e', 'VAG Special e motorolaj. VW csoport elektromos és hibrid modellekhez tervezett speciális olaj.', 'Folyadékok', 15404.00, 11, 'available', 1, '2026-02-09 11:50:36', '2026-03-20 10:30:23', NULL, 0),
+(117, 14, 'ENGINE-OIL-006', '151A95 CASTROL Magnatec Professional Ford E', 'CASTROL Magnatec Professional Ford E motorolaj. Ford modellekhez tervezett prémium szintetikus olaj.', 'Folyadékok', 26235.00, 20, 'available', 1, '2026-02-09 11:51:43', '2026-03-20 10:30:23', NULL, 0),
+(118, 39, 'ENGINE-OIL-007', 'MN7715-5 MANNOL Longlife 504/507', 'MANNOL Longlife 504/507 motorolaj. VW LongLife szabványnak megfelelő szintetikus olaj, hosszú csereintervallum.', 'Folyadékok', 11107.00, 30, 'available', 1, '2026-02-09 11:52:40', '2026-03-20 10:30:23', NULL, 0),
+(123, 1, 'OXYGEN-SENSOR-001', 'BOSCH 0 258 003 957 Lambdaszonda', 'BOSCH lambdaszonda. OEM minőségű oxigénszenzor, pontos mérés, optimális üzemanyag-fogyasztás.', 'Motoralkatrész', 23789.00, 40, 'available', 1, '2026-02-09 12:47:03', '2026-03-20 10:30:23', NULL, 0),
+(124, 1, 'OXYGEN-SENSOR-002', 'BOSCH 0 258 017 617 Lambdaszonda', 'BOSCH lambdaszonda. Prémium minőségű oxigénszenzor, gyors felmelegedés, megbízható működés.', 'Motoralkatrész', 27762.00, 40, 'available', 1, '2026-02-09 12:47:31', '2026-03-20 10:30:23', NULL, 0),
+(125, 71, 'OXYGEN-SENSOR-003', 'DENSO Direct Fit DOX-0351 Lambdaszonda', 'DENSO lambdaszonda. Kiváló minőségű oxigénszenzor, pontos mérés, csökkentett káros anyag kibocsátás.', 'Motoralkatrész', 29695.00, 40, 'available', 1, '2026-02-09 12:49:51', '2026-03-20 10:30:23', NULL, 0),
+(126, 46, 'OXYGEN-SENSOR-004', 'NTY ESL-SK-000 Lambdaszonda', 'NTY lambdaszonda. Megbízható oxigénszenzor, jó ár-érték arány, egyszerű csere.', 'Motoralkatrész', 13488.00, 22, 'available', 1, '2026-02-09 12:51:55', '2026-03-20 10:30:23', NULL, 0),
+(127, 1, 'OXYGEN-SENSOR-005', 'BOSCH 0 258 006 206 Lambdaszonda', 'BOSCH lambdaszonda. OEM minőség, megbízható működés, optimalizált üzemanyag-keverék arány.', 'Motoralkatrész', 17168.00, 30, 'available', 1, '2026-02-09 12:52:17', '2026-03-20 10:30:23', NULL, 0),
+(128, 30, 'EXHAUST-BASE-001', 'JMJ 02-50ST Kipufogócső', 'JMJ kipufogócső. Rozsdamentes acélból készült, tartós kialakítás, tökéletes illeszkedés.', 'Kipufogó', 15029.00, 45, 'available', 1, '2026-02-09 12:54:34', '2026-03-20 10:30:23', NULL, 0),
+(129, 72, 'EXHAUST-BASE-002', 'BM CATALYSTS BM90854H Katalizátor', 'BM CATALYSTS katalizátor. OEM minőségű csere katalizátor, csökkentett káros anyag kibocsátás.', 'Kipufogó', 42028.00, 10, 'available', 1, '2026-02-09 12:55:59', '2026-03-20 10:30:23', NULL, 0),
+(130, 28, 'EXHAUST-BASE-003', 'IZAWIT 22.053 Katalizátor DAEWOO MATIZ', 'IZAWIT katalizátor Daewoo Matiz modellhez. OEM minőség, tökéletes illeszkedés, egyszerű csere.', 'Kipufogó', 32830.00, 12, 'available', 1, '2026-02-09 12:56:34', '2026-03-20 10:30:23', NULL, 0),
+(131, 30, 'EXHAUST-BASE-004', 'JMJ 1090138 Katalizátor', 'JMJ katalizátor. Kiváló minőségű csere katalizátor, hatékony káros anyag átalakítás.', 'Kipufogó', 36419.00, 6, 'available', 1, '2026-02-09 12:57:11', '2026-03-20 10:30:23', NULL, 0),
+(132, 30, 'EXHAUST-BASE-005', 'JMJ 1091391 Katalizátor', 'JMJ katalizátor. Prémium minőség, hosszú élettartam, hatékony kipufogógáz-tisztítás.', 'Kipufogó', 120249.00, 11, 'available', 1, '2026-02-09 12:57:47', '2026-03-20 10:30:23', NULL, 0),
+(134, 73, 'EXHAUST-BASE-006', 'DR.MOTOR AUTOMOTIVE DRM0562 Cső, kipuf.gáz visszavezető szelep', 'DR.MOTOR AUTOMOTIVE EGR cső. Kipufogógáz-visszavezető szelep csővezeték, tartós kialakítás.', 'Kipufogó', 16750.00, 23, 'available', 1, '2026-02-09 13:00:42', '2026-03-20 10:30:23', NULL, 0),
+(136, 74, 'EXHAUST-BASE-007', 'AUTLOG AV6126 Vákuumvezérlő szelep, kipufogógáz-visszavezetés', 'AUTLOG vákuumvezérlő szelep kipufogógáz-visszavezetéshez. Megbízható működés, tartós kialakítás.', 'Kipufogó', 9178.00, 33, 'available', 1, '2026-02-09 13:03:57', '2026-03-20 10:30:23', NULL, 0),
+(138, 2, 'EXHAUST-BASE-008', 'ABAKUS 121-01-017 AGR-szelep', 'ABAKUS AGR-szelep. Kipufogógáz-visszavezető szelep, OEM minőség, megbízható működés.', 'Kipufogó', 9286.00, 22, 'available', 1, '2026-02-09 13:04:58', '2026-03-20 10:30:23', NULL, 0),
+(140, 46, 'EXHAUST-BASE-009', 'NTY EGR-VW-046 Cső, kipuf.gáz visszavezető szelep', 'NTY EGR cső VW modellekhez. Kipufogógáz-visszavezető szelep csővezeték, tökéletes illeszkedés.', 'Kipufogó', 20366.00, 17, 'available', 1, '2026-02-09 13:05:40', '2026-03-20 10:30:23', NULL, 0),
+(141, 25, 'TIMING-SYSTEM-001', 'HEPU 21-0421 Vezérműlánc készlet', 'HEPU vezérműlánc készlet. Teljes szett a vezérműlánc rendszer felújításához, minden szükséges alkatrésszel.', 'Motoralkatrész', 87470.00, 13, 'available', 1, '2026-02-09 13:10:54', '2026-03-20 10:30:23', NULL, 0),
+(142, 49, 'TIMING-SYSTEM-002', 'SKF VKML 84005 Vezérműlánc készlet', 'SKF vezérműlánc készlet. Prémium minőségű komplett szett, megbízható teljesítmény, hosszú élettartam.', 'Motoralkatrész', 75345.00, 7, 'available', 1, '2026-02-09 13:11:39', '2026-03-20 10:30:23', NULL, 0),
+(143, 27, 'TIMING-SYSTEM-003', 'INA 560 0002 10 Vezérműlánc készlet', 'INA vezérműlánc készlet. Prémium minőség, komplett szett, OEM szintű teljesítmény.', 'Motoralkatrész', 206088.00, 10, 'available', 1, '2026-02-09 13:12:32', '2026-03-20 10:30:23', NULL, 0),
+(147, 25, 'TIMING-SYSTEM-005', 'HEPU 21-0548 Vezérműlánc készlet AUDI A4, A8, A6', 'HEPU vezérműlánc készlet Audi A4, A8 és A6 modellekhez. Prémium minőség, tökéletes illeszkedés.', 'Motoralkatrész', 250271.00, 6, 'available', 1, '2026-02-09 13:14:17', '2026-03-20 10:30:23', NULL, 0),
+(148, 37, 'CLUTCH-SYSTEM-001', 'LuK RepSet 618 0740 00 Kuplung, szett', 'LuK kuplung szett. OEM minőségű komplett kuplung csere szett, megbízható erőátvitel.', 'Egyéb', 25118.00, 25, 'available', 1, '2026-02-09 13:20:28', '2026-03-20 10:30:23', NULL, 0),
+(150, 37, 'CLUTCH-SYSTEM-003', 'LuK RepSet DMF 600 0144 00 Kuplung, szett AUDI A5, A4, Q5', 'LuK RepSet DMF kuplung szett Audi A5, A4 és Q5 modellekhez. Kettős tömegű lendkerékkel, prémium minőség.', 'Egyéb', 212782.00, 13, 'available', 1, '2026-02-09 13:21:41', '2026-03-20 10:30:23', NULL, 0),
+(151, 37, 'CLUTCH-SYSTEM-004', 'LuK 624 3226 33 Kuplung, szett', 'LuK kuplung szett. Teljes csere szett, kiváló erőátviteli teljesítmény, hosszú élettartam.', 'Egyéb', 97123.00, 9, 'available', 1, '2026-02-09 13:22:17', '2026-03-20 10:30:23', NULL, 0),
+(153, 37, 'CLUTCH-SYSTEM-005', 'LuK 600 0371 00 Kuplung, szett', 'LuK kuplung szett. Prémium minőségű komplett kuplung szett, megbízható erőátvitel, tartós kialakítás.', 'Egyéb', 172793.00, 7, 'available', 1, '2026-02-09 13:22:45', '2026-03-20 10:30:23', NULL, 0);
 
 -- --------------------------------------------------------
 
@@ -3315,9 +3338,6 @@ INSERT INTO `part_compatibility` (`id`, `part_id`, `vehicle_type`, `vehicle_id`,
 (365, 143, 'car', 10, '2026-03-01 18:47:50', NULL, NULL, 0),
 (366, 143, 'car', 18, '2026-03-01 18:47:50', NULL, NULL, 0),
 (367, 143, 'truck', 3, '2026-03-01 18:47:50', NULL, NULL, 0),
-(368, 145, 'car', 1, '2026-03-01 18:47:50', NULL, NULL, 0),
-(369, 145, 'car', 3, '2026-03-01 18:47:50', NULL, NULL, 0),
-(370, 145, 'truck', 1, '2026-03-01 18:47:50', NULL, NULL, 0),
 (371, 147, 'car', 2, '2026-03-01 18:47:50', NULL, NULL, 0),
 (372, 147, 'car', 18, '2026-03-01 18:47:50', NULL, NULL, 0),
 (373, 89, 'car', 9, '2026-03-01 18:47:50', NULL, NULL, 0),
@@ -3446,11 +3466,6 @@ INSERT INTO `part_compatibility` (`id`, `part_id`, `vehicle_type`, `vehicle_id`,
 (496, 148, 'car', 9, '2026-03-01 18:47:50', NULL, NULL, 0),
 (497, 148, 'car', 17, '2026-03-01 18:47:50', NULL, NULL, 0),
 (498, 148, 'truck', 3, '2026-03-01 18:47:50', NULL, NULL, 0),
-(499, 149, 'car', 5, '2026-03-01 18:47:50', NULL, NULL, 0),
-(500, 149, 'car', 4, '2026-03-01 18:47:50', NULL, NULL, 0),
-(501, 149, 'car', 14, '2026-03-01 18:47:50', NULL, NULL, 0),
-(502, 149, 'truck', 2, '2026-03-01 18:47:50', NULL, NULL, 0),
-(503, 149, 'truck', 4, '2026-03-01 18:47:50', NULL, NULL, 0),
 (504, 150, 'car', 2, '2026-03-01 18:47:50', NULL, NULL, 0),
 (505, 150, 'car', 18, '2026-03-01 18:47:50', NULL, NULL, 0),
 (506, 151, 'car', 6, '2026-03-01 18:47:50', NULL, NULL, 0),
@@ -3607,7 +3622,29 @@ INSERT INTO `part_images` (`id`, `part_id`, `url`, `is_primary`, `created_at`, `
 (110, 115, 'http://api.Carcomps.hu/vizsgaremek-1.0-SNAPSHOT/webresources/images/parts/VagMotorolaj.png', 1, '2026-02-09 12:39:24', 0, NULL),
 (111, 117, 'http://api.Carcomps.hu/vizsgaremek-1.0-SNAPSHOT/webresources/images/parts/CastrolMotorolaj.png', 1, '2026-02-09 12:39:37', 0, NULL),
 (112, 118, 'http://api.Carcomps.hu/vizsgaremek-1.0-SNAPSHOT/webresources/images/parts/MannolMotorolaj.png', 1, '2026-02-09 12:40:25', 0, NULL),
-(113, 1, 'http://api.Carcomps.hu/vizsgaremek-1.0-SNAPSHOT/webresources/images/parts/ZimmermannFektarcsa.jpg', 1, '2026-02-22 19:27:59', 1, '2026-02-22 19:31:56');
+(113, 1, 'http://api.Carcomps.hu/vizsgaremek-1.0-SNAPSHOT/webresources/images/parts/ZimmermannFektarcsa.jpg', 1, '2026-02-22 19:27:59', 1, '2026-02-22 19:31:56'),
+(117, 123, 'http://api.Carcomps.hu/vizsgaremek-1.0-SNAPSHOT/webresources/images/parts/boschLambdaszonda3.png', 1, '2026-03-18 09:11:04', 0, NULL),
+(118, 124, 'http://api.Carcomps.hu/vizsgaremek-1.0-SNAPSHOT/webresources/images/parts/boschLambdaszonda3.png', 1, '2026-03-18 09:11:08', 0, NULL),
+(119, 125, 'http://api.Carcomps.hu/vizsgaremek-1.0-SNAPSHOT/webresources/images/parts/densoLambdaszonda.png', 1, '2026-03-18 09:11:21', 0, NULL),
+(120, 126, 'http://api.Carcomps.hu/vizsgaremek-1.0-SNAPSHOT/webresources/images/parts/ntyLambdaszonda.png', 1, '2026-03-18 09:11:33', 0, NULL),
+(121, 127, 'http://api.Carcomps.hu/vizsgaremek-1.0-SNAPSHOT/webresources/images/parts/boschLambdaszonda3.png', 1, '2026-03-18 09:12:27', 0, NULL),
+(122, 128, 'http://api.Carcomps.hu/vizsgaremek-1.0-SNAPSHOT/webresources/images/parts/JMJKipufogocso2.png', 1, '2026-03-18 09:12:41', 0, NULL),
+(123, 129, 'http://api.Carcomps.hu/vizsgaremek-1.0-SNAPSHOT/webresources/images/parts/BMKipufogocso.png', 1, '2026-03-18 09:13:14', 0, NULL),
+(124, 130, 'http://api.Carcomps.hu/vizsgaremek-1.0-SNAPSHOT/webresources/images/parts/IZAWITKipufogocso.png', 1, '2026-03-18 09:13:35', 0, NULL),
+(125, 131, 'http://api.Carcomps.hu/vizsgaremek-1.0-SNAPSHOT/webresources/images/parts/JMJKipufogocso.png', 1, '2026-03-18 09:13:51', 0, NULL),
+(126, 132, 'http://api.Carcomps.hu/vizsgaremek-1.0-SNAPSHOT/webresources/images/parts/JMJKipufogocso.png', 1, '2026-03-18 09:13:57', 0, NULL),
+(127, 134, 'http://api.Carcomps.hu/vizsgaremek-1.0-SNAPSHOT/webresources/images/parts/drmotorKipufogocso.png', 1, '2026-03-18 09:14:29', 0, NULL),
+(128, 136, 'http://api.Carcomps.hu/vizsgaremek-1.0-SNAPSHOT/webresources/images/parts/autlogvakumkezelo.png', 1, '2026-03-18 09:14:57', 0, NULL),
+(129, 138, 'http://api.Carcomps.hu/vizsgaremek-1.0-SNAPSHOT/webresources/images/parts/IZAWITKipufogocso.png', 1, '2026-03-18 09:19:39', 0, NULL),
+(130, 140, 'http://api.Carcomps.hu/vizsgaremek-1.0-SNAPSHOT/webresources/images/parts/IZAWITKipufogocso.png', 1, '2026-03-18 09:19:46', 0, NULL),
+(131, 141, 'http://api.Carcomps.hu/vizsgaremek-1.0-SNAPSHOT/webresources/images/parts/HEPUVezermulanckeszlet.png', 1, '2026-03-18 09:28:07', 0, NULL),
+(132, 142, 'http://api.Carcomps.hu/vizsgaremek-1.0-SNAPSHOT/webresources/images/parts/SKFVezermulanckeszlet.png', 1, '2026-03-18 09:28:23', 0, NULL),
+(133, 143, 'http://api.Carcomps.hu/vizsgaremek-1.0-SNAPSHOT/webresources/images/parts/INAVezermulanckeszlet.png', 1, '2026-03-18 09:28:49', 0, NULL),
+(134, 147, 'http://api.Carcomps.hu/vizsgaremek-1.0-SNAPSHOT/webresources/images/parts/HEPUVezermulanckeszlet.png', 1, '2026-03-18 09:29:40', 0, NULL),
+(135, 148, 'http://api.Carcomps.hu/vizsgaremek-1.0-SNAPSHOT/webresources/images/parts/LUKKuplung.png', 1, '2026-03-18 09:29:53', 0, NULL),
+(136, 150, 'http://api.Carcomps.hu/vizsgaremek-1.0-SNAPSHOT/webresources/images/parts/LUKKuplung.png', 1, '2026-03-18 09:30:02', 0, NULL),
+(137, 151, 'http://api.Carcomps.hu/vizsgaremek-1.0-SNAPSHOT/webresources/images/parts/LUKKuplung.png', 1, '2026-03-18 09:30:04', 0, NULL),
+(138, 153, 'http://api.Carcomps.hu/vizsgaremek-1.0-SNAPSHOT/webresources/images/parts/LUKKuplung.png', 1, '2026-03-18 09:30:09', 0, NULL);
 
 -- --------------------------------------------------------
 
@@ -3696,14 +3733,6 @@ CREATE TABLE `reviews` (
   `is_deleted` tinyint(1) DEFAULT '0',
   `deleted_at` datetime DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3;
-
---
--- A tábla adatainak kiíratása `reviews`
---
-
-INSERT INTO `reviews` (`id`, `user_id`, `part_id`, `rating`, `comment`, `created_at`, `is_deleted`, `deleted_at`) VALUES
-(1, 4, 3, 5, 'Kiváló minőség! Tökéletes ajánlom mindenkinek.', '2026-02-18 19:04:58', 0, NULL),
-(4, 3, 3, 2, 'Azért nem tökéletes! Átgondolnám mások helyében.', '2026-02-18 19:06:14', 0, NULL);
 
 -- --------------------------------------------------------
 
@@ -3874,14 +3903,6 @@ CREATE TABLE `user_vehicles` (
   `is_deleted` tinyint(1) DEFAULT '0',
   `deleted_at` timestamp NULL DEFAULT NULL ON UPDATE CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3;
-
---
--- A tábla adatainak kiíratása `user_vehicles`
---
-
-INSERT INTO `user_vehicles` (`id`, `user_id`, `vehicle_type`, `vehicle_id`, `year`, `created_at`, `is_deleted`, `deleted_at`) VALUES
-(1, 1, 'car', 5, 2010, '2026-03-02 18:09:29', 0, NULL),
-(2, 1, 'car', 2, 2010, '2026-03-02 18:11:50', 0, NULL);
 
 --
 -- Indexek a kiírt táblákhoz
@@ -4072,7 +4093,6 @@ ALTER TABLE `trucks`
 --
 ALTER TABLE `users`
   ADD PRIMARY KEY (`id`),
-  ADD UNIQUE KEY `username` (`username`),
   ADD UNIQUE KEY `guid` (`guid`);
 
 --
@@ -4109,13 +4129,13 @@ ALTER TABLE `addresses`
 -- AUTO_INCREMENT a táblához `cars`
 --
 ALTER TABLE `cars`
-  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
+  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=33;
 
 --
 -- AUTO_INCREMENT a táblához `cart_items`
 --
 ALTER TABLE `cart_items`
-  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
+  MODIFY `id` int NOT NULL AUTO_INCREMENT;
 
 --
 -- AUTO_INCREMENT a táblához `email_verifications`
@@ -4127,7 +4147,7 @@ ALTER TABLE `email_verifications`
 -- AUTO_INCREMENT a táblához `invoices`
 --
 ALTER TABLE `invoices`
-  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
+  MODIFY `id` int NOT NULL AUTO_INCREMENT;
 
 --
 -- AUTO_INCREMENT a táblához `login_logs`
@@ -4151,7 +4171,7 @@ ALTER TABLE `motors`
 -- AUTO_INCREMENT a táblához `orders`
 --
 ALTER TABLE `orders`
-  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=7;
+  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=10;
 
 --
 -- AUTO_INCREMENT a táblához `order_items`
@@ -4169,7 +4189,7 @@ ALTER TABLE `order_logs`
 -- AUTO_INCREMENT a táblához `parts`
 --
 ALTER TABLE `parts`
-  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=160;
+  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=154;
 
 --
 -- AUTO_INCREMENT a táblához `part_compatibility`
@@ -4181,7 +4201,7 @@ ALTER TABLE `part_compatibility`
 -- AUTO_INCREMENT a táblához `part_images`
 --
 ALTER TABLE `part_images`
-  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=114;
+  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=139;
 
 --
 -- AUTO_INCREMENT a táblához `part_variants`
@@ -4211,7 +4231,7 @@ ALTER TABLE `refunds`
 -- AUTO_INCREMENT a táblához `reviews`
 --
 ALTER TABLE `reviews`
-  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
+  MODIFY `id` int NOT NULL AUTO_INCREMENT;
 
 --
 -- AUTO_INCREMENT a táblához `sessions`
@@ -4265,7 +4285,7 @@ ALTER TABLE `user_twofa`
 -- AUTO_INCREMENT a táblához `user_vehicles`
 --
 ALTER TABLE `user_vehicles`
-  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
+  MODIFY `id` int NOT NULL AUTO_INCREMENT;
 
 --
 -- Megkötések a kiírt táblákhoz
