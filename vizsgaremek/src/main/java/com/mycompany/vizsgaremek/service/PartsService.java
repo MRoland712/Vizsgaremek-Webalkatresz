@@ -33,7 +33,11 @@ public class PartsService {
         if (partsAuth.isDataMissing(createParts.getName())) {
             errors.put("MissingName");
         }
-
+        
+        if (partsAuth.isDataMissing(createParts.getDescription())) {
+            errors.put("MissingDescription");
+        }
+        
         if (partsAuth.isDataMissing(createParts.getCategory())) {
             errors.put("MissingCategory");
         }
@@ -132,6 +136,7 @@ public class PartsService {
             partObj.put("manufacturerId", part.getManufacturerId().getId());
             partObj.put("sku", part.getSku());
             partObj.put("name", part.getName());
+            partObj.put("description", part.getDescription());
             partObj.put("category", part.getCategory());
             partObj.put("price", part.getPrice());
             partObj.put("stock", part.getStock());

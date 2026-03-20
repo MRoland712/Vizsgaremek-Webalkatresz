@@ -580,6 +580,10 @@ public class AuthenticationService {
         public boolean isValidName(String name) {
             return name.length() <= 255;
         }
+        
+        public boolean isValidDescription(String description) {
+            return description.length() <= 255;
+        }
 
         public boolean isValidCategory(String category) {
             return category.length() <= 100;
