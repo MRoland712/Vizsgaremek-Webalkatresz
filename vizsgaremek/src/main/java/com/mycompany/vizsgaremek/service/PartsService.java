@@ -65,6 +65,10 @@ public class PartsService {
         if (!partsAuth.isDataMissing(createParts.getName()) && !partsAuth.isValidName(createParts.getName())) {
             errors.put("InvalidName");
         }
+        
+        if (!partsAuth.isDataMissing(createParts.getDescription()) && !partsAuth.isValidDescription(createParts.getDescription())) {
+            errors.put("InvalidDescription");
+        }
 
         if (!partsAuth.isDataMissing(createParts.getCategory()) && !partsAuth.isValidCategory(createParts.getCategory())) {
             errors.put("InvalidCategory");
@@ -181,6 +185,7 @@ public class PartsService {
         partObj.put("manufacturerId", part.getManufacturerId().getId());
         partObj.put("sku", part.getSku());
         partObj.put("name", part.getName());
+        partObj.put("description", part.getDescription());
         partObj.put("category", part.getCategory());
         partObj.put("price", part.getPrice());
         partObj.put("stock", part.getStock());
@@ -221,6 +226,7 @@ public class PartsService {
         partObj.put("manufacturerId", part.getManufacturerId().getId());
         partObj.put("sku", part.getSku());
         partObj.put("name", part.getName());
+        partObj.put("description", part.getDescription());
         partObj.put("category", part.getCategory());
         partObj.put("price", part.getPrice());
         partObj.put("stock", part.getStock());
@@ -307,7 +313,6 @@ public class PartsService {
             return errorAuth.createErrorResponse(errors, 404);
         }
 
-        // ArrayList<String> → JSONArray konverzió
         JSONArray categoryArray = new JSONArray();
         for (String category : modelResult) {
             categoryArray.put(category);
@@ -376,6 +381,14 @@ public class PartsService {
                 existingParts.setName(updatedParts.getName());
             } else {
                 errors.put("InvalidName");
+            }
+        }
+        
+        if (!partsAuth.isDataMissing(updatedParts.getDescription())) {
+            if (partsAuth.isValidDescription(updatedParts.getDescription())) {
+                existingParts.setDescription(updatedParts.getDescription());
+            } else {
+                errors.put("InvalidDescription");
             }
         }
 
