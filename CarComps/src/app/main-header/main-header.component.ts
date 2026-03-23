@@ -1,9 +1,9 @@
-import { Component, DestroyRef, inject, signal, OnInit, computed } from '@angular/core';
+import { Component, DestroyRef, inject, signal, OnInit } from '@angular/core';
 import { FormControl, ReactiveFormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
-import { RouterLink } from '@angular/router';
+import { RouterLink, Router } from '@angular/router';
 import { debounceTime, distinctUntilChanged } from 'rxjs';
-import { SearchResult } from './search.service';
+import { SearchService, SearchResult } from './search.service';
 import { AuthService } from '../services/auth.service';
 import { CartService } from '../services/cart.service';
 
@@ -23,6 +23,8 @@ export class MainHeaderComponent implements OnInit {
   private destroyRef = inject(DestroyRef);
   authService = inject(AuthService);
   cartService = inject(CartService);
+  private searchService = inject(SearchService);
+  private router = inject(Router);
 
   imgSrc = '/assets/CarComps_Logo_BigassC.png';
   searchControl = new FormControl('');
@@ -122,24 +124,23 @@ export class MainHeaderComponent implements OnInit {
   performSearch(searchTerm: string) {
     this.isSearching.set(true);
     this.showDropdown.set(true);
-    setTimeout(() => {
-      const mockResults: SearchResult[] = [
-        { id: 1, name: 'Fékbetét Bosch', category: 'Fékrendszer', price: 8990 },
-        { id: 2, name: 'Fékdob', category: 'Fékrendszer', price: 12500 },
-        { id: 3, name: 'Olajszűrő Mann', category: 'Szűrők', price: 2990 },
-      ].filter(
-        (item) =>
-          item.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          item.category.toLowerCase().includes(searchTerm.toLowerCase()),
-      );
-      this.searchResults.set(mockResults);
-      this.isSearching.set(false);
-    }, 500);
+
+    this.searchService.search(searchTerm).subscribe({
+      next: (results) => {
+        this.searchResults.set(results);
+        this.isSearching.set(false);
+      },
+      error: () => {
+        this.searchResults.set([]);
+        this.isSearching.set(false);
+      },
+    });
   }
 
   selectResult(result: SearchResult) {
     this.searchControl.setValue('');
     this.showDropdown.set(false);
+    this.router.navigate(['/product', result.id]);
   }
 
   closeDropdown() {

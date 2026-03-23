@@ -1,9 +1,8 @@
 import { inject, Injectable, signal, computed } from '@angular/core';
 import { forkJoin } from 'rxjs';
 
-import { GetallpartimgagesService } from './getallpartimages.service';
+import { GetAllPartsWithImagesService } from './getallpartswithimages.service';
 import { GetallmanufacturersService } from './getallmanufacturers.service';
-import { GetallpartsService } from './getallparts.service';
 import { AuthService } from './auth.service';
 import { CartItemsService } from './cartitem.service';
 
@@ -23,9 +22,8 @@ export interface CartItem {
 export class CartService {
   private cartItemsSvc = inject(CartItemsService);
   private auth = inject(AuthService);
-  private partImagesSvc = inject(GetallpartimgagesService);
+  private partsSvc = inject(GetAllPartsWithImagesService);
   private manufacturersSvc = inject(GetallmanufacturersService);
-  private partsSvc = inject(GetallpartsService);
 
   private _cartItems = signal<CartItem[]>([]);
   private _isLoading = signal(false);
@@ -43,24 +41,17 @@ export class CartService {
 
     forkJoin({
       cart: this.cartItemsSvc.getCartItemsByUserId(userId),
-      images: this.partImagesSvc.getAllPartImages(),
+      parts: this.partsSvc.getAllPartsWithImages(),
       manufacturers: this.manufacturersSvc.getAllManufacturers(),
-      parts: this.partsSvc.getAllParts(),
     }).subscribe({
-      next: ({ cart, images, manufacturers, parts }) => {
+      next: ({ cart, parts, manufacturers }) => {
         if (!cart.success || !cart.cartItems) {
           this._isLoading.set(false);
           return;
         }
 
-        // Kép map: partId → url
-        const imageMap = new Map<number, string>();
-        images.partImages.forEach((img) => {
-          if (img.isPrimary && !imageMap.has(img.partId)) imageMap.set(img.partId, img.url);
-        });
-        images.partImages.forEach((img) => {
-          if (!imageMap.has(img.partId)) imageMap.set(img.partId, img.url);
-        });
+        // imageUrl közvetlenül a parts response-ban van
+        const imageMap = new Map<number, string>(parts.parts.map((p) => [p.id, p.imageUrl]));
 
         // partId → manufacturerId
         const partsMap = new Map(parts.parts.map((p) => [p.id, p.manufacturerId]));

@@ -1,17 +1,16 @@
 import { Component, inject, OnInit, signal, computed } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
-import { forkJoin } from 'rxjs';
 import { CommonModule } from '@angular/common';
-import { GetallpartsService } from '../../services/getallparts.service';
-import { GetallpartimgagesService } from '../../services/getallpartimages.service';
-import { PartsModel } from '../../models/parts.model';
+import { GetAllPartsWithImagesService } from '../../services/getallpartswithimages.service';
+import { GetallmanufacturersService } from '../../services/getallmanufacturers.service';
+
 import { MainHeaderComponent } from '../../main-header/main-header.component';
 import { MmtContainerComponent } from '../../mmt-container/mmt-container.component';
 import { DynamicBreadcrumbsComponent } from '../../shared/dynamic-breadcrumbs.component/dynamic-breadcrumbs.component';
-import { GetallmanufacturersService } from '../../services/getallmanufacturers.service';
 import { BreadcrumbService } from '../../services/breadcrumb.service';
 import { ManufacturersModel } from '../../models/manufacturers.model';
 import { CartService } from '../../services/cart.service';
+import { PartWithImagesModel } from '../../models/getallpartswithimages.model';
 
 interface Review {
   id: number;
@@ -31,13 +30,12 @@ interface Review {
 export class ProductDetailComponent implements OnInit {
   private route = inject(ActivatedRoute);
   private router = inject(Router);
-  private partsService = inject(GetallpartsService);
-  private partImagesService = inject(GetallpartimgagesService);
+  private partsService = inject(GetAllPartsWithImagesService);
   private manufacturersService = inject(GetallmanufacturersService);
   private breadcrumbService = inject(BreadcrumbService);
   private cartService = inject(CartService);
 
-  product = signal<PartsModel | null>(null);
+  product = signal<PartWithImagesModel | null>(null);
   images = signal<string[]>([]);
   selectedImage = signal<string>('');
   quantity = signal(1);
@@ -92,41 +90,31 @@ export class ProductDetailComponent implements OnInit {
   private loadProductDetails(productId: number): void {
     this.isLoading.set(true);
 
-    forkJoin({
-      parts: this.partsService.getAllParts(),
-      images: this.partImagesService.getAllPartImages(),
-      manufacturers: this.manufacturersService.getAllManufacturers(),
-    }).subscribe({
-      next: ({ parts, images, manufacturers }) => {
-        const foundProduct = parts.parts.find((p) => p.id === productId);
-
+    this.partsService.getAllPartsWithImages().subscribe({
+      next: (res) => {
+        const foundProduct = res.parts.find((p) => p.id === productId);
         if (!foundProduct) {
           this.router.navigate(['/']);
           return;
         }
 
-        const productImages = images.partImages
-          .filter((img) => img.partId === productId)
-          .sort((a, b) => (a.isPrimary ? -1 : b.isPrimary ? 1 : 0))
-          .map((img) => img.url);
-
-        if (productImages.length === 0) productImages.push('assets/placeholder.jpg');
-
-        const foundManufacturer = manufacturers.Manufacturers.find(
-          (m) => m.id === foundProduct.manufacturerId,
-        );
-
-        this.product.set({ ...foundProduct, imageUrl: productImages[0] });
-        this.images.set(productImages);
-        this.selectedImage.set(productImages[0]);
-        this.manufacturer.set(foundManufacturer || null);
+        const img = foundProduct.imageUrl || 'assets/placeholder.jpg';
+        this.product.set(foundProduct);
+        this.images.set([img]);
+        this.selectedImage.set(img);
         this.isLoading.set(false);
-
         this.breadcrumbService.setLastCategory(foundProduct.category.toLowerCase());
         this.breadcrumbService.updateProductName(productId, foundProduct.name);
+
+        this.manufacturersService.getAllManufacturers().subscribe({
+          next: (mfRes) => {
+            const found = mfRes.Manufacturers.find((m) => m.id === foundProduct.manufacturerId);
+            this.manufacturer.set(found ?? null);
+          },
+          error: () => {},
+        });
       },
-      error: (err) => {
-        console.error('❌ Termék betöltési hiba:', err);
+      error: () => {
         this.isLoading.set(false);
         this.router.navigate(['/']);
       },

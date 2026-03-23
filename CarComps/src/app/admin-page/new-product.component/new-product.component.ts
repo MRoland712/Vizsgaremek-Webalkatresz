@@ -2,7 +2,7 @@ import { Component, OnInit, inject, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
 import { DecimalPipe } from '@angular/common';
-import { GetallpartsService } from '../../services/getallparts.service';
+import { GetAllPartsWithImagesService } from '../../services/getallpartswithimages.service';
 import { GetallmanufacturersService } from '../../services/getallmanufacturers.service';
 import { CreatePartService } from '../../services/createpart.service';
 import { ManufacturersModel } from '../../models/manufacturers.model';
@@ -23,7 +23,7 @@ const VEHICLE_CATEGORIES = [
 export class NewProductComponent implements OnInit {
   private fb = inject(FormBuilder);
   private router = inject(Router);
-  private partsService = inject(GetallpartsService);
+  private partsService = inject(GetAllPartsWithImagesService);
   private mfService = inject(GetallmanufacturersService);
   private createService = inject(CreatePartService);
 
@@ -74,12 +74,12 @@ export class NewProductComponent implements OnInit {
   }
 
   private loadCategories(): void {
-    this.partsService.getAllParts().subscribe({
+    this.partsService.getAllPartsWithImages().subscribe({
       next: (res) => {
         const unique = [...new Set((res.parts ?? []).map((p) => p.category).filter(Boolean))];
         this.partCategories = unique.sort();
       },
-      error: (err) => console.error('Kategóriák betöltési hiba:', err),
+      error: () => {},
     });
   }
 
@@ -141,8 +141,7 @@ export class NewProductComponent implements OnInit {
         }
 
         // ⭐ Van kép → SKU alapján keressük meg az id-t az összes termék között
-        console.log('🔍 PartId keresése SKU alapján:', sku);
-        this.partsService.getAllParts().subscribe({
+        this.partsService.getAllPartsWithImages().subscribe({
           next: (partsRes) => {
             const created = partsRes.parts?.find((p) => p.sku?.toUpperCase() === sku.toUpperCase());
 

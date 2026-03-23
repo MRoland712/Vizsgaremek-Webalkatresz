@@ -1,5 +1,5 @@
 import { Component, DestroyRef, inject, OnInit, signal, ViewChild } from '@angular/core';
-import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
+import { FormBuilder, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { debounceTime } from 'rxjs';
 import { HttpErrorResponse } from '@angular/common/http';
@@ -7,6 +7,7 @@ import { AuthService } from '../services/auth.service';
 import { OtpComponent } from '../verifications/otp.component/otp.component';
 import { LoginService } from '../services/login.service';
 import { TfaVerifyDialogComponent } from '../verifications/to-fa.component/to-fa.component';
+import { PasswordResetService } from '../services/passwordreset.service';
 
 let initialEmailValue = '';
 let initialPasswordValue = '';
@@ -19,7 +20,7 @@ if (savedForm) {
 
 @Component({
   selector: 'app-login',
-  imports: [ReactiveFormsModule, RouterLink, OtpComponent, TfaVerifyDialogComponent],
+  imports: [ReactiveFormsModule, FormsModule, RouterLink, OtpComponent, TfaVerifyDialogComponent],
   templateUrl: './login.component.html',
   styleUrl: './login.component.css',
 })
@@ -27,6 +28,7 @@ export class LoginComponent implements OnInit {
   private destroyRef = inject(DestroyRef);
   private router = inject(Router);
   private authService = inject(AuthService);
+  private passwordResetSvc = inject(PasswordResetService);
   fb = inject(FormBuilder);
   loginService = inject(LoginService);
 
@@ -40,6 +42,55 @@ export class LoginComponent implements OnInit {
     password: [initialPasswordValue, Validators.required],
   });
 
+  // ── Forgot password dialog ────────────────────────────────
+  forgotDialogOpen = signal(false);
+  resetEmail = '';
+  resetEmailTouched = signal(false);
+  resetEmailValid = signal(false);
+  isSendingReset = signal(false);
+  resetSuccess = signal(false);
+  resetError = signal<string | null>(null);
+
+  openForgotPassword() {
+    this.resetEmail = '';
+    this.resetEmailTouched.set(false);
+    this.resetEmailValid.set(false);
+    this.resetSuccess.set(false);
+    this.resetError.set(null);
+    this.forgotDialogOpen.set(true);
+  }
+
+  closeForgotPassword() {
+    this.forgotDialogOpen.set(false);
+  }
+
+  onResetEmailInput(value: string) {
+    this.resetEmail = value;
+    this.resetEmailTouched.set(true);
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    this.resetEmailValid.set(emailRegex.test(value.trim()));
+  }
+
+  sendPasswordReset() {
+    this.resetEmailTouched.set(true);
+    if (!this.resetEmailValid()) return;
+    this.isSendingReset.set(true);
+    this.resetError.set(null);
+
+    this.passwordResetSvc.createPasswordReset({ email: this.resetEmail.trim() }).subscribe({
+      next: () => {
+        this.isSendingReset.set(false);
+        this.resetSuccess.set(true);
+      },
+      error: (err) => {
+        this.isSendingReset.set(false);
+        this.resetError.set(
+          err.error?.message || err.error?.errors?.[0] || 'Hiba történt, próbáld újra!',
+        );
+      },
+    });
+  }
+
   onLoginSubmit() {
     if (this.loginForm.invalid) {
       this.loginForm.markAllAsTouched();
@@ -50,6 +101,7 @@ export class LoginComponent implements OnInit {
 
     this.loginService.login({ email: email!, password: password! }).subscribe({
       next: (res) => {
+        // ── Alap adatok mentése ─────────────────────────────
         localStorage.setItem('jwt', res.result.JWTToken!);
         localStorage.setItem('userEmail', email!);
         localStorage.setItem('userName', res.result.username || '');
@@ -58,6 +110,16 @@ export class LoginComponent implements OnInit {
         localStorage.setItem('phone', res.result.phone || '');
         localStorage.setItem('role', res.result.role || '');
 
+        this.authService.setLoggedIn(
+          email,
+          res.result.username,
+          res.result.firstName,
+          res.result.lastName,
+          res.result.phone,
+          res.result.role,
+        );
+
+        // ── userId mentése a login response-ból ──
         if (res.result.userId && res.result.userId > 0) {
           localStorage.setItem('userId', String(res.result.userId));
           this.authService.setLoggedIn(
@@ -69,18 +131,8 @@ export class LoginComponent implements OnInit {
             res.result.role,
             res.result.userId,
           );
-        } else {
-          this.authService.setLoggedIn(
-            email,
-            res.result.username,
-            res.result.firstName,
-            res.result.lastName,
-            res.result.phone,
-            res.result.role,
-          );
         }
 
-        // TFA aktív → TFA dialog, különben OTP
         if (localStorage.getItem('tfaActive') === 'true') {
           setTimeout(() => this.tfaDialog.open(email!), 100);
         } else {
@@ -88,40 +140,27 @@ export class LoginComponent implements OnInit {
         }
       },
       error: (err: HttpErrorResponse) => {
-        console.error('❌ Login hiba:', err);
         this.loginFailed.set(true);
       },
     });
   }
 
   private proceedToOtp(email: string) {
-    console.log('👑 isAdmin:', this.authService.isAdmin());
-    console.log('🪪 userId:', localStorage.getItem('userId'));
     setTimeout(() => this.otpDialog.open(email), 100);
   }
 
-  // OTP verified → navigálás
   onOTPVerified() {
     localStorage.setItem('emailVerified', 'true');
-    if (this.authService.isAdmin()) {
-      this.router.navigate(['/admin']);
-    } else {
-      this.router.navigate(['/']);
-    }
+    this.router.navigate([this.authService.isAdmin() ? '/admin' : '/']);
   }
 
   onOTPCancelled() {
     this.authService.logout(false);
   }
 
-  // TFA verified → OTP kihagyva, egyből navigálás
   onTFAVerified() {
     localStorage.setItem('emailVerified', 'true');
-    if (this.authService.isAdmin()) {
-      this.router.navigate(['/admin']);
-    } else {
-      this.router.navigate(['/']);
-    }
+    this.router.navigate([this.authService.isAdmin() ? '/admin' : '/']);
   }
 
   onTFACancelled() {

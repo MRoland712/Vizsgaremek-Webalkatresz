@@ -460,3 +460,230 @@ form > p {
   background: #999;
 }
 /* TODO: CSS LOGIN MINDEN MEGIGAZÍTÁSA HOGY IGÉNYES LEGYEN */
+/* ==========================================
+   FORGOT PASSWORD LINK
+   ========================================== */
+.forgot-link {
+  display: inline-block;
+  font-size: 0.9em;
+  color: #ff6600;
+  text-decoration: none;
+  cursor: pointer;
+  transition: color 0.2s;
+  padding: 2px 4px;
+  user-select: none;
+  background: none;
+  border: none;
+  font-family: inherit;
+}
+
+.forgot-link:hover {
+  color: #e65a00;
+}
+
+/* ==========================================
+   FORGOT PASSWORD DIALOG
+   ========================================== */
+.dialog-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+  animation: fadeIn 0.2s ease;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.dialog-box {
+  background: #fffafa;
+  border-radius: 16px;
+  width: 90%;
+  max-width: 420px;
+  padding: 28px;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.25);
+  animation: slideUp 0.3s ease;
+  color: #2b2b2b;
+}
+
+@keyframes slideUp {
+  from {
+    transform: translateY(40px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+/* Header */
+.dialog-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.dialog-icon {
+  font-size: 24px;
+  color: #ff6600;
+}
+
+.dialog-header h3 {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 700;
+  color: #2b2b2b;
+  flex: 1;
+}
+
+.dialog-close {
+  background: transparent;
+  border: none;
+  color: #999;
+  font-size: 18px;
+  cursor: pointer;
+  padding: 4px 8px;
+  border-radius: 6px;
+  transition: all 0.2s;
+  line-height: 1;
+}
+
+.dialog-close:hover {
+  background: #f0f0f0;
+  color: #2b2b2b;
+}
+
+/* Description */
+.dialog-desc {
+  font-size: 14px;
+  color: #666;
+  line-height: 1.6;
+  margin: 0 0 20px;
+}
+
+/* Input */
+.dialog-field {
+  margin-bottom: 16px;
+}
+
+.dialog-input {
+  width: 100%;
+  padding: 12px 16px;
+  background: #fff;
+  border: 2px solid #e0e0e0;
+  border-radius: 8px;
+  color: #2b2b2b;
+  font-size: 15px;
+  outline: none;
+  box-sizing: border-box;
+  transition: border-color 0.2s;
+}
+
+.dialog-input::placeholder {
+  color: #bbb;
+}
+
+.dialog-input:focus {
+  border-color: #ff6600;
+}
+
+.dialog-input--error {
+  border-color: #ff4444 !important;
+}
+
+.dialog-error {
+  color: #ff4444;
+  font-size: 12px;
+  margin: 6px 0 0;
+}
+
+/* Error banner */
+.dialog-err-banner {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 14px;
+  background: rgba(255, 68, 68, 0.08);
+  border: 1px solid rgba(255, 68, 68, 0.25);
+  border-radius: 8px;
+  margin-bottom: 16px;
+}
+
+.dialog-err-banner i {
+  color: #ff4444;
+  font-size: 16px;
+  flex-shrink: 0;
+}
+
+.dialog-err-banner p {
+  color: #ff4444;
+  font-size: 13px;
+  margin: 0;
+}
+
+/* Primary button */
+.dialog-btn-primary {
+  width: 100%;
+  padding: 13px;
+  background: #ff6600;
+  color: #fffafa;
+  border: none;
+  border-radius: 8px;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  transition: background 0.2s;
+}
+
+.dialog-btn-primary:hover:not(:disabled) {
+  background: #e65a00;
+}
+
+.dialog-btn-primary:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+/* Success state */
+.dialog-success {
+  text-align: center;
+  padding: 8px 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+}
+
+.dialog-success i {
+  font-size: 52px;
+  color: #ff6600;
+}
+
+.dialog-success h3 {
+  font-size: 20px;
+  font-weight: 700;
+  margin: 0;
+  color: #2b2b2b;
+}
+
+.dialog-success p {
+  font-size: 14px;
+  color: #666;
+  line-height: 1.6;
+  margin: 0 0 8px;
+}
