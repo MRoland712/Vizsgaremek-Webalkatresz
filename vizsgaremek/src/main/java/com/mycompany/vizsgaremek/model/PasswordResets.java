@@ -295,13 +295,13 @@ public class PasswordResets implements Serializable {
             spq.setParameter("newPasswordIN", encryptedPassword);
             spq.execute();
 
-            List<Object[]> resultList = spq.getResultList();
+            List<Object> resultList = spq.getResultList();
             if (resultList == null || resultList.isEmpty()) {
                 return null;
             }
 
-            Object[] record = resultList.get(0);
-            return record[0] != null ? Integer.valueOf(record[0].toString()) : null;
+            Object record = resultList.get(0);
+            return record != null ? Integer.valueOf(record.toString()) : null;
 
         } catch (Exception ex) {
             ex.printStackTrace();
