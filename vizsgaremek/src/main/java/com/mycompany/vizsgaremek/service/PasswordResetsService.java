@@ -204,10 +204,10 @@ public class PasswordResetsService {
             return errorAuth.createErrorResponse(errors, 400);
         }
 
-        // Jelszó titkosítás
         String encryptedPassword;
         try {
             encryptedPassword = Encrypt.encrypt(newPassword);
+            System.err.println("encryptedPassword: " + encryptedPassword); // DEBUG
         } catch (Exception ex) {
             ex.printStackTrace();
             errors.put("EncryptionError");
@@ -215,6 +215,8 @@ public class PasswordResetsService {
         }
 
         Integer userId = PasswordResets.resetPassword(token, encryptedPassword);
+        System.err.println("resetPassword userId: " + userId); // DEBUG
+
         if (userId == null) {
             errors.put("InvalidOrExpiredToken");
             return errorAuth.createErrorResponse(errors, 404);
