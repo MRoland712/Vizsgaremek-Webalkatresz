@@ -17,27 +17,27 @@
     </properties>
 
     <dependencies>
-        
+
         <dependency>
             <groupId>io.jsonwebtoken</groupId>
             <artifactId>jjwt-api</artifactId>
             <version>0.11.5</version>
         </dependency>
-        
+
         <dependency>
             <groupId>io.jsonwebtoken</groupId>
             <artifactId>jjwt-impl</artifactId>
             <version>0.11.5</version>
             <scope>runtime</scope>
         </dependency>
-        
+
         <dependency>
             <groupId>io.jsonwebtoken</groupId>
             <artifactId>jjwt-jackson</artifactId>
             <version>0.11.5</version>
             <scope>runtime</scope>
         </dependency>
-        
+
         <dependency>
             <groupId>org.json</groupId>
             <artifactId>json</artifactId>
@@ -51,52 +51,52 @@
             <version>7.0</version>
             <scope>provided</scope>
         </dependency>
-        
+
         <dependency>
             <groupId>top.tanmw</groupId>
             <artifactId>efficient-boot-common</artifactId>
             <version>1.1.9</version>
             <type>jar</type>
         </dependency>
-        
+
         <dependency>
             <groupId>com.sun.mail</groupId>
             <artifactId>javax.mail</artifactId>
             <version>1.6.2</version>
         </dependency>
-        
+
         <dependency>
             <groupId>de.taimos</groupId>
             <artifactId>totp</artifactId>
             <version>1.0</version>
         </dependency>
-        
+
         <dependency>
             <groupId>commons-codec</groupId>
             <artifactId>commons-codec</artifactId>
             <version>1.15</version>
         </dependency>
-        
+
         <dependency>
             <groupId>com.google.zxing</groupId>
             <artifactId>core</artifactId>
             <version>3.5.0</version>
         </dependency>
-        
+
         <dependency>
             <groupId>com.google.zxing</groupId>
             <artifactId>javase</artifactId>
             <version>3.5.0</version>
         </dependency>
-        
+
         <dependency>
             <groupId>com.warrenstrange</groupId>
             <artifactId>googleauth</artifactId>
             <version>1.5.0</version>
             <scope>compile</scope>
         </dependency>
-        
-        
+
+
         <!-- Multipart file upload támogatás -->
         <dependency>
             <groupId>org.jboss.resteasy</groupId>
@@ -104,33 +104,33 @@
             <version>4.7.5.Final</version>
             <scope>provided</scope>
         </dependency>
-    
+
         <!-- JSON feldolgozás -->
         <dependency>
             <groupId>org.json</groupId>
             <artifactId>json</artifactId>
             <version>20231013</version>
         </dependency>
-        
+
         <dependency>
             <groupId>org.apache.pdfbox</groupId>
             <artifactId>pdfbox</artifactId>
             <version>2.0.29</version>
         </dependency>
-        
+
         <dependency>
             <groupId>org.apache.httpcomponents</groupId>
             <artifactId>httpclient</artifactId>
             <version>4.5.14</version>
         </dependency>
-        
+
         <!-- HTML to PDF - Flying Saucer -->
         <dependency>
             <groupId>org.xhtmlrenderer</groupId>
             <artifactId>flying-saucer-pdf</artifactId>
             <version>9.1.22</version>
         </dependency>
-        
+
     </dependencies>
 
     <build>
@@ -140,22 +140,14 @@
                 <artifactId>maven-compiler-plugin</artifactId>
                 <version>3.1</version>
                 <configuration>
-                    <source>8</source>
-                    <target>8</target>
+                    <source>11</source>
+                    <target>11</target>
                     <compilerArguments>
                         <endorseddirs>${endorsed.dir}</endorseddirs>
                     </compilerArguments>
                 </configuration>
             </plugin>
 
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-war-plugin</artifactId>
-                <version>2.3</version>
-                <configuration>
-                    <failOnMissingWebXml>false</failOnMissingWebXml>
-                </configuration>
-            </plugin>
 
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>

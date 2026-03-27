@@ -1636,6 +1636,41 @@ public class AuthenticationService {
             return (data == null || data.isEmpty());
         }
     }
+    
+    public static class emailVerificationsAuth {
+        
+        public boolean isDataMissing(String data) {
+            return (data == null || data.trim().isEmpty());
+        }
+
+        public boolean isDataMissing(Integer data) {
+            return (data == null);
+        }
+
+        public boolean isDataMissing(Boolean data) {
+            return (data == null);
+        }
+
+        public boolean isDataMissing(Sessions data) {
+            return (data == null);
+        }
+
+        public boolean isDataMissing(ArrayList<Sessions> data) {
+            return (data == null || data.isEmpty());
+        }
+
+        public boolean isDataMissing(List<Object[]> data) {
+            return (data == null || data.isEmpty());
+        }
+        
+        public boolean isValidUserId(Integer userId) {
+            return userId > 0 && userId.toString().length() <= 11;
+        }
+        
+        public boolean isValidToken(String status) {
+            return status.length() <= 20 && (status.equals("delivered") || status.equals("pending") || status.equals("inTransit"));
+        }
+    }
 
 }//Auth Service Class closer
 

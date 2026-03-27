@@ -77,5 +77,40 @@ public class SessionsService {
             
             return errorAuth.createErrorResponse(errors, 500);
         }
-    } // createTrucks Closer
+    } // createSession Closer
+    
+    public JSONObject getSessionTokenByUserIdService(Integer userId) {
+        JSONObject toReturn = new JSONObject();
+        JSONArray errors = new JSONArray();
+
+        if (sessionsAuth.isDataMissing(userId)) {
+            errors.put("MissingUserId");
+        }
+
+        // If modelexeption
+        if (errorAuth.hasErrors(errors)) {
+            return errorAuth.createErrorResponse(errors, 400);
+        }
+
+        Sessions session = Sessions.getSessionTokenByUserId(userId);
+
+        if (sessionsAuth.isDataMissing(session)) {
+            errors.put("NoActiveSession");
+            return errorAuth.createErrorResponse(errors, 404);
+        }
+
+        JSONObject SessionObj = new JSONObject();
+        SessionObj.put("id", session.getId());
+        SessionObj.put("userId", session.getUserId().getId());
+        SessionObj.put("token", session.getToken());
+        SessionObj.put("expiresAt", session.getExpiresAt());
+        SessionObj.put("createdAt", session.getCreatedAt());
+        SessionObj.put("revoked", session.getRevoked());
+
+        toReturn.put("success", true);
+        toReturn.put("result", SessionObj);
+        toReturn.put("statusCode", 200);
+
+        return toReturn;
+    }//getSessionTokenByUserId closer
 }

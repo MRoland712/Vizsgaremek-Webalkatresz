@@ -5,10 +5,13 @@
 package com.mycompany.vizsgaremek.model;
 
 import java.io.Serializable;
+import java.text.SimpleDateFormat;
 import java.util.Date;
 import javax.persistence.Basic;
 import javax.persistence.Column;
 import javax.persistence.Entity;
+import javax.persistence.EntityManager;
+import javax.persistence.EntityManagerFactory;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
@@ -16,6 +19,9 @@ import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 import javax.persistence.NamedQueries;
 import javax.persistence.NamedQuery;
+import javax.persistence.ParameterMode;
+import javax.persistence.Persistence;
+import javax.persistence.StoredProcedureQuery;
 import javax.persistence.Table;
 import javax.persistence.Temporal;
 import javax.persistence.TemporalType;
@@ -62,6 +68,9 @@ public class EmailVerifications implements Serializable {
     @ManyToOne(optional = false)
     private Users userId;
 
+    static EntityManagerFactory emf = Persistence.createEntityManagerFactory("com.mycompany_vizsgaremek_war_1.0-SNAPSHOTPU");
+    public static SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+
     public EmailVerifications() {
     }
 
@@ -72,6 +81,11 @@ public class EmailVerifications implements Serializable {
     public EmailVerifications(Integer id, String token) {
         this.id = id;
         this.token = token;
+    }
+
+    public EmailVerifications(String token, Users userId) {
+        this.token = token;
+        this.userId = userId;
     }
 
     public Integer getId() {
@@ -146,5 +160,47 @@ public class EmailVerifications implements Serializable {
     public String toString() {
         return "com.mycompany.vizsgaremek.model.EmailVerifications[ id=" + id + " ]";
     }
-    
+
+    public static Boolean createEmailVerification(EmailVerifications createdEmailVerification) {
+        EntityManager em = emf.createEntityManager();
+        try {
+            StoredProcedureQuery spq = em.createStoredProcedureQuery("createEmailVerification");
+
+            spq.registerStoredProcedureParameter("userIdIN", Integer.class, ParameterMode.IN);
+            spq.registerStoredProcedureParameter("tokenIN", String.class, ParameterMode.IN);
+
+            spq.setParameter("userIdIN", createdEmailVerification.getUserId().getId());
+            spq.setParameter("tokenIN", createdEmailVerification.getToken());
+
+            spq.execute();
+
+            return true;
+
+        } catch (Exception ex) {
+            ex.printStackTrace();
+            return false;
+        } finally {
+            em.close();
+        }
+    }
+
+    public static Boolean verifyEmailVerification(String Token) {
+        EntityManager em = emf.createEntityManager();
+        try {
+            StoredProcedureQuery spq = em.createStoredProcedureQuery("verifyEmailVerification");
+
+            spq.registerStoredProcedureParameter("tokenIN", String.class, ParameterMode.IN);
+
+            spq.setParameter("tokenIN", Token);
+
+            return true;
+            
+        } catch (Exception ex) {
+            ex.printStackTrace();
+            return false;
+        } finally {
+            em.close();
+        }
+    }
+
 }

@@ -29,6 +29,7 @@ public class ApplicationConfig extends Application {
         resources.add(com.mycompany.vizsgaremek.controller.AnaliticsController.class);
         resources.add(com.mycompany.vizsgaremek.controller.CarsController.class);
         resources.add(com.mycompany.vizsgaremek.controller.CartItemsController.class);
+        resources.add(com.mycompany.vizsgaremek.controller.EmailVerificationsController.class);
         resources.add(com.mycompany.vizsgaremek.controller.InvoicesController.class);
         resources.add(com.mycompany.vizsgaremek.controller.JWTController.class);
         resources.add(com.mycompany.vizsgaremek.controller.ManufacturersController.class);

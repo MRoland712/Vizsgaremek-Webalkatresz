@@ -988,4 +988,85 @@ public class SendEmail {
 
         System.out.println("Password reset email sent to: " + recipientEmail);
     }
+
+    public static void sendEmailVerificationEmail(String recipientEmail, String username, String token) throws MessagingException {
+
+        Properties props = new Properties();
+        props.put("mail.smtp.auth", "true");
+        props.put("mail.smtp.starttls.enable", "true");
+        props.put("mail.smtp.host", "smtp.gmail.com");
+        props.put("mail.smtp.port", "587");
+
+        Session session = Session.getInstance(props, new Authenticator() {
+            @Override
+            protected PasswordAuthentication getPasswordAuthentication() {
+                return new PasswordAuthentication(
+                        KvFetcher.getDataFromKV("SMTPEmail"),
+                        base64Converters.base64Converter(KvFetcher.getDataFromKV("SMTPPsw"))
+                );
+            }
+        });
+
+        Message message = new MimeMessage(session);
+        message.setFrom(new InternetAddress("noreply@carcomps.hu"));
+        message.setRecipients(Message.RecipientType.TO, InternetAddress.parse(recipientEmail));
+        message.setSubject("CarComps - Email cím megerősítése");
+
+        String verificationLink = "https://api.carcomps.hu/vizsgaremek-1.0-SNAPSHOT/webresources/EmailVerifications/activateEmail?activationToken=" + token;
+
+        String htmlContent = "<!DOCTYPE html>"
+                + "<html lang=\"hu\">"
+                + "<head>"
+                + "<meta charset=\"UTF-8\" />"
+                + "<meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\" />"
+                + "<title>Email cím megerősítése</title>"
+                + "<style>"
+                + "* { margin: 0; padding: 0; box-sizing: border-box; }"
+                + "body { background: #111; padding: 20px; font-family: system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; }"
+                + ".email-container { border-radius: 10px; max-width: 600px; width: 100%; margin: 20px auto; background-color: #2b2b2b; color: #fff; text-align: center; overflow: hidden; }"
+                + ".email-header, .email-footer { padding: 16px; }"
+                + ".email-header img { width: 300px; display: block; margin: auto; }"
+                + ".email-body { padding: 0 24px 24px; text-align: left; }"
+                + "hr { border: none; height: 1px; background: rgba(255, 255, 255, 0.06); margin: 20px 0; }"
+                + "h2 { margin: 18px 0; color: #fffafa; font-size: 20px; text-align: left; }"
+                + "p { margin: 0 0 16px; font-size: 16px; line-height: 1.6; color: #eaeaea; }"
+                + ".btn-container { display: flex; justify-content: center; margin: 30px 0; }"
+                + ".btn { display: inline-block; padding: 14px 32px; background: #ff6600; color: #fff; text-decoration: none; border-radius: 6px; font-weight: 600; font-size: 16px; }"
+                + ".link-text { word-break: break-all; font-size: 14px; color: #9fc5ff; background: rgba(255,255,255,0.05); padding: 12px; border-radius: 4px; margin: 20px 0; font-family: monospace; }"
+                + ".email-footer p { color: #bfbfbf; font-size: 12px; margin: 0; text-align: center; }"
+                + ".email-footer a { color: #9fc5ff; text-decoration: none; }"
+                + "</style>"
+                + "</head>"
+                + "<body>"
+                + "<div class=\"email-container\">"
+                + "<div class=\"email-header\">"
+                + "<img src=\"https://raw.githubusercontent.com/MRoland712/Vizsgaremek-Webalkatresz/refs/heads/Backend/K%C3%A9pek/CarComps_Logo_BigassC.png\" alt=\"CarComps logó\" />"
+                + "</div>"
+                + "<div class=\"email-body\">"
+                + "<hr />"
+                + "<h2>Kedves " + username + "!</h2>"
+                + "<p>Köszönjük, hogy regisztráltál a CarComps webshopban! Az alábbi gombra kattintva erősítsd meg az email címedet:</p>"
+                + "<div class=\"btn-container\">"
+                + "<a href=\"" + verificationLink + "\" class=\"btn\">Email cím megerősítése</a>"
+                + "</div>"
+                + "<p>Ha a gomb nem működik, másold be az alábbi linket a böngészőbe:</p>"
+                + "<div class=\"link-text\">" + verificationLink + "</div>"
+                + "<p>Ez a link <span style=\"text-decoration: underline\">24 óráig</span> érvényes.</p>"
+                + "<p>Ha nem te regisztráltál a CarComps oldalán, hagyd figyelmen kívül ezt az emailt.</p>"
+                + "<p>Üdvözlettel,<br />CarComps csapata</p>"
+                + "</div>"
+                + "<hr />"
+                + "<div class=\"email-footer\">"
+                + "<p>Ez egy automatikus üzenet, kérjük, ne válaszolj rá.<br />© 2025 CarComps – Minden jog fenntartva.<br />Székhely: 7621 Pécs, Fő utca 12.<br />"
+                + "<a href=\"https://carcomps.hu/adatvedelem\">Adatvédelmi nyilatkozat</a> | <a href=\"https://carcomps.hu/aszf\">Felhasználási feltételek</a></p>"
+                + "</div>"
+                + "</div>"
+                + "</body>"
+                + "</html>";
+
+        message.setContent(htmlContent, "text/html; charset=utf-8");
+        Transport.send(message);
+
+        System.out.println("Email verification email sent to: " + recipientEmail);
+    }
 }

@@ -6,7 +6,9 @@ package com.mycompany.vizsgaremek.model;
 
 import static com.mycompany.vizsgaremek.model.Trucks.emf;
 import java.io.Serializable;
+import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.List;
 import javax.persistence.Basic;
 import javax.persistence.Column;
 import javax.persistence.Entity;
@@ -68,6 +70,8 @@ public class Sessions implements Serializable {
     @ManyToOne(optional = false)
     private Users userId;
 
+    public static SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+    
     public Sessions() {
     }
 
@@ -86,7 +90,7 @@ public class Sessions implements Serializable {
         this.userId = userId;
     }
     
-    public Sessions(Integer id, String token, Date expiresAt, Date createdAt, Boolean revoked, Users userId) {
+    public Sessions(Integer id, Users userId, String token, Date expiresAt, Date createdAt, Boolean revoked ) {
         this.id = id;
         this.token = token;
         this.expiresAt = expiresAt;
@@ -191,4 +195,39 @@ public class Sessions implements Serializable {
         }
     }
     
+    public static Sessions getSessionTokenByUserId(Integer userId) {
+        EntityManager em = emf.createEntityManager();
+        try {
+            StoredProcedureQuery spq = em.createStoredProcedureQuery("getSessionTokenByUserId");
+            spq.registerStoredProcedureParameter("userIdIN", Integer.class, ParameterMode.IN);
+            spq.setParameter("userIdIN", userId);
+            spq.execute();
+
+            List<Object[]> resultList = spq.getResultList();
+
+            if (resultList == null || resultList.isEmpty()) {
+                return null;
+            }
+            
+            Object[] record = resultList.get(0);
+            
+            Users user = new Users(userId);
+            
+            Sessions session = new Sessions(
+                    Integer.valueOf(record[0].toString()),
+                    user,
+                    record[2] == null ? null : record[2].toString(),
+                    record[3] == null ? null : formatter.parse(record[3].toString()),
+                    record[4] == null ? null : formatter.parse(record[4].toString()),
+                    record[5] != null && Boolean.parseBoolean(record[5].toString())
+            );
+
+            return session;
+        } catch (Exception ex) {
+            ex.printStackTrace();
+            return null;
+        } finally {
+            em.close();
+        }
+    }
 }

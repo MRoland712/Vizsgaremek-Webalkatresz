@@ -70,4 +70,18 @@ public class SessionsController {
                 .type(MediaType.APPLICATION_JSON)
                 .build();
     }
+    
+    @GET
+    @Path("getSessionTokenByUserId")
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response getSessionTokenByUserIdController(@QueryParam("userId") Integer userId) {
+
+        JSONObject toReturn = layer.getSessionTokenByUserIdService(userId);
+
+        return Response.status(Integer.parseInt(toReturn.get("statusCode").toString()))
+                .entity(toReturn.toString())
+                .type(MediaType.APPLICATION_JSON)
+                .build();
+    }
+
 }
