@@ -187,14 +187,14 @@ public class EmailVerifications implements Serializable {
     public static Boolean verifyEmailVerification(String Token) {
         EntityManager em = emf.createEntityManager();
         try {
-            StoredProcedureQuery spq = em.createStoredProcedureQuery("verifyEmailVerification");
+            StoredProcedureQuery spq = em.createStoredProcedureQuery("emailVerification");
 
             spq.registerStoredProcedureParameter("tokenIN", String.class, ParameterMode.IN);
 
             spq.setParameter("tokenIN", Token);
 
             return true;
-            
+
         } catch (Exception ex) {
             ex.printStackTrace();
             return false;

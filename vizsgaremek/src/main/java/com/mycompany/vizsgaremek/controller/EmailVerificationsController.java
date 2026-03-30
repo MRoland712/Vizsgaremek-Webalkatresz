@@ -93,9 +93,6 @@ public class EmailVerificationsController {
         String html;
 
         if (statusCode == 200) {
-            // Success
-            JSONObject result = serviceResult.getJSONObject("result");
-            String lastName = result.optString("lastName", "");
 
             html = "<!DOCTYPE html>"
                     + "<html lang=\"hu\">"
