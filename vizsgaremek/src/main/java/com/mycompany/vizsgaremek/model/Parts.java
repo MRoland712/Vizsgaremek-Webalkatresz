@@ -48,6 +48,7 @@ import javax.xml.bind.annotation.XmlTransient;
     @NamedQuery(name = "Parts.findById", query = "SELECT p FROM Parts p WHERE p.id = :id"),
     @NamedQuery(name = "Parts.findBySku", query = "SELECT p FROM Parts p WHERE p.sku = :sku"),
     @NamedQuery(name = "Parts.findByName", query = "SELECT p FROM Parts p WHERE p.name = :name"),
+    @NamedQuery(name = "Parts.findByDescription", query = "SELECT p FROM Parts p WHERE p.description = :description"),
     @NamedQuery(name = "Parts.findByCategory", query = "SELECT p FROM Parts p WHERE p.category = :category"),
     @NamedQuery(name = "Parts.findByPrice", query = "SELECT p FROM Parts p WHERE p.price = :price"),
     @NamedQuery(name = "Parts.findByStock", query = "SELECT p FROM Parts p WHERE p.stock = :stock"),
@@ -75,6 +76,8 @@ public class Parts implements Serializable {
     @Size(min = 1, max = 255)
     @Column(name = "name")
     private String name;
+    @Column(name = "description")
+    private String description;
     @Size(max = 100)
     @Column(name = "category")
     private String category;
@@ -119,7 +122,7 @@ public class Parts implements Serializable {
     @ManyToOne(optional = false)
     private Manufacturers manufacturerId;
     @OneToMany(cascade = CascadeType.ALL, mappedBy = "partId")
-    
+
     static EntityManagerFactory emf = Persistence.createEntityManagerFactory("com.mycompany_vizsgaremek_war_1.0-SNAPSHOTPU");
     public static SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 
@@ -159,6 +162,14 @@ public class Parts implements Serializable {
 
     public void setName(String name) {
         this.name = name;
+    }
+
+    public String getDescription() {
+        return description;
+    }
+
+    public void setDescription(String description) {
+        this.description = description;
     }
 
     public String getCategory() {
@@ -232,11 +243,12 @@ public class Parts implements Serializable {
     public void setIsDeleted(Boolean isDeleted) {
         this.isDeleted = isDeleted;
     }
-    
+
     // createParts
-    public Parts(String sku, String name, String category, BigDecimal price, Integer stock, String status, Boolean isActive, Manufacturers manufacturerId) {
+    public Parts(String sku, String name, String description, String category, BigDecimal price, Integer stock, String status, Boolean isActive, Manufacturers manufacturerId) {
         this.sku = sku;
         this.name = name;
+        this.description = description;
         this.category = category;
         this.price = price;
         this.stock = stock;
@@ -246,10 +258,11 @@ public class Parts implements Serializable {
     }
 
     //getAllParts getPartsById
-    public Parts(Integer id, String sku, String name, String category, BigDecimal price, Integer stock, String status, Boolean isActive, Date createdAt, Date updatedAt, Date deletedAt, Boolean isDeleted, Manufacturers manufacturerId) {
+    public Parts(Integer id, String sku, String name, String description, String category, BigDecimal price, Integer stock, String status, Boolean isActive, Date createdAt, Date updatedAt, Date deletedAt, Boolean isDeleted, Manufacturers manufacturerId) {
         this.id = id;
         this.sku = sku;
         this.name = name;
+        this.description = description;
         this.category = category;
         this.price = price;
         this.stock = stock;
@@ -266,12 +279,13 @@ public class Parts implements Serializable {
     public Parts(String category) {
         this.category = category;
     }
-    
+
     //updateParts
-    public Parts(Integer id, String sku, String name, String category, BigDecimal price, Integer stock, String status, Boolean isActive, Date updatedAt, Manufacturers manufacturerId) {
+    public Parts(Integer id, String sku, String name, String description, String category, BigDecimal price, Integer stock, String status, Boolean isActive, Date updatedAt, Manufacturers manufacturerId) {
         this.id = id;
         this.sku = sku;
         this.name = name;
+        this.description = description;
         this.category = category;
         this.price = price;
         this.stock = stock;
@@ -376,7 +390,7 @@ public class Parts implements Serializable {
     public String toString() {
         return "com.mycompany.vizsgaremek.model.Parts[ id=" + id + " ]";
     }
-    
+
     public static Boolean createParts(Parts createdParts) {
         EntityManager em = emf.createEntityManager();
         try {
@@ -385,6 +399,7 @@ public class Parts implements Serializable {
             spq.registerStoredProcedureParameter("p_manufacturer_id", Integer.class, ParameterMode.IN);
             spq.registerStoredProcedureParameter("p_sku", String.class, ParameterMode.IN);
             spq.registerStoredProcedureParameter("p_name", String.class, ParameterMode.IN);
+            spq.registerStoredProcedureParameter("p_description", String.class, ParameterMode.IN);
             spq.registerStoredProcedureParameter("p_category", String.class, ParameterMode.IN);
             spq.registerStoredProcedureParameter("p_price", BigDecimal.class, ParameterMode.IN);
             spq.registerStoredProcedureParameter("p_stock", Integer.class, ParameterMode.IN);
@@ -394,6 +409,7 @@ public class Parts implements Serializable {
             spq.setParameter("p_manufacturer_id", createdParts.getManufacturerId().getId());
             spq.setParameter("p_sku", createdParts.getSku());
             spq.setParameter("p_name", createdParts.getName());
+            spq.setParameter("p_description", createdParts.getDescription());
             spq.setParameter("p_category", createdParts.getCategory());
             spq.setParameter("p_price", createdParts.getPrice());
             spq.setParameter("p_stock", createdParts.getStock());
@@ -434,14 +450,15 @@ public class Parts implements Serializable {
                         Integer.valueOf(record[0].toString()), // 1. id
                         record[2] != null ? record[2].toString() : null, // 2.
                         record[3] != null ? record[3].toString() : null, // 3. name
-                        record[4] != null ? record[4].toString() : null, // 4. category 
-                        record[5] != null ? new BigDecimal(record[5].toString()) : null, // 5. price 
-                        record[6] != null ? Integer.valueOf(record[6].toString()) : null, // 6. stock 
-                        record[7] != null ? record[7].toString() : null, // 7. status
-                        Boolean.valueOf(record[8].toString()), // 8. isActive
-                        record[9] == null ? null : formatter.parse(record[9].toString()), // 9. createdAt
-                        record[10] == null ? null : formatter.parse(record[10].toString()), // 10. updatedAt
-                        record[11] == null ? null : formatter.parse(record[11].toString()), // 11. deletedAt
+                        record[4] != null ? record[4].toString() : null, // 4. des
+                        record[5] != null ? record[5].toString() : null, // 4. category 
+                        record[6] != null ? new BigDecimal(record[6].toString()) : null, // 5. price 
+                        record[7] != null ? Integer.valueOf(record[7].toString()) : null, // 6. stock 
+                        record[8] != null ? record[8].toString() : null, // 7. status
+                        Boolean.valueOf(record[9].toString()), // 8. isActive
+                        record[10] == null ? null : formatter.parse(record[10].toString()), // 9. createdAt
+                        record[11] == null ? null : formatter.parse(record[11].toString()), // 10. updatedAt
+                        record[12] == null ? null : formatter.parse(record[12].toString()), // 11. deletedAt
                         Boolean.FALSE, // 12. isDeleted
                         manufacturer // 13. manufacturerId
                 );
@@ -481,16 +498,17 @@ public class Parts implements Serializable {
             // Parts objektum létrehozása
             Parts p = new Parts(
                     Integer.valueOf(record[0].toString()), // 1. id
-                    record[2] != null ? record[2].toString() : null, // 2. sku
+                    record[2] != null ? record[2].toString() : null, // 2.
                     record[3] != null ? record[3].toString() : null, // 3. name
-                    record[4] != null ? record[4].toString() : null, // 4. category 
-                    record[5] != null ? new BigDecimal(record[5].toString()) : null, // 5. price 
-                    record[6] != null ? Integer.valueOf(record[6].toString()) : null, // 6. stock 
-                    record[7] != null ? record[7].toString() : null, // 7. status
-                    Boolean.valueOf(record[8].toString()), // 8. isActive
-                    record[9] == null ? null : formatter.parse(record[9].toString()), // 9. createdAt
-                    record[10] == null ? null : formatter.parse(record[10].toString()), // 10. updatedAt
-                    record[11] == null ? null : formatter.parse(record[11].toString()), // 11. deletedAt
+                    record[4] != null ? record[4].toString() : null, // 4. des
+                    record[5] != null ? record[5].toString() : null, // 4. category 
+                    record[6] != null ? new BigDecimal(record[6].toString()) : null, // 5. price 
+                    record[7] != null ? Integer.valueOf(record[7].toString()) : null, // 6. stock 
+                    record[8] != null ? record[8].toString() : null, // 7. status
+                    Boolean.valueOf(record[9].toString()), // 8. isActive
+                    record[10] == null ? null : formatter.parse(record[10].toString()), // 9. createdAt
+                    record[11] == null ? null : formatter.parse(record[11].toString()), // 10. updatedAt
+                    record[12] == null ? null : formatter.parse(record[12].toString()), // 11. deletedAt
                     Boolean.FALSE, // 12. isDeleted
                     manufacturer // 13. manufacturerId
             );
@@ -525,18 +543,19 @@ public class Parts implements Serializable {
             // Parts objektum létrehozása
             Parts p = new Parts(
                     Integer.valueOf(record[0].toString()), // 1. id
-                    record[2] != null ? record[2].toString() : null, // 2. sku
+                    record[2] != null ? record[2].toString() : null, // 2.
                     record[3] != null ? record[3].toString() : null, // 3. name
-                    record[4] != null ? record[4].toString() : null, // 4. category 
-                    record[5] != null ? new BigDecimal(record[5].toString()) : null, // 5. price 
-                    record[6] != null ? Integer.valueOf(record[6].toString()) : null, // 6. stock 
-                    record[7] != null ? record[7].toString() : null, // 7. status
-                    Boolean.valueOf(record[8].toString()), // 8. isActive
-                    record[9] == null ? null : formatter.parse(record[9].toString()), // 9. createdAt
-                    record[10] == null ? null : formatter.parse(record[10].toString()), // 10. updatedAt
-                    record[11] == null ? null : formatter.parse(record[11].toString()), // 11. deletedAt
+                    record[4] != null ? record[4].toString() : null, // 4. des
+                    record[5] != null ? record[5].toString() : null, // 4. category 
+                    record[6] != null ? new BigDecimal(record[6].toString()) : null, // 5. price 
+                    record[7] != null ? Integer.valueOf(record[7].toString()) : null, // 6. stock 
+                    record[8] != null ? record[8].toString() : null, // 7. status
+                    Boolean.valueOf(record[9].toString()), // 8. isActive
+                    record[10] == null ? null : formatter.parse(record[10].toString()), // 9. createdAt
+                    record[11] == null ? null : formatter.parse(record[11].toString()), // 10. updatedAt
+                    record[12] == null ? null : formatter.parse(record[12].toString()), // 11. deletedAt
                     Boolean.FALSE, // 12. isDeleted
-                    manufacturer // 13. manufacturerId 
+                    manufacturer // 13. manufacturerId
             );
 
             return p;
@@ -599,31 +618,32 @@ public class Parts implements Serializable {
             em.close();
         }
     }
-    
+
     public static Boolean updateParts(Parts updatedParts) {
         EntityManager em = emf.createEntityManager();
 
         try {
             em.getTransaction().begin();
             StoredProcedureQuery spq = em.createStoredProcedureQuery("updateParts");
-            
+
             //Integer id, String sku, String name, String category, BigDecimal price, Integer stock, String status, Boolean isActive, Boolean isDeleted
-            
             spq.registerStoredProcedureParameter("p_parts_id", Integer.class, ParameterMode.IN);
             spq.registerStoredProcedureParameter("p_manufacturers_id", Integer.class, ParameterMode.IN);
             spq.registerStoredProcedureParameter("p_sku", String.class, ParameterMode.IN);
             spq.registerStoredProcedureParameter("p_name", String.class, ParameterMode.IN);
+            spq.registerStoredProcedureParameter("p_description", String.class, ParameterMode.IN);
             spq.registerStoredProcedureParameter("p_category", String.class, ParameterMode.IN);
             spq.registerStoredProcedureParameter("p_price", BigDecimal.class, ParameterMode.IN);
             spq.registerStoredProcedureParameter("p_stock", Integer.class, ParameterMode.IN);
             spq.registerStoredProcedureParameter("p_status", String.class, ParameterMode.IN);
             spq.registerStoredProcedureParameter("p_is_active", Integer.class, ParameterMode.IN);
             spq.registerStoredProcedureParameter("p_is_deleted", Integer.class, ParameterMode.IN);
-            
+
             spq.setParameter("p_parts_id", updatedParts.getId());
             spq.setParameter("p_manufacturers_id", updatedParts.getManufacturerId().getId());
             spq.setParameter("p_sku", updatedParts.getSku());
             spq.setParameter("p_name", updatedParts.getName());
+            spq.setParameter("p_description", updatedParts.getDescription());
             spq.setParameter("p_category", updatedParts.getCategory());
             spq.setParameter("p_price", updatedParts.getPrice());
             spq.setParameter("p_stock", updatedParts.getStock());
@@ -648,7 +668,7 @@ public class Parts implements Serializable {
             em.close();
         }
     }
-    
+
     public static Parts getPartsBySku(String sku) {
         EntityManager em = emf.createEntityManager();
         try {
@@ -669,16 +689,17 @@ public class Parts implements Serializable {
             // Parts objektum létrehozása
             Parts p = new Parts(
                     Integer.valueOf(record[0].toString()), // 1. id
-                    record[2] != null ? record[2].toString() : null, // 2. sku
+                    record[2] != null ? record[2].toString() : null, // 2.
                     record[3] != null ? record[3].toString() : null, // 3. name
-                    record[4] != null ? record[4].toString() : null, // 4. category 
-                    record[5] != null ? new BigDecimal(record[5].toString()) : null, // 5. price 
-                    record[6] != null ? Integer.valueOf(record[6].toString()) : null, // 6. stock 
-                    record[7] != null ? record[7].toString() : null, // 7. status
-                    Boolean.valueOf(record[8].toString()), // 8. isActive
-                    record[9] == null ? null : formatter.parse(record[9].toString()), // 9. createdAt
-                    record[10] == null ? null : formatter.parse(record[10].toString()), // 10. updatedAt
-                    record[11] == null ? null : formatter.parse(record[11].toString()), // 11. deletedAt
+                    record[4] != null ? record[4].toString() : null, // 4. des
+                    record[5] != null ? record[5].toString() : null, // 4. category 
+                    record[6] != null ? new BigDecimal(record[6].toString()) : null, // 5. price 
+                    record[7] != null ? Integer.valueOf(record[7].toString()) : null, // 6. stock 
+                    record[8] != null ? record[8].toString() : null, // 7. status
+                    Boolean.valueOf(record[9].toString()), // 8. isActive
+                    record[10] == null ? null : formatter.parse(record[10].toString()), // 9. createdAt
+                    record[11] == null ? null : formatter.parse(record[11].toString()), // 10. updatedAt
+                    record[12] == null ? null : formatter.parse(record[12].toString()), // 11. deletedAt
                     Boolean.FALSE, // 12. isDeleted
                     manufacturer // 13. manufacturerId
             );

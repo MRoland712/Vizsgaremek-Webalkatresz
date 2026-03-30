@@ -75,6 +75,7 @@ public class PartsController {
         Parts createdParts = new Parts(
                 bodyObject.has("sku") ? bodyObject.getString("sku") : null,
                 bodyObject.has("name") ? bodyObject.getString("name") : null,
+                bodyObject.has("description") ? bodyObject.getString("description") : null,
                 bodyObject.has("category") ? bodyObject.getString("category") : null,
                 bodyObject.has("price") ? bodyObject.getBigDecimal("price") : null,
                 bodyObject.has("stock") ? bodyObject.getInt("stock") : null,
@@ -192,6 +193,10 @@ public class PartsController {
         
         if (bodyObject.has("name")) {
             updatedParts.setName(bodyObject.getString("name"));
+        }
+        
+        if (bodyObject.has("description")) {
+            updatedParts.setDescription(bodyObject.getString("description"));
         }
 
         if (bodyObject.has("category")) {

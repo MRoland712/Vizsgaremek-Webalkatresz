@@ -562,6 +562,10 @@ public class AuthenticationService {
         public boolean isValidName(String name) {
             return name.length() <= 255;
         }
+        
+        public boolean isValidDescription(String description) {
+            return description.length() <= 255;
+        }
 
         public boolean isValidCategory(String category) {
             return category.length() <= 100;
@@ -1601,8 +1605,11 @@ public class AuthenticationService {
             return email.matches("^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+$") && email.length() <= 255;
         }
 
+        private static final Pattern PASSWORD_PATTERN
+                = Pattern.compile("^(?=.*[A-Z])(?=.*\\d)(?=.*[^A-Za-z0-9]).{8,}$");
+
         public boolean isValidPassword(String password) {
-            return password.length() >= 8 && password.length() <= 255;
+            return PASSWORD_PATTERN.matcher(password).matches();
         }
 
         public boolean isPasswordResetUsed(Boolean used) {

@@ -21,7 +21,7 @@ public class PasswordResetsService {
     private final AuthenticationService.passwordResetsAuth passwordResetsAuth = new AuthenticationService.passwordResetsAuth();
     private final AuthenticationService.errorAuth errorAuth = new AuthenticationService.errorAuth();
 
-    // forgotPassword - email alapján küld tokent
+    // forgotPassword email alapján küld tokent
     public JSONObject createPasswordResetService(String email) {
         JSONObject toReturn = new JSONObject();
         JSONArray errors = new JSONArray();
