@@ -931,7 +931,7 @@ public class SendEmail {
         message.setRecipients(Message.RecipientType.TO, InternetAddress.parse(recipientEmail));
         message.setSubject("CarComps - Jelszó visszaállítás");
 
-        String resetLink = "https://api.carcomps.hu/reset-password?token=" + token;
+        String resetLink = "https://api.carcomps.hu/passwordReset/resetPasswordPage?token=" + token;
 
         String htmlContent = "<!DOCTYPE html>"
                 + "<html lang=\"hu\">"
