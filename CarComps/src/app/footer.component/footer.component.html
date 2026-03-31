@@ -9,15 +9,15 @@
       </p>
       <div class="social-links">
         @for (social of socialLinks; track social.url) {
-        <a
-          [href]="social.url"
-          target="_blank"
-          rel="noopener noreferrer"
-          [attr.aria-label]="social.label"
-          class="social-icon"
-        >
-          <i [class]="social.icon"></i>
-        </a>
+          <a
+            [href]="social.url"
+            target="_blank"
+            rel="noopener noreferrer"
+            [attr.aria-label]="social.label"
+            class="social-icon"
+          >
+            <i [class]="social.icon"></i>
+          </a>
         }
       </div>
     </div>
@@ -27,9 +27,9 @@
       <h3 class="footer-heading">Gyors linkek</h3>
       <ul class="footer-links">
         @for (link of quickLinks; track link.url) {
-        <li>
-          <a [href]="link.url">{{ link.label }}</a>
-        </li>
+          <li>
+            <a [href]="link.url">{{ link.label }}</a>
+          </li>
         }
       </ul>
     </div>
@@ -39,9 +39,9 @@
       <h3 class="footer-heading">Jogi információk</h3>
       <ul class="footer-links">
         @for (link of legalLinks; track link.url) {
-        <li>
-          <a [href]="link.url">{{ link.label }}</a>
-        </li>
+          <li>
+            <a [href]="link.url" target="_blank">{{ link.label }}</a>
+          </li>
         }
       </ul>
     </div>

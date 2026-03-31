@@ -1,75 +1,92 @@
 <div class="login-page">
-  <form [formGroup]="loginForm" (ngSubmit)="onLoginSubmit()">
-    <div class="login-container">
-      <div class="form-header">
-        <a routerLink="/">
-          <img src="assets/CarComps_Logo_C_white.png" alt="CarComps Logo" class="logo" />
-        </a>
-        <h2>Bejelentkezés</h2>
-      </div>
-      <div class="email-control">
-        <input
-          type="email"
-          class="form__field"
-          [class.invalid]="emailIsInvalid"
-          placeholder="Email"
-          id="email"
-          [formControl]="loginForm.controls.email"
-        />
-        <label for="email" class="form__label">Email</label>
-        @if (emailIsInvalid) {
-          <p class="error-message">Hibás email cím</p>
-        }
-      </div>
-      <div class="login-control">
-        <input
-          type="password"
-          class="form__field"
-          [class.invalid]="passwordIsInvalid"
-          placeholder="Jelszó"
-          id="password"
-          formControlName="password"
-        />
-        <label for="password" class="form__label">Jelszó</label>
-        <div class="forgot-password-container">
-          <button type="button" (click)="openForgotPassword()" class="forgot-link">
-            Elfelejtetted a jelszavad?
-          </button>
-        </div>
-        @if (passwordIsInvalid) {
-          <p class="error-message">Adja meg a jelszavát!</p>
-        }
-      </div>
-      @if (loginFailed()) {
-        <div class="login-error-banner">
-          <i class="fa-solid fa-circle-exclamation"></i>
-          <p>Hibás email vagy jelszó!</p>
-        </div>
-      }
-      <div class="chapta">
-        <label class="chapta-container">
-          <input type="checkbox" />
-          <span class="checkmark"></span>
-          <span class="chapta-text">Nem vagyok robot</span>
-          <img src="assets/rechapta.png" alt="reCAPTCHA" class="recaptcha-logo" />
-        </label>
-      </div>
+  <div class="auth-card">
+    <!-- BAL OLDAL: üdvözlő panel -->
+    <div class="auth-left">
+      <img src="assets/CarComps_Logo_C_white.png" alt="CarComps" class="auth-logo" />
+      <h1 class="auth-welcome">Üdv a CarComps oldalán!</h1>
+      <p class="auth-desc">
+        Magyarország vezető autóalkatrész webáruháza. Több ezer alkatrész, gyors szállítás,
+        megbízható minőség.
+      </p>
+      <div class="auth-divider"></div>
+      <p class="auth-hint">Még nincs fiókod?</p>
+
+      <a routerLink="/registration" class="auth-action-btn">
+        <i class="fa-solid fa-user-plus btn-truck"></i>
+        <span class="btn-text">Regisztrálj ingyen</span>
+      </a>
+
+      <a routerLink="/" class="auth-action-btn auth-action-btn--outline">
+        <i class="fa-solid fa-house btn-truck"></i>
+        <span class="btn-text">Vissza a főoldalra</span>
+      </a>
     </div>
-    <button type="submit" class="button" [disabled]="loginForm.invalid">Bejelentkezés</button>
-    <p>
-      Nincs még fiókod?
-      <a routerLink="/registration" class="reg-link">Regisztrálj egy újat!</a>
-    </p>
-  </form>
+
+    <!-- JOBB OLDAL: form -->
+    <div class="auth-right">
+      <h2 class="auth-form-title">Bejelentkezés</h2>
+
+      <form [formGroup]="loginForm" (ngSubmit)="onLoginSubmit()">
+        <div class="field-group">
+          <input
+            type="email"
+            class="form__field"
+            [class.invalid]="emailIsInvalid"
+            placeholder="Email"
+            id="email"
+            [formControl]="loginForm.controls.email"
+          />
+          <label for="email" class="form__label">Email</label>
+          @if (emailIsInvalid) {
+            <p class="error-message">Hibás email cím</p>
+          }
+        </div>
+
+        <div class="field-group">
+          <input
+            type="password"
+            class="form__field"
+            [class.invalid]="passwordIsInvalid"
+            placeholder="Jelszó"
+            id="password"
+            formControlName="password"
+          />
+          <label for="password" class="form__label">Jelszó</label>
+          <div class="forgot-wrap">
+            <button type="button" (click)="openForgotPassword()" class="forgot-link">
+              Elfelejtetted a jelszavad?
+            </button>
+          </div>
+          @if (passwordIsInvalid) {
+            <p class="error-message">Adja meg a jelszavát!</p>
+          }
+        </div>
+
+        @if (loginFailed()) {
+          <div class="login-error-banner">
+            <i class="fa-solid fa-circle-exclamation"></i>
+            <p>Hibás email vagy jelszó!</p>
+          </div>
+        }
+
+        <div class="chapta">
+          <label class="chapta-container">
+            <input type="checkbox" />
+            <span class="checkmark"></span>
+            <span class="chapta-text">Nem vagyok robot</span>
+            <img src="assets/rechapta.png" alt="reCAPTCHA" class="recaptcha-logo" />
+          </label>
+        </div>
+
+        <button type="submit" class="auth-btn" [disabled]="loginForm.invalid">Bejelentkezés</button>
+      </form>
+    </div>
+  </div>
 </div>
 
-<!-- ==========================================
-     FORGOT PASSWORD DIALOG
-     ========================================== -->
 @if (forgotDialogOpen()) {
   <div class="dialog-overlay" (click)="closeForgotPassword()">
     <div class="dialog-box" (click)="$event.stopPropagation()">
-      <!-- Siker állapot -->
       @if (resetSuccess()) {
         <div class="dialog-success">
           <i class="fa-solid fa-circle-check"></i>
@@ -78,7 +95,6 @@
           <button class="dialog-btn-primary" (click)="closeForgotPassword()">Bezárás</button>
         </div>
       } @else {
-        <!-- Form állapot -->
         <div class="dialog-header">
           <i class="fa-solid fa-key dialog-icon"></i>
           <h3>Jelszó visszaállítása</h3>
@@ -86,11 +102,9 @@
             <i class="fa-solid fa-xmark"></i>
           </button>
         </div>
-
         <p class="dialog-desc">
           Add meg a fiókodhoz tartozó email címet, és küldünk egy visszaállítási linket.
         </p>
-
         <div class="dialog-field">
           <input
             type="email"
@@ -105,14 +119,12 @@
             <p class="dialog-error">Érvényes email cím szükséges</p>
           }
         </div>
-
         @if (resetError()) {
           <div class="dialog-err-banner">
             <i class="fa-solid fa-triangle-exclamation"></i>
             <p>{{ resetError() }}</p>
           </div>
         }
-
         <button
           class="dialog-btn-primary"
           [disabled]="isSendingReset() || !resetEmailValid()"

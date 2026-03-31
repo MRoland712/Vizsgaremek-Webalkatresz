@@ -1,81 +1,215 @@
+/* ==========================================
+   AUTH PAGES - KÖZÖS ALAP
+   login.component.css és registration.component.css
+   egyaránt importálja / tartalmazza
+   ========================================== */
+
+/* ── Oldal háttér ── */
 .login-page {
   display: flex;
-  align-items: center; /* vertical center */
-  justify-content: center; /* horizontal center */
-  /* make sure the element fills the entire viewport so the background has no white gap */
+  align-items: center;
+  justify-content: center;
   position: fixed;
-  inset: 0; /* top:0; right:0; bottom:0; left:0; */
-  padding: 20px; /* breathing room on small screens */
-  /* use the project's assets folder as a full-page background */
+  inset: 0;
+  padding: 20px;
   background-image: url('/assets/ezaz.jpg');
   background-repeat: no-repeat;
   background-position: center;
   background-size: cover;
 }
 
-form {
-  /* fixed width and centered layout */
+/* ── Kártya ── */
+.auth-card {
+  display: flex;
   width: 100%;
-  max-width: 500px;
-  padding: 40px 35px;
-  /* slightly transparent form so the page background shows through */
-  background-color: #2b2b2b;
-  border: none;
-  box-sizing: border-box;
-  text-align: center;
-  border-radius: 30px;
-  color: #fffafa;
-  backdrop-filter: blur(1px);
-  box-shadow: 0px 6px 15px 5px rgba(0, 0, 0, 0.2);
-  -webkit-box-shadow: 0px 6px 15px 5px rgba(0, 0, 0, 0.2);
-  -moz-box-shadow: 0px 6px 15px 5px rgba(0, 0, 0, 0.2);
-  z-index: 2; /* make sure it sits above the background */
+  max-width: 860px;
+  min-height: 520px;
+  border-radius: 28px;
+  overflow: hidden;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.45);
 }
-.form-header {
+
+.auth-card--wide {
+  max-width: 960px;
+}
+
+/* ── Bal panel ── */
+.auth-left {
+  flex: 0 0 300px;
+  background: #2b2b2b;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 48px 36px;
+  text-align: center;
+  gap: 0;
+}
+
+.auth-logo {
+  width: 90px;
+  height: auto;
+  margin-bottom: 24px;
+}
+
+.auth-welcome {
+  font-size: 22px;
+  font-weight: 700;
+  color: #fffafa;
+  line-height: 1.3;
+  margin-bottom: 14px;
+}
+
+.auth-desc {
+  font-size: 13px;
+  color: rgba(255, 250, 250, 0.6);
+  line-height: 1.7;
+  margin-bottom: 28px;
+}
+
+.auth-divider {
+  width: 40px;
+  height: 2px;
+  background: #ff6600;
+  border-radius: 2px;
+  margin-bottom: 24px;
+}
+
+.auth-hint {
+  font-size: 13px;
+  color: rgba(255, 250, 250, 0.5);
+  margin-bottom: 12px;
+}
+
+.auth-switch-btn {
+  display: inline-block;
+  padding: 10px 24px;
+  border: 2px solid #ff6600;
+  border-radius: 30px;
+  color: #ff6600;
+  font-size: 14px;
+  font-weight: 600;
+  text-decoration: none;
+  transition: all 0.2s;
+}
+
+.auth-switch-btn:hover {
+  background: #ff6600;
+  color: #fff;
+}
+
+/* ── Animált action gombok (payment-forward stílus) ── */
+.auth-action-btn {
   display: flex;
   align-items: center;
   justify-content: center;
-  margin-bottom: 30px;
+  gap: 10px;
   width: 100%;
-  gap: 12px;
+  padding: 13px 24px;
+  background: #ff6600;
+  color: #fff;
+  border: none;
+  border-radius: 30px;
+  font-size: 14px;
+  font-weight: 700;
+  text-decoration: none;
+  cursor: pointer;
+  position: relative;
+  overflow: hidden;
+  margin-bottom: 10px;
+  transition: background 0.3s ease;
 }
 
-.form-header h2 {
-  margin: 0;
-  text-align: center;
-  font-size: 32px;
+.auth-action-btn .btn-text {
+  position: relative;
+  z-index: 2;
+  transition:
+    opacity 0.25s ease,
+    transform 0.25s ease;
 }
 
-.login-container {
+.auth-action-btn .btn-truck {
+  position: absolute;
+  left: -40px;
+  font-size: 18px;
+  z-index: 2;
+  opacity: 0;
+  transition:
+    left 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94),
+    opacity 0.3s ease;
+}
+
+.auth-action-btn:hover .btn-truck {
+  left: 50%;
+  transform: translateX(-50%);
+  opacity: 1;
+}
+
+.auth-action-btn:hover .btn-text {
+  opacity: 0;
+  transform: translateX(20px);
+}
+
+.auth-action-btn:hover {
+  background: #2b2b2b;
+}
+
+.auth-action-btn:hover .btn-truck {
+  color: #ff6600;
+}
+
+/* Outline változat (főoldalra vissza) */
+.auth-action-btn--outline {
+  background: transparent;
+  border: 2px solid rgba(255, 255, 255, 0.25);
+  color: rgba(255, 250, 250, 0.7);
+}
+
+.auth-action-btn--outline:hover {
+  background: rgba(255, 255, 255, 0.08);
+  border-color: rgba(255, 255, 255, 0.4);
+}
+
+.auth-action-btn--outline:hover .btn-truck {
+  color: #fffafa;
+}
+
+/* ── Jobb panel ── */
+.auth-right {
+  flex: 1;
+  background: #fffafa;
   display: flex;
   flex-direction: column;
-  gap: 16px;
-  align-items: center;
-  width: 100%;
+  justify-content: center;
+  padding: 48px 44px;
+  overflow-y: auto;
 }
 
-/* Floating label form groups */
-.email-control,
-.username-control,
-.login-control,
-.login-control .user-control {
-  position: relative; /* contain absolute label */
-  display: block;
-  width: 100%;
-  padding: 12px 0 0;
-  margin-top: 0;
-  box-sizing: border-box;
+.auth-form-title {
+  font-size: 26px;
+  font-weight: 700;
+  color: #2b2b2b;
+  margin-bottom: 32px;
 }
+
+/* ── Mezők ── */
+.field-group {
+  position: relative;
+  padding-top: 14px;
+  margin-bottom: 24px;
+}
+
 .form__field {
   width: 100%;
   border: 0;
-  border-bottom: 2px solid #fffafa;
+  border-bottom: 2px solid #2b2b2b;
   outline: 0;
-  font-size: 1.3rem;
-  color: #fffafa;
-  padding: 7px 0;
+  font-size: 1rem;
+  color: #2b2b2b;
+  padding: 6px 0;
   background: transparent;
   transition: border-color 0.2s;
+  font-family: inherit;
 }
 
 .form__field::placeholder {
@@ -83,34 +217,34 @@ form {
 }
 
 .form__field:placeholder-shown ~ .form__label {
-  font-size: 1.3rem;
+  font-size: 1rem;
   cursor: text;
   top: 20px;
+  color: #aaa;
+  font-weight: 400;
 }
 
 .form__label {
   position: absolute;
   top: 0;
+  left: 0;
   display: block;
   transition: 0.2s;
-  font-size: 1rem;
-  color: #fffafa;
+  font-size: 0.85rem;
+  color: #2b2b2b;
+  font-weight: 600;
 }
 
 .form__field:focus {
-  padding-bottom: 6px;
-  font-weight: bold;
+  padding-bottom: 5px;
   border-width: 3px;
   border-image: linear-gradient(to right, #ff6600, #d05604);
   border-image-slice: 1;
 }
 
 .form__field:focus ~ .form__label {
-  position: absolute;
   top: 0;
-  display: block;
-  transition: 0.2s;
-  font-size: 1rem;
+  font-size: 0.85rem;
   color: #ff6600;
   font-weight: 700;
 }
@@ -120,312 +254,63 @@ form {
   box-shadow: none;
 }
 
-/* link container under the password input */
-.login-control .forgot-password-container {
-  width: 100%;
-  margin-top: 6px;
+.form__field.invalid {
+  border-color: #ff4444 !important;
+  border-image: none !important;
+}
+
+/* ── Elfelejtett jelszó ── */
+.forgot-wrap {
   text-align: right;
+  margin-top: 6px;
 }
 
-/* the actual link */
-.login-control a {
-  display: inline-block;
-  font-size: 0.9em;
+.forgot-link {
+  font-size: 0.85em;
   color: #ff6600;
-  text-decoration: none;
-  transition: color 0.3s;
-  padding: 2px 4px; /* kis padding a link körül hogy kényelmesebb legyen kattintani */
-}
-
-/* registration link */
-.reg-link {
-  margin-left: 8px;
-  text-decoration: none;
-  font-weight: 600;
-  color: #ff6600;
-}
-
-/* button styling */
-.button {
-  display: block;
-  width: 100%;
-  padding: 12px;
-  margin-top: 16px;
+  cursor: pointer;
+  background: none;
   border: none;
-  background-color: #ff6600;
-  color: #fffafa;
-  border-radius: 30px;
-  cursor: pointer;
-  font-size: 1.1rem;
-  font-weight: 600;
-}
-.button:hover {
-  background: linear-gradient(to right, #ff6600, #ac4602);
+  font-family: inherit;
+  padding: 0;
+  transition: color 0.2s;
 }
 
-/* error messages */
+.forgot-link:hover {
+  color: #cc4f00;
+}
+
+/* ── Hibaüzenet ── */
 .error-message {
   color: #ff4444;
-  font-size: 0.9rem;
-  margin-top: 4px;
+  font-size: 11px;
+  margin-top: 5px;
   text-align: left;
+  padding-left: 2px;
 }
 
-/* register/login link text */
-form > p {
-  margin-top: 16px;
-  margin-bottom: 0;
-  font-size: 0.95rem;
-}
-
-.logo {
-  width: 100px;
-  height: 110px;
-}
-
-/* CAPTCHA styling */
-.chapta {
-  width: 100%;
-  max-width: 300px;
-  padding: 12px;
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  border-radius: 4px;
-  background-color: rgba(255, 255, 255, 0.1);
-}
-
-.chapta-container {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  cursor: pointer;
-  position: relative;
-  padding-left: 35px;
-  user-select: none;
-}
-
-.chapta-container input {
-  position: absolute;
-  opacity: 0;
-  cursor: pointer;
-  height: 0;
-  width: 0;
-}
-
-.checkmark {
-  position: absolute;
-  left: 0;
-  height: 24px;
-  width: 24px;
-  background-color: transparent;
-  border: 2px solid rgba(255, 255, 255, 0.8);
-  border-radius: 4px;
-  transition: all 0.2s;
-}
-
-.chapta-container:hover input ~ .checkmark {
-  border-color: #ff6600;
-}
-
-.chapta-container input:checked ~ .checkmark {
-  background-color: #ff6600;
-  border-color: #ff6600;
-}
-
-.checkmark:after {
-  content: '';
-  position: absolute;
-  display: none;
-  left: 8px;
-  top: 4px;
-  width: 5px;
-  height: 10px;
-  border: solid white;
-  border-width: 0 2px 2px 0;
-  transform: rotate(45deg);
-}
-
-.chapta-container input:checked ~ .checkmark:after {
-  display: block;
-}
-
-.chapta-text {
-  color: #fffafa;
-  font-size: 0.9rem;
-}
-
-.recaptcha-logo {
-  height: 24px;
-  margin-left: auto;
-}
-/* ==========================================
-   LOGIN ERROR HANDLING - Error messages
-   ========================================== */
-
-.error-message-container {
-  min-height: 24px; /* Reserved space - NEM ugrik a layout */
-  margin-top: 4px;
-  transition: all 0.3s ease;
-}
-
-.error-message {
-  color: #ff4444;
-  font-size: 13px;
-  margin: 0;
-  padding: 4px 8px;
-  background: rgba(255, 68, 68, 0.1);
-  border-radius: 4px;
-  border-left: 3px solid #ff4444;
-  animation: slideIn 0.3s ease;
-}
-
-@keyframes slideIn {
-  from {
-    opacity: 0;
-    transform: translateY(-8px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-/* Input invalid state */
-.form__field.invalid {
-  border-color: #ff4444 !important;
-  background: rgba(255, 68, 68, 0.05);
-}
-
-.form__field.invalid:focus {
-  border-color: #ff4444 !important;
-  box-shadow: 0 0 0 3px rgba(255, 68, 68, 0.1);
-}
-
-/* ==========================================
-   LOGIN FAILED BANNER
-   ========================================== */
-
+/* ── Login failed banner ── */
 .login-error-banner {
   display: flex;
   align-items: center;
-  gap: 12px;
-  padding: 12px 16px;
-  margin: 16px 0;
-  background: rgba(255, 68, 68, 0.1);
-  border: 1px solid rgba(255, 68, 68, 0.3);
+  gap: 10px;
+  padding: 10px 14px;
+  margin: 0 0 16px;
+  background: rgba(255, 68, 68, 0.08);
+  border: 1px solid rgba(255, 68, 68, 0.25);
+  border-left: 3px solid #ff4444;
   border-radius: 8px;
-  border-left: 4px solid #ff4444;
   animation: shake 0.5s ease;
 }
 
 .login-error-banner i {
   color: #ff4444;
-  font-size: 20px;
+  font-size: 16px;
 }
-
 .login-error-banner p {
   color: #ff4444;
   margin: 0;
-  font-size: 14px;
-  font-weight: 500;
-}
-
-@keyframes shake {
-  0%,
-  100% {
-    transform: translateX(0);
-  }
-  25% {
-    transform: translateX(-8px);
-  }
-  75% {
-    transform: translateX(8px);
-  }
-}
-
-/* ==========================================
-   USERNAME CONTROL
-   ========================================== */
-
-.username-control {
-  margin-bottom: 16px;
-}
-
-/* ==========================================
-   BUTTON DISABLED STATE
-   ========================================== */
-
-.button:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-  background: #cccccc;
-}
-
-.button:disabled:hover {
-  background: #cccccc;
-  transform: none;
-} /* ==========================================
-   LOGIN ERROR HANDLING - EGYSZERŰ VERZIÓ
-   NEM KELL ERROR-MESSAGE-CONTAINER!
-   ========================================== */
-
-.error-message {
-  color: #ff4444;
   font-size: 13px;
-  margin: 4px 0 0 0;
-  padding: 4px 8px;
-  background: rgba(255, 68, 68, 0.1);
-  border-radius: 4px;
-  border-left: 3px solid #ff4444;
-  animation: slideIn 0.3s ease;
-}
-
-@keyframes slideIn {
-  from {
-    opacity: 0;
-    transform: translateY(-4px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-/* Input invalid state */
-.form__field.invalid {
-  border-color: #ff4444 !important;
-}
-
-.form__field.invalid:focus {
-  border-color: #ff4444 !important;
-  box-shadow: 0 0 0 2px rgba(255, 68, 68, 0.2);
-}
-
-/* ==========================================
-   LOGIN FAILED BANNER
-   ========================================== */
-
-.login-error-banner {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  padding: 12px 16px;
-  margin: 12px 0;
-  background: rgba(255, 68, 68, 0.1);
-  border: 1px solid rgba(255, 68, 68, 0.3);
-  border-radius: 8px;
-  border-left: 4px solid #ff4444;
-  animation: shake 0.5s ease;
-}
-
-.login-error-banner i {
-  color: #ff4444;
-  font-size: 18px;
-}
-
-.login-error-banner p {
-  color: #ff4444;
-  margin: 0;
-  font-size: 14px;
   font-weight: 500;
 }
 
@@ -442,48 +327,116 @@ form > p {
   }
 }
 
-/* ==========================================
-   USERNAME CONTROL (ha új mező)
-   ========================================== */
-
-.username-control {
+/* ── Captcha ── */
+.chapta {
+  width: 100%;
+  padding: 10px 14px;
+  border: 1px solid #e0e0e0;
+  border-radius: 6px;
+  background: #f9f9f9;
   margin-bottom: 20px;
 }
 
-/* ==========================================
-   BUTTON DISABLED
-   ========================================== */
+.chapta-container {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  cursor: pointer;
+  position: relative;
+  padding-left: 32px;
+  user-select: none;
+}
 
-.button:disabled {
+.chapta-container input {
+  position: absolute;
+  opacity: 0;
+  cursor: pointer;
+  height: 0;
+  width: 0;
+}
+
+.checkmark {
+  position: absolute;
+  left: 0;
+  height: 22px;
+  width: 22px;
+  background-color: transparent;
+  border: 2px solid #ccc;
+  border-radius: 4px;
+  transition: all 0.2s;
+}
+
+.chapta-container:hover input ~ .checkmark {
+  border-color: #ff6600;
+}
+.chapta-container input:checked ~ .checkmark {
+  background-color: #ff6600;
+  border-color: #ff6600;
+}
+
+.checkmark:after {
+  content: '';
+  position: absolute;
+  display: none;
+  left: 7px;
+  top: 3px;
+  width: 5px;
+  height: 9px;
+  border: solid white;
+  border-width: 0 2px 2px 0;
+  transform: rotate(45deg);
+}
+
+.chapta-container input:checked ~ .checkmark:after {
+  display: block;
+}
+.chapta-text {
+  color: #2b2b2b;
+  font-size: 0.88rem;
+}
+.recaptcha-logo {
+  height: 22px;
+  margin-left: auto;
+}
+
+/* ── Gomb ── */
+.auth-btn {
+  display: block;
+  width: 100%;
+  padding: 13px;
+  border: none;
+  background: #ff6600;
+  color: #fff;
+  border-radius: 30px;
+  cursor: pointer;
+  font-size: 1rem;
+  font-weight: 700;
+  font-family: inherit;
+  transition: background 0.2s;
+  margin-top: 4px;
+}
+
+.auth-btn:hover:not(:disabled) {
+  background: linear-gradient(to right, #ff6600, #ac4602);
+}
+.auth-btn:disabled {
   opacity: 0.5;
   cursor: not-allowed;
   background: #999;
 }
-/* TODO: CSS LOGIN MINDEN MEGIGAZÍTÁSA HOGY IGÉNYES LEGYEN */
-/* ==========================================
-   FORGOT PASSWORD LINK
-   ========================================== */
-.forgot-link {
-  display: inline-block;
-  font-size: 0.9em;
-  color: #ff6600;
-  text-decoration: none;
-  cursor: pointer;
-  transition: color 0.2s;
-  padding: 2px 4px;
-  user-select: none;
-  background: none;
-  border: none;
-  font-family: inherit;
+
+/* ── Regisztrációs grid ── */
+.reg-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0 28px;
 }
 
-.forgot-link:hover {
-  color: #e65a00;
+.field-group--full {
+  grid-column: 1 / -1;
 }
 
-/* ==========================================
-   FORGOT PASSWORD DIALOG
-   ========================================== */
+/* ── Forgot password dialog ── */
 .dialog-overlay {
   position: fixed;
   inset: 0;
@@ -526,7 +479,6 @@ form > p {
   }
 }
 
-/* Header */
 .dialog-header {
   display: flex;
   align-items: center;
@@ -556,7 +508,6 @@ form > p {
   padding: 4px 8px;
   border-radius: 6px;
   transition: all 0.2s;
-  line-height: 1;
 }
 
 .dialog-close:hover {
@@ -564,7 +515,6 @@ form > p {
   color: #2b2b2b;
 }
 
-/* Description */
 .dialog-desc {
   font-size: 14px;
   color: #666;
@@ -572,7 +522,6 @@ form > p {
   margin: 0 0 20px;
 }
 
-/* Input */
 .dialog-field {
   margin-bottom: 16px;
 }
@@ -593,22 +542,18 @@ form > p {
 .dialog-input::placeholder {
   color: #bbb;
 }
-
 .dialog-input:focus {
   border-color: #ff6600;
 }
-
 .dialog-input--error {
   border-color: #ff4444 !important;
 }
-
 .dialog-error {
   color: #ff4444;
   font-size: 12px;
   margin: 6px 0 0;
 }
 
-/* Error banner */
 .dialog-err-banner {
   display: flex;
   align-items: center;
@@ -625,14 +570,12 @@ form > p {
   font-size: 16px;
   flex-shrink: 0;
 }
-
 .dialog-err-banner p {
   color: #ff4444;
   font-size: 13px;
   margin: 0;
 }
 
-/* Primary button */
 .dialog-btn-primary {
   width: 100%;
   padding: 13px;
@@ -648,42 +591,67 @@ form > p {
   justify-content: center;
   gap: 8px;
   transition: background 0.2s;
+  font-family: inherit;
 }
 
 .dialog-btn-primary:hover:not(:disabled) {
   background: #e65a00;
 }
-
 .dialog-btn-primary:disabled {
   opacity: 0.45;
   cursor: not-allowed;
 }
 
-/* Success state */
 .dialog-success {
   text-align: center;
-  padding: 8px 0;
   display: flex;
   flex-direction: column;
   align-items: center;
   gap: 12px;
+  padding: 8px 0;
 }
 
 .dialog-success i {
   font-size: 52px;
   color: #ff6600;
 }
-
 .dialog-success h3 {
   font-size: 20px;
   font-weight: 700;
   margin: 0;
   color: #2b2b2b;
 }
-
 .dialog-success p {
   font-size: 14px;
   color: #666;
   line-height: 1.6;
-  margin: 0 0 8px;
+  margin: 0;
+}
+
+/* ── Reszponzív ── */
+@media (max-width: 768px) {
+  .auth-card {
+    flex-direction: column;
+    max-width: 100%;
+    border-radius: 20px;
+  }
+  .auth-left {
+    flex: none;
+    padding: 32px 28px 24px;
+  }
+  .auth-welcome {
+    font-size: 18px;
+  }
+  .auth-desc {
+    display: none;
+  }
+  .auth-right {
+    padding: 28px 24px 36px;
+  }
+  .reg-grid {
+    grid-template-columns: 1fr;
+  }
+  .field-group--full {
+    grid-column: 1;
+  }
 }

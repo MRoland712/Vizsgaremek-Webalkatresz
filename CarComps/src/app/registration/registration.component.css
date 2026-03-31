@@ -1,3 +1,10 @@
+/* ==========================================
+   AUTH PAGES - KÖZÖS ALAP
+   login.component.css és registration.component.css
+   egyaránt importálja / tartalmazza
+   ========================================== */
+
+/* ── Oldal háttér ── */
 .login-page {
   display: flex;
   align-items: center;
@@ -11,292 +18,640 @@
   background-size: cover;
 }
 
-/* ==========================================
-   FORM - KÖZÉPEN, ÁTTETSZŐ
-   ========================================== */
-
-form {
+/* ── Kártya ── */
+.auth-card {
+  display: flex;
   width: 100%;
-  max-width: 700px;
-  padding: 40px 50px;
-  background-color: #2b2b2b;
-  border: none;
-  box-sizing: border-box;
-  text-align: center;
-  border-radius: 30px;
-  color: #fffafa;
-  backdrop-filter: blur(1px);
-  box-shadow: 0px 6px 15px 5px rgba(0, 0, 0, 0.2);
-  -webkit-box-shadow: 0px 6px 15px 5px rgba(0, 0, 0, 0.2);
-  -moz-box-shadow: 0px 6px 15px 5px rgba(0, 0, 0, 0.2);
-  z-index: 2;
-  min-height: 700px;
-  overflow-y: hidden;
+  max-width: 860px;
+  min-height: 520px;
+  border-radius: 28px;
+  overflow: hidden;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.45);
 }
 
-/* ==========================================
-   HEADER
-   ========================================== */
+.auth-card--wide {
+  max-width: 960px;
+}
 
-.form-header {
+/* ── Bal panel ── */
+.auth-left {
+  flex: 0 0 300px;
+  background: #2b2b2b;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 48px 36px;
+  text-align: center;
+  gap: 0;
+}
+
+.auth-logo {
+  width: 90px;
+  height: auto;
+  margin-bottom: 24px;
+}
+
+.auth-welcome {
+  font-size: 22px;
+  font-weight: 700;
+  color: #fffafa;
+  line-height: 1.3;
+  margin-bottom: 14px;
+}
+
+.auth-desc {
+  font-size: 13px;
+  color: rgba(255, 250, 250, 0.6);
+  line-height: 1.7;
+  margin-bottom: 28px;
+}
+
+.auth-divider {
+  width: 40px;
+  height: 2px;
+  background: #ff6600;
+  border-radius: 2px;
+  margin-bottom: 24px;
+}
+
+.auth-hint {
+  font-size: 13px;
+  color: rgba(255, 250, 250, 0.5);
+  margin-bottom: 12px;
+}
+
+.auth-switch-btn {
+  display: inline-block;
+  padding: 10px 24px;
+  border: 2px solid #ff6600;
+  border-radius: 30px;
+  color: #ff6600;
+  font-size: 14px;
+  font-weight: 600;
+  text-decoration: none;
+  transition: all 0.2s;
+}
+
+.auth-switch-btn:hover {
+  background: #ff6600;
+  color: #fff;
+}
+
+/* ── Animált action gombok (payment-forward stílus) ── */
+.auth-action-btn {
   display: flex;
   align-items: center;
   justify-content: center;
-  margin-bottom: 24px;
+  gap: 10px;
   width: 100%;
-  gap: 12px;
+  padding: 13px 24px;
+  background: #ff6600;
+  color: #fff;
+  border: none;
+  border-radius: 30px;
+  font-size: 14px;
+  font-weight: 700;
+  text-decoration: none;
+  cursor: pointer;
+  position: relative;
+  overflow: hidden;
+  margin-bottom: 10px;
+  transition: background 0.3s ease;
 }
 
-.form-header h2 {
-  margin: 0;
-  text-align: center;
-  font-size: 28px;
-  font-weight: 700;
+.auth-action-btn .btn-text {
+  position: relative;
+  z-index: 2;
+  transition:
+    opacity 0.25s ease,
+    transform 0.25s ease;
+}
+
+.auth-action-btn .btn-truck {
+  position: absolute;
+  left: -40px;
+  font-size: 18px;
+  z-index: 2;
+  opacity: 0;
+  transition:
+    left 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94),
+    opacity 0.3s ease;
+}
+
+.auth-action-btn:hover .btn-truck {
+  left: 50%;
+  transform: translateX(-50%);
+  opacity: 1;
+}
+
+.auth-action-btn:hover .btn-text {
+  opacity: 0;
+  transform: translateX(20px);
+}
+
+.auth-action-btn:hover {
+  background: #2b2b2b;
+}
+
+.auth-action-btn:hover .btn-truck {
+  color: #ff6600;
+}
+
+/* Outline változat (főoldalra vissza) */
+.auth-action-btn--outline {
+  background: transparent;
+  border: 2px solid rgba(255, 255, 255, 0.25);
+  color: rgba(255, 250, 250, 0.7);
+}
+
+.auth-action-btn--outline:hover {
+  background: rgba(255, 255, 255, 0.08);
+  border-color: rgba(255, 255, 255, 0.4);
+}
+
+.auth-action-btn--outline:hover .btn-truck {
   color: #fffafa;
 }
 
-.logo {
-  width: 80px;
-  height: 88px;
+/* ── Jobb panel ── */
+.auth-right {
+  flex: 1;
+  background: #fffafa;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: 48px 44px;
+  overflow-y: auto;
 }
 
-/* ==========================================
-   FORM CONTAINER - 2 OSZLOPOS GRID
-   ========================================== */
-
-.login-container {
-  display: grid;
-  grid-template-columns: 1fr 1fr; /* 2 oszlop */
-  gap: 16px 24px; /* row gap, column gap */
-  align-items: start;
-  width: 100%;
-  margin-bottom: 8px;
+.auth-form-title {
+  font-size: 26px;
+  font-weight: 700;
+  color: #2b2b2b;
+  margin-bottom: 32px;
 }
 
-/* Teljes szélességű elemek (email, jelszavak) */
-.phone-control,
-.login-control {
-  grid-column: 1 / -1; /* Mindkét oszlop */
-}
-
-/* ==========================================
-   INPUT CONTROLS - FLOATING LABELS
-   ========================================== */
-
-.username-control,
-.firstname-control,
-.lastname-control,
-.phone-control,
-.email-control,
-.login-control {
+/* ── Mezők ── */
+.field-group {
   position: relative;
-  display: block;
-  width: 100%;
-  padding: 12px 0 0;
-  margin-top: 0;
-  box-sizing: border-box;
-  min-height: 70px; /* ← FONTOS: elegendő hely az error üzenetnek */
+  padding-top: 14px;
+  margin-bottom: 24px;
 }
 
-/* Input field */
 .form__field {
   width: 100%;
   border: 0;
-  border-bottom: 2px solid #fffafa;
+  border-bottom: 2px solid #2b2b2b;
   outline: 0;
-  font-size: 1.1rem;
-  color: #fffafa;
-  padding: 7px 0;
+  font-size: 1rem;
+  color: #2b2b2b;
+  padding: 6px 0;
   background: transparent;
   transition: border-color 0.2s;
+  font-family: inherit;
 }
 
 .form__field::placeholder {
   color: transparent;
 }
 
-/* Label pozíció amikor placeholder látható */
 .form__field:placeholder-shown ~ .form__label {
-  font-size: 1.1rem;
+  font-size: 1rem;
   cursor: text;
   top: 20px;
-  color: #fffafa;
+  color: #aaa;
+  font-weight: 400;
 }
 
-/* Label alap pozíció */
 .form__label {
   position: absolute;
   top: 0;
+  left: 0;
   display: block;
   transition: 0.2s;
-  font-size: 0.9rem;
-  color: #fffafa;
-  font-weight: 500;
+  font-size: 0.85rem;
+  color: #2b2b2b;
+  font-weight: 600;
 }
 
-/* Focus állapot */
 .form__field:focus {
-  padding-bottom: 6px;
-  font-weight: bold;
+  padding-bottom: 5px;
   border-width: 3px;
   border-image: linear-gradient(to right, #ff6600, #d05604);
   border-image-slice: 1;
 }
 
 .form__field:focus ~ .form__label {
-  position: absolute;
   top: 0;
-  display: block;
-  transition: 0.2s;
-  font-size: 0.9rem;
+  font-size: 0.85rem;
   color: #ff6600;
   font-weight: 700;
 }
 
-/* Invalid állapot */
-.form__field.invalid {
-  border-bottom-color: #ff4444;
-}
-
-.form__field.invalid ~ .form__label {
-  color: #ff4444;
-}
-
-/* Required validation */
 .form__field:required,
 .form__field:invalid {
   box-shadow: none;
 }
 
-/* ==========================================
-   ERROR MESSAGES
-   ========================================== */
+.form__field.invalid {
+  border-color: #ff4444 !important;
+  border-image: none !important;
+}
 
+/* ── Elfelejtett jelszó ── */
+.forgot-wrap {
+  text-align: right;
+  margin-top: 6px;
+}
+
+.forgot-link {
+  font-size: 0.85em;
+  color: #ff6600;
+  cursor: pointer;
+  background: none;
+  border: none;
+  font-family: inherit;
+  padding: 0;
+  transition: color 0.2s;
+}
+
+.forgot-link:hover {
+  color: #cc4f00;
+}
+
+/* ── Hibaüzenet ── */
 .error-message {
   color: #ff4444;
-  font-size: 0.8rem;
-  margin-top: 4px;
+  font-size: 11px;
+  margin-top: 5px;
   text-align: left;
-  line-height: 1.3;
-  min-height: 20px; /* ← Biztos hogy van hely, még ha nincs error */
+  padding-left: 2px;
 }
 
-/* ==========================================
-   BUTTON
-   ========================================== */
+/* ── Login failed banner ── */
+.login-error-banner {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 14px;
+  margin: 0 0 16px;
+  background: rgba(255, 68, 68, 0.08);
+  border: 1px solid rgba(255, 68, 68, 0.25);
+  border-left: 3px solid #ff4444;
+  border-radius: 8px;
+  animation: shake 0.5s ease;
+}
 
-.button {
+.login-error-banner i {
+  color: #ff4444;
+  font-size: 16px;
+}
+.login-error-banner p {
+  color: #ff4444;
+  margin: 0;
+  font-size: 13px;
+  font-weight: 500;
+}
+
+@keyframes shake {
+  0%,
+  100% {
+    transform: translateX(0);
+  }
+  25% {
+    transform: translateX(-6px);
+  }
+  75% {
+    transform: translateX(6px);
+  }
+}
+
+/* ── Captcha ── */
+.chapta {
+  width: 100%;
+  padding: 10px 14px;
+  border: 1px solid #e0e0e0;
+  border-radius: 6px;
+  background: #f9f9f9;
+  margin-bottom: 20px;
+}
+
+.chapta-container {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  cursor: pointer;
+  position: relative;
+  padding-left: 32px;
+  user-select: none;
+}
+
+.chapta-container input {
+  position: absolute;
+  opacity: 0;
+  cursor: pointer;
+  height: 0;
+  width: 0;
+}
+
+.checkmark {
+  position: absolute;
+  left: 0;
+  height: 22px;
+  width: 22px;
+  background-color: transparent;
+  border: 2px solid #ccc;
+  border-radius: 4px;
+  transition: all 0.2s;
+}
+
+.chapta-container:hover input ~ .checkmark {
+  border-color: #ff6600;
+}
+.chapta-container input:checked ~ .checkmark {
+  background-color: #ff6600;
+  border-color: #ff6600;
+}
+
+.checkmark:after {
+  content: '';
+  position: absolute;
+  display: none;
+  left: 7px;
+  top: 3px;
+  width: 5px;
+  height: 9px;
+  border: solid white;
+  border-width: 0 2px 2px 0;
+  transform: rotate(45deg);
+}
+
+.chapta-container input:checked ~ .checkmark:after {
+  display: block;
+}
+.chapta-text {
+  color: #2b2b2b;
+  font-size: 0.88rem;
+}
+.recaptcha-logo {
+  height: 22px;
+  margin-left: auto;
+}
+
+/* ── Gomb ── */
+.auth-btn {
   display: block;
   width: 100%;
-  padding: 12px;
-  margin-top: 16px;
+  padding: 13px;
   border: none;
-  background-color: #ff6600;
-  color: #fffafa;
+  background: #ff6600;
+  color: #fff;
   border-radius: 30px;
   cursor: pointer;
-  font-size: 1.1rem;
-  font-weight: 600;
-  transition: background 0.3s ease;
+  font-size: 1rem;
+  font-weight: 700;
+  font-family: inherit;
+  transition: background 0.2s;
+  margin-top: 4px;
 }
 
-.button:hover:not(:disabled) {
+.auth-btn:hover:not(:disabled) {
   background: linear-gradient(to right, #ff6600, #ac4602);
 }
+.auth-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  background: #999;
+}
 
-.button:disabled {
-  opacity: 0.6;
+/* ── Regisztrációs grid ── */
+.reg-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0 28px;
+}
+
+.field-group--full {
+  grid-column: 1 / -1;
+}
+
+/* ── Forgot password dialog ── */
+.dialog-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+  animation: fadeIn 0.2s ease;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.dialog-box {
+  background: #fffafa;
+  border-radius: 16px;
+  width: 90%;
+  max-width: 420px;
+  padding: 28px;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.25);
+  animation: slideUp 0.3s ease;
+  color: #2b2b2b;
+}
+
+@keyframes slideUp {
+  from {
+    transform: translateY(40px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+.dialog-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.dialog-icon {
+  font-size: 24px;
+  color: #ff6600;
+}
+
+.dialog-header h3 {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 700;
+  color: #2b2b2b;
+  flex: 1;
+}
+
+.dialog-close {
+  background: transparent;
+  border: none;
+  color: #999;
+  font-size: 18px;
+  cursor: pointer;
+  padding: 4px 8px;
+  border-radius: 6px;
+  transition: all 0.2s;
+}
+
+.dialog-close:hover {
+  background: #f0f0f0;
+  color: #2b2b2b;
+}
+
+.dialog-desc {
+  font-size: 14px;
+  color: #666;
+  line-height: 1.6;
+  margin: 0 0 20px;
+}
+
+.dialog-field {
+  margin-bottom: 16px;
+}
+
+.dialog-input {
+  width: 100%;
+  padding: 12px 16px;
+  background: #fff;
+  border: 2px solid #e0e0e0;
+  border-radius: 8px;
+  color: #2b2b2b;
+  font-size: 15px;
+  outline: none;
+  box-sizing: border-box;
+  transition: border-color 0.2s;
+}
+
+.dialog-input::placeholder {
+  color: #bbb;
+}
+.dialog-input:focus {
+  border-color: #ff6600;
+}
+.dialog-input--error {
+  border-color: #ff4444 !important;
+}
+.dialog-error {
+  color: #ff4444;
+  font-size: 12px;
+  margin: 6px 0 0;
+}
+
+.dialog-err-banner {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 14px;
+  background: rgba(255, 68, 68, 0.08);
+  border: 1px solid rgba(255, 68, 68, 0.25);
+  border-radius: 8px;
+  margin-bottom: 16px;
+}
+
+.dialog-err-banner i {
+  color: #ff4444;
+  font-size: 16px;
+  flex-shrink: 0;
+}
+.dialog-err-banner p {
+  color: #ff4444;
+  font-size: 13px;
+  margin: 0;
+}
+
+.dialog-btn-primary {
+  width: 100%;
+  padding: 13px;
+  background: #ff6600;
+  color: #fffafa;
+  border: none;
+  border-radius: 8px;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  transition: background 0.2s;
+  font-family: inherit;
+}
+
+.dialog-btn-primary:hover:not(:disabled) {
+  background: #e65a00;
+}
+.dialog-btn-primary:disabled {
+  opacity: 0.45;
   cursor: not-allowed;
 }
 
-/* ==========================================
-   LOGIN LINK
-   ========================================== */
-
-form > p {
-  margin-top: 16px;
-  margin-bottom: 0;
-  font-size: 0.95rem;
-  color: #fffafa;
+.dialog-success {
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  padding: 8px 0;
 }
 
-.reg-link {
-  margin-left: 8px;
-  text-decoration: none;
-  font-weight: 600;
+.dialog-success i {
+  font-size: 52px;
   color: #ff6600;
-  transition: color 0.3s;
+}
+.dialog-success h3 {
+  font-size: 20px;
+  font-weight: 700;
+  margin: 0;
+  color: #2b2b2b;
+}
+.dialog-success p {
+  font-size: 14px;
+  color: #666;
+  line-height: 1.6;
+  margin: 0;
 }
 
-.reg-link:hover {
-  color: #ff8833;
-  text-decoration: underline;
-}
-
-/* ==========================================
-   RESPONSIVE
-   ========================================== */
-
+/* ── Reszponzív ── */
 @media (max-width: 768px) {
-  .login-page {
-    padding: 10px;
-  }
-
-  form {
+  .auth-card {
+    flex-direction: column;
     max-width: 100%;
-    padding: 30px 24px;
-    max-height: 95vh;
-  }
-
-  /* 1 oszlop mobilon */
-  .login-container {
-    grid-template-columns: 1fr;
-    gap: 12px;
-  }
-
-  .email-control,
-  .login-control {
-    grid-column: 1;
-  }
-
-  .form-header h2 {
-    font-size: 24px;
-  }
-
-  .logo {
-    width: 70px;
-    height: 77px;
-  }
-
-  .form__field {
-    font-size: 1rem;
-  }
-
-  .button {
-    font-size: 1rem;
-  }
-}
-
-@media (max-width: 480px) {
-  form {
-    padding: 24px 16px;
     border-radius: 20px;
   }
-
-  .form-header {
-    margin-bottom: 20px;
+  .auth-left {
+    flex: none;
+    padding: 32px 28px 24px;
   }
-
-  .form-header h2 {
-    font-size: 22px;
+  .auth-welcome {
+    font-size: 18px;
   }
-
-  .logo {
-    width: 60px;
-    height: 66px;
+  .auth-desc {
+    display: none;
   }
-
-  .login-container {
-    gap: 10px;
+  .auth-right {
+    padding: 28px 24px 36px;
+  }
+  .reg-grid {
+    grid-template-columns: 1fr;
+  }
+  .field-group--full {
+    grid-column: 1;
   }
 }
