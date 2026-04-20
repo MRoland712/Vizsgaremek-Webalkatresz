@@ -83,5 +83,4 @@ public class SessionsController {
                 .type(MediaType.APPLICATION_JSON)
                 .build();
     }
-
 }
