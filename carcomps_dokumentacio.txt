@@ -1,0 +1,1777 @@
+VIZSGAREMEK DOKUMENTÁCIÓJA
+CarComps - Autóalkatrész webáruház
+===================================
+Dátum: 2026-04-20
+Verzió: 2.0
+Weboldal: https://www.carcomps.hu
+API: https://api.carcomps.hu
+
+
+TARTALOMJEGYZÉK
+---------------
+1.  Feladat rövid ismertetése
+2.  Használt technológiák
+3.  Adatbázis
+4.  Fejlesztési módszertan
+5.  Elvégzett tesztek
+6.  Az oldal működésének részletes leírása
+7.  Fejlesztői dokumentáció
+8.  A projektben való rétegek felépítése
+9.  A frontend részletes leírása
+10. Csapatmunka
+11. Jövőbeli terveink
+12. Telepítési útmutató
+13. Unit tesztelés
+14. LiveDesign
+15. Manuális tesztelés
+
+
+===================================
+1. FELADAT RÖVID ISMERTETÉSE
+===================================
+
+A CarComps egy teljes értékű, webalapú autóalkatrész webáruház, amelyet
+vizsgaremekként fejlesztettünk. A projekt célja egy valóságban is működőképes
+e-commerce platform létrehozása volt, amely lefedi az autóalkatrészek
+böngészését, szűrését, megrendelését és az ehhez kapcsolódó összes
+adminisztrációs feladatot.
+
+A weboldal lehetővé teszi, hogy a felhasználók a saját járművük adatai
+alapján szűrjenek termékeket, tehát az oldalon nem csak egy általános
+terméklista van, hanem egy kompatibilitás alapú keresési rendszer is
+megvalósult. Például ha valakinek van egy 2018-as Mercedes B-Class modellje,
+az oldal csak azokat az alkatrészeket mutatja meg, amelyek ténylegesen
+kompatibilisak azzal a járművel.
+
+A felhasználók regisztrálhatnak, be tudnak jelentkezni, kosárba tehetnek
+termékeket, fizetést tudnak elvégezni, és a rendelésükről számlát is kapnak.
+Adminisztrátori oldalon lehetőség van termékek kezelésére, rendelések
+nyomon követésére és statisztikák megtekintésére.
+
+A projekt három fejlesztő közös munkájának eredménye, a fejlesztés Jirán
+keresztül volt koordinálva, a forráskód GitHubon érhető el.
+
+GitHub: https://github.com/MRoland712/Vizsgaremek-Webalkatresz
+
+
+===================================
+2. HASZNÁLT TECHNOLÓGIÁK
+===================================
+
+FRONTEND:
+  Keretrendszer:    Angular 21
+  Nyelv:            TypeScript 5.9
+  Stílus:           CSS (egyedi, keretrendszer nélkül)
+  Grafikon:         Chart.js 4.5
+  PDF generálás:    jsPDF 4.2 (kliensoldali)
+  Reaktív állapot:  Angular Signals
+  Tesztelés:        Cypress 15 (E2E), Karma + Jasmine (unit)
+  Buildelő:         Angular CLI 21 + Angular Build 21
+
+BACKEND:
+  Nyelv:            Java 11
+  Web keretrendszer: RESTEasy 4.7 (JAX-RS alapú)
+  Csomagolás:       WAR (Web Application Archive)
+  Autentikáció:     JWT (JJWT 0.11.5)
+  2FA:              TOTP - Google Authenticator kompatibilis (googleauth 1.5.0)
+  QR kód:           ZXing 3.5.0
+  E-mail:           JavaMail 1.6.2
+  PDF:              PDFBox 2.0.29, Flying Saucer 9.1.22
+  HTTP kliens:      Apache HttpComponents 4.5.14
+  Build:            Maven 3.x
+
+ADATBÁZIS:
+  Motor:            MySQL 5.7.24
+  Kódolás:          UTF-8
+
+HOSTING ÉS INFRASTRUKTÚRA:
+  Szolgáltató:      Cloudflare
+  Titkos kulcsok:   Cloudflare Worker KV (Key-Value store)
+  Frontend URL:     https://www.carcomps.hu
+  API URL:          https://api.carcomps.hu
+  Szerver:          Jelenleg lokálisan futtatott szerver (laptop)
+
+PROJEKTMENEDZSMENT:
+  Feladatkezelés:   Jira (feladatok, óralogolás)
+  Verziókezelés:    GitHub
+  Kommunikáció:     Discord
+  Design:           Figma
+
+
+===================================
+3. ADATBÁZIS
+===================================
+
+Az adatbázis neve: car_parts_shop_fix
+Séma verziója: 2.3 (utolsó frissítés: 2025. november 17.)
+Motor: MySQL 5.7, UTF-8 kódolással
+
+SOFT DELETE MINTA:
+
+Minden táblában szerepel egy "is_deleted" (boolean) és egy "deleted_at"
+(dátum/idő) mező. Amikor valamit "törlünk", az adatok fizikailag nem tűnnek
+el az adatbázisból, csak az is_deleted mező értéke változik igazra.
+Ez azért fontos, mert rendelési előzmények, számlák és pénzügyi adatok
+megtartása üzleti és jogi szempontból kötelező. A lekérdezések mindig
+szűrik a törölt rekordokat, tehát a felhasználó ezeket sohasem látja.
+
+TÁBLÁK RÉSZLETESEN:
+
+  users
+    Tartalmazza az összes felhasználói fiókot.
+    Mezők: id, guid, email, username, password (titkosítva), first_name,
+    last_name, phone, role (user / admin), is_active, is_subscribed,
+    last_login, created_at, updated_at, is_deleted, auth_secret,
+    registration_token.
+    Megjegyzés: a role mező határozza meg, hogy valaki admin-e vagy sima
+    felhasználó. A JWT tokenbe is bekerül a szerepkör.
+
+  addresses
+    Felhasználókhoz tartozó szállítási és számlázási címek.
+    Egy felhasználónak több címe is lehet.
+    Mezők: id, user_id, first_name, last_name, company, tax_number,
+    country, city, zip_code, street, is_default, created_at, updated_at,
+    is_deleted, deleted_at.
+
+  orders
+    Leadott rendelések táblája.
+    Mezők: id, user_id, status, created_at, updated_at, is_deleted, deleted_at.
+    A status mező lehetséges értékei:
+      pending   - a rendelés létrejött, de még nincs fizetve
+      paid      - fizetve
+      shipped   - kiszállítás alatt
+      delivered - kézbesítve
+      cancelled - visszamondva
+      refunded  - visszatérítve
+
+  order_items
+    Egy rendelésen belüli tételek. Minden sor egy terméket képvisel.
+    Mezők: id, order_id, part_id, quantity, price (a rendeléskori ár rögzítve),
+    created_at, is_deleted, deleted_at.
+    Megjegyzés: az ár rögzítése azért fontos, mert ha a termék ára
+    megváltozik, a régi rendelés összege nem változhat visszamenőlegesen.
+
+  cart_items
+    A kosárban lévő tételek. Ezek még nem végleges rendelések.
+    Mezők: id, user_id, part_id, quantity, added_at, is_deleted, deleted_at.
+
+  parts
+    Az alkatrészek fő táblája.
+    Mezők: id, manufacturer_id, sku (egyedi cikkszám), name, category,
+    price, stock, status, is_active, created_at, updated_at, is_deleted, deleted_at.
+
+  manufacturers
+    Alkatrész gyártók / márkák.
+    Mezők: id, name, country, created_at, is_deleted, deleted_at.
+
+  part_images
+    Termékekhez tartozó képek. Egy terméknek több képe is lehet, és
+    az egyik megjelölhető elsődlegesnek.
+    Mezők: id, part_id, url, is_primary, created_at, is_deleted, deleted_at.
+
+  part_variants
+    Termékváltozatok, például anyagtípus, méret, szín, különböző
+    kivitelezések, amelyek befolyásolhatják az árat.
+    Mezők: id, part_id, name, value, additional_price, created_at, is_deleted,
+    deleted_at.
+
+  part_compatibility
+    Ez a tábla köti össze az alkatrészeket a járművekkel.
+    Egy bejegyzés megmondja, hogy egy adott alkatrész melyik járműhöz
+    kompatibilis, és milyen típusú jármű az (car / motor / truck).
+    Mezők: id, part_id, vehicle_type (enum: car/motor/truck), vehicle_id,
+    created_at, updated_at, is_deleted, deleted_at.
+
+  cars
+    Személyautó modellek adatai.
+    Mezők: id, brand, model, year_from, year_to, created_at, updated_at,
+    is_deleted, deleted_at.
+
+  motors
+    Motorkerékpár modellek adatai. Ugyanolyan szerkezetű, mint a cars tábla.
+
+  trucks
+    Teherautó modellek adatai. Ugyanolyan szerkezetű, mint a cars tábla.
+
+  payments
+    Fizetési tranzakciók.
+    Mezők: id, order_id, amount, method, status, paid_at, created_at,
+    is_deleted, deleted_at.
+
+  invoices
+    Számlák, amelyek a sikeres fizetéshez kapcsolódnak. A számla PDF-ként
+    van tárolva és egy URL-en érhető el.
+    Mezők: id, order_id, pdf_url, created_at, is_deleted, deleted_at.
+
+  stock_logs
+    Készletváltozások naplója. Minden alkalommal, amikor a kész let változik,
+    ide kerül egy bejegyzés.
+    Mezők: part_id, change_amount, reason, created_at.
+
+  user_twofa
+    Kétfaktoros hitelesítés beállításai felhasználónként.
+    Mezők: id, user_id, twofa_enabled, twofa_secret, recovery_codes,
+    created_at, updated_at, is_deleted, deleted_at.
+
+  user_logs
+    Felhasználói műveletek általános naplója.
+    Mezők: user_id, action, details, created_at.
+
+  login_logs
+    Bejelentkezések naplója (mikor, milyen eszközről).
+    Mezők: id, user_id, user_agent, logged_in_at.
+
+  email_verifications
+    E-mail cím megerősítési tokenek.
+    Mezők: id, user_id, token, verified, sent_at, verified_at.
+
+  page_statistics
+    Oldalmegtekintések száma oldalanként.
+    Mezők: pageName, viewersCount, created_at, updated_at, is_deleted, deleted_at.
+
+  reviews
+    Termékvélemények, csillagos értékelésekkel.
+    Mezők: id, user_id, part_id, rating, comment, created_at, is_deleted, deleted_at.
+
+TAROLT ELJÁRÁSOK:
+
+Az adatbázis 60+ tárolt eljárást (stored procedure) tartalmaz. A fő üzleti
+logika ezeken keresztül fut, ami azt jelenti, hogy a backend Java kód
+ezeket hívja meg ahelyett, hogy maga írna összetett SQL lekérdezéseket.
+
+A legfontosabbak:
+  checkoutCart         - A kosár tartalmát dolgozza fel: ellenőrzi a készletet,
+                         megakadályozza, hogy olyan termék kerüljön megrendelésre,
+                         amelyből nincs raktáron. Zárolást is alkalmaz, hogy
+                         párhuzamos rendelések ne okozzanak adatkonfliktust.
+  createOrderWithItems - Egyszerű rendelést hoz létre közvetlen tételekkel.
+  processPayment       - Fizetést dolgoz fel: elmenti a tranzakciót és
+                         frissíti a rendelés státuszát.
+  processRefund        - Visszatérítést kezel: visszaállítja a készletet
+                         és megváltoztatja a rendelés státuszát.
+  user_login           - Bejelentkezéskor frissíti a last_login mezőt
+                         és visszaadja a felhasználó adatait.
+  admin_login          - Admin bejelentkezés, ugyanaz, mint a user_login,
+                         de ellenőrzi az admin szerepkört is.
+
+
+===================================
+4. FEJLESZTÉSI MÓDSZERTAN
+===================================
+
+A projekt fejlesztése Agile szemléletű volt, bár nem követtünk szigorúan
+egyetlen módszertant sem. A feladatok nyomon követésére Jirát használtunk,
+ahol minden fejlesztési feladat fel volt véve, hozzá volt rendelve egy
+felelős személy, és az elvégzett munkaidőt is ott logoltuk.
+
+A verziókezelés GitHubon történt. A csapat tagjai külön ágakon (branch)
+dolgoztak, majd pull requesteken keresztül mergelték a módosításokat a
+fő ágba.
+
+A kommunikáció Discordon zajlott, ahol megbeszéltük, hogy ki mit csinál,
+milyen irányba menjen egy-egy funkció fejlesztése, és ott osztottuk meg
+egymással a kisebb döntéseket is.
+
+A design előre el volt készítve Figmában, mielőtt a frontend fejlesztés
+elkezdődött volna. Ez segített abban, hogy ne kelljen közben változtatni
+az elrendezésen, és a csapatnak egységes képe legyen arról, hogyan nézzen
+ki a végeredmény.
+
+A fejlesztés sorrendje nagyjából a következő volt:
+  1. Adatbázis séma megtervezése és elkészítése
+  2. Figma design elkészítése
+  3. Backend API fejlesztése
+  4. Frontend fejlesztése az API alapján
+  5. Tesztelés, hibajavítás
+  6. Deployment, hosting beállítása
+
+
+===================================
+5. ELVÉGZETT TESZTEK
+===================================
+
+A projekten kétféle tesztelés volt elvégezve: manuális tesztelés
+és automatizált frontend tesztelés.
+
+MANUÁLIS TESZTELÉS:
+  A manuális tesztek egy Excel táblázatban vannak dokumentálva.
+  Minden teszteset tartalmaz egy leírást arról, hogy mit tesztelünk,
+  milyen lépéseket kell elvégezni, mi a várt eredmény, és hogy az adott
+  teszteset sikeresen teljesítette-e a követelményt.
+  Részletesen a 15. fejezetben olvasható.
+
+AUTOMATIZÁLT (CYPRESS) TESZTELÉS:
+  A frontend tesztelésre Cypress 15-öt használunk, amely E2E (end-to-end)
+  tesztelési keretrendszer. Ez azt jelenti, hogy a tesztek valódi böngészőben
+  futnak, és a felhasználói interakciókat szimulálják, például gombokra
+  kattintanak, kitöltenek űrlapokat, és ellenőrzik, hogy a megfelelő
+  tartalom jelenik-e meg az oldalon.
+  Részletesen a 13. fejezetben olvasható.
+
+
+===================================
+6. AZ OLDAL MŰKÖDÉSÉNEK RÉSZLETES LEÍRÁSA
+===================================
+
+REGISZTRÁCIÓ ÉS BEJELENTKEZÉS:
+
+A felhasználó az oldalra érkezve regisztrálhat vagy bejelentkezhet.
+A regisztrációs folyamat során meg kell adni az e-mail címet, a jelszót
+és a megerősítő jelszót. A jelszóra vonatkozó követelmények:
+  - legalább egy nagybetű (A-Z)
+  - legalább egy szám (0-9)
+  - legalább egy speciális karakter (?, ., :, #, /, @, &, ,, !, =, -, _, %, $)
+
+Sikeres regisztráció után a rendszer egy aktiválási e-mailt küld a
+megadott e-mail címre. A fiók csak az e-mailben lévő linkre kattintva
+aktiválódik. Aktiválás nélkül a felhasználó nem tud bejelentkezni.
+
+A bejelentkezés JWT token alapú. Sikeres bejelentkezés után a szerver
+visszaad egy tokent, amelyet a böngésző localStorage-ban tárol el.
+Ez a token tartalmazza a felhasználó adatait és a szerepkörét. Minden
+védett API kéréshez ezt a tokent el kell küldeni a kérés fejlécében.
+
+Ha a felhasználónak engedélyezve van a kétfaktoros hitelesítés, a
+bejelentkezés után egy második lépés következik: be kell írni a
+Google Authenticator vagy hasonló TOTP alkalmazás által generált
+6 jegyű kódot.
+
+JELSZÓ VISSZAÁLLÍTÁS:
+
+Ha a felhasználó elfelejtette a jelszavát, a bejelentkezési oldalon
+kérheti a visszaállítást. Megadja az e-mail címét, a rendszer küld
+egy egyedi tokent tartalmazó linket, amelyre kattintva egy új jelszót
+lehet megadni.
+
+TERMÉKEK BÖNGÉSZÉSE:
+
+A főoldalon és a termékoldalon a felhasználó böngészheti az
+alkatrészeket. A szűrési rendszer lehetővé teszi, hogy jármű szerint
+szűrjenek: először a járműtípust kell kiválasztani (autó, motor,
+teherautó), majd a márkát, a modellt és az évjáratot. Ez után az
+oldal csak azokat a termékeket jeleníti meg, amelyek kompatibilisek
+az adott járművel.
+
+A termék részletlapján látható a termék neve, leírása, ára, képei,
+elérhető változatai (például méret vagy anyag), és az értékelések.
+
+KOSÁR ÉS RENDELÉS:
+
+Kosárba helyezni csak bejelentkezett felhasználóként lehet. A kosárban
+lévő termékek mennyiségét lehet növelni vagy csökkenteni, és el lehet
+távolítani tételeket. A kosár tartalma a szerveren van tárolva, nem
+csak a böngészőben, tehát ha valaki kijelentkezik és visszajön,
+a kosara megmarad.
+
+A rendelési folyamat több lépésből áll:
+  1. Kosár megtekintése és ellenőrzése
+  2. Szállítási cím megadása vagy mentett cím kiválasztása
+  3. Fizetés elvégzése
+  4. Rendelés összefoglalója
+
+A fizetés elvégzése után a rendszer automatikusan számlát generál és
+a rendelés státusza "paid"-re vált.
+
+FELHASZNÁLÓI PROFIL:
+
+A profiloldalon a felhasználó szerkesztheti személyes adatait (név,
+e-mail, telefonszám), kezelheti a mentett szállítási és számlázási
+címeit, megtekintheti a korábbi rendeléseit, és beállíthatja a
+kétfaktoros hitelesítést.
+
+A garázsban a felhasználó felveheti a saját járműveit (autó, motor,
+teherautó), amelyeket aztán a termékkeresésnél használhat szűrőként.
+
+ADMIN FELÜLET:
+
+Az admin felületet csak admin szerepkörű felhasználók érhetik el.
+A következő funkciók érhetők el:
+  - Új termék feltöltése (cikkszám, névl, kategória, ár, kép, változatok,
+    kompatibilis járművek beállítása)
+  - Meglévő termékek szerkesztése, inaktiválása és törlése
+  - Rendelések listázása és státuszuk módosítása
+  - Visszatérítések kezelése
+  - Oldalstatisztikák megtekintése (mennyien látogatják az egyes oldalakat)
+  - Felhasználók listázása
+
+
+===================================
+7. FEJLESZTŐI DOKUMENTÁCIÓ - API VÉGPONTOK
+===================================
+
+Az API alap URL-je (a továbbiakban: {base}):
+https://api.carcomps.hu/vizsgaremek-1.0-SNAPSHOT/webresources/
+
+HITELESÍTÉS:
+
+Szinte minden végpont JWT token alapú hitelesítést igényel. A tokent
+a bejelentkezési végpont adja vissza, és azt a kérés fejlécébe kell
+elhelyezni az alábbi módon:
+
+  Fejléc neve:  token
+  Fejléc értéke: <a bejelentkezés után kapott JWT token>
+
+Sikeres válasz általános formátuma:
+  {
+    "result": "...",
+    "status": "success",
+    "statusCode": 200
+  }
+
+Hibaválasz általános formátuma (a hibák listába kerülnek):
+  {
+    "errors": ["MissingToken", "..."],
+    "status": "failed",
+    "statusCode": 401
+  }
+
+Lehetséges HTTP státuszkódok:
+  200 - Sikeres kérés
+  400 - Hibás kérés (pl. hiányzó kötelező mező)
+  401 - Hitelesítési hiba (hiányzó vagy érvénytelen token)
+  403 - Jogosultsági hiba (nincs admin jog)
+  404 - Az erőforrás nem található
+  409 - Konfliktus (pl. soft-deleted rekord)
+  500 - Szerver oldali hiba
+
+-----------------------------------
+7.1 FELHASZNÁLÓK (/user)
+-----------------------------------
+
+POST {base}user/createUser
+  Leírás:   Új felhasználói fiók létrehozása (regisztráció).
+  Auth:     Nem szükséges.
+  Body:     JSON objektum a felhasználó adataival (email, password, ...)
+  Eredmény: A rendszer létrehozza a fiókot és aktiválási e-mailt küld.
+            A fiók addig inaktív, amíg az e-mailben lévő linkre nem kattintanak.
+  Visszatér: {"status": "success", "statusCode": 200}
+
+PUT {base}user/loginUser
+  Leírás:   Felhasználó vagy admin bejelentkeztetése. Ugyanez a végpont
+            kezeli mindkét szerepkört: a JWT tokenbe kerül bele, hogy
+            admin-e vagy sem.
+  Auth:     Nem szükséges.
+  Body:     {"email": "...", "password": "..."}
+  Eredmény: Visszaad egy JWT tokent, amelyet ezután minden védett
+            kérésnél el kell küldeni a "token" fejlécben.
+  Visszatér: {"token": "<jwt>", "status": "success", "statusCode": 200}
+
+GET {base}user/getUserById?id=6
+  Leírás:   Egy adott felhasználó adatainak lekérése azonosító alapján.
+  Auth:     Szükséges.
+  Paraméter: id - a felhasználó azonosítója
+  Visszatér: A felhasználó teljes adatsora (jelszó nélkül).
+
+GET {base}user/getUserByEmail?email=pelda@email.hu
+  Leírás:   Felhasználó keresése e-mail cím alapján.
+  Auth:     Szükséges.
+  Paraméter: email - a keresett e-mail cím
+  Visszatér: A megtalált felhasználó adatsora.
+
+GET {base}user/getAdminByEmail?email=root@carcomps.hu
+  Leírás:   Admin felhasználó keresése e-mail cím alapján.
+            Csak admin jogosultsággal rendelkezők adatait adja vissza.
+  Auth:     Szükséges (admin).
+  Paraméter: email - az admin e-mail cím
+  Visszatér: Az admin felhasználó adatsora.
+
+GET {base}user/getUsers
+  Leírás:   Az összes felhasználó listázása.
+  Auth:     Szükséges (admin).
+  Visszatér: Felhasználók tömbje (soft-deleted nélkül).
+
+GET {base}user/getActivatedUsers
+  Leírás:   Csak az aktivált (megerősített e-mailcímű) felhasználók listázása.
+  Auth:     Szükséges (admin).
+  Visszatér: Aktivált felhasználók tömbje.
+
+PUT {base}user/updateUser?email=pelda@email.hu  (vagy localhost-on)
+  Leírás:   Meglévő felhasználó adatainak frissítése.
+  Auth:     Szükséges.
+  Paraméter: email - a módosítandó felhasználó e-mail címe
+  Body:     JSON objektum a frissítendő mezőkkel.
+  Visszatér: {"status": "success", "statusCode": 200}
+
+DELETE {base}user/softDeleteUser?id=6
+  Leírás:   Felhasználó soft-törlése. Az adatok megmaradnak az adatbázisban,
+            de a fiók inaktívvá válik.
+  Auth:     Szükséges (admin).
+  Paraméter: id - a törlendő felhasználó azonosítója
+  Visszatér: {"status": "success", "statusCode": 200}
+
+GET {base}user/activateUser?activationToken=<token>
+  Leírás:   Felhasználói fiók aktiválása az e-mailben kapott token alapján.
+  Auth:     Nem szükséges.
+  Paraméter: activationToken - a regisztrációkor generált egyedi token
+  Eredmény: A fiók aktívvá válik, a felhasználó be tud lépni.
+  Visszatér: {"status": "success", "statusCode": 200}
+
+-----------------------------------
+7.2 JWT VALIDÁCIÓ (/JWT)
+-----------------------------------
+
+GET {base}JWT/validateJWT
+  Leírás:   Ellenőrzi, hogy az elküldött JWT token érvényes-e, nem járt-e le,
+            és valódi-e az aláírása.
+  Auth:     Szükséges (maga a token kerül ellenőrzésre).
+  Eredmény: Ha a token érvényes, success választ ad. Ha lejárt vagy hamis,
+            hibával tér vissza, és a frontend kilépteti a felhasználót.
+  Visszatér: {"status": "success", "statusCode": 200}
+             vagy {"errors": ["InvalidToken"], "status": "failed", "statusCode": 401}
+
+GET {base}JWT/extractJWTData
+  Leírás:   A JWT tokenből kinyeri a benne tárolt adatokat (felhasználó
+            azonosítója, szerepköre, lejárati idő stb.).
+  Auth:     Szükséges.
+  Visszatér: A token tartalmát JSON formátumban.
+
+-----------------------------------
+7.3 KÉTFAKTOROS HITELESÍTÉS (/TFA, /UserTwofa)
+-----------------------------------
+
+POST {base}TFA/generateQR
+  Leírás:   QR kódot generál a kétfaktoros hitelesítés beállításához.
+            A felhasználó ezt a QR kódot szkeneli be a Google Authenticator
+            vagy más TOTP alkalmazásba.
+  Auth:     Szükséges.
+  Body:     {"email": "..."}
+  Eredmény: Visszaad egy QR kód képet (Base64 formátumban vagy URL-ként),
+            amelyet a frontend megjelenít.
+
+POST {base}TFA/validateTFACode
+  Leírás:   Ellenőrzi a TOTP alkalmazás által generált 6 jegyű kódot.
+            Ez a lépés a bejelentkezés második fázisában történik, miután
+            a jelszó már ellenőrzésre került.
+  Auth:     Részlegesen szükséges (ideiglenes token vagy email alapján).
+  Body:     {"email": "...", "code": "123456"}
+  Eredmény: Sikeres ellenőrzés esetén a rendszer teljes hozzáférést ad,
+            és kiadja a végleges JWT tokent.
+  Visszatér: {"status": "success", "statusCode": 200}
+             vagy {"errors": ["InvalidCode"], "status": "failed", "statusCode": 401}
+
+POST {base}UserTwofa/createUserTwofa
+  Leírás:   Létrehozza a kétfaktoros hitelesítés rekordját az adott felhasználóhoz.
+            Ez az első lépés a 2FA bekapcsolásakor.
+  Auth:     Szükséges.
+  Body:     {"userId": 17, ...}
+  Visszatér: {"status": "success", "statusCode": 200}
+
+GET {base}UserTwofa/getUserTwofaByUserId?userId=17
+  Leírás:   Visszaadja a felhasználó 2FA beállításait az azonosítója alapján.
+            A frontend ezzel ellenőrzi, hogy a 2FA be van-e kapcsolva.
+  Auth:     Szükséges.
+  Paraméter: userId - a felhasználó azonosítója
+  Visszatér: A 2FA rekord adatai (secret nélkül).
+
+GET {base}UserTwofa/getUserTwofaById?id=1
+  Leírás:   Visszaadja a kétfaktoros hitelesítési rekordot a saját azonosítója alapján.
+  Auth:     Szükséges.
+  Paraméter: id - a 2FA rekord azonosítója
+
+GET {base}UserTwofa/getAllUserTwofa
+  Leírás:   Az összes 2FA beállítás listázása adminisztrátori célokra.
+  Auth:     Szükséges (admin).
+
+PUT {base}UserTwofa/updateUserTwofa?id=1
+  Leírás:   Frissíti a kétfaktoros hitelesítési beállítást
+            (pl. engedélyezés / letiltás kapcsolói).
+  Auth:     Szükséges.
+  Paraméter: id - a 2FA rekord azonosítója
+  Body:     JSON a frissítendő mezőkkel.
+
+DELETE {base}UserTwofa/softDeleteUserTwofa?id=3
+  Leírás:   Soft-törli a 2FA rekordot, ami gyakorlatilag letiltja a
+            kétfaktoros hitelesítést az adott felhasználónál.
+  Auth:     Szükséges.
+  Paraméter: id - a 2FA rekord azonosítója
+
+GET {base}UserTwofa/checkUserTwoFaEnabled?userId=<id>
+  Leírás:   Egyszerűen visszaadja, hogy a megadott felhasználónak
+            be van-e kapcsolva a 2FA. A bejelentkezési folyamat ezt
+            hívja meg, hogy eldöntse, szükséges-e a második lépés.
+  Auth:     Részlegesen szükséges.
+  Paraméter: userId - a felhasználó azonosítója
+  Visszatér: {"enabled": true/false, "status": "success", "statusCode": 200}
+
+-----------------------------------
+7.4 OTP (EGYSZERI KÓD) (/OTP)
+-----------------------------------
+
+POST {base}OTP/verifyOTP
+  Leírás:   Az e-mailben kiküldött egyszeri kód ellenőrzése. Ez alternatív
+            hitelesítési módszerként funkcionál.
+  Auth:     Nem szükséges (ez maga a hitelesítési lépés).
+  Body:     {"email": "...", "otp": "123456"}
+  Visszatér: {"status": "success", "statusCode": 200}
+
+-----------------------------------
+7.5 SESSION KEZELÉS (/Sessions)
+-----------------------------------
+
+POST {base}Sessions/createSession?userId=13
+  Leírás:   Új session tokent hoz létre az adott felhasználóhoz.
+  Auth:     Szükséges.
+  Paraméter: userId - a felhasználó azonosítója
+
+GET {base}Sessions/getSessionTokenByUserId?userId=13
+  Leírás:   Visszaadja az adott felhasználóhoz tartozó session tokent.
+  Auth:     Szükséges.
+  Paraméter: userId - a felhasználó azonosítója
+
+-----------------------------------
+7.6 E-MAIL KEZELÉS (/email, /EmailVerifications)
+-----------------------------------
+
+POST {base}email/sendOTP?email=pelda@email.hu
+  Leírás:   Egyszeri kódot (OTP) küld a megadott e-mail cím re.
+            Jelszó visszaállításhoz vagy alternatív bejelentkezéshez használják.
+  Auth:     Nem szükséges.
+  Paraméter: email - a fogadó e-mail cím
+  Eredmény: A rendszer generál egy 6 jegyű kódot, és elküldi e-mailben.
+
+POST {base}email/sendCustomerSupport
+  Leírás:   Ügyfélszolgálati e-mailt küld. A frontend kapcsolatfelvételi
+            űrlapja ezt a végpontot hívja meg.
+  Auth:     Szükséges.
+  Body:     {"name": "...", "email": "...", "message": "..."}
+
+PUT {base}email/sendActivateUser?email=pelda@email.hu
+  Leírás:   Újraküldi az aktiválási e-mailt, ha a felhasználó nem kapta meg
+            vagy az előző token lejárt.
+  Auth:     Nem szükséges.
+  Paraméter: email - az aktiválandó fiók e-mail cím e
+
+POST {base}email/sendPromotion
+  Leírás:   Promóciós e-mailt küld ki a feliratkozott felhasználóknak.
+            Adminisztrátori funkció.
+  Auth:     Szükséges (admin).
+  Body:     A promóció tartalma JSON formátumban.
+
+DELETE {base}email/archiveEmail?messageId=<id>
+  Leírás:   Archivál egy e-mailt a Gmail integrációban.
+  Auth:     Szükséges.
+  Paraméter: messageId - a Gmail üzenet azonosítója
+
+GET {base}email/getMessages
+  Leírás:   Lekéri a beérkező e-maileket (Gmail integráció). Ez az admin
+            felületen az ügyfélszolgálati üzenetek megtekintésére szolgál.
+  Auth:     Szükséges (admin).
+
+POST {base}EmailVerifications/createEmailVerificationAndSendEmail
+  Leírás:   Létrehozza az e-mail megerősítési rekordot és azonnal kiküldi
+            a megerősítési e-mailt.
+  Auth:     Nem szükséges (regisztráció részeként hívódik).
+  Body:     {"userId": ..., "email": "..."}
+
+GET {base}EmailVerifications/activateEmail?activationToken=<token>
+  Leírás:   Az e-mailben kapott link végpontja. A tokenre kattintva a rendszer
+            aktívnak jelöli a felhasználói fiókot.
+  Auth:     Nem szükséges.
+  Paraméter: activationToken - az egyedi aktiválási token
+
+-----------------------------------
+7.7 JELSZÓ VISSZAÁLLÍTÁS (/passwordReset)
+-----------------------------------
+
+POST {base}passwordReset/createPasswordReset
+  Leírás:   Jelszó visszaállítási folyamatot indít. A rendszer generál
+            egy egyedi tokent és elküldi e-mailben a felhasználónak.
+  Auth:     Nem szükséges.
+  Body:     {"email": "..."}
+
+GET {base}passwordReset/getPasswordResetByToken?token=<uuid>
+  Leírás:   Token alapján lekéri a jelszó visszaállítási rekordot.
+            A frontend ezzel ellenőrzi, hogy a token érvényes-e.
+  Auth:     Nem szükséges.
+  Paraméter: token - a visszaállítási token (UUID formátum)
+
+GET {base}passwordReset/resetPasswordPage?token=<token>
+  Leírás:   A jelszó visszaállítási oldalt tölti be a token alapján.
+            Ha a token érvénytelen vagy lejárt, hibaoldalt jelenít meg.
+  Auth:     Nem szükséges.
+  Paraméter: token - a visszaállítási token
+
+PUT {base}passwordReset/resetPassword
+  Leírás:   Az új jelszót menti el. Ez a végpont hívódik meg, amikor a
+            felhasználó a visszaállítási oldalon beírja az új jelszót.
+  Auth:     Nem szükséges (a token hitelesít).
+  Body:     {"token": "...", "newPassword": "...", "confirmPassword": "..."}
+
+PUT {base}passwordReset/updatePasswordReset
+  Leírás:   Frissíti a jelszó visszaállítási rekord adatait.
+  Auth:     Szükséges.
+
+DELETE {base}passwordReset/softDeletePasswordReset?userId=1
+  Leírás:   Törli (soft-delete) a jelszó visszaállítási rekordot
+            egy adott felhasználóhoz. Általában visszaállítás után hívódik.
+  Auth:     Szükséges.
+  Paraméter: userId - a felhasználó azonosítója
+
+-----------------------------------
+7.8 CÍMEK (/addresses)
+-----------------------------------
+
+GET {base}addresses/getAddressById?id=3
+  Leírás:   Egy adott cím lekérése az azonosítója alapján.
+  Auth:     Szükséges.
+  Paraméter: id - a cím azonosítója
+  Visszatér: A cím összes adata (street, city, zip, ország stb.)
+
+GET {base}addresses/getAllAddresses
+  Leírás:   Az összes cím lekérése. Adminisztrátori használatra, mert
+            az összes felhasználó összes címét visszaadja.
+  Auth:     Szükséges (admin).
+
+POST {base}addresses/createAddress
+  Leírás:   Új cím hozzáadása egy felhasználóhoz.
+  Auth:     Szükséges.
+  Body:     {"userId": ..., "firstName": "...", "lastName": "...",
+             "country": "...", "city": "...", "zipCode": "...",
+             "street": "...", "isDefault": true/false, ...}
+
+PUT {base}addresses/updateAddress?id=4
+  Leírás:   Meglévő cím adatainak módosítása.
+  Auth:     Szükséges.
+  Paraméter: id - a módosítandó cím azonosítója
+  Body:     JSON a frissítendő mezőkkel.
+
+DELETE {base}addresses/softDeleteAddress?id=1
+  Leírás:   Cím soft-törlése. A cím megmarad az adatbázisban, de a
+            felhasználó számára nem jelenik meg többé.
+  Auth:     Szükséges.
+  Paraméter: id - a törlendő cím azonosítója
+
+-----------------------------------
+7.9 GYÁRTÓK (/manufacturers)
+-----------------------------------
+
+GET {base}manufacturers/getAllManufacturers
+  Leírás:   Az összes alkatrészgyártó listázása.
+  Auth:     Nem szükséges.
+  Visszatér: Gyártók tömbje névvel és országgal.
+
+GET {base}manufacturers/getManufacturersById?id=1
+  Leírás:   Egy gyártó lekérése az azonosítója alapján.
+  Auth:     Nem szükséges.
+  Paraméter: id - a gyártó azonosítója
+
+GET {base}manufacturers/getManufacturersByName?name=Bosch
+  Leírás:   Gyártó keresése név alapján.
+  Auth:     Nem szükséges.
+  Paraméter: name - a keresett gyártó neve (pl. Bosch, NGK, Denso)
+
+POST {base}manufacturers/createManufacturers
+  Leírás:   Új gyártó felvétele az adatbázisba.
+  Auth:     Szükséges (admin).
+  Body:     {"name": "...", "country": "..."}
+
+PUT {base}manufacturers/updateManufacturers?id=11
+  Leírás:   Meglévő gyártó adatainak frissítése.
+  Auth:     Szükséges (admin).
+  Paraméter: id - a módosítandó gyártó azonosítója
+
+DELETE {base}manufacturers/softDeleteManufacturers?id=1
+  Leírás:   Gyártó soft-törlése. Az ehhez tartozó termékek nem törlődnek,
+            de a gyártó neve nem jelenik meg az aktív szűrőkben.
+  Auth:     Szükséges (admin).
+  Paraméter: id - a törlendő gyártó azonosítója
+
+-----------------------------------
+7.10 AUTÓK (/cars)
+-----------------------------------
+
+GET {base}cars/getAllCars
+  Leírás:   Az összes személyautó modell listázása.
+  Auth:     Nem szükséges.
+  Visszatér: Autók tömbje márkával, modellel és évjárat-tartománnyal.
+
+GET {base}cars/getCarsById?id=2
+  Leírás:   Egy adott autó lekérése az azonosítója alapján.
+  Auth:     Nem szükséges.
+  Paraméter: id - az autó azonosítója
+
+GET {base}cars/getCarsByBrand?brand=Mercedes-Benz
+  Leírás:   Autók listázása márka alapján.
+  Auth:     Nem szükséges.
+  Paraméter: brand - a keresett márka neve
+
+GET {base}cars/getCarsByModel?model=B-Class
+  Leírás:   Autók keresése modellnév alapján.
+  Auth:     Nem szükséges.
+  Paraméter: model - a keresett modellnév
+
+POST {base}cars/createCars
+  Leírás:   Új autó modell felvétele az adatbázisba.
+  Auth:     Szükséges (admin).
+  Body:     {"brand": "...", "model": "...", "yearFrom": ..., "yearTo": ...}
+
+PUT {base}cars/updateCars?id=1
+  Leírás:   Meglévő autó adatainak frissítése.
+  Auth:     Szükséges (admin).
+  Paraméter: id - az autó azonosítója
+
+DELETE {base}cars/softDeleteCars?id=6
+  Leírás:   Autó soft-törlése. Az autóhoz rendelt kompatibilitási
+            rekordok is érvénytelenek lesznek.
+  Auth:     Szükséges (admin).
+  Paraméter: id - a törlendő autó azonosítója
+
+-----------------------------------
+7.11 MOTOROK (/motors)
+-----------------------------------
+
+GET {base}motors/getAllMotors
+  Leírás:   Az összes motorkerékpár modell listázása.
+  Auth:     Nem szükséges.
+
+GET {base}motors/getMotorsById?id=1
+  Leírás:   Egy adott motor lekérése azonosító alapján.
+  Auth:     Nem szükséges.
+  Paraméter: id - a motor azonosítója
+
+GET {base}motors/getMotorsByBrand?brand=yamaha
+  Leírás:   Motorok listázása márka alapján.
+  Auth:     Nem szükséges.
+  Paraméter: brand - a keresett márka (pl. yamaha, honda, kawasaki)
+
+GET {base}motors/getMotorsByModel?model=night
+  Leírás:   Motorok keresése modell neve alapján.
+  Auth:     Nem szükséges.
+  Paraméter: model - a keresett modell részleges neve is elfogadott
+
+POST {base}motors/createMotors
+  Leírás:   Új motor modell felvétele.
+  Auth:     Szükséges (admin).
+
+PUT {base}motors/updateMotors?id=6
+  Leírás:   Motor adatainak frissítése.
+  Auth:     Szükséges (admin).
+  Paraméter: id - a motor azonosítója
+
+DELETE {base}motors/softDeleteMotors?id=1
+  Leírás:   Motor soft-törlése.
+  Auth:     Szükséges (admin).
+  Paraméter: id - a törlendő motor azonosítója
+
+-----------------------------------
+7.12 TEHERAUTÓK (/trucks)
+-----------------------------------
+
+GET {base}trucks/getAllTrucks
+  Leírás:   Az összes teherautó modell listázása.
+  Auth:     Nem szükséges.
+
+GET {base}trucks/getTrucksById?id=1
+  Leírás:   Egy teherautó lekérése azonosító alapján.
+  Auth:     Nem szükséges.
+  Paraméter: id - a teherautó azonosítója
+
+GET {base}trucks/getTrucksByBrand?brand=fiat
+  Leírás:   Teherautók listázása márka alapján.
+  Auth:     Nem szükséges.
+  Paraméter: brand - a márka neve
+
+GET {base}trucks/getTrucksByModel?model=panda
+  Leírás:   Teherautók keresése modell neve alapján.
+  Auth:     Nem szükséges.
+  Paraméter: model - a modell neve
+
+POST {base}trucks/createTrucks
+  Leírás:   Új teherautó modell felvétele.
+  Auth:     Szükséges (admin).
+
+PUT {base}cars/updateTrucks
+  Leírás:   Teherautó adatainak frissítése.
+  Auth:     Szükséges (admin).
+
+DELETE {base}trucks/softDeleteTrucks?id=1
+  Leírás:   Teherautó soft-törlése.
+  Auth:     Szükséges (admin).
+  Paraméter: id - a törlendő teherautó azonosítója
+
+-----------------------------------
+7.13 FELHASZNÁLÓ JÁRMŰVEI (/userVehicles)
+-----------------------------------
+
+GET {base}userVehicles/getUserVehiclesByUserId?userId=1
+  Leírás:   Visszaadja egy adott felhasználó összes mentett járművét.
+            Ezt a listát használja a frontend a termékszűrő automatikus
+            kitöltéséhez a garázs alapján.
+  Auth:     Szükséges.
+  Paraméter: userId - a felhasználó azonosítója
+
+POST {base}userVehicles/createUserVehicle
+  Leírás:   Új jármű hozzáadása a felhasználó garázsához.
+  Auth:     Szükséges.
+  Body:     {"userId": ..., "vehicleType": "car/motor/truck", "vehicleId": ...}
+
+DELETE {base}userVehicles/softDeleteUserVehicle?id=1
+  Leírás:   Jármű eltávolítása a garázsból.
+  Auth:     Szükséges.
+  Paraméter: id - a jármű-felhasználó kapcsolat azonosítója
+
+-----------------------------------
+7.14 ALKATRÉSZEK (/parts)
+-----------------------------------
+
+GET {base}parts/getAllParts
+  Leírás:   Az összes aktív alkatrész listázása képek nélkül.
+  Auth:     Nem szükséges.
+  Visszatér: Alkatrészek tömbje (id, sku, name, category, price, stock, ...).
+
+GET {base}parts/getAllPartsWithImages
+  Leírás:   Az összes aktív alkatrész listázása, beleértve a képek URL-jeit is.
+            Ez a lassabb, de teljesebb lekérdezés, amelyet a terméklista
+            oldal betöltésekor hív meg a frontend.
+  Auth:     Nem szükséges.
+
+GET {base}parts/getPartsById?id=1
+  Leírás:   Egy alkatrész teljes adatlapja azonosító alapján.
+  Auth:     Nem szükséges.
+  Paraméter: id - az alkatrész azonosítója
+
+GET {base}parts/getPartsBySku?sku=MOTO-SPARKPLUG-001
+  Leírás:   Alkatrész keresése a cikkszáma alapján. A cikkszám egyedi.
+  Auth:     Nem szükséges.
+  Paraméter: sku - a keresett cikkszám
+
+GET {base}parts/getPartsByManufacturerId?manufacturerId=1
+  Leírás:   Egy adott gyártó összes alkatrészének listázása.
+  Auth:     Nem szükséges.
+  Paraméter: manufacturerId - a gyártó azonosítója
+
+GET {base}parts/getPartsCategory
+  Leírás:   Az összes létező alkatrészkategória listázása.
+            A frontend szűrőjébe tölti be az elérhető kategóriákat.
+  Auth:     Nem szükséges.
+  Visszatér: Kategórianevek tömbje.
+
+POST {base}parts/createParts
+  Leírás:   Új alkatrész felvétele az adatbázisba.
+  Auth:     Szükséges (admin).
+  Body:     {"manufacturerId": ..., "sku": "...", "name": "...",
+             "category": "...", "price": ..., "stock": ...}
+
+PUT {base}parts/updateParts?id=1
+  Leírás:   Alkatrész adatainak frissítése.
+  Auth:     Szükséges (admin).
+  Paraméter: id - az alkatrész azonosítója
+
+DELETE {base}parts/softDeleteParts?id=1
+  Leírás:   Alkatrész soft-törlése.
+  Auth:     Szükséges (admin).
+  Paraméter: id - a törlendő alkatrész azonosítója
+
+-----------------------------------
+7.15 ALKATRÉSZ KÉPEK (/partimages)
+-----------------------------------
+
+GET {base}partimages/getAllPartImages
+  Leírás:   Az összes feltöltött termékkép listázása.
+  Auth:     Nem szükséges.
+
+GET {base}partimages/getPartImagesById?id=1
+  Leírás:   Egy kép adatainak lekérése az azonosítója alapján.
+  Auth:     Nem szükséges.
+  Paraméter: id - a kép azonosítója
+
+GET {base}partimages/getPartImagesByPartId?partId=113
+  Leírás:   Egy adott alkatrészhez tartozó összes kép lekérése.
+            A termékreszletlap ezt használja a képgaléria megjelenítéséhez.
+  Auth:     Nem szükséges.
+  Paraméter: partId - az alkatrész azonosítója
+
+GET {base}partimages/getPartImagesByUrl?urlIN=<url>
+  Leírás:   Kép keresése URL alapján.
+  Auth:     Nem szükséges.
+  Paraméter: urlIN - a keresett URL
+
+POST {base}partimages/uploadPartImage
+  Leírás:   Képfájl feltöltése az alkatrészhez. A kép feltöltődik a tárhelyre
+            és a visszakapott URL kerül az adatbázisba.
+  Auth:     Szükséges (admin).
+  Body:     multipart/form-data formátumban a képfájl és a partId.
+
+POST {base}partimages/createPartImage  (localhost)
+  Leírás:   Manuálisan rögzít egy képet az adatbázisban URL alapján,
+            fájl feltöltés nélkül. Fejlesztői célokra.
+  Auth:     Szükséges (admin).
+
+PUT {base}partimages/updatePartImage
+  Leírás:   Meglévő képrekord adatainak frissítése (pl. is_primary váltása).
+  Auth:     Szükséges (admin).
+
+DELETE {base}partimages/softDeletePartImages?idIN=113
+  Leírás:   Kép soft-törlése. A képfájl a tárhelyen marad, de az alkatrész
+            oldalán nem jelenik meg.
+  Auth:     Szükséges (admin).
+  Paraméter: idIN - a törlendő kép azonosítója
+
+-----------------------------------
+7.16 ALKATRÉSZ VÁLTOZATOK (/partVariants)
+-----------------------------------
+
+GET {base}partVariants/getAllPartVariants
+  Leírás:   Az összes termékváltozat listázása.
+  Auth:     Nem szükséges.
+
+GET {base}partVariants/getPartVariantsById?id=3
+  Leírás:   Egy változat lekérése az azonosítója alapján.
+  Auth:     Nem szükséges.
+  Paraméter: id - a változat azonosítója
+
+GET {base}partVariants/getPartVariantsByName?name=Anyag
+  Leírás:   Változatok keresése a változat neve (típusa) alapján.
+            Például az "Anyag" nevű változat az anyagtípust jelöli.
+  Auth:     Nem szükséges.
+  Paraméter: name - a változat neve
+
+GET {base}partVariants/getPartVariantsByValue?value=<érték>
+  Leírás:   Változatok keresése az értékük alapján.
+  Auth:     Nem szükséges.
+  Paraméter: value - a keresett érték
+
+POST {base}partVariants/createPartVariants
+  Leírás:   Új változat hozzáadása egy alkatrészhez.
+  Auth:     Szükséges (admin).
+  Body:     {"partId": ..., "name": "...", "value": "...", "additionalPrice": ...}
+
+PUT {base}partVariants/updatePartVariants?id=9
+  Leírás:   Változat adatainak frissítése.
+  Auth:     Szükséges (admin).
+  Paraméter: id - a változat azonosítója
+
+DELETE {base}partVariants/softDeletePartVariants?id=19
+  Leírás:   Változat soft-törlése.
+  Auth:     Szükséges (admin).
+  Paraméter: id - a törlendő változat azonosítója
+
+-----------------------------------
+7.17 ALKATRÉSZ-JÁRMŰ KOMPATIBILITÁS (/partCompatibility)
+-----------------------------------
+
+GET {base}partCompatibility/getAllPartCompatibility
+  Leírás:   Az összes kompatibilitási bejegyzés listázása.
+  Auth:     Nem szükséges.
+
+GET {base}partCompatibility/getPartCompatibilityById?id=1
+  Leírás:   Egy kompatibilitási bejegyzés lekérése azonosító alapján.
+  Auth:     Nem szükséges.
+
+GET {base}partCompatibility/getPartCompatibilityByVehicleId?vehicleId=3
+  Leírás:   Visszaadja az összes alkatrészt, amely kompatibilis egy
+            adott jármű azonosítóval. Ezt hívja meg a frontend, amikor
+            a felhasználó kiválasztja a járművét a szűrőben.
+  Auth:     Nem szükséges.
+  Paraméter: vehicleId - a jármű azonosítója (cars, motors vagy trucks táblából)
+
+GET {base}partCompatibility/getPartCompatibilityByVehicleType?vehicleType=car
+  Leírás:   Kompatibilitási bejegyzések szűrése járműtípus alapján.
+            A vehicleType értékei: car, motor, truck.
+  Auth:     Nem szükséges.
+  Paraméter: vehicleType - a jármű típusa
+
+POST {base}partCompatibility/createPartCompatibility
+  Leírás:   Új kompatibilitási kapcsolat létrehozása alkatrész és jármű között.
+  Auth:     Szükséges (admin).
+  Body:     {"partId": ..., "vehicleType": "car", "vehicleId": ...}
+
+PUT {base}partCompatibility/updatePartCompatibility?id=1
+  Leírás:   Kompatibilitási bejegyzés módosítása.
+  Auth:     Szükséges (admin).
+  Paraméter: id - a bejegyzés azonosítója
+
+DELETE {base}partCompatibility/softDeletePartCompatibility?id=1
+  Leírás:   Kompatibilitási bejegyzés soft-törlése, ezzel megszüntetve
+            az alkatrész és a jármű közötti kompatibilitást.
+  Auth:     Szükséges (admin).
+  Paraméter: id - a törlendő bejegyzés azonosítója
+
+-----------------------------------
+7.18 KOSÁR TÉTELEK (/cartItems)
+-----------------------------------
+
+GET {base}cartItems/getCartItemsByUserId?userId=18
+  Leírás:   Visszaadja egy adott felhasználó kosarának tartalmát.
+            A kosár oldal betöltésekor hívódik meg.
+  Auth:     Szükséges.
+  Paraméter: userId - a felhasználó azonosítója
+
+GET {base}cartItems/getCartItemById?id=4
+  Leírás:   Egy kosár tétel lekérése az azonosítója alapján.
+  Auth:     Szükséges.
+  Paraméter: id - a kosár tétel azonosítója
+
+GET {base}cartItems/getCartItemsByPartId?partId=3
+  Leírás:   Megkeresi, hogy egy adott alkatrész benne van-e már a kosárban.
+  Auth:     Szükséges.
+  Paraméter: partId - az alkatrész azonosítója
+
+GET {base}cartItems/getAllCartItems
+  Leírás:   Az összes felhasználó összes kosár tételének listázása.
+            Csak adminisztrátori célra.
+  Auth:     Szükséges (admin).
+
+POST {base}cartItems/createCartItems
+  Leírás:   Új tétel hozzáadása a kosárhoz. Ha a termék már benne van,
+            a backend kezeli a duplikációt (vagy frissít, vagy hibával tér vissza).
+  Auth:     Szükséges.
+  Body:     {"userId": ..., "partId": ..., "quantity": ...}
+
+PUT {base}cartItems/updateCartItem?id=4
+  Leírás:   Kosár tétel frissítése, például a mennyiség változtatása.
+  Auth:     Szükséges.
+  Paraméter: id - a kosár tétel azonosítója
+  Body:     {"quantity": ...}
+
+DELETE {base}cartItems/softDeleteCartItem?id=2
+  Leírás:   Tétel eltávolítása a kosárból (soft-delete).
+  Auth:     Szükséges.
+  Paraméter: id - a törlendő kosár tétel azonosítója
+
+-----------------------------------
+7.19 RENDELÉSEK (/orders)
+-----------------------------------
+
+GET {base}orders/getAllOrders
+  Leírás:   Az összes rendelés listázása adminisztrátori célokra.
+  Auth:     Szükséges (admin).
+  Visszatér: Rendelések tömbje státusszal, összeggel és dátummal.
+
+GET {base}orders/getOrdersById?id=7
+  Leírás:   Egy adott rendelés lekérése az azonosítója alapján.
+  Auth:     Szükséges.
+  Paraméter: id - a rendelés azonosítója
+
+GET {base}orders/getOrdersByUserId?idIN=19
+  Leírás:   Egy felhasználó összes rendelésének listázása.
+            A profiloldalon a rendelési előzmények szekciójában hívódik.
+  Auth:     Szükséges.
+  Paraméter: idIN - a felhasználó azonosítója
+
+POST {base}orders/createOrders
+  Leírás:   Üres rendelés létrehozása. Az általánosabb, manuális eset.
+  Auth:     Szükséges.
+  Body:     {"userId": ..., "status": "pending"}
+
+POST {base}orders/createOrderWithItem
+  Leírás:   Rendelés létrehozása és közvetlen végrehajtása a kosár alapján.
+            Ez az a végpont, amely a valódi vásárlási folyamatban a
+            fizetés megerősítésekor hívódik meg. A tárolt eljárás gondoskodik
+            a készletellenőrzésről és a kosár kiürítéséről.
+  Auth:     Szükséges.
+  Body:     {"userId": ..., "addressId": ..., ...}
+
+PUT {base}orders/updateOrders?id=1
+  Leírás:   Rendelés státuszának vagy adatainak frissítése.
+            Az admin ezzel változtatja a rendelés állapotát (pl. paid -> shipped).
+  Auth:     Szükséges.
+  Paraméter: id - a rendelés azonosítója
+  Body:     {"status": "shipped"}
+
+DELETE {base}orders/softDeleteOrders?id=1
+  Leírás:   Rendelés soft-törlése. A pénzügyi átláthatóság miatt
+            ez általában nem ajánlott, csak adminisztrátori szükség esetén.
+  Auth:     Szükséges (admin).
+  Paraméter: id - a törlendő rendelés azonosítója
+
+-----------------------------------
+7.20 RENDELÉS TÉTELEK (/OrderItems)
+-----------------------------------
+
+GET {base}OrderItems/getAllOrderItems
+  Leírás:   Az összes rendelési tétel listázása.
+  Auth:     Szükséges.
+
+GET {base}OrderItems/getAllOrderItemsAdmin
+  Leírás:   Az összes rendelési tétel listázása adminisztrátori nézettel,
+            további összesített adatokkal kiegészítve.
+  Auth:     Szükséges (admin).
+
+GET {base}OrderItems/getOrderItemById?id=3
+  Leírás:   Egy rendelési tétel lekérése az azonosítója alapján.
+  Auth:     Szükséges.
+  Paraméter: id - a tétel azonosítója
+
+GET {base}getOrderItemsByOrderId?orderId=6
+  Leírás:   Egy adott rendelés összes tételének lekérése.
+            A rendelés összefoglaló oldalán hívódik, hogy megmutassa,
+            mit tartalmaz a rendelés.
+  Auth:     Szükséges.
+  Paraméter: orderId - a rendelés azonosítója
+
+GET {base}orderItems/getOrderItemsByPartId?partId=5
+  Leírás:   Megmutatja, hogy egy adott alkatrész hány rendelésben és
+            mennyi mennyiségben szerepelt.
+  Auth:     Szükséges (admin).
+  Paraméter: partId - az alkatrész azonosítója
+
+POST {base}orderItems/createOrderItems
+  Leírás:   Új tétel hozzáadása egy meglévő rendeléshez.
+  Auth:     Szükséges.
+  Body:     {"orderId": ..., "partId": ..., "quantity": ..., "price": ...}
+
+PUT {base}orderItems/updateOrderItem?id=3
+  Leírás:   Rendelési tétel frissítése.
+  Auth:     Szükséges.
+  Paraméter: id - a tétel azonosítója
+
+DELETE {base}orderItems/softDeleteOrderItem?id=4
+  Leírás:   Rendelési tétel soft-törlése.
+  Auth:     Szükséges (admin).
+  Paraméter: id - a törlendő tétel azonosítója
+
+-----------------------------------
+7.21 FIZETÉSEK (/payments)
+-----------------------------------
+
+GET {base}payments/getAllPayments
+  Leírás:   Az összes fizetési tranzakció listázása.
+  Auth:     Szükséges (admin).
+
+GET {base}payments/getPaymentById?id=3
+  Leírás:   Egy fizetési tranzakció lekérése azonosító alapján.
+  Auth:     Szükséges.
+  Paraméter: id - a fizetés azonosítója
+
+GET {base}payments/getPaymentsByOrderId?orderId=6
+  Leírás:   Egy adott rendeléshez tartozó fizetések lekérése.
+  Auth:     Szükséges.
+  Paraméter: orderId - a rendelés azonosítója
+
+POST {base}payments/createPayments
+  Leírás:   Fizetési rekord manuális létrehozása. Az egyszerű eset,
+            amely a fizetési adatot rögzíti a feldolgozó eljárás nélkül.
+  Auth:     Szükséges.
+  Body:     {"orderId": ..., "amount": ..., "method": "...", "status": "..."}
+
+POST {base}payments/processPayment
+  Leírás:   A tényleges fizetés feldolgozása. Ez a legfontosabb fizetési
+            végpont. A háttérben a processPayment tárolt eljárást hívja meg,
+            amely egyszerre hozza létre a fizetési rekordot és frissíti
+            a rendelés státuszát "paid"-re. Ha bármi hiba van (pl. nem
+            megfelelő összeg, érvénytelen rendelés), visszavonja a teljes
+            műveletet (tranzakció).
+  Auth:     Szükséges.
+  Body:     {"orderId": ..., "amount": ..., "method": "..."}
+  Visszatér: {"status": "success", "statusCode": 200}
+             vagy {"errors": ["InsufficientStock", ...], "status": "failed", "statusCode": 400}
+
+PUT {base}payments/updatePayment?id=3
+  Leírás:   Fizetési rekord adatainak frissítése (pl. státusz módosítása).
+  Auth:     Szükséges (admin).
+  Paraméter: id - a fizetés azonosítója
+
+DELETE {base}payments/softDeletePayment?id=2
+  Leírás:   Fizetési rekord soft-törlése.
+  Auth:     Szükséges (admin).
+  Paraméter: id - a törlendő fizetés azonosítója
+
+-----------------------------------
+7.22 SZÁMLÁK (/invoices)
+-----------------------------------
+
+GET {base}invoices/getAllInvoices
+  Leírás:   Az összes számla listázása.
+  Auth:     Szükséges (admin).
+
+GET {base}invoices/getInvoiceById?id=2
+  Leírás:   Egy számla lekérése az azonosítója alapján.
+  Auth:     Szükséges.
+  Paraméter: id - a számla azonosítója
+
+GET {base}invoices/getInvoicesByOrderId?orderId=6
+  Leírás:   Egy rendeléshez tartozó számla lekérése. A számla PDF URL-je
+            ebből a válaszból derül ki, amellyel a felhasználó letöltheti
+            a számlát.
+  Auth:     Szükséges.
+  Paraméter: orderId - a rendelés azonosítója
+
+POST {base}invoices/createInvoice
+  Leírás:   Számla generálása és rögzítése. A sikeres fizetés után
+            automatikusan hívódik meg.
+  Auth:     Szükséges.
+  Body:     {"orderId": ...}
+  Eredmény: PDF számla generálódik, az URL eltárolódik az adatbázisban.
+
+PUT {base}invoices/updateInvoice?id=5
+  Leírás:   Számla rekordjának frissítése.
+  Auth:     Szükséges (admin).
+  Paraméter: id - a számla azonosítója
+
+DELETE {base}invoices/softDeleteInvoice?id=2
+  Leírás:   Számla soft-törlése.
+  Auth:     Szükséges (admin).
+  Paraméter: id - a törlendő számla azonosítója
+
+-----------------------------------
+7.23 ÉRTÉKELÉSEK (/reviews)
+-----------------------------------
+
+GET {base}reviews/getAllReviews
+  Leírás:   Az összes termékvélemény listázása.
+  Auth:     Nem szükséges.
+
+GET {base}reviews/getReviewsById?id=3
+  Leírás:   Egy értékelés lekérése az azonosítója alapján.
+  Auth:     Nem szükséges.
+  Paraméter: id - az értékelés azonosítója
+
+GET {base}reviews/getReviewsByPartId?partId=2
+  Leírás:   Egy adott alkatrész összes értékelésének listázása.
+            A termék részletlapon jelenik meg a vélemények szekció.
+  Auth:     Nem szükséges.
+  Paraméter: partId - az alkatrész azonosítója
+
+GET {base}reviews/getReviewsByUserId?userId=6
+  Leírás:   Egy felhasználó által írt összes értékelés listázása.
+  Auth:     Szükséges.
+  Paraméter: userId - a felhasználó azonosítója
+
+GET {base}reviews/getReviewsByRating?rating=5
+  Leírás:   Értékelések szűrése csillagszám alapján.
+  Auth:     Nem szükséges.
+  Paraméter: rating - a keresett csillagszám (1-5)
+
+POST {base}reviews/createReviews
+  Leírás:   Új értékelés írása egy alkatrészhez.
+            Csak olyan felhasználó írhat véleményt, aki megvette a terméket.
+  Auth:     Szükséges.
+  Body:     {"userId": ..., "partId": ..., "rating": ..., "comment": "..."}
+
+PUT {base}reviews/updateReviews?id=2
+  Leírás:   Meglévő értékelés szerkesztése.
+  Auth:     Szükséges.
+  Paraméter: id - az értékelés azonosítója
+
+DELETE {base}reviews/softDeleteReviews?id=6
+  Leírás:   Értékelés soft-törlése. Az admin moderációs célokra használhatja.
+  Auth:     Szükséges.
+  Paraméter: id - a törlendő értékelés azonosítója
+
+-----------------------------------
+7.24 STATISZTIKÁK (/Analitics)
+-----------------------------------
+
+GET {base}Analitics/getAllStat?days=1
+  Leírás:   Az oldal statisztikáit adja vissza, beleértve az oldalmegtekintések
+            számát az elmúlt N napra visszamenőleg.
+            Az admin dashboard analitika szekciójában jelenik meg.
+  Auth:     Szükséges (admin).
+  Paraméter: days - hány napra visszamenőleg kéri az adatokat (pl. 1, 7, 30)
+  Visszatér: Oldalankénti megtekintési adatok tömbje.
+
+-----------------------------------
+7.25 CLOUDFLARE KV
+-----------------------------------
+
+GET https://api.cloudflare.com/client/v4/accounts/{CF_ACCOUNT_ID}/storage/kv/namespaces/{CF_NAMESPACE_ID}/values/EncryptionKey
+  Leírás:   A Cloudflare Worker KV-ből olvassa ki a titkosítási kulcsot.
+            Ez a kérés a Cloudflare API-jára megy, nem a saját backendünkre.
+            Az {CF_ACCOUNT_ID} és {CF_NAMESPACE_ID} helyére a tényleges
+            Cloudflare fiók és névtér azonosítók kerülnek, amelyek biztonságosan
+            a Worker KV-ben vannak tárolva és a kódban soha nem jelennek meg.
+  Auth:     Cloudflare API kulcs szükséges.
+
+
+===================================
+8. A PROJEKTBEN VALÓ RÉTEGEK FELÉPÍTÉSE
+===================================
+
+A projekt klasszikus háromrétegű (three-tier) architektúrát követ:
+
+MEGJELENÍTÉSI RÉTEG (Presentation Layer) - Frontend:
+  Az Angular alkalmazás alkotja ezt a réteget. Felelős a felhasználói
+  felületért, a böngészőben futó logikáért, az adatok megjelenítéséért
+  és a felhasználói interakciók kezeléséért. Az Angular komponensek
+  HTTP kéréseken keresztül kommunikálnak a backend API-val.
+
+ÜZLETI LOGIKA RÉTEG (Business Logic Layer) - Backend:
+  A Java EE alkalmazás alkotja ezt a réteget. A RESTful API végpontokon
+  keresztül fogadja a kéréseket, elvégzi az érvényesítést, kezeli a
+  hitelesítést és jogosultságokat, majd az adatbázison hajtja végre
+  a szükséges műveleteket. A fontosabb üzleti logika (kosárfeldolgozás,
+  fizetés) tárolt eljárásokba van kiszervezve.
+
+ADATRÉTEG (Data Layer) - MySQL:
+  Az adatbázis alkotja ezt a réteget. Tartalmazza az összes adatot,
+  a tárolt eljárásokat és az adatintegritás szabályait.
+
+A BACKEND BELSŐ CSOMAGSZERKEZETE:
+
+  com.mycompany.vizsgaremek
+    controller/   - REST végpontok, HTTP kérések fogadása és válaszok küldése
+    service/      - Üzleti logika, adatbázis hívások
+    model/        - Adatmodellek (Java osztályok, amelyek a táblasorokat képviselik)
+    config/       - Konfiguráció (CORS, alkalmazásbeállítások)
+    util/         - Segédosztályok (JWT kezelés, titkosítás, e-mail küldés)
+
+A FRONTEND BELSŐ CSOMAGSZERKEZETE:
+
+  src/app
+    admin-page/         Admin funkciók komponensei
+    cards/              Termékkártyák megjelenítése
+    filter/             Szűrő komponens
+    homepage.component/ Főoldal
+    login/              Bejelentkező oldal
+    main-header/        Fejléc navigáció
+    mmt-container/      Márka/Modell/Típus konténer
+    mmt-selector/       Jármű kiválasztó (Márka, Modell, Típus)
+    models/             TypeScript interfészek az API válaszokhoz
+    payment/            Fizetési folyamat oldalai
+    product-page/       Terméklista és termék részletlap
+    profile-page/       Felhasználói profil és garázs
+    registration/       Regisztrációs oldal
+    services/           Angular service-ek (API hívások)
+    shared/             Megosztott komponensek
+    verifications/      E-mail és OTP megerősítési oldalak
+    app.routes.ts       Útvonal konfiguráció
+    app.config.ts       Alkalmazás konfiguráció
+
+
+===================================
+9. A FRONTEND RÉSZLETES LEÍRÁSA
+===================================
+
+A frontend Angular 21 keretrendszerrel készült, TypeScript 5.9 nyelven.
+Az alkalmazás Single Page Application (SPA) elvű, ami azt jelenti, hogy
+az oldal betöltés után csak az adatok cserélődnek, a teljes oldal nem
+töltődik újra navigáláskor.
+
+ROUTING ÉS OLDALVÉDELEM:
+
+Az oldalak elérhetősége három szintre van osztva:
+
+  Publikus oldalak (bejelentkezés nélkül elérhetők):
+    /                       - Főoldal
+    /login                  - Bejelentkezés
+    /registration           - Regisztráció
+    /products/:category     - Terméklista kategória szerint (lazy-loaded)
+    /product/:id            - Termék részletlap (lazy-loaded)
+
+  Védett oldalak (bejelentkezés szükséges - authGuard):
+    /cart                   - Kosár
+    /delivery               - Szállítási cím
+    /payment                - Fizetés
+    /summary                - Rendelés összefoglaló
+    /profile                - Felhasználói profil
+    /profile/garage         - Garázs (felhasználó járművei)
+
+  Admin oldalak (admin szerepkör szükséges - adminGuard):
+    /admin                  - Admin főoldal
+    /admin/new-product      - Új termék feltöltése
+    /admin/products         - Termékek kezelése
+    /admin/ecommerce        - E-commerce dashboard
+    /admin/analytics        - Statisztikák
+
+  Ismeretlen URL esetén az alkalmazás visszairányít a főoldalra.
+
+LAZY LOADING:
+
+A termék kategória oldal és a termék részletlap lazy-loaded módon
+töltődik be. Ez azt jelenti, hogy ezeknek a JavaScript kódja csak
+akkor töltődik le a böngészőbe, amikor a felhasználó ténylegesen
+megnyitja ezeket az oldalakat. Ez javítja az initial betöltési időt.
+
+ANGULAR SIGNALS:
+
+Az alkalmazás Angular Signals-t használ a reaktív állapotkezeléshez.
+A kosár tartalma, a bejelentkezett felhasználó adatai és más globális
+állapotok signalokban vannak tárolva. Amikor egy signal értéke megváltozik,
+az összes érintett komponens automatikusan frissül. Ez modernebb megközelítés,
+mint az RxJS Observable-ök folyamatos subscription kezelése.
+
+SERVICES RÉTEG:
+
+Az összes API kommunikáció Angular service-eken keresztül zajlik.
+Minden API erőforráshoz külön service fájl tartozik. Összesen 29 service
+fájl van, amelyek lefedik az összes API végpontot:
+
+  auth.service.ts          - JWT token kezelés, be- és kijelentkezés
+  cart.service.ts          - Kosár műveletek (a legbővebb service)
+  login.service.ts         - Bejelentkezési API hívás
+  register.service.ts      - Regisztrációs API hívás
+  payment.service.ts       - Fizetési kérés küldése
+  orders.service.ts        - Rendelések lekérése
+  filter.service.ts        - Szűrési logika
+  otp.service.ts           - OTP megerősítés
+  tfa.service.ts           - Kétfaktoros hitelesítés
+  jwtvalidate.service.ts   - Token validálás
+  guard.ts                 - Route guard logika
+  (és további CRUD service-ek az összes entitáshoz)
+
+KARTYOS TERMÉK MEGJELENÍTÉS:
+
+A terméklista kártyás elrendezésben jelenik meg, minden kártya mutatja
+a termék képét, nevét, árát és a "Kosárba" gombot. A képeket a
+getAllPartsWithImages végpont adja vissza, így egy kérésből megvan
+az összes szükséges adat.
+
+JÁRMŰ SZŰRŐ (MMT Selector):
+
+Az MMT selector komponens három legördülő menüből áll: Márka, Modell,
+Típus (évjárat). A három lépés egymás után töltődik be: a márka
+kiválasztása után betöltődnek a modellek, a modell után a típusok.
+Ez az összetevő a terméklista oldalon és a főoldalon is megjelenik,
+és a garázs alapján automatikusan előre ki is tölthető.
+
+CHART.JS INTEGRÁCIÓ:
+
+Az admin analitika oldalon Chart.js könyvtárat használunk a statisztikák
+grafikus megjelenítéséhez. Az oldalmegtekintési adatok vonaldiagramon
+vagy oszlopdiagramon láthatók.
+
+
+===================================
+10. CSAPATMUNKA
+===================================
+
+A projekt három fejlesztő munkájának eredménye.
+
+MÉSZÁROS ROLAND - Projektmenedzser, Frontend fejlesztő
+  Roland felelős volt a projekt egészének koordinálásáért és a frontend
+  megvalósításáért. Ő tartotta kézben a Jirán futó feladatokat, ügyelt
+  arra, hogy a fejlesztés ütemezett módon haladjon, és ő kommunikálta
+  a csapat döntéseit. A frontend kód nagy részét ő írta meg Angular
+  keretrendszerben.
+
+KIS-BORBÁS DORIÁN - Backend fejlesztő, Szerverfügyök, Webhoster
+  Dorián felelős volt a backend API fejlesztéséért és a hosting
+  infrastruktúráért. Ő állította be a Cloudflare alapú deploymentet,
+  a szerveres futtatási környezetet és a Cloudflare Worker KV alapú
+  titkoskulcs-kezelést. Az API végpontok implementációjának jelentős
+  részét ő fejlesztette.
+
+NEBL GERGŐ - Adatbázis tervező, Backend kód segítő
+  Gergő felelős volt az adatbázis megtervezéséért és felépítéséért.
+  Az adatbázis sémát, a tárolt eljárásokat és a relációkat ő tervezte
+  meg. Emellett segített a backend kód fejlesztésében is.
+
+EGYÜTTMŰKÖDÉSI ESZKÖZÖK:
+
+  Jira:
+    A feladatkezelés és az óralogolás Jirán keresztül történt.
+    Minden fejlesztési feladat fel volt véve ticket-ként, hozzá volt
+    rendelve egy felelős személy, és az elvégzett munkaidőt is ott
+    rögzítettük. A Jira áttekinthetővé tette, hogy ki melyik feladaton
+    dolgozik és mennyi idő ment el az egyes részfeladatokra.
+
+  GitHub:
+    A forráskód GitHub-on van verziókezelve. A csapattagok saját
+    ágakon (branch) dolgoztak, és pull request-eken keresztül kerültek
+    be a változások a fő ágba. Ez megakadályozta, hogy egymás munkáját
+    véletlenül felülírják, és lehetővé tette a kód átnézését merge
+    előtt.
+
+  Discord:
+    A napi kommunikáció és a kisebb döntések Discordon zajlottak.
+    A fejlesztési irányokat, az aktuális problémákat és a terveket
+    csatornákon keresztül vitatták meg a csapattagok.
+
+  Figma:
+    A design terv Figmában készült el, mielőtt a frontend fejlesztés
+    elkezdődött volna. Ez biztosította, hogy a csapatnak közös elképzelése
+    legyen az oldal megjelenéséről.
+
+
+===================================
+11. JÖVŐBELI TERVEINK
+===================================
+
+VALÓDI FIZETÉSI INTEGRÁCIÓ:
+  Jelenleg a fizetési rendszer a saját adatbázisunkba rögzíti a
+  tranzakciókat, de valódi bankkártyás vagy online fizetési gateway
+  (pl. Stripe, Barion, SimplePay) nincs integrálva. A jövőben ezt
+  szeretnénk megvalósítani, hogy a felhasználók valódi fizetést
+  tudjanak elvégezni bankkártyával vagy más online fizetési módszerrel.
+
+24/7 SZERVERES ÜZEMELTETÉS:
+  Az API szerver jelenleg egy laptopon fut, ami azt jelenti, hogy az
+  oldal csak akkor elérhető, ha a laptop be van kapcsolva és csatlakozik
+  az internetre. A jövőben egy folyamatosan futó, dedikált szerverre
+  vagy felhőalapú hostingra (pl. VPS, cloud provider) szeretnénk átköltözni,
+  hogy az oldal 24 órában, 7 napja elérhető legyen.
+
+AI ALAPÚ ÜGYFÉLSZOLGÁLAT:
+  Szeretnénk egy mesterséges intelligencián alapuló chatbot-ot vagy
+  ügyfélszolgálati asszisztenst integrálni az oldalba. Ez automatikusan
+  tudna válaszolni a leggyakoribb kérdésekre (szállítási idő, visszaküldés,
+  kompatibilitás), és csökkentené a manuálisan megválaszolandó üzenetek
+  számát.
+
+
+===================================
+12. TELEPÍTÉSI ÚTMUTATÓ
+===================================
+
+RENDSZERKÖVETELMÉNY:
+
+  Frontend fejlesztéshez:
+    - Node.js (az Angular 21-hez kompatibilis verzió, legalább Node 20)
+    - npm (Node csomagkezelő, a Node.js-szel együtt települ)
+    - Angular CLI: npm install -g @angular/cli
+
+  Backend fejlesztéshez:
+    - JDK (Java Development Kit) 11-es verzió
+    - Maven 3.x
+    - Egy Java EE kompatibilis alkalmazásszerver (pl. WildFly, Payara, GlassFish)
+    - MySQL 5.7
+
+  Általános:
+    - Git a forráskód letöltéséhez
+
+A PROGRAM TELEPÍTÉSE:
+
+  1. Forráskód letöltése:
+       git clone https://github.com/MRoland712/Vizsgaremek-Webalkatresz.git
+
+  2. Adatbázis beállítása:
+       Nyiss meg egy MySQL klienst (pl. MySQL Workbench, HeidiSQL, DBeaver),
+       majd futtasd le a projekt gyökerében lévő SQL fájlt:
+         mysql -u [felhasználónev] -p < car_parts_shop_fix.sql
+       Ez létrehozza az összes táblát, relációt és tárolt eljárást.
+
+  3. Frontend függőségek telepítése:
+       cd CarComps
+       npm install
+       Ez letölti az összes szükséges Node.js csomagot a node_modules mappába.
+
+  4. Backend fordítása:
+       cd vizsgaremek
+       mvn clean package
+       A fordítás eredménye a target/ mappában lesz egy .war fájl formájában.
+
+  5. Backend konfigurálása:
+       A backend adatbázis kapcsolati adatait és a többi titkos kulcsot
+       a Cloudflare Worker KV-ben kell beállítani. Helyi fejlesztéshez
+       ezeket a konfigurációs fájlban kell megadni (a pontos fájl neve
+       és helye a config/ csomagban található).
+
+PROGRAMOK INDÍTÁSA:
+
+  Frontend fejlesztői szerver indítása:
+    cd CarComps
+    ng serve
+    Az alkalmazás ezután a http://localhost:4200 címen érhető el.
+
+  Frontend production build:
+    ng build
+    A kimenet a dist/ mappába kerül, amelyet egy webszerverre kell feltölteni.
+
+  Backend deployment:
+    A mvn clean package paranccsal lefordított .war fájlt az alkalmazásszerverre
+    kell telepíteni (deploy). WildFly esetén a standalone/deployments/ mappába
+    kell másolni, a szerver automatikusan észleli és elindítja.
+
+  Ha minden fut:
+    - Frontend: http://localhost:4200
+    - Backend API: http://localhost:8080/vizsgaremek-1.0-SNAPSHOT/webresources/
+
+
+===================================
+13. UNIT TESZTELÉS
+===================================
+
+A projektben két szintű automatizált tesztelés van:
+
+KARMA + JASMINE (Unit tesztek):
+
+  A Karma tesztkörnyezet és a Jasmine tesztelési keretrendszer az
+  Angular alapértelmezett eszközkészletének részei. A unit tesztek
+  a komponenseket és a service-eket izoláltan tesztelik, külső
+  függőségek nélkül.
+
+  Unit tesztek futtatása:
+    cd CarComps
+    ng test
+    A Karma megnyit egy böngészőt és futtatja a teszteket, majd
+    megjeleníti az eredményeket (hány teszt sikeres, hány bukott el).
+
+CYPRESS (End-to-End tesztek):
+
+  A Cypress 15 E2E tesztelési keretrendszer valódi böngészőben futtatja
+  a teszteket, és valódi felhasználói interakciókat szimulál. Ez azt
+  jelenti, hogy a teszt ténylegesen betölti az oldalt, kattint gombokra,
+  kitölt űrlapokat, és ellenőrzi, hogy a megfelelő elemek jelennek-e meg.
+
+  Cypress tesztek futtatása interaktív módban:
+    cd CarComps
+    npx cypress open
+    Ez megnyitja a Cypress Test Runner felületet, ahol ki lehet választani,
+    hogy melyik tesztfájlt szeretnénk futtatni.
+
+  Cypress tesztek futtatása háttérben (CI-hoz):
+    npx cypress run
+    Ez headless módban fut, böngésző felület nélkül, és a terminálba
+    írja ki az eredményeket.
+
+  A tesztfájlok a cypress/e2e/ mappában találhatók.
+
+
+===================================
+14. LIVEDESIGN
+===================================
+
+A projekt vizuális megjelenésének megtervezéséhez Figmát használtunk.
+A design terv tartalmazza az összes oldal és komponens pontos kinézetét,
+elrendezését, a szín-, betűtípus- és méretrendszert.
+
+A Figma design a fejlesztés megkezdése előtt készült el, ami lehetővé
+tette, hogy a frontend fejlesztő pontosan tudja, hogyan kell kinéznie
+az egyes elemeknek. Ez csökkentette a fejlesztés közbeni visszacsatolásokat
+és az átdolgozásokat.
+
+A Figma design elérési útja: belső csapaton belül megosztva.
+
+Az oldal stílusát egyedi CSS szabályok alkotják, külső CSS keretrendszer
+(pl. Bootstrap, Tailwind) nélkül, így a dizájn teljes egészében a
+Figma tervek alapján valósult meg.
+
+
+===================================
+15. MANUÁLIS TESZTELÉS
+===================================
+
+A manuális tesztelés egy Excel táblázatban van dokumentálva.
+Minden teszteset az alábbi adatokat tartalmazza:
+
+  - Teszteset azonosítója
+  - Tesztelni kívánt funkció neve
+  - Teszt előfeltételei (mi szükséges a teszt futtatásához)
+  - Elvégzendő lépések (pontos leírás, mit kell csinálni)
+  - Várt eredmény (mi a helyes viselkedés)
+  - Tényleges eredmény (mi történt valójában)
+  - Státusz (Sikeres / Bukott / Nem tesztelve)
+
+A manuális tesztek lefedik az összes fő felhasználói folyamatot:
+  - Regisztráció (helyes adatokkal és hibás adatokkal)
+  - E-mail aktiválás
+  - Bejelentkezés és kijelentkezés
+  - Kétfaktoros hitelesítés bekapcsolása és használata
+  - Jelszó visszaállítás
+  - Termékek böngészése és szűrése
+  - Kosárba helyezés, mennyiség változtatás, törlés
+  - Szállítási cím megadása
+  - Fizetés elvégzése
+  - Számla megtekintése
+  - Profilszerkesztés
+  - Jármű hozzáadása a garázshoz
+  - Admin: termék hozzáadása, szerkesztése, törlése
+  - Admin: rendelés státusz módosítása
+
+
+===================================
+VERZIOTÖRTÉNET
+===================================
+
+1.0  (2026-04-20)  Első verzió.
+2.0  (2026-04-20)  Teljes újraírás: részletes API dokumentáció,
+                   csapattagok, telepítési útmutató, tesztelési leírás,
+                   jövőbeli tervek.
+
+
+===================================
+REPOZITÓRIUM
+===================================
+
+https://github.com/MRoland712/Vizsgaremek-Webalkatresz
