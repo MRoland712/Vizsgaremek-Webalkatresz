@@ -63,7 +63,6 @@ export class MainHeaderComponent implements OnInit {
         this.savedCars.set(JSON.parse(raw));
       } catch {}
     }
-    // Visszaállítjuk a korábban kiválasztott autót is
     const selected = localStorage.getItem('selected-garage-car');
     if (selected) {
       try {
@@ -75,7 +74,6 @@ export class MainHeaderComponent implements OnInit {
   selectSavedCar(car: SavedCar) {
     this.selectedCar.set(car);
     localStorage.setItem('selected-garage-car', JSON.stringify(car));
-    // TODO: szűrőservice-t itt hívni a terméklistán való szűréshez
     console.log('🚗 Kiválasztott autó:', car);
   }
 
@@ -124,7 +122,6 @@ export class MainHeaderComponent implements OnInit {
   performSearch(searchTerm: string) {
     this.isSearching.set(true);
     this.showDropdown.set(true);
-
     this.searchService.search(searchTerm).subscribe({
       next: (results) => {
         this.searchResults.set(results);
@@ -146,9 +143,11 @@ export class MainHeaderComponent implements OnInit {
   closeDropdown() {
     setTimeout(() => this.showDropdown.set(false), 200);
   }
+
   onSearchSubmit() {
     this.showDropdown.set(false);
   }
+
   selectGarageCar() {
     const y = this.garageYearControl.value;
     if (!y) return;
