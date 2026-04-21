@@ -5,43 +5,36 @@
       <h3>Teljes név</h3>
       <p>{{ item.firstname }} {{ item.lastname }}</p>
     </div>
-
     <div class="info-row" (click)="openDialog('username')">
       <i class="fa-solid fa-user info-icon"></i>
       <h3>Felhasználónév</h3>
       <p>{{ item.username }}</p>
     </div>
-
     <div class="info-row" (click)="openDialog('email')">
       <i class="fa-solid fa-envelope info-icon"></i>
       <h3>Email</h3>
       <p>{{ item.email }}</p>
     </div>
-
     <div class="info-row" (click)="openDialog('password')">
       <i class="fa-solid fa-key info-icon"></i>
       <h3>Jelszó</h3>
       <p>********</p>
     </div>
-
     <div class="info-row" (click)="openDialog('phone')">
       <i class="fa-solid fa-phone info-icon"></i>
       <h3>Telefonszám</h3>
       <p>{{ item.phone }}</p>
     </div>
-
     <div class="info-row" (click)="openDialog('orders')">
       <i class="fa-solid fa-box info-icon"></i>
       <h3>Rendeléseim</h3>
       <p>Megrendelések</p>
     </div>
-
     <div class="info-row" (click)="openDialog('address')">
       <i class="fa-solid fa-location-dot info-icon"></i>
       <h3>Szállítási cím</h3>
       <p>Cím kezelése</p>
     </div>
-
     <div class="info-row" [class.tfa-active-row]="isTfaActive()" (click)="openDialog('2fa')">
       <i
         class="fa-solid info-icon"
@@ -71,7 +64,6 @@
           <i class="fa-solid fa-xmark"></i>
         </button>
       </div>
-
       <form [formGroup]="editForm" (ngSubmit)="onSave()">
         @if (currentEditField() === 'fullname') {
           <div class="form-group">
@@ -89,7 +81,6 @@
             }
           </div>
         }
-
         @if (currentEditField() === 'username') {
           <div class="form-group">
             <label>Felhasználónév</label>
@@ -99,7 +90,6 @@
             }
           </div>
         }
-
         @if (currentEditField() === 'email') {
           <div class="form-group">
             <label>Email cím</label>
@@ -109,7 +99,6 @@
             }
           </div>
         }
-
         @if (currentEditField() === 'password') {
           <div class="form-group">
             <label>Jelenlegi jelszó</label>
@@ -127,7 +116,6 @@
             <input type="password" formControlName="confirmPassword" placeholder="••••••••" />
           </div>
         }
-
         @if (currentEditField() === 'phone') {
           <div class="form-group">
             <label>Telefonszám</label>
@@ -140,7 +128,6 @@
 
         <!-- 2FA DIALOG -->
         @if (currentEditField() === '2fa') {
-          <!-- DISABLE NÉZET — ha már aktív -->
           @if (tfaStep() === 'disable') {
             <div class="tfa-step">
               <div class="tfa-active-header">
@@ -170,10 +157,7 @@
                 }
               </button>
             </div>
-          }
-
-          <!-- SETUP FLOW -->
-          @else if (isLoadingTFA()) {
+          } @else if (isLoadingTFA()) {
             <div class="loading-state">
               <i class="fa-solid fa-spinner fa-spin"></i>
               <p>2FA beállítás indítása...</p>
@@ -305,6 +289,11 @@
               <i class="fa-solid fa-spinner fa-spin"></i>
               <p>Rendelések betöltése...</p>
             </div>
+          } @else if (ordersError()) {
+            <div class="error-message">
+              <i class="fa-solid fa-circle-exclamation"></i>
+              <p>{{ ordersError() }}</p>
+            </div>
           } @else if (orders().length === 0) {
             <div class="empty-state">
               <i class="fa-solid fa-box-open"></i>
@@ -317,24 +306,16 @@
                   <div class="order-header">
                     <div class="order-id">
                       <strong>Rendelés #{{ order.id }}</strong>
-                      <span class="order-date">{{ order.orderDate }}</span>
+                      <span class="order-date">{{ order.createdAt }}</span>
                     </div>
                     <span [class]="getOrderStatusClass(order.status)" class="order-status">
                       {{ order.status }}
                     </span>
                   </div>
-                  <div class="order-items">
-                    @for (item of order.items; track $index) {
-                      <div class="order-item">
-                        <span class="item-name">{{ item.productName }}</span>
-                        <span class="item-quantity">{{ item.quantity }} db</span>
-                        <span class="item-price">{{ item.price }} HUF</span>
-                      </div>
-                    }
-                  </div>
-                  <div class="order-total">
-                    <strong>Végösszeg:</strong>
-                    <strong>{{ order.totalPrice }} HUF</strong>
+                  <div class="order-meta">
+                    <span class="order-meta-item">
+                      <i class="fa-solid fa-clock"></i> Frissítve: {{ order.updatedAt }}
+                    </span>
                   </div>
                 </div>
               }
@@ -416,7 +397,6 @@
             <p>{{ saveError() }}</p>
           </div>
         }
-
         @if (currentEditField() !== 'orders' && currentEditField() !== '2fa') {
           <div class="dialog-footer">
             <button type="button" class="btn-cancel" (click)="closeDialog()">Mégse</button>
@@ -431,6 +411,6 @@
         }
       </form>
     </div>
-    <app-tfa (verified)="onTFAVerifiedForSave()" (cancelled)="onTFACancelledForSave()"> </app-tfa>
+    <app-tfa (verified)="onTFAVerifiedForSave()" (cancelled)="onTFACancelledForSave()"></app-tfa>
   </div>
 }

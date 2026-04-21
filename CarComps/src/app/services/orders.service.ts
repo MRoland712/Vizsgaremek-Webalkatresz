@@ -1,7 +1,11 @@
-import { HttpClient, HttpHeaders } from '@angular/common/http';
+import { HttpClient, HttpHeaders, HttpParams } from '@angular/common/http';
 import { inject, Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
-import { CreateOrderRequest, CreateOrderResponse } from '../models/order.model';
+import {
+  CreateOrderRequest,
+  CreateOrderResponse,
+  GetAllOrdersByUserIdResponse,
+} from '../models/order.model';
 
 @Injectable({ providedIn: 'root' })
 export class OrderService {
@@ -20,5 +24,14 @@ export class OrderService {
       body,
       this.getHeaders(),
     );
+  }
+
+  // GET orders/getOrdersByUserId?id=17
+  getOrderByUserId(userId: number): Observable<GetAllOrdersByUserIdResponse> {
+    const params = new HttpParams().set('id', userId);
+    return this.http.get<GetAllOrdersByUserIdResponse>(`${this.baseUrl}orders/getOrdersByUserId`, {
+      ...this.getHeaders(),
+      params,
+    });
   }
 }

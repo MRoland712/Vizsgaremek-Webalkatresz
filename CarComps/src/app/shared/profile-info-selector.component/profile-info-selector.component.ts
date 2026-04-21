@@ -12,6 +12,9 @@ import { UpdateAddressInfosService } from '../../services/updateaddressinfos.ser
 import { CreateAddressService } from '../../services/createaddress.service';
 import { TfaVerifyDialogComponent } from '../../verifications/to-fa.component/to-fa.component';
 
+import { Order } from '../../models/order.model';
+import { OrderService } from '../../services/orders.service';
+
 type EditField =
   | 'fullname'
   | 'username'
@@ -22,19 +25,6 @@ type EditField =
   | 'orders'
   | 'address'
   | null;
-
-interface Order {
-  id: number;
-  orderDate: string;
-  totalPrice: number;
-  status: string;
-  items: OrderItem[];
-}
-interface OrderItem {
-  productName: string;
-  quantity: number;
-  price: number;
-}
 
 @Component({
   selector: 'app-profile-info-selector',
@@ -53,6 +43,7 @@ export class ProfileInfoSelectorComponent implements OnInit {
   private updateUserSvc = inject(UpdateUserInfosService);
   private updateAddressSvc = inject(UpdateAddressInfosService);
   private createAddressSvc = inject(CreateAddressService);
+  private orderService = inject(OrderService); // ⭐ OrderService
   private readonly baseUrl = 'https://api.carcomps.hu/vizsgaremek-1.0-SNAPSHOT/webresources/';
 
   @ViewChild(TfaVerifyDialogComponent) tfaVerifyDialog!: TfaVerifyDialogComponent;
@@ -84,9 +75,10 @@ export class ProfileInfoSelectorComponent implements OnInit {
   disableError = signal<string | null>(null);
   tfaRecordId = signal<number>(0);
 
-  // Rendelések
+  // ⭐ Rendelések — a backend Order modellt használjuk
   orders = signal<Order[]>([]);
   isLoadingOrders = signal(false);
+  ordersError = signal<string | null>(null);
 
   // Dialog
   isDialogOpen = signal(false);
@@ -116,10 +108,8 @@ export class ProfileInfoSelectorComponent implements OnInit {
     if (localStorage.getItem('tfaActive') === 'true') {
       this.isTfaActive.set(true);
     }
-
     const email = this.auth.userEmail() || localStorage.getItem('userEmail') || '';
     const userId = this.auth.userId() || Number(localStorage.getItem('userId') || '0');
-
     this.ProfileDatas.set({
       id: userId,
       firstname: this.auth.userFirstName() || localStorage.getItem('firstName') || '',
@@ -128,12 +118,10 @@ export class ProfileInfoSelectorComponent implements OnInit {
       email: email,
       phone: this.auth.userPhone() || localStorage.getItem('phone') || '',
     });
-
     if (userId > 0) {
       this.loadUserById(userId);
       return;
     }
-
     if (email) {
       const token = localStorage.getItem('jwt') ?? '';
       const headers = new HttpHeaders({ token });
@@ -214,7 +202,6 @@ export class ProfileInfoSelectorComponent implements OnInit {
     this.saveSuccess.set(false);
     this.saveError.set(null);
     const d = this.ProfileDatas();
-
     switch (field) {
       case 'fullname':
         this.editForm.patchValue({ firstname: d.firstname, lastname: d.lastname });
@@ -268,7 +255,6 @@ export class ProfileInfoSelectorComponent implements OnInit {
   onSave() {
     const field = this.currentEditField();
     if (!field) return;
-
     const relevantControls: Record<string, string[]> = {
       fullname: ['firstname', 'lastname'],
       username: ['username'],
@@ -277,26 +263,20 @@ export class ProfileInfoSelectorComponent implements OnInit {
       phone: ['phone'],
       address: ['country', 'city', 'postalCode', 'street'],
     };
-
     const controls = relevantControls[field] ?? [];
     const isInvalid = controls.some((key) => {
       const ctrl = this.editForm.get(key);
       ctrl?.markAsTouched();
       return ctrl?.invalid;
     });
-
     if (isInvalid) return;
-
-    // Email vagy jelszó változtatás + TFA aktív → TFA ellenőrzés először
     if ((field === 'email' || field === 'password') && this.isTfaActive()) {
       this.pendingField.set(field as 'email' | 'password');
       setTimeout(() => this.tfaVerifyDialog.open(this.ProfileDatas().email), 50);
       return;
     }
-
     this.isSaving.set(true);
     this.saveError.set(null);
-
     switch (field) {
       case 'fullname':
         this.updateFullName();
@@ -319,7 +299,6 @@ export class ProfileInfoSelectorComponent implements OnInit {
     }
   }
 
-  // TFA verify után folytatja a mentést
   onTFAVerifiedForSave() {
     const field = this.pendingField();
     this.pendingField.set(null);
@@ -660,27 +639,27 @@ export class ProfileInfoSelectorComponent implements OnInit {
     this.closeDialog();
   }
 
+  // ⭐ Valódi API hívás
   private loadOrders() {
+    const userId =
+      this.ProfileDatas().id || this.auth.userId() || Number(localStorage.getItem('userId') || '0');
+    if (!userId) {
+      this.ordersError.set('Nem sikerült azonosítani a felhasználót!');
+      return;
+    }
     this.isLoadingOrders.set(true);
-    setTimeout(() => {
-      this.orders.set([
-        {
-          id: 1001,
-          orderDate: '2024-01-15',
-          totalPrice: 45000,
-          status: 'Delivered',
-          items: [{ productName: 'Michelin gumiabroncs', quantity: 4, price: 40000 }],
-        },
-        {
-          id: 1002,
-          orderDate: '2024-01-20',
-          totalPrice: 12000,
-          status: 'Processing',
-          items: [{ productName: 'Castrol olaj', quantity: 2, price: 12000 }],
-        },
-      ]);
-      this.isLoadingOrders.set(false);
-    }, 500);
+    this.ordersError.set(null);
+    this.orderService.getOrderByUserId(userId).subscribe({
+      next: (res) => {
+        this.orders.set(res.orders ?? []);
+        this.isLoadingOrders.set(false);
+      },
+      error: (err) => {
+        console.error('❌ getOrderByUserId hiba:', err);
+        this.ordersError.set('Nem sikerült betölteni a rendeléseket.');
+        this.isLoadingOrders.set(false);
+      },
+    });
   }
 
   private handleSuccess() {
@@ -713,6 +692,7 @@ export class ProfileInfoSelectorComponent implements OnInit {
     switch (status.toLowerCase()) {
       case 'completed':
       case 'delivered':
+      case 'paid':
         return 'status-success';
       case 'pending':
       case 'processing':
