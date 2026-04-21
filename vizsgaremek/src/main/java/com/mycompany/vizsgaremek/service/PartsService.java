@@ -147,6 +147,8 @@ public class PartsService {
             partObj.put("isActive", part.getIsActive());
             partObj.put("createdAt", part.getCreatedAt());
             partObj.put("updatedAt", part.getUpdatedAt());
+            partObj.put("deleted_at", part.getDeletedAt());
+            partObj.put("is_deleted", part.getIsDeleted());
 
             partArray.put(partObj);
         }
