@@ -10,22 +10,18 @@
       </p>
       <div class="auth-divider"></div>
       <p class="auth-hint">Még nincs fiókod?</p>
-
       <a routerLink="/registration" class="auth-action-btn">
         <i class="fa-solid fa-user-plus btn-truck"></i>
         <span class="btn-text">Regisztrálj ingyen</span>
       </a>
-
       <a routerLink="/" class="auth-action-btn auth-action-btn--outline">
         <i class="fa-solid fa-house btn-truck"></i>
         <span class="btn-text">Vissza a főoldalra</span>
       </a>
     </div>
-
     <!-- JOBB OLDAL: form -->
     <div class="auth-right">
       <h2 class="auth-form-title">Bejelentkezés</h2>
-
       <form [formGroup]="loginForm" (ngSubmit)="onLoginSubmit()">
         <div class="field-group">
           <input
@@ -41,7 +37,6 @@
             <p class="error-message">Hibás email cím</p>
           }
         </div>
-
         <div class="field-group">
           <input
             type="password"
@@ -61,23 +56,20 @@
             <p class="error-message">Adja meg a jelszavát!</p>
           }
         </div>
-
         @if (loginFailed()) {
           <div class="login-error-banner">
             <i class="fa-solid fa-circle-exclamation"></i>
             <p>Hibás email vagy jelszó!</p>
           </div>
         }
-
-        <div class="chapta">
-          <label class="chapta-container">
-            <input type="checkbox" />
-            <span class="checkmark"></span>
-            <span class="chapta-text">Nem vagyok robot</span>
-            <img src="assets/rechapta.png" alt="reCAPTCHA" class="recaptcha-logo" />
+        <div class="auth-checks">
+          <!-- ⭐ Emlékezz rám -->
+          <label class="auth-check-label">
+            <input type="checkbox" formControlName="rememberMe" class="auth-check-input" />
+            <span class="auth-checkmark"></span>
+            <span class="auth-check-text">Emlékezz rám</span>
           </label>
         </div>
-
         <button type="submit" class="auth-btn" [disabled]="loginForm.invalid">Bejelentkezés</button>
       </form>
     </div>

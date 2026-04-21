@@ -11,11 +11,13 @@ import { PasswordResetService } from '../services/passwordreset.service';
 
 let initialEmailValue = '';
 let initialPasswordValue = '';
+let initialRememberMe = false;
 const savedForm = window.localStorage.getItem('saved-login-form');
 if (savedForm) {
   const loadedForm = JSON.parse(savedForm);
-  initialEmailValue = loadedForm.email;
-  initialPasswordValue = loadedForm.password;
+  initialEmailValue = loadedForm.email || '';
+  initialPasswordValue = loadedForm.password || '';
+  initialRememberMe = loadedForm.rememberMe || false;
 }
 
 @Component({
@@ -40,6 +42,7 @@ export class LoginComponent implements OnInit {
   loginForm = this.fb.nonNullable.group({
     email: [initialEmailValue, [Validators.required, Validators.email]],
     password: [initialPasswordValue, Validators.required],
+    rememberMe: [initialRememberMe], // ⭐ emlékezz rám
   });
 
   // ── Forgot password dialog ────────────────────────────────
@@ -76,7 +79,6 @@ export class LoginComponent implements OnInit {
     if (!this.resetEmailValid()) return;
     this.isSendingReset.set(true);
     this.resetError.set(null);
-
     this.passwordResetSvc.createPasswordReset({ email: this.resetEmail.trim() }).subscribe({
       next: () => {
         this.isSendingReset.set(false);
@@ -97,7 +99,7 @@ export class LoginComponent implements OnInit {
       return;
     }
     this.loginFailed.set(false);
-    const { email, password } = this.loginForm.value;
+    const { email, password, rememberMe } = this.loginForm.value;
 
     this.loginService.login({ email: email!, password: password! }).subscribe({
       next: (res) => {
@@ -109,6 +111,20 @@ export class LoginComponent implements OnInit {
         localStorage.setItem('lastName', res.result.lastName || '');
         localStorage.setItem('phone', res.result.phone || '');
         localStorage.setItem('role', res.result.role || '');
+
+        // ── Emlékezz rám ──────────────────────────────────
+        if (rememberMe) {
+          localStorage.setItem(
+            'saved-login-form',
+            JSON.stringify({
+              email,
+              password,
+              rememberMe: true,
+            }),
+          );
+        } else {
+          localStorage.removeItem('saved-login-form');
+        }
 
         this.authService.setLoggedIn(
           email,
@@ -168,14 +184,15 @@ export class LoginComponent implements OnInit {
   }
 
   ngOnInit() {
-    const sub1 = this.loginForm.valueChanges
-      .pipe(debounceTime(500))
-      .subscribe((v) =>
+    const sub1 = this.loginForm.valueChanges.pipe(debounceTime(500)).subscribe((v) => {
+      // ⭐ Csak ha be van pipálva az emlékezz rám
+      if (v.rememberMe) {
         localStorage.setItem(
           'saved-login-form',
-          JSON.stringify({ email: v.email, password: v.password }),
-        ),
-      );
+          JSON.stringify({ email: v.email, password: v.password, rememberMe: true }),
+        );
+      }
+    });
     const sub2 = this.loginForm.valueChanges.subscribe(() => this.loginFailed.set(false));
     this.destroyRef.onDestroy(() => {
       sub1.unsubscribe();

@@ -1,7 +1,7 @@
 import { Component, inject, signal } from '@angular/core';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
-import { HttpErrorResponse } from '@angular/common/http';
+import { HttpClient, HttpErrorResponse, HttpHeaders } from '@angular/common/http';
 import {
   mustContainNumbers,
   mustContainSpecialCharacters,
@@ -22,12 +22,16 @@ import { AuthService } from '../services/auth.service';
 export class RegistrationComponent {
   registerService = inject(RegisterService);
   private router = inject(Router);
+  private http = inject(HttpClient);
   authService = inject(AuthService);
 
+  private readonly baseUrl = 'https://api.carcomps.hu/vizsgaremek-1.0-SNAPSHOT/webresources/';
+
   // ==========================================
-  // EMAIL ALREADY EXISTS SIGNAL
+  // SIGNALS
   // ==========================================
   emailAlreadyExists = signal(false);
+  aszfError = signal(false); // ⭐ ÁSZF nem fogadva el
 
   signupForm = new FormGroup({
     firstname: new FormControl('', {
@@ -62,6 +66,8 @@ export class RegistrationComponent {
     rePassword: new FormControl('', {
       validators: [Validators.required, passwordMatchValidator],
     }),
+    acceptAszf: new FormControl(false), // ⭐ ÁSZF elfogadása
+    subscribeNews: new FormControl(false), // ⭐ Hírlevél feliratkozás
   });
 
   constructor() {
@@ -76,7 +82,6 @@ export class RegistrationComponent {
   // ==========================================
   // VALIDATION GETTERS
   // ==========================================
-
   get usernameIsInvalid() {
     return (
       this.signupForm.controls.username.touched &&
@@ -138,10 +143,15 @@ export class RegistrationComponent {
   // ==========================================
   // SUBMIT - 409 HIBAKEZELÉS
   // ==========================================
-
   onSignUpSubmit() {
-    // Reset email hiba
     this.emailAlreadyExists.set(false);
+    this.aszfError.set(false);
+
+    // ⭐ ÁSZF kötelező
+    if (!this.signupForm.value.acceptAszf) {
+      this.aszfError.set(true);
+      return;
+    }
 
     console.log('📋 Form value:', this.signupForm.value);
 
@@ -161,26 +171,26 @@ export class RegistrationComponent {
       next: (res) => {
         console.log('✅ Sikeres regisztráció!', res);
 
+        // ⭐ Ha feliratkozott hírlevélre → updateUser
+        if (this.signupForm.value.subscribeNews) {
+          this.subscribeNewsletter(finalRegisterData.email);
+        }
+
         // ⭐ NEM mentjük JWT-t
         // ⭐ NEM hívjuk setLoggedIn()-t
         // ⭐ CSAK login-ra irányítunk
-
         console.log('🔄 Átirányítás login oldalra...');
 
-        // ⭐ Opcionális: Success message localStorage-ban (login-on megjelenítéshez)
         localStorage.setItem('registrationSuccess', 'true');
         localStorage.setItem('registeredEmail', finalRegisterData.email);
 
-        // Átirányítás login-ra
         this.router.navigate(['/login']);
       },
       error: (err: HttpErrorResponse) => {
         console.error('❌ Regisztráció hiba:', err);
-
         // 409 = Email már létezik
         if (err.status === 409) {
           const errorResponse = err.error as RegisterErrorResponse;
-
           if (errorResponse.errors?.includes('EmailIsSameAsDB')) {
             console.log('⚠️ Email már használatban van!');
             this.emailAlreadyExists.set(true);
@@ -188,5 +198,21 @@ export class RegistrationComponent {
         }
       },
     });
+  }
+
+  // ⭐ Hírlevél feliratkozás — updateUser endpoint
+  private subscribeNewsletter(email: string) {
+    const token = localStorage.getItem('jwt') ?? '';
+    const headers = new HttpHeaders({ 'Content-Type': 'application/json', token });
+    this.http
+      .put(
+        `${this.baseUrl}user/updateUser?email=${encodeURIComponent(email)}`,
+        { isSubscribed: true },
+        { headers },
+      )
+      .subscribe({
+        next: () => {},
+        error: () => {}, // ne blokkolja a regisztrációt ha ez hibázik
+      });
   }
 }
