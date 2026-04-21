@@ -4,20 +4,17 @@
  */
 package com.mycompany.vizsgaremek.controller;
 
+import com.mycompany.vizsgaremek.config.JwtUtil;
 import com.mycompany.vizsgaremek.model.Motors;
 import com.mycompany.vizsgaremek.service.MotorsService;
+
+import javax.ws.rs.*;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.UriInfo;
-import javax.ws.rs.Consumes;
-import javax.ws.rs.DELETE;
-import javax.ws.rs.Produces;
-import javax.ws.rs.GET;
-import javax.ws.rs.POST;
-import javax.ws.rs.Path;
-import javax.ws.rs.PUT;
-import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
+
+import org.json.JSONArray;
 import org.json.JSONObject;
 
 /**
@@ -31,6 +28,8 @@ public class MotorsController {
     @Context
     private UriInfo context;
     private MotorsService layer = new MotorsService();
+    private final JwtUtil jwt = new JwtUtil();
+
 
     /**
      * Creates a new instance of MotorsController
@@ -64,7 +63,27 @@ public class MotorsController {
     @POST
     @Path("createMotors")
     @Consumes(MediaType.APPLICATION_JSON)
-    public Response createMotors(String body) {
+    public Response createMotors(String body, @HeaderParam("token") String jwtToken) {
+        Response jwtError = jwt.validateJwtAndReturnError(jwtToken);
+        String jwtRole = jwt.extractRole(jwtToken);
+        JSONArray errors = new JSONArray();
+        if (jwtError != null) {
+            return jwtError;
+        }
+        //System.out.println("\n\n\n" + jwtRole + jwtRole.equals("admin") + "\n\n\n");
+        if (!jwtRole.equals("admin")) {
+            errors.put("userNotAuthorised");
+
+            JSONObject errorResponse = new JSONObject();
+            errorResponse.put("errors", errors);
+            errorResponse.put("status", "failed");
+            errorResponse.put("statusCode", 401);
+
+            return Response.status(401)
+                    .entity(errorResponse.toString())
+                    .type(MediaType.APPLICATION_JSON)
+                    .build();
+        }
 
         JSONObject bodyObject = new JSONObject(body);
 
@@ -86,7 +105,7 @@ public class MotorsController {
     @GET
     @Path("getAllMotors")
     @Consumes(MediaType.APPLICATION_JSON)
-    public Response getAllMotors() {
+    public Response getAllMotors(){
         MotorsService motorsService = new MotorsService();
         JSONObject toReturn = motorsService.getAllMotors();
 
@@ -99,7 +118,27 @@ public class MotorsController {
     @GET
     @Path("getMotorsById")
     @Produces(MediaType.APPLICATION_JSON)
-    public Response getMotorsById(@QueryParam("id") Integer id) {
+    public Response getMotorsById(@QueryParam("id") Integer id, @HeaderParam("token") String jwtToken) {
+        Response jwtError = jwt.validateJwtAndReturnError(jwtToken);
+        String jwtRole = jwt.extractRole(jwtToken);
+        JSONArray errors = new JSONArray();
+        if (jwtError != null) {
+            return jwtError;
+        }
+        //System.out.println("\n\n\n" + jwtRole + jwtRole.equals("admin") + "\n\n\n");
+        if (!jwtRole.equals("admin")) {
+            errors.put("userNotAuthorised");
+
+            JSONObject errorResponse = new JSONObject();
+            errorResponse.put("errors", errors);
+            errorResponse.put("status", "failed");
+            errorResponse.put("statusCode", 401);
+
+            return Response.status(401)
+                    .entity(errorResponse.toString())
+                    .type(MediaType.APPLICATION_JSON)
+                    .build();
+        }
 
         JSONObject toReturn = layer.getMotorsById(id);
 
@@ -138,7 +177,27 @@ public class MotorsController {
     @DELETE
     @Path("softDeleteMotors")
     @Consumes(MediaType.APPLICATION_JSON)
-    public Response softDeleteMotors(@QueryParam("id") Integer carsId) {
+    public Response softDeleteMotors(@QueryParam("id") Integer carsId, @HeaderParam("token") String jwtToken) {
+        Response jwtError = jwt.validateJwtAndReturnError(jwtToken);
+        String jwtRole = jwt.extractRole(jwtToken);
+        JSONArray errors = new JSONArray();
+        if (jwtError != null) {
+            return jwtError;
+        }
+        //System.out.println("\n\n\n" + jwtRole + jwtRole.equals("admin") + "\n\n\n");
+        if (!jwtRole.equals("admin")) {
+            errors.put("userNotAuthorised");
+
+            JSONObject errorResponse = new JSONObject();
+            errorResponse.put("errors", errors);
+            errorResponse.put("status", "failed");
+            errorResponse.put("statusCode", 401);
+
+            return Response.status(401)
+                    .entity(errorResponse.toString())
+                    .type(MediaType.APPLICATION_JSON)
+                    .build();
+        }
 
         JSONObject toReturn = layer.softDeleteMotors(carsId);
 
@@ -151,7 +210,27 @@ public class MotorsController {
     @PUT
     @Path("updateMotors")
     @Consumes(MediaType.APPLICATION_JSON)
-    public Response updateMotors(@QueryParam("id") Integer motorsId, String body) {
+    public Response updateMotors(@QueryParam("id") Integer motorsId, String body, @HeaderParam("token") String jwtToken) {
+        Response jwtError = jwt.validateJwtAndReturnError(jwtToken);
+        String jwtRole = jwt.extractRole(jwtToken);
+        JSONArray errors = new JSONArray();
+        if (jwtError != null) {
+            return jwtError;
+        }
+        //System.out.println("\n\n\n" + jwtRole + jwtRole.equals("admin") + "\n\n\n");
+        if (!jwtRole.equals("admin")) {
+            errors.put("userNotAuthorised");
+
+            JSONObject errorResponse = new JSONObject();
+            errorResponse.put("errors", errors);
+            errorResponse.put("status", "failed");
+            errorResponse.put("statusCode", 401);
+
+            return Response.status(401)
+                    .entity(errorResponse.toString())
+                    .type(MediaType.APPLICATION_JSON)
+                    .build();
+        }
 
         JSONObject bodyObject = new JSONObject(body);
 

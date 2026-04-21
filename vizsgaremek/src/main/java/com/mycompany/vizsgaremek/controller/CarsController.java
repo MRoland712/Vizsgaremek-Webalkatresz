@@ -157,11 +157,7 @@ public class CarsController {
     @GET
     @Path("getCarsByModel")
     @Produces(MediaType.APPLICATION_JSON)
-    public Response getCarsByModel(@QueryParam("model") String model, @HeaderParam("token") String jwtToken) {
-        Response jwtError = jwt.validateJwtAndReturnError(jwtToken);
-        if (jwtError != null) {
-            return jwtError;
-        }
+    public Response getCarsByModel(@QueryParam("model") String model) {
 
         JSONObject toReturn = layer.getCarsByModel(model);
 
@@ -174,11 +170,7 @@ public class CarsController {
     @GET
     @Path("getCarsByBrand")
     @Produces(MediaType.APPLICATION_JSON)
-    public Response getCarsByBrand(@QueryParam("brand") String brand, @HeaderParam("token") String jwtToken) {
-        Response jwtError = jwt.validateJwtAndReturnError(jwtToken);
-        if (jwtError != null) {
-            return jwtError;
-        }
+    public Response getCarsByBrand(@QueryParam("brand") String brand){
 
         JSONObject toReturn = layer.getCarsByBrand(brand);
 

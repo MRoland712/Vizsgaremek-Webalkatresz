@@ -4,21 +4,18 @@
  */
 package com.mycompany.vizsgaremek.controller;
 
+import com.mycompany.vizsgaremek.config.JwtUtil;
 import com.mycompany.vizsgaremek.model.Orders;
 import com.mycompany.vizsgaremek.model.Payments;
 import com.mycompany.vizsgaremek.service.PaymentsService;
+
+import javax.ws.rs.*;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.UriInfo;
-import javax.ws.rs.Consumes;
-import javax.ws.rs.DELETE;
-import javax.ws.rs.Produces;
-import javax.ws.rs.GET;
-import javax.ws.rs.POST;
-import javax.ws.rs.Path;
-import javax.ws.rs.PUT;
-import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
+
+import org.json.JSONArray;
 import org.json.JSONObject;
 
 /**
@@ -32,6 +29,7 @@ public class PaymentsController {
     @Context
     private UriInfo context;
     private PaymentsService layer = new PaymentsService();
+    private final JwtUtil jwt = new JwtUtil();
 
     /**
      * Creates a new instance of PaymentsController
@@ -65,7 +63,11 @@ public class PaymentsController {
     @POST
     @Path("createPayments")
     @Consumes(MediaType.APPLICATION_JSON)
-    public Response createPaymentsController(String body) {
+    public Response createPaymentsController(String body, @HeaderParam("token") String jwtToken) {
+        Response jwtError = jwt.validateJwtAndReturnError(jwtToken);
+        if (jwtError != null) {
+            return jwtError;
+        }
 
         JSONObject bodyObject = new JSONObject(body);
 
@@ -91,7 +93,29 @@ public class PaymentsController {
     @GET
     @Path("getAllPayments")
     @Consumes(MediaType.APPLICATION_JSON)
-    public Response getAllPaymentsController() {
+    public Response getAllPaymentsController(@HeaderParam("token") String jwtToken) {
+
+        Response jwtError = jwt.validateJwtAndReturnError(jwtToken);
+        String jwtRole = jwt.extractRole(jwtToken);
+        JSONArray errors = new JSONArray();
+        if (jwtError != null) {
+            return jwtError;
+        }
+        //System.out.println("\n\n\n" + jwtRole + jwtRole.equals("admin") + "\n\n\n");
+        if (!jwtRole.equals("admin")) {
+            errors.put("userNotAuthorised");
+
+            JSONObject errorResponse = new JSONObject();
+            errorResponse.put("errors", errors);
+            errorResponse.put("status", "failed");
+            errorResponse.put("statusCode", 401);
+
+            return Response.status(401)
+                    .entity(errorResponse.toString())
+                    .type(MediaType.APPLICATION_JSON)
+                    .build();
+        }
+
         PaymentsService paymentsSerice = new PaymentsService();
         JSONObject toReturn = paymentsSerice.getAllPaymentsService();
 
@@ -104,7 +128,28 @@ public class PaymentsController {
     @GET
     @Path("getPaymentById")
     @Consumes(MediaType.APPLICATION_JSON)
-    public Response getPaymentByIdController(@QueryParam("id") Integer Id) {
+    public Response getPaymentByIdController(@QueryParam("id") Integer Id, @HeaderParam("token") String jwtToken) {
+        Response jwtError = jwt.validateJwtAndReturnError(jwtToken);
+        String jwtRole = jwt.extractRole(jwtToken);
+        JSONArray errors = new JSONArray();
+        if (jwtError != null) {
+            return jwtError;
+        }
+        //System.out.println("\n\n\n" + jwtRole + jwtRole.equals("admin") + "\n\n\n");
+        if (!jwtRole.equals("admin")) {
+            errors.put("userNotAuthorised");
+
+            JSONObject errorResponse = new JSONObject();
+            errorResponse.put("errors", errors);
+            errorResponse.put("status", "failed");
+            errorResponse.put("statusCode", 401);
+
+            return Response.status(401)
+                    .entity(errorResponse.toString())
+                    .type(MediaType.APPLICATION_JSON)
+                    .build();
+        }
+
         PaymentsService paymentsSerice = new PaymentsService();
 
         JSONObject toReturn = paymentsSerice.getPaymentByIdService(Id);
@@ -118,7 +163,27 @@ public class PaymentsController {
     @GET
     @Path("getPaymentsByOrderId")
     @Produces(MediaType.APPLICATION_JSON)
-    public Response getPaymentsByOrderIdController(@QueryParam("orderId") Integer orderId) {
+    public Response getPaymentsByOrderIdController(@QueryParam("orderId") Integer orderId, @HeaderParam("token") String jwtToken) {
+        Response jwtError = jwt.validateJwtAndReturnError(jwtToken);
+        String jwtRole = jwt.extractRole(jwtToken);
+        JSONArray errors = new JSONArray();
+        if (jwtError != null) {
+            return jwtError;
+        }
+        //System.out.println("\n\n\n" + jwtRole + jwtRole.equals("admin") + "\n\n\n");
+        if (!jwtRole.equals("admin")) {
+            errors.put("userNotAuthorised");
+
+            JSONObject errorResponse = new JSONObject();
+            errorResponse.put("errors", errors);
+            errorResponse.put("status", "failed");
+            errorResponse.put("statusCode", 401);
+
+            return Response.status(401)
+                    .entity(errorResponse.toString())
+                    .type(MediaType.APPLICATION_JSON)
+                    .build();
+        }
 
         JSONObject toReturn = layer.getPaymentsByOrderIdService(orderId);
 
@@ -131,7 +196,27 @@ public class PaymentsController {
     @DELETE
     @Path("softDeletePayment")
     @Consumes(MediaType.APPLICATION_JSON)
-    public Response softDeletePaymentController(@QueryParam("id") Integer id) {
+    public Response softDeletePaymentController(@QueryParam("id") Integer id, @HeaderParam("token") String jwtToken) {
+        Response jwtError = jwt.validateJwtAndReturnError(jwtToken);
+        String jwtRole = jwt.extractRole(jwtToken);
+        JSONArray errors = new JSONArray();
+        if (jwtError != null) {
+            return jwtError;
+        }
+        //System.out.println("\n\n\n" + jwtRole + jwtRole.equals("admin") + "\n\n\n");
+        if (!jwtRole.equals("admin")) {
+            errors.put("userNotAuthorised");
+
+            JSONObject errorResponse = new JSONObject();
+            errorResponse.put("errors", errors);
+            errorResponse.put("status", "failed");
+            errorResponse.put("statusCode", 401);
+
+            return Response.status(401)
+                    .entity(errorResponse.toString())
+                    .type(MediaType.APPLICATION_JSON)
+                    .build();
+        }
 
         JSONObject toReturn = layer.softDeletePaymentService(id);
 
@@ -146,7 +231,27 @@ public class PaymentsController {
     @Consumes(MediaType.APPLICATION_JSON)
     public Response updatePaymentController(
             @QueryParam("id") Integer id,
-            String body) {
+            String body, @HeaderParam("token") String jwtToken) {
+        Response jwtError = jwt.validateJwtAndReturnError(jwtToken);
+        String jwtRole = jwt.extractRole(jwtToken);
+        JSONArray errors = new JSONArray();
+        if (jwtError != null) {
+            return jwtError;
+        }
+        //System.out.println("\n\n\n" + jwtRole + jwtRole.equals("admin") + "\n\n\n");
+        if (!jwtRole.equals("admin")) {
+            errors.put("userNotAuthorised");
+
+            JSONObject errorResponse = new JSONObject();
+            errorResponse.put("errors", errors);
+            errorResponse.put("status", "failed");
+            errorResponse.put("statusCode", 401);
+
+            return Response.status(401)
+                    .entity(errorResponse.toString())
+                    .type(MediaType.APPLICATION_JSON)
+                    .build();
+        }
 
         JSONObject bodyObject = new JSONObject(body);
 
@@ -183,7 +288,12 @@ public class PaymentsController {
     @POST
     @Path("processPayment")
     @Consumes(MediaType.APPLICATION_JSON)
-    public Response processPaymentController(String body) {
+    public Response processPaymentController(String body, @HeaderParam("token") String jwtToken) {
+
+        Response jwtError = jwt.validateJwtAndReturnError(jwtToken);
+        if (jwtError != null) {
+            return jwtError;
+        }
 
         JSONObject bodyObject = new JSONObject(body);
 
