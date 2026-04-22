@@ -244,4 +244,16 @@ public class PartsController {
                 .type(MediaType.APPLICATION_JSON)
                 .build();
     }
+
+    @GET
+    @Path("getPartsByVehicleType")
+    @Consumes(MediaType.APPLICATION_JSON)
+    public Response getPartsByVehicleType(@QueryParam("vehicleType") String vehicleType) {
+        JSONObject toReturn = layer.getPartsByVehicleType(vehicleType);
+
+        return Response.status(Integer.parseInt(toReturn.get("statusCode").toString()))
+                .entity(toReturn.toString())
+                .type(MediaType.APPLICATION_JSON)
+                .build();
+    }
 }

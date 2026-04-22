@@ -713,4 +713,53 @@ public class Parts implements Serializable {
             em.close();
         }
     }
+
+    public static ArrayList<Parts> getPartsByVehicleType(String vehicleType) {
+        EntityManager em = emf.createEntityManager();
+        try {
+            StoredProcedureQuery spq = em.createStoredProcedureQuery("getPartsByVehicleType");
+            spq.registerStoredProcedureParameter("vehicleTypeIN", String.class, ParameterMode.IN);
+            spq.setParameter("vehicleTypeIN", vehicleType);
+            spq.execute();
+
+            List<Object[]> resultList = spq.getResultList();
+
+            if (resultList == null || resultList.isEmpty()) {
+                return null;
+            }
+
+            ArrayList<Parts> toReturn = new ArrayList<>();
+
+            for (Object[] record : resultList) {
+                Manufacturers manufacturer = new Manufacturers();
+                manufacturer.setId(Integer.valueOf(record[1].toString()));
+
+                Parts p = new Parts(
+                        Integer.valueOf(record[0].toString()),                                   // id
+                        record[2] != null ? record[2].toString() : null,                         // sku
+                        record[3] != null ? record[3].toString() : null,                         // name
+                        record[4] != null ? record[4].toString() : null,                         // description
+                        record[5] != null ? record[5].toString() : null,                         // category
+                        record[6] != null ? new BigDecimal(record[6].toString()) : null,         // price
+                        record[7] != null ? Integer.valueOf(record[7].toString()) : null,        // stock
+                        record[8] != null ? record[8].toString() : null,                         // status
+                        Boolean.valueOf(record[9].toString()),                                   // isActive
+                        record[10] == null ? null : formatter.parse(record[10].toString()),      // createdAt
+                        record[11] == null ? null : formatter.parse(record[11].toString()),      // updatedAt
+                        record[12] == null ? null : formatter.parse(record[12].toString()),      // deletedAt
+                        Boolean.FALSE,                                                           // isDeleted
+                        manufacturer                                                             // manufacturerId
+                );
+                toReturn.add(p);
+            }
+            return toReturn;
+
+        } catch (Exception ex) {
+            ex.printStackTrace();
+            return null;
+        } finally {
+            em.clear();
+            em.close();
+        }
+    }
 }
