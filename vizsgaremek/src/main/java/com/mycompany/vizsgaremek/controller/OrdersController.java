@@ -4,23 +4,20 @@
  */
 package com.mycompany.vizsgaremek.controller;
 
+import com.mycompany.vizsgaremek.config.JwtUtil;
 import com.mycompany.vizsgaremek.model.Orders;
 import com.mycompany.vizsgaremek.model.OrderItems;
 import com.mycompany.vizsgaremek.model.Users;
 import com.mycompany.vizsgaremek.model.Parts;
 import com.mycompany.vizsgaremek.service.OrdersService;
+
+import javax.ws.rs.*;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.UriInfo;
-import javax.ws.rs.Produces;
-import javax.ws.rs.Consumes;
-import javax.ws.rs.DELETE;
-import javax.ws.rs.GET;
-import javax.ws.rs.POST;
-import javax.ws.rs.Path;
-import javax.ws.rs.PUT;
-import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
+
+import org.json.JSONArray;
 import org.json.JSONObject;
 
 /**
@@ -34,6 +31,7 @@ public class OrdersController {
     @Context
     private UriInfo context;
     private OrdersService layer = new OrdersService();
+    private final JwtUtil jwt = new JwtUtil();
 
     /**
      * Creates a new instance of OrdersController
@@ -67,7 +65,12 @@ public class OrdersController {
     @POST
     @Path("createOrders")
     @Consumes(MediaType.APPLICATION_JSON)
-    public Response createOrders(String body) {
+    public Response createOrders(String body, @HeaderParam("token") String jwtToken) {
+
+        Response jwtError = jwt.validateJwtAndReturnError(jwtToken);
+        if (jwtError != null) {
+            return jwtError;
+        }
 
         JSONObject bodyObject = new JSONObject(body);
 
@@ -90,7 +93,13 @@ public class OrdersController {
     @POST
     @Path("createOrderWithItem")
     @Consumes(MediaType.APPLICATION_JSON)
-    public Response createOrderWithItemsController(String body) {
+    public Response createOrderWithItemsController(String body, @HeaderParam("token") String jwtToken) {
+
+        Response jwtError = jwt.validateJwtAndReturnError(jwtToken);
+        if (jwtError != null) {
+            return jwtError;
+        }
+
 
         JSONObject bodyObject = new JSONObject(body);
 
@@ -116,7 +125,27 @@ public class OrdersController {
     @GET
     @Path("getAllOrders")
     @Consumes(MediaType.APPLICATION_JSON)
-    public Response getAllOrders() {
+    public Response getAllOrders(@HeaderParam("token") String jwtToken) {
+        Response jwtError = jwt.validateJwtAndReturnError(jwtToken);
+        String jwtRole = jwt.extractRole(jwtToken);
+        JSONArray errors = new JSONArray();
+        if (jwtError != null) {
+            return jwtError;
+        }
+        //System.out.println("\n\n\n" + jwtRole + jwtRole.equals("admin") + "\n\n\n");
+        if (!jwtRole.equals("admin")) {
+            errors.put("userNotAuthorised");
+
+            JSONObject errorResponse = new JSONObject();
+            errorResponse.put("errors", errors);
+            errorResponse.put("status", "failed");
+            errorResponse.put("statusCode", 401);
+
+            return Response.status(401)
+                    .entity(errorResponse.toString())
+                    .type(MediaType.APPLICATION_JSON)
+                    .build();
+        }
         OrdersService ordersService = new OrdersService();
         JSONObject toReturn = ordersService.getAllOrders();
 
@@ -129,7 +158,27 @@ public class OrdersController {
     @GET
     @Path("getOrdersById")
     @Produces(MediaType.APPLICATION_JSON)
-    public Response getOrdersById(@QueryParam("id") Integer id) {
+    public Response getOrdersById(@QueryParam("id") Integer id, @HeaderParam("token") String jwtToken) {
+        Response jwtError = jwt.validateJwtAndReturnError(jwtToken);
+        String jwtRole = jwt.extractRole(jwtToken);
+        JSONArray errors = new JSONArray();
+        if (jwtError != null) {
+            return jwtError;
+        }
+        //System.out.println("\n\n\n" + jwtRole + jwtRole.equals("admin") + "\n\n\n");
+        if (!jwtRole.equals("admin")) {
+            errors.put("userNotAuthorised");
+
+            JSONObject errorResponse = new JSONObject();
+            errorResponse.put("errors", errors);
+            errorResponse.put("status", "failed");
+            errorResponse.put("statusCode", 401);
+
+            return Response.status(401)
+                    .entity(errorResponse.toString())
+                    .type(MediaType.APPLICATION_JSON)
+                    .build();
+        }
 
         JSONObject toReturn = layer.getOrdersById(id);
 
@@ -142,7 +191,27 @@ public class OrdersController {
     @GET
     @Path("getOrdersByUserId")
     @Produces(MediaType.APPLICATION_JSON)
-    public Response getOrdersByUserId(@QueryParam("id") Integer userId) {
+    public Response getOrdersByUserId(@QueryParam("id") Integer userId, @HeaderParam("token") String jwtToken) {
+        Response jwtError = jwt.validateJwtAndReturnError(jwtToken);
+        String jwtRole = jwt.extractRole(jwtToken);
+        JSONArray errors = new JSONArray();
+        if (jwtError != null) {
+            return jwtError;
+        }
+        //System.out.println("\n\n\n" + jwtRole + jwtRole.equals("admin") + "\n\n\n");
+        if (!jwtRole.equals("admin")) {
+            errors.put("userNotAuthorised");
+
+            JSONObject errorResponse = new JSONObject();
+            errorResponse.put("errors", errors);
+            errorResponse.put("status", "failed");
+            errorResponse.put("statusCode", 401);
+
+            return Response.status(401)
+                    .entity(errorResponse.toString())
+                    .type(MediaType.APPLICATION_JSON)
+                    .build();
+        }
 
         JSONObject toReturn = layer.getOrdersByUserId(userId);
 
@@ -155,7 +224,27 @@ public class OrdersController {
     @DELETE
     @Path("softDeleteOrders")
     @Consumes(MediaType.APPLICATION_JSON)
-    public Response softDeleteOrders(@QueryParam("id") Integer idIN) {
+    public Response softDeleteOrders(@QueryParam("id") Integer idIN, @HeaderParam("token") String jwtToken) {
+        Response jwtError = jwt.validateJwtAndReturnError(jwtToken);
+        String jwtRole = jwt.extractRole(jwtToken);
+        JSONArray errors = new JSONArray();
+        if (jwtError != null) {
+            return jwtError;
+        }
+        //System.out.println("\n\n\n" + jwtRole + jwtRole.equals("admin") + "\n\n\n");
+        if (!jwtRole.equals("admin")) {
+            errors.put("userNotAuthorised");
+
+            JSONObject errorResponse = new JSONObject();
+            errorResponse.put("errors", errors);
+            errorResponse.put("status", "failed");
+            errorResponse.put("statusCode", 401);
+
+            return Response.status(401)
+                    .entity(errorResponse.toString())
+                    .type(MediaType.APPLICATION_JSON)
+                    .build();
+        }
 
         JSONObject toReturn = layer.softDeleteOrders(idIN);
 
@@ -170,7 +259,27 @@ public class OrdersController {
     @Consumes(MediaType.APPLICATION_JSON)
     public Response updateOrders(
             @QueryParam("id") Integer idIN,
-            String body) {
+            String body, @HeaderParam("token") String jwtToken) {
+        Response jwtError = jwt.validateJwtAndReturnError(jwtToken);
+        String jwtRole = jwt.extractRole(jwtToken);
+        JSONArray errors = new JSONArray();
+        if (jwtError != null) {
+            return jwtError;
+        }
+        //System.out.println("\n\n\n" + jwtRole + jwtRole.equals("admin") + "\n\n\n");
+        if (!jwtRole.equals("admin")) {
+            errors.put("userNotAuthorised");
+
+            JSONObject errorResponse = new JSONObject();
+            errorResponse.put("errors", errors);
+            errorResponse.put("status", "failed");
+            errorResponse.put("statusCode", 401);
+
+            return Response.status(401)
+                    .entity(errorResponse.toString())
+                    .type(MediaType.APPLICATION_JSON)
+                    .build();
+        }
 
         JSONObject bodyObject = new JSONObject(body);
 
@@ -199,7 +308,13 @@ public class OrdersController {
     @POST
     @Path("createOrderFromCart")
     @Consumes(MediaType.APPLICATION_JSON)
-    public Response createOrderFromCartController(String body) {
+    public Response createOrderFromCartController(String body, @HeaderParam("token") String jwtToken) {
+
+        Response jwtError = jwt.validateJwtAndReturnError(jwtToken);
+        if (jwtError != null) {
+            return jwtError;
+        }
+
         JSONObject bodyObject = new JSONObject(body);
 
         Integer userId = bodyObject.has("userId") ? bodyObject.getInt("userId") : null;

@@ -4,21 +4,18 @@
  */
 package com.mycompany.vizsgaremek.controller;
 
+import com.mycompany.vizsgaremek.config.JwtUtil;
 import com.mycompany.vizsgaremek.model.PartCompatibility;
 import com.mycompany.vizsgaremek.model.Parts;
 import com.mycompany.vizsgaremek.service.PartCompatibilityService;
+
+import javax.ws.rs.*;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.UriInfo;
-import javax.ws.rs.Produces;
-import javax.ws.rs.Consumes;
-import javax.ws.rs.DELETE;
-import javax.ws.rs.GET;
-import javax.ws.rs.POST;
-import javax.ws.rs.Path;
-import javax.ws.rs.PUT;
-import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
+
+import org.json.JSONArray;
 import org.json.JSONObject;
 
 /**
@@ -32,6 +29,7 @@ public class PartCompatibilityController {
     @Context
     private UriInfo context;
     private PartCompatibilityService layer = new PartCompatibilityService();
+    private final JwtUtil jwt = new JwtUtil();
 
     /**
      * Creates a new instance of PartCompatibilityController
@@ -62,7 +60,27 @@ public class PartCompatibilityController {
     @POST
     @Path("createPartCompatibility")
     @Consumes(MediaType.APPLICATION_JSON)
-    public Response createPartCompatibilityController(String body) {
+    public Response createPartCompatibilityController(String body, @HeaderParam("token") String jwtToken) {
+        Response jwtError = jwt.validateJwtAndReturnError(jwtToken);
+        String jwtRole = jwt.extractRole(jwtToken);
+        JSONArray errors = new JSONArray();
+        if (jwtError != null) {
+            return jwtError;
+        }
+        //System.out.println("\n\n\n" + jwtRole + jwtRole.equals("admin") + "\n\n\n");
+        if (!jwtRole.equals("admin")) {
+            errors.put("userNotAuthorised");
+
+            JSONObject errorResponse = new JSONObject();
+            errorResponse.put("errors", errors);
+            errorResponse.put("status", "failed");
+            errorResponse.put("statusCode", 401);
+
+            return Response.status(401)
+                    .entity(errorResponse.toString())
+                    .type(MediaType.APPLICATION_JSON)
+                    .build();
+        }
         JSONObject bodyObject = new JSONObject(body);
         
         Parts part = new Parts();
@@ -85,7 +103,7 @@ public class PartCompatibilityController {
     @GET
     @Path("getAllPartCompatibility")
     @Produces(MediaType.APPLICATION_JSON)
-    public Response getAllPartCompatibilityController() {
+    public Response getAllPartCompatibilityController(){
         JSONObject toReturn = layer.getAllPartCompatibilityService();
         
         return Response.status(Integer.parseInt(toReturn.get("statusCode").toString()))
@@ -97,7 +115,7 @@ public class PartCompatibilityController {
     @GET
     @Path("getPartCompatibilityById")
     @Produces(MediaType.APPLICATION_JSON)
-    public Response getPartCompatibilityByIdController(@QueryParam("id") Integer id) {
+    public Response getPartCompatibilityByIdController(@QueryParam("id") Integer id){
         JSONObject toReturn = layer.getPartCompatibilityByIdService(id);
         
         return Response.status(Integer.parseInt(toReturn.get("statusCode").toString()))
@@ -109,7 +127,7 @@ public class PartCompatibilityController {
     @GET
     @Path("getPartCompatibilityByVehicleType")
     @Produces(MediaType.APPLICATION_JSON)
-    public Response getPartCompatibilityByVehicleTypeController(@QueryParam("vehicleType") String vehicleType) {
+    public Response getPartCompatibilityByVehicleTypeController(@QueryParam("vehicleType") String vehicleType){
         JSONObject toReturn = layer.getPartCompatibilityByVehicleTypeService(vehicleType);
         
         return Response.status(Integer.parseInt(toReturn.get("statusCode").toString()))
@@ -121,7 +139,7 @@ public class PartCompatibilityController {
     @GET
     @Path("getPartCompatibilityByVehicleId")
     @Produces(MediaType.APPLICATION_JSON)
-    public Response getPartCompatibilityByVehicleIdController(@QueryParam("vehicleId") Integer vehicleId) {
+    public Response getPartCompatibilityByVehicleIdController(@QueryParam("vehicleId") Integer vehicleId){
         JSONObject toReturn = layer.getPartCompatibilityByVehicleIdService(vehicleId);
         
         return Response.status(Integer.parseInt(toReturn.get("statusCode").toString()))
@@ -133,7 +151,27 @@ public class PartCompatibilityController {
     @DELETE
     @Path("softDeletePartCompatibility")
     @Consumes(MediaType.APPLICATION_JSON)
-    public Response softDeletePartCompatibilityController(@QueryParam("id") Integer id) {
+    public Response softDeletePartCompatibilityController(@QueryParam("id") Integer id, @HeaderParam("token") String jwtToken) {
+        Response jwtError = jwt.validateJwtAndReturnError(jwtToken);
+        String jwtRole = jwt.extractRole(jwtToken);
+        JSONArray errors = new JSONArray();
+        if (jwtError != null) {
+            return jwtError;
+        }
+        //System.out.println("\n\n\n" + jwtRole + jwtRole.equals("admin") + "\n\n\n");
+        if (!jwtRole.equals("admin")) {
+            errors.put("userNotAuthorised");
+
+            JSONObject errorResponse = new JSONObject();
+            errorResponse.put("errors", errors);
+            errorResponse.put("status", "failed");
+            errorResponse.put("statusCode", 401);
+
+            return Response.status(401)
+                    .entity(errorResponse.toString())
+                    .type(MediaType.APPLICATION_JSON)
+                    .build();
+        }
         JSONObject toReturn = layer.softDeletePartCompatibilityService(id);
         
         return Response.status(Integer.parseInt(toReturn.get("statusCode").toString()))
@@ -147,7 +185,27 @@ public class PartCompatibilityController {
     @Consumes(MediaType.APPLICATION_JSON)
     public Response updatePartCompatibilityController(
             @QueryParam("id") Integer id,
-            String body) {
+            String body, @HeaderParam("token") String jwtToken) {
+        Response jwtError = jwt.validateJwtAndReturnError(jwtToken);
+        String jwtRole = jwt.extractRole(jwtToken);
+        JSONArray errors = new JSONArray();
+        if (jwtError != null) {
+            return jwtError;
+        }
+        //System.out.println("\n\n\n" + jwtRole + jwtRole.equals("admin") + "\n\n\n");
+        if (!jwtRole.equals("admin")) {
+            errors.put("userNotAuthorised");
+
+            JSONObject errorResponse = new JSONObject();
+            errorResponse.put("errors", errors);
+            errorResponse.put("status", "failed");
+            errorResponse.put("statusCode", 401);
+
+            return Response.status(401)
+                    .entity(errorResponse.toString())
+                    .type(MediaType.APPLICATION_JSON)
+                    .build();
+        }
         
         JSONObject bodyObject = new JSONObject(body);
         PartCompatibility updatedPartCompatibility = new PartCompatibility();

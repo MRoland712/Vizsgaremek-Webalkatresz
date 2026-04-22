@@ -4,6 +4,7 @@
  */
 package com.mycompany.vizsgaremek.controller;
 
+import com.mycompany.vizsgaremek.config.JwtUtil;
 import com.mycompany.vizsgaremek.model.PartImages;
 import com.mycompany.vizsgaremek.model.Parts;
 import com.mycompany.vizsgaremek.service.ImageUploadService;
@@ -11,21 +12,15 @@ import com.mycompany.vizsgaremek.service.PartImagesService;
 import java.io.InputStream;
 import java.util.List;
 import java.util.Map;
+import javax.ws.rs.*;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.UriInfo;
-import javax.ws.rs.Consumes;
-import javax.ws.rs.DELETE;
-import javax.ws.rs.Produces;
-import javax.ws.rs.GET;
-import javax.ws.rs.POST;
-import javax.ws.rs.Path;
-import javax.ws.rs.PUT;
-import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.MultivaluedMap;
 import javax.ws.rs.core.Response;
 import org.jboss.resteasy.plugins.providers.multipart.InputPart;
 import org.jboss.resteasy.plugins.providers.multipart.MultipartFormDataInput;
+import org.json.JSONArray;
 import org.json.JSONObject;
 
 /**
@@ -40,6 +35,7 @@ public class PartImagesController {
     private UriInfo context;
     private PartImagesService layer = new PartImagesService();
     private ImageUploadService imageUploadService = new ImageUploadService();
+    private final JwtUtil jwt = new JwtUtil();
 
     /**
      * Creates a new instance of PartImages
@@ -73,7 +69,27 @@ public class PartImagesController {
     @POST
     @Path("createPartImages")
     @Consumes(MediaType.APPLICATION_JSON)
-    public Response createPartImages(String body) {
+    public Response createPartImages(String body, @HeaderParam("token") String jwtToken) {
+        Response jwtError = jwt.validateJwtAndReturnError(jwtToken);
+        String jwtRole = jwt.extractRole(jwtToken);
+        JSONArray errors = new JSONArray();
+        if (jwtError != null) {
+            return jwtError;
+        }
+        //System.out.println("\n\n\n" + jwtRole + jwtRole.equals("admin") + "\n\n\n");
+        if (!jwtRole.equals("admin")) {
+            errors.put("userNotAuthorised");
+
+            JSONObject errorResponse = new JSONObject();
+            errorResponse.put("errors", errors);
+            errorResponse.put("status", "failed");
+            errorResponse.put("statusCode", 401);
+
+            return Response.status(401)
+                    .entity(errorResponse.toString())
+                    .type(MediaType.APPLICATION_JSON)
+                    .build();
+        }
 
         JSONObject bodyObject = new JSONObject(body);
 
@@ -110,7 +126,27 @@ public class PartImagesController {
     @GET
     @Path("getPartImagesById")
     @Produces(MediaType.APPLICATION_JSON)
-    public Response getPartImagesById(@QueryParam("id") Integer id) {
+    public Response getPartImagesById(@QueryParam("id") Integer id, @HeaderParam("token") String jwtToken) {
+        Response jwtError = jwt.validateJwtAndReturnError(jwtToken);
+        String jwtRole = jwt.extractRole(jwtToken);
+        JSONArray errors = new JSONArray();
+        if (jwtError != null) {
+            return jwtError;
+        }
+        //System.out.println("\n\n\n" + jwtRole + jwtRole.equals("admin") + "\n\n\n");
+        if (!jwtRole.equals("admin")) {
+            errors.put("userNotAuthorised");
+
+            JSONObject errorResponse = new JSONObject();
+            errorResponse.put("errors", errors);
+            errorResponse.put("status", "failed");
+            errorResponse.put("statusCode", 401);
+
+            return Response.status(401)
+                    .entity(errorResponse.toString())
+                    .type(MediaType.APPLICATION_JSON)
+                    .build();
+        }
 
         JSONObject toReturn = layer.getPartImagesById(id);
 
@@ -136,7 +172,27 @@ public class PartImagesController {
     @GET
     @Path("getPartImagesByUrl")
     @Produces(MediaType.APPLICATION_JSON)
-    public Response getPartImagesByUrl(@QueryParam("urlIN") String url) {
+    public Response getPartImagesByUrl(@QueryParam("urlIN") String url, @HeaderParam("token") String jwtToken) {
+        Response jwtError = jwt.validateJwtAndReturnError(jwtToken);
+        String jwtRole = jwt.extractRole(jwtToken);
+        JSONArray errors = new JSONArray();
+        if (jwtError != null) {
+            return jwtError;
+        }
+        //System.out.println("\n\n\n" + jwtRole + jwtRole.equals("admin") + "\n\n\n");
+        if (!jwtRole.equals("admin")) {
+            errors.put("userNotAuthorised");
+
+            JSONObject errorResponse = new JSONObject();
+            errorResponse.put("errors", errors);
+            errorResponse.put("status", "failed");
+            errorResponse.put("statusCode", 401);
+
+            return Response.status(401)
+                    .entity(errorResponse.toString())
+                    .type(MediaType.APPLICATION_JSON)
+                    .build();
+        }
 
         JSONObject toReturn = layer.getPartImagesByUrl(url);
 
@@ -149,7 +205,27 @@ public class PartImagesController {
     @DELETE
     @Path("softDeletePartImages")
     @Produces(MediaType.APPLICATION_JSON)
-    public Response softDeletePartImages(@QueryParam("idIN") Integer id) {
+    public Response softDeletePartImages(@QueryParam("idIN") Integer id, @HeaderParam("token") String jwtToken) {
+        Response jwtError = jwt.validateJwtAndReturnError(jwtToken);
+        String jwtRole = jwt.extractRole(jwtToken);
+        JSONArray errors = new JSONArray();
+        if (jwtError != null) {
+            return jwtError;
+        }
+        //System.out.println("\n\n\n" + jwtRole + jwtRole.equals("admin") + "\n\n\n");
+        if (!jwtRole.equals("admin")) {
+            errors.put("userNotAuthorised");
+
+            JSONObject errorResponse = new JSONObject();
+            errorResponse.put("errors", errors);
+            errorResponse.put("status", "failed");
+            errorResponse.put("statusCode", 401);
+
+            return Response.status(401)
+                    .entity(errorResponse.toString())
+                    .type(MediaType.APPLICATION_JSON)
+                    .build();
+        }
 
         JSONObject toReturn = layer.softDeletePartImages(id);
 
@@ -165,7 +241,27 @@ public class PartImagesController {
     public Response updatePartImages(
             @QueryParam("id") Integer IdIN,
             @QueryParam("url") String url,
-            String body) {
+            String body, @HeaderParam("token") String jwtToken) {
+        Response jwtError = jwt.validateJwtAndReturnError(jwtToken);
+        String jwtRole = jwt.extractRole(jwtToken);
+        JSONArray errors = new JSONArray();
+        if (jwtError != null) {
+            return jwtError;
+        }
+        //System.out.println("\n\n\n" + jwtRole + jwtRole.equals("admin") + "\n\n\n");
+        if (!jwtRole.equals("admin")) {
+            errors.put("userNotAuthorised");
+
+            JSONObject errorResponse = new JSONObject();
+            errorResponse.put("errors", errors);
+            errorResponse.put("status", "failed");
+            errorResponse.put("statusCode", 401);
+
+            return Response.status(401)
+                    .entity(errorResponse.toString())
+                    .type(MediaType.APPLICATION_JSON)
+                    .build();
+        }
 
         JSONObject bodyObject = new JSONObject(body);
 
@@ -205,7 +301,27 @@ public class PartImagesController {
     @POST
     @Path("uploadPartImage")
     @Consumes(MediaType.MULTIPART_FORM_DATA)
-    public Response uploadPartImage(MultipartFormDataInput input) {
+    public Response uploadPartImage(MultipartFormDataInput input, @HeaderParam("token") String jwtToken) {
+        Response jwtError = jwt.validateJwtAndReturnError(jwtToken);
+        String jwtRole = jwt.extractRole(jwtToken);
+        JSONArray errors = new JSONArray();
+        if (jwtError != null) {
+            return jwtError;
+        }
+        //System.out.println("\n\n\n" + jwtRole + jwtRole.equals("admin") + "\n\n\n");
+        if (!jwtRole.equals("admin")) {
+            errors.put("userNotAuthorised");
+
+            JSONObject errorResponse = new JSONObject();
+            errorResponse.put("errors", errors);
+            errorResponse.put("status", "failed");
+            errorResponse.put("statusCode", 401);
+
+            return Response.status(401)
+                    .entity(errorResponse.toString())
+                    .type(MediaType.APPLICATION_JSON)
+                    .build();
+        }
         try {
             Map<String, List<InputPart>> uploadForm = input.getFormDataMap();
 
