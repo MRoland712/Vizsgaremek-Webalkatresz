@@ -147,6 +147,8 @@ public class PartsService {
             partObj.put("isActive", part.getIsActive());
             partObj.put("createdAt", part.getCreatedAt());
             partObj.put("updatedAt", part.getUpdatedAt());
+            partObj.put("deleted_at", part.getDeletedAt());
+            partObj.put("is_deleted", part.getIsDeleted());
 
             partArray.put(partObj);
         }
@@ -572,5 +574,46 @@ public class PartsService {
 
         return toReturn;
     }//getPartsBySku
+
+    public JSONObject getPartsByVehicleType(String vehicleType) {
+        JSONObject toReturn = new JSONObject();
+        JSONArray errors = new JSONArray();
+
+        if (partsAuth.isDataMissing(vehicleType)) {
+            errors.put("MissingVehicleType");
+            return errorAuth.createErrorResponse(errors, 400);
+        }
+
+        ArrayList<Parts> modelResult = Parts.getPartsByVehicleType(vehicleType);
+
+        if (partsAuth.isDataMissing(modelResult)) {
+            errors.put("PartsNotFound");
+            return errorAuth.createErrorResponse(errors, 404);
+        }
+
+        JSONArray partArray = new JSONArray();
+        for (Parts part : modelResult) {
+            JSONObject partObj = new JSONObject();
+            partObj.put("id", part.getId());
+            partObj.put("manufacturerId", part.getManufacturerId().getId());
+            partObj.put("sku", part.getSku());
+            partObj.put("name", part.getName());
+            partObj.put("description", part.getDescription());
+            partObj.put("category", part.getCategory());
+            partObj.put("price", part.getPrice());
+            partObj.put("stock", part.getStock());
+            partObj.put("status", part.getStatus());
+            partObj.put("isActive", part.getIsActive());
+            partObj.put("createdAt", part.getCreatedAt());
+            partObj.put("updatedAt", part.getUpdatedAt());
+            partArray.put(partObj);
+        }
+
+        toReturn.put("success", true);
+        toReturn.put("parts", partArray);
+        toReturn.put("count", modelResult.size());
+        toReturn.put("statusCode", 200);
+        return toReturn;
+    }
 
 }
