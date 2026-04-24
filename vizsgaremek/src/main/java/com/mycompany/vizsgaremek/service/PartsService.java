@@ -606,6 +606,7 @@ public class PartsService {
             partObj.put("isActive", part.getIsActive());
             partObj.put("createdAt", part.getCreatedAt());
             partObj.put("updatedAt", part.getUpdatedAt());
+            partObj.put("imageUrl", part.getImageUrl());
             partArray.put(partObj);
         }
 

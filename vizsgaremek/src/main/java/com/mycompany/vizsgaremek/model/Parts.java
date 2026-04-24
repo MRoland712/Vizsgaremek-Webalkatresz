@@ -139,6 +139,10 @@ public class Parts implements Serializable {
         this.name = name;
         this.price = price;
     }
+    private String imageUrl;
+
+    public String getImageUrl() { return imageUrl; }
+    public void setImageUrl(String imageUrl) { this.imageUrl = imageUrl; }
 
     public Integer getId() {
         return id;
@@ -736,20 +740,21 @@ public class Parts implements Serializable {
 
                 Parts p = new Parts(
                         Integer.valueOf(record[0].toString()),                                   // id
-                        record[2] != null ? record[2].toString() : null,                         // sku
-                        record[3] != null ? record[3].toString() : null,                         // name
-                        record[4] != null ? record[4].toString() : null,                         // description
-                        record[5] != null ? record[5].toString() : null,                         // category
-                        record[6] != null ? new BigDecimal(record[6].toString()) : null,         // price
-                        record[7] != null ? Integer.valueOf(record[7].toString()) : null,        // stock
-                        record[8] != null ? record[8].toString() : null,                         // status
+                        record[2] != null ? record[2].toString() : null,                        // sku
+                        record[3] != null ? record[3].toString() : null,                        // name
+                        record[4] != null ? record[4].toString() : null,                        // description
+                        record[5] != null ? record[5].toString() : null,                        // category
+                        record[6] != null ? new BigDecimal(record[6].toString()) : null,        // price
+                        record[7] != null ? Integer.valueOf(record[7].toString()) : null,       // stock
+                        record[8] != null ? record[8].toString() : null,                        // status
                         Boolean.valueOf(record[9].toString()),                                   // isActive
-                        record[10] == null ? null : formatter.parse(record[10].toString()),      // createdAt
-                        record[11] == null ? null : formatter.parse(record[11].toString()),      // updatedAt
-                        record[12] == null ? null : formatter.parse(record[12].toString()),      // deletedAt
+                        record[10] == null ? null : formatter.parse(record[10].toString()),     // createdAt
+                        record[11] == null ? null : formatter.parse(record[11].toString()),     // updatedAt
+                        record[12] == null ? null : formatter.parse(record[12].toString()),     // deletedAt
                         Boolean.FALSE,                                                           // isDeleted
                         manufacturer                                                             // manufacturerId
                 );
+                p.setImageUrl(record[13] != null ? record[13].toString() : null);              // imageUrl
                 toReturn.add(p);
             }
             return toReturn;
