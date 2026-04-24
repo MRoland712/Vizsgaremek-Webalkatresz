@@ -5,6 +5,7 @@
 package com.mycompany.vizsgaremek.controller;
 
 import com.mycompany.vizsgaremek.config.JwtUtil;
+import com.mycompany.vizsgaremek.service.AuthenticationService;
 import com.mycompany.vizsgaremek.util.CloudflareAnalitics;
 import com.mycompany.vizsgaremek.model.Orders;
 import com.mycompany.vizsgaremek.model.Users;
@@ -40,6 +41,7 @@ public class AnaliticsController {
 
     private final JwtUtil jwt = new JwtUtil();
     private CloudflareAnalitics layer = new CloudflareAnalitics();
+    private AuthenticationService.errorAuth errorAuth = new AuthenticationService.errorAuth();
 
     @Context
     private UriInfo context;
@@ -192,6 +194,53 @@ public class AnaliticsController {
 
         return Response.status(Integer.parseInt(successResponse.get("statusCode").toString()))
                 .entity(successResponse.toString())
+                .type(MediaType.APPLICATION_JSON)
+                .build();
+    }
+
+    @GET
+    @Path("getMostPurchasedPart")
+    @Consumes(MediaType.APPLICATION_JSON)
+    public Response getMostPurchasedPart() {
+
+        JSONObject result = new JSONObject();
+        ArrayList<OrderItems> allOrderItems = OrderItems.getAllOrderItems();
+        HashMap<Integer, Integer> mostPurchasedPart = new HashMap<Integer, Integer>();
+
+        //feltöltjük a mostPurchasedPart hashmapet és a profits BigDecimalt
+
+        for (OrderItems orderItem : allOrderItems) {
+            Integer partId = orderItem.getPartId().getId();
+            Integer quantity = orderItem.getQuantity();
+
+            if (mostPurchasedPart.containsKey(partId)) {
+                mostPurchasedPart.put(partId, mostPurchasedPart.get(partId) + quantity);
+            } else {
+                mostPurchasedPart.put(partId, quantity);
+            }
+        }
+
+        List<Map.Entry<Integer, Integer>> sortedList = new ArrayList<>(mostPurchasedPart.entrySet());
+        sortedList.sort((a,b) -> b.getValue().compareTo(a.getValue()));
+
+        JSONArray top10 = new JSONArray();
+        int limit = Math.min(10, sortedList.size());
+        for (int i = 0; i < limit; i++) {
+            JSONObject item = new JSONObject();
+            item.put("partName", Parts.getPartsById(sortedList.get(i).getKey()).getName());
+            item.put("quantity", sortedList.get(i).getValue());
+            //System.out.println("partName" + Parts.getPartsById(sortedList.get(i).getKey()).getName());
+            //System.out.println("quantity" + sortedList.get(i).getValue());
+            top10.put(item);
+        }
+
+        JSONObject response = new JSONObject();
+        response.put("result", top10);
+        response.put("status", "success");
+        response.put("statusCode", 200);
+
+        return Response.status(Integer.parseInt(response.get("statusCode").toString()))
+                .entity(response.toString())
                 .type(MediaType.APPLICATION_JSON)
                 .build();
     }
