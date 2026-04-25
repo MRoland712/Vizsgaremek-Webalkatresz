@@ -301,14 +301,18 @@ public class PartImagesController {
     @POST
     @Path("uploadPartImage")
     @Consumes(MediaType.MULTIPART_FORM_DATA)
-    public Response uploadPartImage(MultipartFormDataInput input, @HeaderParam("token") String jwtToken) {
+    public Response uploadPartImage(
+            MultipartFormDataInput input,
+            @HeaderParam("token") String jwtToken,
+            @QueryParam("osType") String osType) {  // ÚJ PARAMÉTER
+
         Response jwtError = jwt.validateJwtAndReturnError(jwtToken);
         String jwtRole = jwt.extractRole(jwtToken);
         JSONArray errors = new JSONArray();
         if (jwtError != null) {
             return jwtError;
         }
-        //System.out.println("\n\n\n" + jwtRole + jwtRole.equals("admin") + "\n\n\n");
+
         if (!jwtRole.equals("admin")) {
             errors.put("userNotAuthorised");
 
@@ -322,6 +326,7 @@ public class PartImagesController {
                     .type(MediaType.APPLICATION_JSON)
                     .build();
         }
+
         try {
             Map<String, List<InputPart>> uploadForm = input.getFormDataMap();
 
@@ -374,7 +379,8 @@ public class PartImagesController {
 
             InputStream inputStream = filePart.getBody(InputStream.class, null);
 
-            String imageUrl = imageUploadService.uploadImage(inputStream, fileName, "parts");
+            // OS TYPE PARAMÉTER ÁTADÁSA
+            String imageUrl = imageUploadService.uploadImage(inputStream, fileName, "parts", osType);
 
             Parts part = new Parts();
             part.setId(partId);

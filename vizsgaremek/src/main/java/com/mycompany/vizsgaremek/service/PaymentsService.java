@@ -455,8 +455,9 @@ public class PaymentsService {
                 System.out.println("HTML generálva: " + invoiceHtml.length() + " karakter");
 
                 System.out.println("PDF konverzió és mentés");
-                invoiceUrl = InvoicesService.saveInvoicePdf(invoiceHtml, payment.getOrderId().getId());
-                invoicePdfBytes = InvoicesService.generateInvoicePdfBytes(invoiceHtml);
+                //ToDo: Valami alapján érzékelni hogy hova akarja felrakni?? (ez nagyon folosleges lenne megjavitani)
+                invoiceUrl = InvoicesService.saveInvoicePdf(invoiceHtml, payment.getOrderId().getId(), "l");
+                invoicePdfBytes = InvoicesService.generateInvoicePdfBytes(invoiceHtml, "l");
                 System.out.println("PDF mentve: " + invoiceUrl);
                 System.out.println("PDF bytes: " + invoicePdfBytes.length + " bytes");
 

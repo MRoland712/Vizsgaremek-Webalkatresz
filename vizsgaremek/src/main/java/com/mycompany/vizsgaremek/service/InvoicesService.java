@@ -476,26 +476,40 @@ public class InvoicesService {
         }
     }
 
-    public static String saveInvoicePdf(String html, Integer orderId) throws Exception {
+    public static String saveInvoicePdf(String html, Integer orderId, String osType) throws Exception {
         String fileName = "invoice_" + orderId + ".pdf";
 
-        String os = System.getProperty("os.name").toLowerCase();
         String baseDir;
         String fontPath;
         String fontBoldPath;
 
-        if (os.contains("mac") || os.contains("darwin")) {
-            baseDir = System.getProperty("user.home") + "/Desktop/carcomps_invoices/";
-            fontPath = "/Library/Fonts/Arial.ttf";
-            fontBoldPath = "/Library/Fonts/Arial Bold.ttf";
-        } else if (os.contains("win")) {
-            baseDir = "C:/carcomps/invoices/";
-            fontPath = "C:/Windows/Fonts/arial.ttf";
-            fontBoldPath = "C:/Windows/Fonts/arialbd.ttf";
-        } else {
-            baseDir = "/var/www/carcomps/invoices/";
-            fontPath = "/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf";
-            fontBoldPath = "/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf";
+        if (osType == null || osType.isEmpty()) {
+            osType = "w"; // Default Windows
+        }
+
+        char os = osType.toLowerCase().charAt(0);
+
+        switch (os) {
+            case 'w':
+                baseDir = "C:/carcomps/invoices/";
+                fontPath = "C:/Windows/Fonts/arial.ttf";
+                fontBoldPath = "C:/Windows/Fonts/arialbd.ttf";
+                break;
+            case 'l':
+            case 's':
+                baseDir = "/var/carcomps/invoices/";
+                fontPath = "/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf";
+                fontBoldPath = "/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf";
+                break;
+            case 'm':
+                baseDir = System.getProperty("user.home") + "/carcomps/invoices/";
+                fontPath = "/Library/Fonts/Arial.ttf";
+                fontBoldPath = "/Library/Fonts/Arial Bold.ttf";
+                break;
+            default:
+                baseDir = "C:/carcomps/invoices/";
+                fontPath = "C:/Windows/Fonts/arial.ttf";
+                fontBoldPath = "C:/Windows/Fonts/arialbd.ttf";
         }
 
         String filePath = baseDir + fileName;
@@ -518,20 +532,33 @@ public class InvoicesService {
         return "https://carcomps.hu/invoices/" + fileName;
     }
 
-    public static byte[] generateInvoicePdfBytes(String html) throws Exception {
-        String os = System.getProperty("os.name").toLowerCase();
+    public static byte[] generateInvoicePdfBytes(String html, String osType) throws Exception {
         String fontPath;
         String fontBoldPath;
 
-        if (os.contains("mac") || os.contains("darwin")) {
-            fontPath = "/Library/Fonts/Arial.ttf";
-            fontBoldPath = "/Library/Fonts/Arial Bold.ttf";
-        } else if (os.contains("win")) {
-            fontPath = "C:/Windows/Fonts/arial.ttf";
-            fontBoldPath = "C:/Windows/Fonts/arialbd.ttf";
-        } else {
-            fontPath = "/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf";
-            fontBoldPath = "/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf";
+        if (osType == null || osType.isEmpty()) {
+            osType = "w"; // Default Windows
+        }
+
+        char os = osType.toLowerCase().charAt(0);
+
+        switch (os) {
+            case 'w':
+                fontPath = "C:/Windows/Fonts/arial.ttf";
+                fontBoldPath = "C:/Windows/Fonts/arialbd.ttf";
+                break;
+            case 'l':
+            case 's':
+                fontPath = "/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf";
+                fontBoldPath = "/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf";
+                break;
+            case 'm':
+                fontPath = "/Library/Fonts/Arial.ttf";
+                fontBoldPath = "/Library/Fonts/Arial Bold.ttf";
+                break;
+            default:
+                fontPath = "C:/Windows/Fonts/arial.ttf";
+                fontBoldPath = "C:/Windows/Fonts/arialbd.ttf";
         }
 
         ByteArrayOutputStream baos = new ByteArrayOutputStream();

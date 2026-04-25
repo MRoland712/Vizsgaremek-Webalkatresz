@@ -104,27 +104,8 @@ public class ManufacturersController {
     @GET
     @Path("getAllManufacturers")
     @Consumes(MediaType.APPLICATION_JSON)
-    public Response getAllManufacturers(@HeaderParam("token") String jwtToken) {
-        Response jwtError = jwt.validateJwtAndReturnError(jwtToken);
-        String jwtRole = jwt.extractRole(jwtToken);
-        JSONArray errors = new JSONArray();
-        if (jwtError != null) {
-            return jwtError;
-        }
-        //System.out.println("\n\n\n" + jwtRole + jwtRole.equals("admin") + "\n\n\n");
-        if (!jwtRole.equals("admin")) {
-            errors.put("userNotAuthorised");
+    public Response getAllManufacturers() {
 
-            JSONObject errorResponse = new JSONObject();
-            errorResponse.put("errors", errors);
-            errorResponse.put("status", "failed");
-            errorResponse.put("statusCode", 401);
-
-            return Response.status(401)
-                    .entity(errorResponse.toString())
-                    .type(MediaType.APPLICATION_JSON)
-                    .build();
-        }
         ManufacturersService ManufacturersService = new ManufacturersService();
         JSONObject toReturn = ManufacturersService.getAllManufacturers();
 
