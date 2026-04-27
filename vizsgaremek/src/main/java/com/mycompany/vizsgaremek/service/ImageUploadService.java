@@ -9,7 +9,8 @@ import java.util.UUID;
 public class ImageUploadService {
     
     //  MANUÁLIS ÚTVONAL Ide mentődnek a képek
-    private static final String UPLOAD_DIR = "C:\\carcompsImages\\";
+    // Linux
+    private static final String UPLOAD_DIR = "/var/carcomps/images/";
     
     // URL alap
     private static final String BASE_URL = "http://api.Carcomps.hu/vizsgaremek-1.0-SNAPSHOT/webresources/images/";
