@@ -33,7 +33,7 @@
     <div class="info-row" (click)="openDialog('address')">
       <i class="fa-solid fa-location-dot info-icon"></i>
       <h3>Szállítási cím</h3>
-      <p>Cím kezelése</p>
+      <p>{{ savedAddressSummary() }}</p>
     </div>
     <div class="info-row" [class.tfa-active-row]="isTfaActive()" (click)="openDialog('2fa')">
       <i
@@ -144,12 +144,7 @@
                   <p>{{ disableError() }}</p>
                 </div>
               }
-              <button
-                class="btn-tfa-danger"
-                type="button"
-                (click)="disableTFA()"
-                [disabled]="isDisabling()"
-              >
+              <button class="btn-tfa-danger" type="button" (click)="disableTFA()" [disabled]="isDisabling()">
                 @if (isDisabling()) {
                   <i class="fa-solid fa-spinner fa-spin"></i> Kikapcsolás...
                 } @else {
@@ -157,7 +152,8 @@
                 }
               </button>
             </div>
-          } @else if (isLoadingTFA()) {
+          }
+          @else if (isLoadingTFA()) {
             <div class="loading-state">
               <i class="fa-solid fa-spinner fa-spin"></i>
               <p>2FA beállítás indítása...</p>
@@ -180,22 +176,14 @@
                 <div class="secret-key-header">
                   <span>Nem tudod beolvasni?</span>
                   <button type="button" class="btn-toggle-secret" (click)="toggleSecretKey()">
-                    <i
-                      class="fa-solid"
-                      [class.fa-eye]="!showSecretKey()"
-                      [class.fa-eye-slash]="showSecretKey()"
-                    ></i>
+                    <i class="fa-solid" [class.fa-eye]="!showSecretKey()" [class.fa-eye-slash]="showSecretKey()"></i>
                     {{ showSecretKey() ? 'Elrejt' : 'Titkos kulcs' }}
                   </button>
                 </div>
                 @if (showSecretKey()) {
                   <div class="secret-key-display">
                     <code>{{ tfaData()!.result.secretKey }}</code>
-                    <button
-                      type="button"
-                      class="btn-copy-mini"
-                      (click)="copyToClipboard(tfaData()!.result.secretKey)"
-                    >
+                    <button type="button" class="btn-copy-mini" (click)="copyToClipboard(tfaData()!.result.secretKey)">
                       <i class="fa-solid fa-copy"></i>
                     </button>
                   </div>
@@ -229,12 +217,7 @@
                 <button type="button" class="btn-tfa-back" (click)="tfaStep.set('qr')">
                   <i class="fa-solid fa-arrow-left"></i> Vissza
                 </button>
-                <button
-                  type="button"
-                  class="btn-tfa-primary"
-                  (click)="verifyCode()"
-                  [disabled]="isVerifying()"
-                >
+                <button type="button" class="btn-tfa-primary" (click)="verifyCode()" [disabled]="isVerifying()">
                   @if (isVerifying()) {
                     <i class="fa-solid fa-spinner fa-spin"></i> Ellenőrzés...
                   } @else {

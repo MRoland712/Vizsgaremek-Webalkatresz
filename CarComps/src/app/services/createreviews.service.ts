@@ -11,7 +11,7 @@ import { Observable } from 'rxjs';
 export class CreateReviewsService {
   private httpClient = inject(HttpClient);
 
-  private baseUrl = 'https://api.carcomps.hu/vizsgaremek-1.0-SNAPSHOT/webresources/';
+  private readonly baseUrl = 'https://api.carcomps.hu/vizsgaremek-1.0-SNAPSHOT/webresources/';
 
   createReview(body: CreateReviewRequest): Observable<CreateReviewResponse> {
     const token = localStorage.getItem('jwt') ?? '';

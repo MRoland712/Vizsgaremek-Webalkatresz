@@ -14,7 +14,7 @@ export interface OrderModel {
 export interface ActiveUserModel {
   lastName: string;
   lastLogin: string;
-  role: string; // ← hiányzott a modellből
+  role: string; 
   isActive: boolean;
   createdAt: string;
   firstName: string;
@@ -25,12 +25,12 @@ export interface ActiveUserModel {
   id: number;
   email: string;
   updatedAt: string;
-  username: string; // ← "usernmame" typo javítva
+  username: string; 
 }
 
 export interface MostPurchasedPartModel {
   quantity: number;
-  partName: string; // ← "partname" → "partName" (nagy N)
+  partName: string; 
 }
 
 // ── Fő modell ────────────────────────────────────────────────

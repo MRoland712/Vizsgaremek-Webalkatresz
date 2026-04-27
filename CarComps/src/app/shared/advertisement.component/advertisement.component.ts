@@ -1,4 +1,4 @@
-import { Component, signal, OnInit } from '@angular/core';
+import { Component, signal, OnInit, OnDestroy } from '@angular/core';
 
 @Component({
   selector: 'app-advertisement',
@@ -6,54 +6,97 @@ import { Component, signal, OnInit } from '@angular/core';
   templateUrl: './advertisement.component.html',
   styleUrl: './advertisement.component.css',
 })
-export class AdvertisementComponent implements OnInit {
-  slideIndex = signal(1);
-  slideTimeout: any;
+export class AdvertisementComponent implements OnInit, OnDestroy {
+  slideIndex = signal(0);
+  private prevIndex = 0;
+  private slideTimeout: any = null;
+  private isAnimating = false;
+  private readonly SLIDE_INTERVAL = 15000;
 
   ngOnInit() {
-    this.showSlides();
+    this.initSlides();
+    this.scheduleNext();
   }
 
-  showSlides() {
-    if (this.slideTimeout) {
+  ngOnDestroy() {
+    this.clearTimer();
+  }
+
+  private clearTimer() {
+    if (this.slideTimeout !== null) {
       clearTimeout(this.slideTimeout);
+      this.slideTimeout = null;
     }
+  }
+
+  private scheduleNext() {
+    this.clearTimer();
+    this.slideTimeout = setTimeout(() => {
+      const slides = document.getElementsByClassName('mySlides');
+      const next = (this.slideIndex() + 1) % slides.length;
+      this.goToSlide(next);
+    }, this.SLIDE_INTERVAL);
+  }
+
+  private initSlides() {
+    const slides = Array.from(document.getElementsByClassName('mySlides')) as HTMLElement[];
+    const dots   = Array.from(document.getElementsByClassName('dot'))     as HTMLElement[];
+
+    slides.forEach((slide, i) => {
+      slide.className = 'mySlides';
+      if (i === 0) slide.classList.add('in');
+    });
+
+    dots.forEach((dot, i) => {
+      dot.classList.toggle('active', i === 0);
+    });
+  }
+
+  private goToSlide(nextIdx: number) {
+    if (this.isAnimating) return;
 
     const slides = Array.from(document.getElementsByClassName('mySlides')) as HTMLElement[];
-    const dots = Array.from(document.getElementsByClassName('dot')) as HTMLElement[];
+    const dots   = Array.from(document.getElementsByClassName('dot'))     as HTMLElement[];
+    const total  = slides.length;
+    const normalized = ((nextIdx % total) + total) % total;
 
-    // wrap index
-    if (this.slideIndex() > slides.length) {
-      this.slideIndex.set(1);
-    }
-    if (this.slideIndex() < 1) {
-      this.slideIndex.set(slides.length);
+    if (normalized === this.slideIndex()) {
+      this.scheduleNext();
+      return;
     }
 
-    // assign classes based on current index
-    slides.forEach((slide, idx) => {
-      slide.classList.remove('in', 'out-left', 'out-right');
-      if (idx === this.slideIndex() - 1) {
-        slide.classList.add('in');
-      } else if (idx < this.slideIndex() - 1) {
-        slide.classList.add('out-left');
-      } else {
-        slide.classList.add('out-right');
+    this.isAnimating = true;
+    this.prevIndex = this.slideIndex();
+    this.slideIndex.set(normalized);
+
+    const prev = slides[this.prevIndex];
+    const curr = slides[normalized];
+
+    // Reset összes slide — csak prev és curr animálunk
+    slides.forEach((s, i) => {
+      if (i !== this.prevIndex && i !== normalized) {
+        s.className = 'mySlides';
       }
     });
 
-    dots.forEach((dot, idx) => {
-      dot.classList.toggle('active', idx === this.slideIndex() - 1);
-    });
+    // Prev kimegy balra, curr bejön jobbról
+    prev.className = 'mySlides out-left';
+    curr.className = 'mySlides in';
 
-    this.slideTimeout = setTimeout(() => {
-      this.slideIndex.update((val) => val + 1);
-      this.showSlides();
-    }, 15000);
+    // Dots
+    dots.forEach((dot, i) => dot.classList.toggle('active', i === normalized));
+
+    // Animáció vége után reset
+    setTimeout(() => {
+      prev.className = 'mySlides';
+      this.isAnimating = false;
+      this.scheduleNext();
+    }, 1000); // transition ideje
   }
 
+  // Dot kattintásra (1-alapú)
   currentSlide(n: number) {
-    this.slideIndex.set(n);
-    this.showSlides();
+    this.clearTimer();
+    this.goToSlide(n - 1);
   }
 }

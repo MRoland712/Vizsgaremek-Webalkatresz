@@ -1,11 +1,12 @@
 import { Component, DestroyRef, inject, signal, OnInit } from '@angular/core';
 import { FormControl, ReactiveFormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
-import { RouterLink, Router } from '@angular/router';
+import { RouterLink, Router, RouterLinkActive } from '@angular/router';
 import { debounceTime, distinctUntilChanged } from 'rxjs';
 import { SearchService, SearchResult } from './search.service';
 import { AuthService } from '../services/auth.service';
 import { CartService } from '../services/cart.service';
+import { FilterService, VehicleType } from '../services/filter.service';
 
 interface SavedCar {
   brand: string;
@@ -15,7 +16,7 @@ interface SavedCar {
 
 @Component({
   selector: 'app-main-header',
-  imports: [ReactiveFormsModule, CommonModule, RouterLink],
+  imports: [ReactiveFormsModule, CommonModule, RouterLink, RouterLinkActive],
   templateUrl: './main-header.component.html',
   styleUrl: './main-header.component.css',
 })
@@ -25,6 +26,7 @@ export class MainHeaderComponent implements OnInit {
   cartService = inject(CartService);
   private searchService = inject(SearchService);
   private router = inject(Router);
+  filterService = inject(FilterService);
 
   imgSrc = '/assets/CarComps_Logo_BigassC.png';
   searchControl = new FormControl('');
@@ -40,7 +42,6 @@ export class MainHeaderComponent implements OnInit {
   cartItemCount = this.cartService.cartItemCount;
   cartTotal = this.cartService.cartTotal;
 
-  // ── Garázs: mentett autók localStorage-ból ───────────────
   savedCars = signal<SavedCar[]>([]);
   selectedCar = signal<SavedCar | null>(null);
 
@@ -54,6 +55,8 @@ export class MainHeaderComponent implements OnInit {
       this.cartService.loadCartFromBackend();
       this.loadSavedCars();
     }
+    // Adatok előbetöltése
+    this.filterService.loadData();
   }
 
   private loadSavedCars() {
@@ -74,12 +77,24 @@ export class MainHeaderComponent implements OnInit {
   selectSavedCar(car: SavedCar) {
     this.selectedCar.set(car);
     localStorage.setItem('selected-garage-car', JSON.stringify(car));
-    console.log('🚗 Kiválasztott autó:', car);
   }
 
   clearSelectedCar() {
     this.selectedCar.set(null);
     localStorage.removeItem('selected-garage-car');
+  }
+
+  // ── Jármű típus váltás ────────────────────────────────────
+  selectVehicleType(type: VehicleType) {
+    this.filterService.setVehicleType(type);
+    // Ha nem vagyunk a products oldalon, navigáljunk oda
+    if (!this.router.url.includes('/products')) {
+      this.router.navigate(['/products']);
+    }
+  }
+
+  isVehicleTypeActive(type: VehicleType): boolean {
+    return this.filterService.selectedVehicleType() === type;
   }
 
   constructor() {
@@ -143,16 +158,13 @@ export class MainHeaderComponent implements OnInit {
   closeDropdown() {
     setTimeout(() => this.showDropdown.set(false), 200);
   }
-
   onSearchSubmit() {
     this.showDropdown.set(false);
   }
-
   selectGarageCar() {
     const y = this.garageYearControl.value;
     if (!y) return;
   }
-
   logout() {
     this.cartService.clearCart();
     this.authService.logout();
