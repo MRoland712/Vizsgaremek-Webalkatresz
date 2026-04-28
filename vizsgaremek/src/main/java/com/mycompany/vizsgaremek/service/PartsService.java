@@ -7,6 +7,10 @@ package com.mycompany.vizsgaremek.service;
 import com.mycompany.vizsgaremek.model.Parts;
 import com.mycompany.vizsgaremek.model.PartImages;
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Objects;
+
 import org.json.JSONArray;
 import org.json.JSONObject;
 
@@ -179,6 +183,20 @@ public class PartsService {
             return errorAuth.createErrorResponse(errors, 500);
         }
 
+        // OPTIMALIZÁCIÓ: HashMap indexelés - O(n) helyett O(n×m)
+        // Először primary képeket indexeljük, majd nem-primary fallback
+        Map<Integer, String> partIdToImageUrl = new HashMap<>();
+
+        for (PartImages img : modelImagesResult) {
+            Integer partId = img.getPartId().getId();
+            String currentUrl = partIdToImageUrl.get(partId);
+
+            // Ha nincs még kép VAGY az új kép primary
+            if (currentUrl == null || (img.getIsPrimary() != null && img.getIsPrimary())) {
+                partIdToImageUrl.put(partId, img.getUrl());
+            }
+        }
+
         // KONVERZIÓ ArrayList --> JSONArray
         JSONArray partArray = new JSONArray();
 
@@ -196,17 +214,9 @@ public class PartsService {
             partObj.put("createdAt", part.getCreatedAt());
             partObj.put("updatedAt", part.getUpdatedAt());
 
-            Boolean hasImage = false;
-            for (PartImages images : modelImagesResult) {
-                if (part.getId() == images.getPartId().getId()) {
-                    partObj.put("imageUrl", images.getUrl());
-                    hasImage = true;
-                }
-            }
-            
-            if (!hasImage) {
-                partObj.put("imageUrl", "noImageFound");
-            }
+            // O(1) lookup a HashMap-ből
+            String imageUrl = partIdToImageUrl.get(part.getId());
+            partObj.put("imageUrl", imageUrl != null ? imageUrl : "noImageFound");
 
             partArray.put(partObj);
         }

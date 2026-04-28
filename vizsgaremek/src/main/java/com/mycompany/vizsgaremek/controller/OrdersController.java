@@ -165,7 +165,7 @@ public class OrdersController {
         if (jwtError != null) {
             return jwtError;
         }
-        
+
 
         JSONObject toReturn = layer.getOrdersById(id);
 
@@ -184,20 +184,6 @@ public class OrdersController {
         JSONArray errors = new JSONArray();
         if (jwtError != null) {
             return jwtError;
-        }
-        //System.out.println("\n\n\n" + jwtRole + jwtRole.equals("admin") + "\n\n\n");
-        if (!jwtRole.equals("admin")) {
-            errors.put("userNotAuthorised");
-
-            JSONObject errorResponse = new JSONObject();
-            errorResponse.put("errors", errors);
-            errorResponse.put("status", "failed");
-            errorResponse.put("statusCode", 401);
-
-            return Response.status(401)
-                    .entity(errorResponse.toString())
-                    .type(MediaType.APPLICATION_JSON)
-                    .build();
         }
 
         JSONObject toReturn = layer.getOrdersByUserId(userId);
