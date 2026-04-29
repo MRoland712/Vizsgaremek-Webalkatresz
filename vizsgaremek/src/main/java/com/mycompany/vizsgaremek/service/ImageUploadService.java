@@ -6,7 +6,14 @@ import java.nio.file.*;
 
 @ApplicationScoped
 public class ImageUploadService {
-
+    
+    //  MANUÁLIS ÚTVONAL Ide mentődnek a képek
+    // Linux
+    private static final String UPLOAD_DIR = "/var/carcomps/images/";
+    
+    // URL alap
+    private static final String BASE_URL = "http://api.carcomps.hu/vizsgaremek-1.0-SNAPSHOT/webresources/images/";
+    
     /**
      * Get upload directory based on OS type parameter
      * @param osType 'w'/'W' = Windows, 'l'/'L'/'s'/'S' = Linux, 'm'/'M' = Mac

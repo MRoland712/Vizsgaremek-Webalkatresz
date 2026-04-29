@@ -206,6 +206,7 @@ public class PartsService {
             partObj.put("manufacturerId", part.getManufacturerId().getId());
             partObj.put("sku", part.getSku());
             partObj.put("name", part.getName());
+            partObj.put("description", part.getDescription());
             partObj.put("category", part.getCategory());
             partObj.put("price", part.getPrice());
             partObj.put("stock", part.getStock());

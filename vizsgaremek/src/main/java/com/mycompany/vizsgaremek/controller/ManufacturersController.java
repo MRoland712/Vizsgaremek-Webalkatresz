@@ -104,8 +104,7 @@ public class ManufacturersController {
     @GET
     @Path("getAllManufacturers")
     @Consumes(MediaType.APPLICATION_JSON)
-    public Response getAllManufacturers() {
-
+    public Response getAllManufacturers(){
         ManufacturersService ManufacturersService = new ManufacturersService();
         JSONObject toReturn = ManufacturersService.getAllManufacturers();
 
