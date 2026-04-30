@@ -1,0 +1,3 @@
+Az alábbi linken elérhető a DBDiagram, dbdiagram.io oldalon.
+
+https://dbdiagram.io/d/Carcomps-DB-Diagram-68ecde392e68d21b412aa9ee
