@@ -35,46 +35,65 @@ export class DeliveryComponent {
     city: ['', [Validators.required]],
     postalCode: ['', [Validators.required, Validators.pattern(/^[0-9]{4}$/)]],
     country: ['', [Validators.required]],
-    phone: ['', [Validators.required, Validators.pattern(/^[0-9]{7,15}$/)]],
+    phone: ['', [Validators.required, Validators.pattern(/^[+0-9]{7,15}$/)]],
     address: ['', [Validators.required]],
     newsletter: [false],
   });
 
-  // ── Automatikus kitöltés profilból ────────────────────────
   autoFill() {
     let filled = false;
+    const userId = this.auth.userId() || Number(localStorage.getItem('userId') || '0');
 
-    // 1. ProfileInfoSelector updateShippingAddress() által mentett adat
-    const savedAddress = localStorage.getItem('shippingAddress');
-    if (savedAddress) {
-      try {
-        const addr = JSON.parse(savedAddress);
-        this.deliveryForm.patchValue({
-          lastname: addr.lastname || '',
-          firstname: addr.firstname || '',
-          city: addr.city || '',
-          postalCode: addr.postalCode || '',
-          country: addr.country || 'Magyarország',
-          phone: addr.phone || '',
-          address: [addr.street, addr.houseNumber].filter(Boolean).join(' '),
-        });
-        filled = true;
-      } catch {}
-    }
-
-    // 2. deliveryData — korábbi kitöltésből
-    if (!filled) {
-      const prev = localStorage.getItem('deliveryData');
-      if (prev) {
+    if (userId) {
+      const userAddr = localStorage.getItem(`shippingAddress_${userId}`);
+      if (userAddr) {
         try {
-          const data = JSON.parse(prev);
-          this.deliveryForm.patchValue(data);
+          const addr = JSON.parse(userAddr);
+          this.deliveryForm.patchValue({
+            lastname: addr.lastname || '',
+            firstname: addr.firstname || '',
+            city: addr.city || '',
+            postalCode: addr.postalCode || '',
+            country: addr.country || 'Magyarország',
+            phone: addr.phone || '',
+            address: [addr.street, addr.houseNumber].filter(Boolean).join(' '),
+          });
           filled = true;
         } catch {}
       }
     }
 
-    // 3. AuthService userName fallback
+    if (!filled) {
+      const savedAddress = localStorage.getItem('shippingAddress');
+      if (savedAddress) {
+        try {
+          const addr = JSON.parse(savedAddress);
+          if (!addr._userId || addr._userId === userId) {
+            this.deliveryForm.patchValue({
+              lastname: addr.lastname || '',
+              firstname: addr.firstname || '',
+              city: addr.city || '',
+              postalCode: addr.postalCode || '',
+              country: addr.country || 'Magyarország',
+              phone: addr.phone || '',
+              address: [addr.street, addr.houseNumber].filter(Boolean).join(' '),
+            });
+            filled = true;
+          }
+        } catch {}
+      }
+    }
+
+    if (!filled) {
+      const prev = localStorage.getItem('deliveryData');
+      if (prev) {
+        try {
+          this.deliveryForm.patchValue(JSON.parse(prev));
+          filled = true;
+        } catch {}
+      }
+    }
+
     if (!filled) {
       const name = this.auth.userName();
       if (name) {
@@ -103,9 +122,8 @@ export class DeliveryComponent {
       this.deliveryForm.markAllAsTouched();
       return;
     }
-    // Mentés localStorage-ba a summary oldalnak
     const val = this.deliveryForm.getRawValue();
     localStorage.setItem('deliveryData', JSON.stringify(val));
-    this.router.navigate(['/payment']);
+    this.router.navigate(['/summary']); // ⭐ delivery → summary (nyugtázás)
   }
 }

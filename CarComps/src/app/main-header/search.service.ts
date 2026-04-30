@@ -1,8 +1,8 @@
-import { Injectable } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+import { inject, Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
+import { map } from 'rxjs/operators';
+import { GetAllPartsWithImagesService } from '../services/getallpartswithimages.service';
 
-// Interface a keresési eredményekhez (majd az API szerint módosítható)
 export interface SearchResult {
   id: number;
   name: string;
@@ -10,49 +10,31 @@ export interface SearchResult {
   price: number;
   imageUrl?: string;
 }
-@Injectable({
-  providedIn: 'root',
-})
+
+@Injectable({ providedIn: 'root' })
 export class SearchService {
-  // TODO: Cseréld le az API endpoint-odra
-  private apiUrl =
-    'https://api.carcomps.hu/vizsgaremek-1.0-SNAPSHOT/webresources/parts/getAllParts';
+  private partsService = inject(GetAllPartsWithImagesService);
 
-  constructor(private http: HttpClient) {}
-
-  /**
-   * Keresés az API-ban
-   * @param searchTerm - A keresett kifejezés
-   * @returns Observable SearchResult tömbbel
-   */
   search(searchTerm: string): Observable<SearchResult[]> {
-    // TODO: Módosítsd az endpoint-ot és a paramétereket az API specifikáció szerint
-    return this.http.get<SearchResult[]>(`${this.apiUrl}/search`, {
-      params: { q: searchTerm },
-    });
-
-    // Ha az API más formátumban ad vissza adatokat, használj map operátort:
-    // return this.http.get<any>(`${this.apiUrl}/search`, {
-    //   params: { q: searchTerm }
-    // }).pipe(
-    //   map(response => {
-    //     // Alakítsd át az API válaszát SearchResult[] típusra
-    //     return response.data.map((item: any) => ({
-    //       id: item.id,
-    //       name: item.productName,
-    //       category: item.categoryName,
-    //       price: item.price,
-    //       imageUrl: item.image
-    //     }));
-    //   })
-    // );
-  }
-
-  /**
-   * Termék részletek lekérése ID alapján
-   * @param id - Termék azonosító
-   */
-  getProductById(id: number): Observable<any> {
-    return this.http.get(`${this.apiUrl}/products/${id}`);
+    return this.partsService.getAllPartsWithImages().pipe(
+      map((res) => {
+        const term = searchTerm.toLowerCase().trim();
+        return (res.parts ?? [])
+          .filter(
+            (p) =>
+              p.name?.toLowerCase().includes(term) ||
+              p.category?.toLowerCase().includes(term) ||
+              p.sku?.toLowerCase().includes(term),
+          )
+          .slice(0, 10)
+          .map((p) => ({
+            id: p.id,
+            name: p.name,
+            category: p.category,
+            price: p.price,
+            imageUrl: p.imageUrl,
+          }));
+      }),
+    );
   }
 }

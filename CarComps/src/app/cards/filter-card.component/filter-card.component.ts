@@ -1,10 +1,6 @@
 import { Component, inject, OnInit, signal, computed } from '@angular/core';
 import { Router, RouterLink } from '@angular/router';
-import { forkJoin } from 'rxjs';
-import { GetallpartsService } from '../../services/getallparts.service';
-import { PartsModel } from '../../models/parts.model';
-import { PartImagesModel } from '../../models/partimages.model';
-import { GetallpartimgagesService } from '../../services/getallpartimages.service';
+import { FilterService } from '../../services/filter.service';
 
 @Component({
   selector: 'app-filter-card',
@@ -13,16 +9,15 @@ import { GetallpartimgagesService } from '../../services/getallpartimages.servic
   styleUrl: './filter-card.component.css',
 })
 export class CategoryCardComponent implements OnInit {
-  private partsService = inject(GetallpartsService);
-  private partImagesService = inject(GetallpartimgagesService);
   private router = inject(Router);
+  filterService = inject(FilterService);
 
-  allParts = signal<PartsModel[]>([]);
-  isLoading = signal<boolean>(false);
+  isLoading = computed(() => this.filterService.isLoading());
   error = signal<string | null>(null);
 
+  // Kategóriák az aktív allParts-ból (jármű típus szűrőt is figyelembe veszi)
   categories = computed(() => {
-    const parts = this.allParts();
+    const parts = this.filterService.allParts();
     const categoryMap = new Map<
       string,
       {
@@ -36,17 +31,13 @@ export class CategoryCardComponent implements OnInit {
     parts.forEach((part) => {
       if (part.category) {
         if (categoryMap.has(part.category)) {
-          const existing = categoryMap.get(part.category)!;
-          existing.count++;
+          categoryMap.get(part.category)!.count++;
         } else {
-          // ⭐ Normalizált URL
-          const normalizedUrl = this.normalizeCategory(part.category);
-
           categoryMap.set(part.category, {
             name: part.category,
             count: 1,
             imageUrl: part.imageUrl || 'assets/placeholder.jpg',
-            categoryUrl: normalizedUrl,
+            categoryUrl: this.normalizeCategory(part.category),
           });
         }
       }
@@ -54,62 +45,19 @@ export class CategoryCardComponent implements OnInit {
     return Array.from(categoryMap.values());
   });
 
-  ngOnInit(): void {
-    this.loadCategories();
+  async ngOnInit(): Promise<void> {
+    await this.filterService.loadData();
   }
 
-  loadCategories() {
-    this.isLoading.set(true);
-    this.error.set(null);
-
-    forkJoin({
-      parts: this.partsService.getAllParts(),
-      images: this.partImagesService.getAllPartImages(),
-    }).subscribe({
-      next: ({ parts, images }) => {
-        if (parts.success && images.success) {
-          const partsWithImages = this.assignImagesToParts(parts.parts, images.partImages);
-          this.allParts.set(partsWithImages);
-        } else {
-          this.error.set('Nem sikerült betölteni az adatokat');
-        }
-        this.isLoading.set(false);
-      },
-      error: (err) => {
-        console.error('❌ Hiba:', err);
-        this.error.set('Hiba történt');
-        this.isLoading.set(false);
-      },
-    });
-  }
-
-  private assignImagesToParts(parts: PartsModel[], images: PartImagesModel[]): PartsModel[] {
-    const imageMap = new Map<number, string>();
-
-    images.forEach((image) => {
-      if (image.isPrimary) {
-        imageMap.set(image.partId, image.url);
-      }
-    });
-
-    images.forEach((image) => {
-      if (!imageMap.has(image.partId)) {
-        imageMap.set(image.partId, image.url);
-      }
-    });
-
-    return parts.map((part) => ({
-      ...part,
-      imageUrl: imageMap.get(part.id) || 'assets/placeholder.jpg',
-    }));
-  }
-
-  // ⭐ UGYANAZ a normalizálás mint Filter component-ben
   private normalizeCategory(category: string): string {
     return category
       .toLowerCase()
       .normalize('NFD')
       .replace(/[\u0300-\u036f]/g, '')
       .replace(/\s+/g, '-');
+  }
+
+  loadCategories() {
+    this.filterService.loadData();
   }
 }

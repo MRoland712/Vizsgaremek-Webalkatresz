@@ -1,53 +1,74 @@
 import { Component, inject, OnInit, signal, computed } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
-import { forkJoin } from 'rxjs';
 import { CommonModule } from '@angular/common';
-import { GetallpartsService } from '../../services/getallparts.service';
-import { GetallpartimgagesService } from '../../services/getallpartimages.service';
-import { PartsModel } from '../../models/parts.model';
+import { FormsModule } from '@angular/forms';
+import { GetAllPartsWithImagesService } from '../../services/getallpartswithimages.service';
+import { GetallmanufacturersService } from '../../services/getallmanufacturers.service';
 import { MainHeaderComponent } from '../../main-header/main-header.component';
 import { MmtContainerComponent } from '../../mmt-container/mmt-container.component';
 import { DynamicBreadcrumbsComponent } from '../../shared/dynamic-breadcrumbs.component/dynamic-breadcrumbs.component';
-import { GetallmanufacturersService } from '../../services/getallmanufacturers.service';
 import { BreadcrumbService } from '../../services/breadcrumb.service';
 import { ManufacturersModel } from '../../models/manufacturers.model';
 import { CartService } from '../../services/cart.service';
-
-interface Review {
-  id: number;
-  userName: string;
-  rating: number;
-  comment: string;
-  date: string;
-}
+import { PartWithImagesModel } from '../../models/getallpartswithimages.model';
+import { CreateReviewsService } from '../../services/createreviews.service';
+import { ReviewModel } from '../../models/createreviews.model';
 
 @Component({
   selector: 'app-product-detail',
   standalone: true,
-  imports: [MainHeaderComponent, MmtContainerComponent, DynamicBreadcrumbsComponent, CommonModule],
+  imports: [
+    MainHeaderComponent,
+    MmtContainerComponent,
+    DynamicBreadcrumbsComponent,
+    CommonModule,
+    FormsModule,
+  ],
   templateUrl: './single-product.component.html',
   styleUrl: './single-product.component.css',
 })
 export class ProductDetailComponent implements OnInit {
   private route = inject(ActivatedRoute);
   private router = inject(Router);
-  private partsService = inject(GetallpartsService);
-  private partImagesService = inject(GetallpartimgagesService);
+  private partsService = inject(GetAllPartsWithImagesService);
   private manufacturersService = inject(GetallmanufacturersService);
   private breadcrumbService = inject(BreadcrumbService);
   private cartService = inject(CartService);
+  private reviewsService = inject(CreateReviewsService);
 
-  product = signal<PartsModel | null>(null);
+  currentUserId = signal(Number(localStorage.getItem('userId') || '0'));
+  currentUserName = signal(
+    `${localStorage.getItem('firstName') || ''} ${localStorage.getItem('lastName') || ''}`.trim() ||
+      localStorage.getItem('userName') ||
+      'Te',
+  );
+
+  product = signal<PartWithImagesModel | null>(null);
   images = signal<string[]>([]);
   selectedImage = signal<string>('');
   quantity = signal(1);
   isLoading = signal(true);
   manufacturer = signal<ManufacturersModel | null>(null);
-  rating = signal(4.5);
-  reviewCount = signal(128);
   activeTab = signal<'description' | 'reviews'>('description');
+  description = signal('');
 
-  // Stock=0 vagy isActive=false → elfogyott
+  reviews = signal<ReviewModel[]>([]);
+  isLoadingReviews = signal(false);
+
+  rating = computed(() => {
+    const r = this.reviews();
+    if (!r.length) return 0;
+    return Math.round((r.reduce((sum, rv) => sum + rv.rating, 0) / r.length) * 10) / 10;
+  });
+  reviewCount = computed(() => this.reviews().length);
+
+  showReviewForm = signal(false);
+  reviewRating = signal(5);
+  reviewComment = signal('');
+  isSubmittingReview = signal(false);
+  reviewSubmitSuccess = signal(false);
+  reviewSubmitError = signal<string | null>(null);
+
   isOutOfStock = computed(() => {
     const p = this.product();
     return !p || !p.isActive || (p.stock ?? 0) <= 0;
@@ -56,98 +77,124 @@ export class ProductDetailComponent implements OnInit {
   isCooldown = signal(false);
   private cooldownTimer: any;
 
-  reviews = signal<Review[]>([
-    {
-      id: 1,
-      userName: 'Kovács János',
-      rating: 5,
-      comment: 'Kiváló minőség! Pontosan illik az autómra, gyors szállítás. Mindenkinek ajánlom!',
-      date: '2024. január 15.',
-    },
-    {
-      id: 2,
-      userName: 'Nagy Eszter',
-      rating: 4,
-      comment:
-        'Jó ár-érték arány. Egyetlen probléma, hogy kicsit később érkezett meg, mint ígérték.',
-      date: '2024. január 10.',
-    },
-    {
-      id: 3,
-      userName: 'Szabó Péter',
-      rating: 5,
-      comment:
-        'Professzionális csomagolás, tökéletes állapotban érkezett. A szerelő is dicsérte a minőséget.',
-      date: '2024. január 8.',
-    },
-  ]);
+  readonly PLACEHOLDER = 'assets/placeholder.jpg';
 
   ngOnInit(): void {
     this.route.params.subscribe((params) => {
-      const productId = +params['id'];
-      this.loadProductDetails(productId);
+      this.loadProductDetails(+params['id']);
     });
   }
 
   private loadProductDetails(productId: number): void {
     this.isLoading.set(true);
-
-    forkJoin({
-      parts: this.partsService.getAllParts(),
-      images: this.partImagesService.getAllPartImages(),
-      manufacturers: this.manufacturersService.getAllManufacturers(),
-    }).subscribe({
-      next: ({ parts, images, manufacturers }) => {
-        const foundProduct = parts.parts.find((p) => p.id === productId);
-
-        if (!foundProduct) {
+    this.partsService.getAllPartsWithImages().subscribe({
+      next: (res) => {
+        const found = res.parts.find((p) => p.id === productId);
+        if (!found) {
           this.router.navigate(['/']);
           return;
         }
 
-        const productImages = images.partImages
-          .filter((img) => img.partId === productId)
-          .sort((a, b) => (a.isPrimary ? -1 : b.isPrimary ? 1 : 0))
-          .map((img) => img.url);
+        // ⭐ Fallback ha nincs kép
+        const img = found.imageUrl?.trim() ? found.imageUrl : this.PLACEHOLDER;
 
-        if (productImages.length === 0) productImages.push('assets/placeholder.jpg');
-
-        const foundManufacturer = manufacturers.Manufacturers.find(
-          (m) => m.id === foundProduct.manufacturerId,
-        );
-
-        this.product.set({ ...foundProduct, imageUrl: productImages[0] });
-        this.images.set(productImages);
-        this.selectedImage.set(productImages[0]);
-        this.manufacturer.set(foundManufacturer || null);
+        this.product.set(found);
+        this.images.set([img]);
+        this.selectedImage.set(img);
+        this.description.set(found.description || '');
         this.isLoading.set(false);
 
-        this.breadcrumbService.setLastCategory(foundProduct.category.toLowerCase());
-        this.breadcrumbService.updateProductName(productId, foundProduct.name);
+        this.breadcrumbService.setLastCategory(found.category.toLowerCase());
+        this.breadcrumbService.updateProductName(productId, found.name);
+        this.loadReviews(productId);
+
+        this.manufacturersService.getAllManufacturers().subscribe({
+          next: (mfRes) => {
+            const mf = mfRes.Manufacturers.find((m) => m.id === found.manufacturerId);
+            this.manufacturer.set(mf ?? null);
+          },
+          error: () => {},
+        });
       },
-      error: (err) => {
-        console.error('❌ Termék betöltési hiba:', err);
+      error: () => {
         this.isLoading.set(false);
         this.router.navigate(['/']);
       },
     });
   }
 
-  selectImage(imageUrl: string): void {
-    this.selectedImage.set(imageUrl);
+  private loadReviews(partId: number): void {
+    this.isLoadingReviews.set(true);
+    this.reviewsService.getReviewsByPartId(partId).subscribe({
+      next: (res) => {
+        this.reviews.set((res.Reviews ?? []).filter((r) => !r.isDeleted));
+        this.isLoadingReviews.set(false);
+      },
+      error: () => {
+        this.reviews.set([]);
+        this.isLoadingReviews.set(false);
+      },
+    });
   }
 
-  increaseQuantity(): void {
+  submitReview(): void {
+    const userId = Number(localStorage.getItem('userId') || '0');
+    const partId = this.product()?.id;
+    if (!userId || !partId) {
+      this.reviewSubmitError.set('Be kell jelentkezned vélemény írásához!');
+      return;
+    }
+    if (!this.reviewComment().trim()) {
+      this.reviewSubmitError.set('A vélemény szövege kötelező!');
+      return;
+    }
+    this.isSubmittingReview.set(true);
+    this.reviewSubmitError.set(null);
+    this.reviewsService
+      .createReview({
+        userId,
+        partId,
+        ratingIN: this.reviewRating(),
+        commentIN: this.reviewComment().trim(),
+      })
+      .subscribe({
+        next: () => {
+          this.isSubmittingReview.set(false);
+          this.reviewSubmitSuccess.set(true);
+          this.reviewComment.set('');
+          this.reviewRating.set(5);
+          this.showReviewForm.set(false);
+          this.loadReviews(partId);
+          setTimeout(() => this.reviewSubmitSuccess.set(false), 3000);
+        },
+        error: (err) => {
+          this.isSubmittingReview.set(false);
+          this.reviewSubmitError.set(err.error?.message || 'Hiba történt a beküldés során.');
+        },
+      });
+  }
+
+  setReviewRating(star: number) {
+    this.reviewRating.set(star);
+  }
+  toggleReviewForm() {
+    this.showReviewForm.update((v) => !v);
+    this.reviewSubmitError.set(null);
+    this.reviewSubmitSuccess.set(false);
+  }
+  selectImage(url: string) {
+    this.selectedImage.set(url);
+  }
+  increaseQuantity() {
     this.quantity.update((q) => q + 1);
   }
-  decreaseQuantity(): void {
+  decreaseQuantity() {
     this.quantity.update((q) => (q > 1 ? q - 1 : 1));
   }
 
   addToCart(): void {
     const prod = this.product();
     if (!prod || this.isOutOfStock() || this.isCooldown()) return;
-
     this.cartService.addToCart({
       id: prod.id,
       name: prod.name,
@@ -156,24 +203,26 @@ export class ProductDetailComponent implements OnInit {
       imageUrl: prod.imageUrl,
       sku: prod.sku,
     });
-
     this.quantity.set(1);
     this.isCooldown.set(true);
-
     clearTimeout(this.cooldownTimer);
-    this.cooldownTimer = setTimeout(() => {
-      this.isCooldown.set(false);
-    }, 3000);
+    this.cooldownTimer = setTimeout(() => this.isCooldown.set(false), 3000);
   }
 
   getStars(): boolean[] {
-    const stars: boolean[] = [];
-    const fullStars = Math.floor(this.rating());
-    for (let i = 0; i < 5; i++) stars.push(i < fullStars);
-    return stars;
+    const full = Math.floor(this.rating());
+    return [0, 1, 2, 3, 4].map((i) => i < full);
   }
-
   hasHalfStar(): boolean {
     return this.rating() % 1 !== 0;
+  }
+  getReviewStars(rating: number): boolean[] {
+    return [1, 2, 3, 4, 5].map((i) => i <= rating);
+  }
+
+  // ⭐ kép hiba kezelő — ha a kép nem töltődik be, placeholder-re vált
+  onImageError(event: Event): void {
+    const img = event.target as HTMLImageElement;
+    if (img.src !== this.PLACEHOLDER) img.src = this.PLACEHOLDER;
   }
 }

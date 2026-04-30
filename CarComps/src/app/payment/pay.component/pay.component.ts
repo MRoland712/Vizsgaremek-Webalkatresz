@@ -5,7 +5,6 @@ import { MainHeaderComponent } from '../../main-header/main-header.component';
 import { FooterComponent } from '../../footer.component/footer.component';
 import { PaymentForwardButtonComponent } from '../../shared/payment-forward-button.component/payment-forward-button.component';
 import { CheckoutProgressComponent } from '../../shared/checkoutprogress.component/checkoutprogress.component';
-
 import { PaymentService } from '../../services/payment.service';
 import { AuthService } from '../../services/auth.service';
 import { CartService } from '../../services/cart.service';
@@ -40,14 +39,14 @@ export class PayComponent implements OnInit {
   readonly cartService = inject(CartService);
 
   selectedMethod = signal<string>('cash_on_delivery');
+  isProcessing = signal(false);
+  payError = signal<string | null>(null);
 
   ngOnInit(): void {
     if (this.cartService.cartItems().length === 0) {
       this.cartService.loadCartFromBackend();
     }
   }
-  isProcessing = signal(false);
-  payError = signal<string | null>(null);
 
   paymentMethods: PaymentMethod[] = [
     { id: 'cash_on_delivery', label: 'Készpénz', icon: 'fa-money-bill', available: true },
@@ -67,20 +66,18 @@ export class PayComponent implements OnInit {
   }
 
   goBack() {
-    this.router.navigate(['/delivery']);
-  }
+    this.router.navigate(['/summary']);
+  } // ⭐ payment → vissza summary-ra
 
   finalize() {
     if (!this.selectedMethod() || this.isProcessing()) return;
 
-    // Ha a kosár még töltődik (pl. page refresh után), várunk
     if (this.cartService.isLoading()) {
       this.payError.set('A kosár még betöltődik, kérlek várj egy pillanatot...');
       setTimeout(() => this.payError.set(null), 3000);
       return;
     }
 
-    // Ha a kosár üres, nem folytathatjuk
     if (this.cartService.cartItems().length === 0) {
       this.payError.set('A kosár üres! Adj hozzá termékeket vásárlás előtt.');
       return;
@@ -95,7 +92,6 @@ export class PayComponent implements OnInit {
     this.isProcessing.set(true);
     this.payError.set(null);
 
-    // LÉPÉS 1: createOrderFromCart
     this.orderSvc.createOrderFromCart({ userId }).subscribe({
       next: (orderRes) => {
         if (!orderRes.success) {
@@ -103,46 +99,35 @@ export class PayComponent implements OnInit {
           this.isProcessing.set(false);
           return;
         }
-
         const orderId = orderRes.orderId;
         localStorage.setItem('orderId', String(orderId));
 
-        // LÉPÉS 2: processPayment
-        this.paymentSvc
-          .processPayment({
-            orderId,
-            method: this.selectedMethod(),
-          })
-          .subscribe({
-            next: (payRes) => {
-              this.isProcessing.set(false);
-              if (payRes.success) {
-                // ⭐ cartItems mentése ELŐSZÖR mielőtt clearCart törli
-                localStorage.setItem('cartItems', JSON.stringify(this.cartService.cartItems()));
-
-                // Fizetési adatok mentése
-                localStorage.setItem(
-                  'paymentData',
-                  JSON.stringify({
-                    method: this.selectedMethod(),
-                    amount: payRes.amount,
-                    orderId: payRes.orderId,
-                  }),
-                );
-
-                // Kosár ürítése (csak memory, localStorage cartItems megmarad summary-nak)
-                this.cartService.clearCart();
-                this.router.navigate(['/summary']);
-              } else {
-                this.payError.set('Fizetés sikertelen!');
-              }
-            },
-            error: (err) => {
-              this.isProcessing.set(false);
-              this.payError.set(err.error?.message || 'Fizetési hiba történt!');
-              console.error('❌ processPayment hiba:', err);
-            },
-          });
+        this.paymentSvc.processPayment({ orderId, method: this.selectedMethod() }).subscribe({
+          next: (payRes) => {
+            this.isProcessing.set(false);
+            if (payRes.success) {
+              // cartItems mentése mielőtt clearCart törli
+              localStorage.setItem('cartItems', JSON.stringify(this.cartService.cartItems()));
+              localStorage.setItem(
+                'paymentData',
+                JSON.stringify({
+                  method: this.selectedMethod(),
+                  amount: payRes.amount,
+                  orderId: payRes.orderId,
+                }),
+              );
+              this.cartService.clearCart();
+              this.router.navigate(['/finish']); // ⭐ payment → finish
+            } else {
+              this.payError.set('Fizetés sikertelen!');
+            }
+          },
+          error: (err) => {
+            this.isProcessing.set(false);
+            this.payError.set(err.error?.message || 'Fizetési hiba történt!');
+            console.error('❌ processPayment hiba:', err);
+          },
+        });
       },
       error: (err) => {
         this.isProcessing.set(false);

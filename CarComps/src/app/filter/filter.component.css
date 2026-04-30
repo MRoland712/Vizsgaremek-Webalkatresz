@@ -134,3 +134,30 @@ hr {
     min-width: 100%;
   }
 }
+/* ── Szűrők törlése gomb ── */
+.filter-clear-section {
+  margin-bottom: 16px;
+}
+
+.clear-filters-btn {
+  width: 100%;
+  padding: 10px 14px;
+  background: rgba(255, 68, 68, 0.08);
+  color: #ff4444;
+  border: 1.5px solid rgba(255, 68, 68, 0.3);
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  font-family: inherit;
+  transition: all 0.2s;
+}
+
+.clear-filters-btn:hover {
+  background: rgba(255, 68, 68, 0.15);
+  border-color: #ff4444;
+}
