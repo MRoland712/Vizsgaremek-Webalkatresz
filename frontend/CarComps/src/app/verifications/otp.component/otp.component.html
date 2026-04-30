@@ -1,0 +1,123 @@
+@if (isOpen()) {
+  <div class="otp-overlay" (click)="close()">
+    <div class="otp-dialog" (click)="$event.stopPropagation()">
+      <!-- Header -->
+      <div class="otp-header">
+        <div class="icon-circle">
+          <i class="fa-solid fa-envelope-open-text"></i>
+        </div>
+        <h2>Email megerősítés</h2>
+        <p class="subtitle">
+          Küldtünk egy 6 számjegyű kódot a(z) <strong>{{ userEmail() }}</strong> címre
+        </p>
+        <button class="close-btn" (click)="close()">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+      </div>
+
+      <!-- OTP Input -->
+      <form [formGroup]="otpForm" (ngSubmit)="verifyOTP()">
+        <div class="otp-inputs" (paste)="onPaste($event)">
+          <input
+            type="text"
+            id="digit1"
+            formControlName="digit1"
+            maxlength="1"
+            class="otp-digit"
+            (input)="onDigitInput($event, 2)"
+            (keydown)="onDigitKeyDown($event, 1)"
+            autofocus
+          />
+          <input
+            type="text"
+            id="digit2"
+            formControlName="digit2"
+            maxlength="1"
+            class="otp-digit"
+            (input)="onDigitInput($event, 3)"
+            (keydown)="onDigitKeyDown($event, 2)"
+          />
+          <input
+            type="text"
+            id="digit3"
+            formControlName="digit3"
+            maxlength="1"
+            class="otp-digit"
+            (input)="onDigitInput($event, 4)"
+            (keydown)="onDigitKeyDown($event, 3)"
+          />
+          <input
+            type="text"
+            id="digit4"
+            formControlName="digit4"
+            maxlength="1"
+            class="otp-digit"
+            (input)="onDigitInput($event, 5)"
+            (keydown)="onDigitKeyDown($event, 4)"
+          />
+          <input
+            type="text"
+            id="digit5"
+            formControlName="digit5"
+            maxlength="1"
+            class="otp-digit"
+            (input)="onDigitInput($event, 6)"
+            (keydown)="onDigitKeyDown($event, 5)"
+          />
+          <input
+            type="text"
+            id="digit6"
+            formControlName="digit6"
+            maxlength="1"
+            class="otp-digit"
+            (keydown)="onDigitKeyDown($event, 6)"
+          />
+        </div>
+
+        <!-- Success Message -->
+        @if (successMessage()) {
+          <div class="success-banner">
+            <i class="fa-solid fa-circle-check"></i>
+            <p>{{ successMessage() }}</p>
+          </div>
+        }
+
+        <!-- Error Message -->
+        @if (errorMessage()) {
+          <div class="error-banner">
+            <i class="fa-solid fa-circle-exclamation"></i>
+            <p>{{ errorMessage() }}</p>
+          </div>
+        }
+
+        <!-- Verify Button -->
+        <button type="submit" class="verify-btn" [disabled]="isVerifying() || otpForm.invalid">
+          @if (isVerifying()) {
+            <i class="fa-solid fa-spinner fa-spin"></i>
+            Ellenőrzés...
+          } @else {
+            <i class="fa-solid fa-check"></i>
+            Megerősítés
+          }
+        </button>
+
+        <!-- Resend -->
+        <div class="resend-section">
+          <p>Nem kaptad meg a kódot?</p>
+          @if (resendCooldown() > 0) {
+            <span class="cooldown-text"> Újraküldés {{ resendCooldown() }} másodperc múlva </span>
+          } @else {
+            <button type="button" class="resend-btn" (click)="sendOTP()" [disabled]="isSending()">
+              @if (isSending()) {
+                <i class="fa-solid fa-spinner fa-spin"></i>
+                Küldés...
+              } @else {
+                Újraküldés
+              }
+            </button>
+          }
+        </div>
+      </form>
+    </div>
+  </div>
+}

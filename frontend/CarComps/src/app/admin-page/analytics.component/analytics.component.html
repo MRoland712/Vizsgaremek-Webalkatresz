@@ -1,0 +1,115 @@
+<!--TODO: NAPI HAVI ÉVI STAT VÁLTOZTATÓ GOMBOCSKÁK-->
+<div class="analytic-wrapper">
+  <!-- ── Loading ─────────────────────────────────────────── -->
+  @if (isLoading) {
+    <div class="loading-overlay">
+      <div class="spinner"></div>
+      <span>Adatok betöltése...</span>
+    </div>
+  }
+
+  <!-- ── Hiba ────────────────────────────────────────────── -->
+  @if (hasError && !isLoading) {
+    <div class="error-state">
+      <i class="fa-solid fa-triangle-exclamation"></i>
+      <span>Nem sikerült betölteni az adatokat.</span>
+      <button class="retry-btn" (click)="loadStats('365')">
+        <i class="fa-solid fa-rotate"></i> Újrapróbálás
+      </button>
+    </div>
+  }
+
+  @if (!isLoading && !hasError) {
+    <!-- Dashboard Header -->
+    <div class="dashboard-header">
+      <button class="back-btn" (click)="goBack()">
+        <i class="fa-solid fa-arrow-left"></i>
+      </button>
+      <h1 class="dashboard-title">
+        <i class="fa-solid fa-chart-line"></i>
+        Analitika Dashboard
+      </h1>
+      <div class="header-actions">
+        <button class="export-btn" (click)="exportPdf()">
+          <i class="fa-solid fa-download"></i>
+          Letöltés
+        </button>
+      </div>
+    </div>
+
+    <!-- ── Stat Cards ──────────────────────────────────────── -->
+    <div class="stat-container">
+      <div class="stat-card">
+        <div class="stat-icon eye">
+          <i class="fa-solid fa-eye"></i>
+        </div>
+        <div class="stat-content">
+          <p class="stat-label">Oldalmegtekintések</p>
+          <h3 class="stat-value">{{ pageViews | number }}</h3>
+        </div>
+      </div>
+
+      <div class="stat-card">
+        <div class="stat-icon clock">
+          <i class="fa-solid fa-arrow-pointer"></i>
+        </div>
+        <div class="stat-content">
+          <p class="stat-label">Egyedi látogatók</p>
+          <h3 class="stat-value">{{ uniqueVisitors | number }}</h3>
+        </div>
+      </div>
+
+      <div class="stat-card">
+        <div class="stat-icon new-users">
+          <i class="fa-solid fa-user-plus"></i>
+        </div>
+        <div class="stat-content">
+          <p class="stat-label">Regisztrált felhasználók</p>
+          <h3 class="stat-value">{{ registeredUsers | number }}</h3>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── Active Users Sparkline ─────────────────────────── -->
+    <div class="active-user-wrapper">
+      <div class="active-header">
+        <h2>
+          <i class="fa-solid fa-circle pulse"></i>
+          Aktív felhasználók
+        </h2>
+        <span class="last-updated">Frissítve: {{ lastUpdated | date: 'yyyy.MM.dd HH:mm:ss' }}</span>
+      </div>
+      <div class="active-content">
+        <div class="active-number">{{ activeUsersCount }}</div>
+        <p class="active-label">aktív felhasználó most</p>
+        <div class="active-graph">
+          <div class="sparkline">
+            @for (h of sparkHeights; track $index) {
+              <div class="spark-bar" [style.height.%]="h"></div>
+            }
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── Havi látogatások diagram ───────────────────────── -->
+    <div class="visitor-chart">
+      <div class="chart-header">
+        <h2>
+          <i class="fa-solid fa-chart-area"></i>
+          Havi látogatások
+        </h2>
+      </div>
+      <p class="chart-subtitle">Rendelések havi bontása az elmúlt évben</p>
+      <div class="chart">
+        <canvas #visitorChart></canvas>
+      </div>
+      <div class="chart-legend">
+        <div class="legend-item">
+          <span class="legend-dot visitors"></span>
+          Rendelések
+        </div>
+      </div>
+    </div>
+  }
+</div>

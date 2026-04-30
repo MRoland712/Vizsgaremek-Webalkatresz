@@ -1,0 +1,116 @@
+<app-dynamic-breadcrumbs></app-dynamic-breadcrumbs>
+<div class="filter-container">
+  <!-- SZŰRŐK TÖRLÉSE -->
+  @if (filterService.hasActiveFilters()) {
+    <div class="filter-clear-section">
+      <button class="clear-filters-btn" (click)="filterService.clearFilters()">
+        <i class="fa-solid fa-filter-circle-xmark"></i>
+        Szűrők törlése
+      </button>
+    </div>
+  }
+
+  <!-- ÖSSZES ALKATRÉSZ -->
+  <div class="filter-section">
+    <div class="filter-header">
+      <h3 class="filter-title">Összes Alkatrész</h3>
+      <button class="collapse-btn" (click)="toggleCategories()">
+        <i
+          class="fa-solid"
+          [class.fa-chevron-up]="categoriesExpanded()"
+          [class.fa-chevron-down]="!categoriesExpanded()"
+        ></i>
+      </button>
+    </div>
+    <hr />
+    @if (categoriesExpanded()) {
+      <ul class="filter-list">
+        @for (category of filterService.uniqueCategories(); track category) {
+          <li class="filter-item">
+            <label [for]="'category-' + category" class="checkbox-container">
+              <input
+                type="checkbox"
+                [id]="'category-' + category"
+                [checked]="isCategorySelected(category)"
+                (change)="toggleCategory(category)"
+              />
+              <span class="checkmark"></span>
+              {{ category }}
+            </label>
+          </li>
+        }
+      </ul>
+    }
+  </div>
+
+  <!-- ÖSSZES MÁRKA -->
+  <div class="filter-section">
+    <div class="filter-header">
+      <h3 class="filter-title">Összes Márka</h3>
+      <button class="collapse-btn" (click)="toggleAllManufacturers()">
+        <i
+          class="fa-solid"
+          [class.fa-chevron-up]="allManufacturersExpanded()"
+          [class.fa-chevron-down]="!allManufacturersExpanded()"
+        ></i>
+      </button>
+    </div>
+    <hr />
+    @if (allManufacturersExpanded()) {
+      <ul class="filter-list">
+        @for (manufacturer of filterService.uniqueManufacturers(); track manufacturer.id) {
+          <li class="filter-item">
+            <label [for]="'brand-' + manufacturer.id" class="checkbox-container">
+              <input
+                type="checkbox"
+                [id]="'brand-' + manufacturer.id"
+                [checked]="isManufacturerSelected(manufacturer.id)"
+                (change)="toggleManufacturer(manufacturer.id)"
+              />
+              <span class="checkmark"></span>
+              {{ manufacturer.name }}
+            </label>
+          </li>
+        }
+      </ul>
+    }
+  </div>
+
+  <!-- KATEGÓRIA SZEKCIÓK -->
+  @for (category of categoriesWithManufacturers(); track category) {
+    <div class="filter-section category-section">
+      <div class="filter-header">
+        <h3 class="filter-title">{{ category }}</h3>
+        <button class="collapse-btn" (click)="toggleCategorySection(category)">
+          <i
+            class="fa-solid"
+            [class.fa-chevron-up]="categorySectionsExpanded()[category]"
+            [class.fa-chevron-down]="!categorySectionsExpanded()[category]"
+          ></i>
+        </button>
+      </div>
+      <hr />
+      @if (categorySectionsExpanded()[category]) {
+        <ul class="filter-list">
+          @for (manufacturer of getManufacturersForCategory(category); track manufacturer.id) {
+            <li class="filter-item">
+              <label
+                [for]="'cat-' + category + '-mfr-' + manufacturer.id"
+                class="checkbox-container"
+              >
+                <input
+                  type="checkbox"
+                  [id]="'cat-' + category + '-mfr-' + manufacturer.id"
+                  [checked]="isManufacturerSelected(manufacturer.id)"
+                  (change)="toggleManufacturer(manufacturer.id)"
+                />
+                <span class="checkmark"></span>
+                {{ manufacturer.name }}
+              </label>
+            </li>
+          }
+        </ul>
+      }
+    </div>
+  }
+</div>

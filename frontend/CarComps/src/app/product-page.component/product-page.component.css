@@ -1,0 +1,54 @@
+/* product-page.component.css */
+
+/* ==========================================
+   FLEXBOX LAYOUT - Filter bal, Products jobb
+   ========================================== */
+
+.products-content {
+  display: flex;
+  gap: 0px; /* Térköz filter és products között */
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 40px 20px;
+}
+
+/* ==========================================
+   FILTER SIDEBAR - Bal oldal
+   ========================================== */
+
+.filter-sidebar {
+  flex: 0 0 280px; /* Fix 280px szélesség */
+  /* vagy: flex: 0 0 300px; */
+}
+
+/* ==========================================
+   PRODUCTS MAIN - Jobb oldal
+   ========================================== */
+
+.products-main {
+  flex: 1; /* Többi hely */
+  min-width: 0; /* Fix overflow problémák */
+}
+
+/* ==========================================
+   RESPONSIVE - Mobil
+   ========================================== */
+
+@media (max-width: 1024px) {
+  .products-content {
+    flex-direction: column; /* Egymás alatt */
+  }
+
+  .filter-sidebar {
+    flex: 0 0 auto;
+    width: 100%;
+  }
+}
+
+/* Tablet esetén filter kicsit kisebb */
+@media (max-width: 768px) {
+  .products-content {
+    gap: 20px;
+    padding: 20px;
+  }
+}

@@ -1,0 +1,24 @@
+<div class="progress-wrapper">
+  <div class="progress-track">
+    @for (step of steps; track step.id; let i = $index) {
+      @if (i > 0) {
+        <div class="connector" [class.connector--active]="isLineActive(i)"></div>
+      }
+      <div
+        class="step"
+        [class.step--completed]="getStepState(step) === 'completed'"
+        [class.step--active]="getStepState(step) === 'active'"
+        [class.step--inactive]="getStepState(step) === 'inactive'"
+      >
+        <div class="step__circle">
+          @if (getStepState(step) === 'completed') {
+            <i class="fa-solid fa-check"></i>
+          } @else {
+            <span>{{ step.number }}</span>
+          }
+        </div>
+        <span class="step__label">{{ step.label }}</span>
+      </div>
+    }
+  </div>
+</div>

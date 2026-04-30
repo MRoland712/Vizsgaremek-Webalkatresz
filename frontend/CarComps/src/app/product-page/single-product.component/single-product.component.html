@@ -1,0 +1,302 @@
+<app-main-header></app-main-header>
+<app-dynamic-breadcrumbs></app-dynamic-breadcrumbs>
+
+@if (isLoading()) {
+  <div class="loading-container">
+    <i class="fa-solid fa-spinner fa-spin"></i>
+    <p>Termék betöltése...</p>
+  </div>
+} @else if (product()) {
+  <div class="product-detail-page">
+    <div class="product-card-large">
+      <!-- BAL OLDAL - Kép -->
+      <div class="product-image-section">
+        <div class="main-image">
+          <img [src]="selectedImage()" [alt]="product()!.name" />
+        </div>
+        @if (images().length > 1) {
+          <div class="thumbnail-gallery">
+            @for (imageUrl of images(); track $index) {
+              <div
+                class="thumbnail"
+                [class.active]="selectedImage() === imageUrl"
+                (click)="selectImage(imageUrl)"
+              >
+                <img [src]="imageUrl" [alt]="product()!.name" />
+              </div>
+            }
+          </div>
+        }
+      </div>
+
+      <!-- JOBB OLDAL - Info -->
+      <div class="product-info-section">
+        <h1 class="product-name">{{ product()!.name }}</h1>
+        <p class="product-sku">Cikkszám: {{ product()!.sku }}</p>
+
+        <!-- Rating -->
+        <div class="rating-display">
+          <div class="stars">
+            @for (isFull of getStars(); track $index) {
+              <i class="fa-solid fa-star" [class.filled]="isFull"></i>
+            }
+            @if (hasHalfStar()) {
+              <i class="fa-solid fa-star-half-stroke filled"></i>
+            }
+          </div>
+          <span class="rating-text">{{ rating() }} ({{ reviewCount() }} értékelés)</span>
+        </div>
+
+        <!-- Badges -->
+        <div class="product-badges">
+          <span class="badge category">
+            <i class="fa-solid fa-tag"></i>
+            {{ product()!.category }}
+          </span>
+          @if (manufacturer()) {
+            <span class="badge manufacturer">
+              <i class="fa-solid fa-industry"></i>
+              {{ manufacturer()!.name }}
+            </span>
+          }
+        </div>
+
+        <!-- Specs -->
+        <div class="product-specs">
+          <ul>
+            <li>
+              <span class="spec-label">Raktárkészlet:</span>
+              <span class="spec-value">{{ product()!.stock }} db</span>
+            </li>
+            <li>
+              <span class="spec-label">Állapot:</span>
+              <span
+                class="spec-value"
+                [class.available]="product()!.isActive && product()!.stock > 0"
+                [class.unavailable]="!product()!.isActive || product()!.stock <= 0"
+              >
+                {{ product()!.isActive && product()!.stock > 0 ? 'Elérhető' : 'Nem elérhető' }}
+              </span>
+            </li>
+            @if (manufacturer()) {
+              <li>
+                <span class="spec-label">Gyártó:</span>
+                <span class="spec-value">{{ manufacturer()!.name }}</span>
+              </li>
+            }
+          </ul>
+        </div>
+
+        <!-- Ár -->
+        <div class="product-price">
+          <span class="price">{{ product()!.price }} HUF</span>
+        </div>
+
+        <!-- Cart Actions -->
+        <div class="cart-actions">
+          <div class="quantity-controls">
+            <button
+              class="quantity-btn decrease"
+              (click)="decreaseQuantity()"
+              [disabled]="isOutOfStock() || isCooldown()"
+            >
+              <i class="fa-solid fa-angle-down"></i>
+            </button>
+            <span class="quantity-display">{{ quantity() }}</span>
+            <button
+              class="quantity-btn increase"
+              (click)="increaseQuantity()"
+              [disabled]="isOutOfStock() || isCooldown()"
+            >
+              <i class="fa-solid fa-angle-up"></i>
+            </button>
+          </div>
+          <button
+            class="add-to-cart-btn"
+            [class.out-of-stock]="isOutOfStock()"
+            [class.cooldown]="isCooldown()"
+            [disabled]="isOutOfStock() || isCooldown()"
+            (click)="addToCart()"
+          >
+            @if (isOutOfStock()) {
+              <i class="fa-solid fa-ban"></i> Elfogyott
+            } @else if (isCooldown()) {
+              <i class="fa-solid fa-check"></i>
+            } @else {
+              <i class="fa-solid fa-cart-shopping"></i> Kosárba helyezés
+            }
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- TABS -->
+    <div class="product-tabs">
+      <div class="tab-buttons">
+        <button
+          class="tab-btn"
+          [class.active]="activeTab() === 'description'"
+          (click)="activeTab.set('description')"
+        >
+          <i class="fa-solid fa-file-lines"></i> Leírás
+        </button>
+        <button
+          class="tab-btn"
+          [class.active]="activeTab() === 'reviews'"
+          (click)="activeTab.set('reviews')"
+        >
+          <i class="fa-solid fa-comments"></i> Vélemények ({{ reviewCount() }})
+        </button>
+      </div>
+
+      <div class="tab-content">
+        @if (activeTab() === 'description') {
+          <div class="description-content">
+            <h3>Termék leírás</h3>
+            <p>
+              {{ product()!.description }}
+            </p>
+          </div>
+        }
+
+        @if (activeTab() === 'reviews') {
+          <div class="reviews-content">
+            <!-- Összesítő -->
+            <div class="reviews-summary">
+              <div class="rating-overview">
+                <div class="rating-big">{{ rating() }}</div>
+                <div class="stars-big">
+                  @for (isFull of getStars(); track $index) {
+                    <i class="fa-solid fa-star" [class.filled]="isFull"></i>
+                  }
+                  @if (hasHalfStar()) {
+                    <i class="fa-solid fa-star-half-stroke filled"></i>
+                  }
+                </div>
+                <p class="rating-count">{{ reviewCount() }} értékelés alapján</p>
+              </div>
+              <button class="write-review-btn" (click)="toggleReviewForm()">
+                <i
+                  class="fa-solid"
+                  [class.fa-pen]="!showReviewForm()"
+                  [class.fa-xmark]="showReviewForm()"
+                ></i>
+                {{ showReviewForm() ? 'Mégse' : 'Vélemény írása' }}
+              </button>
+            </div>
+
+            <!-- Vélemény írása form -->
+            @if (showReviewForm()) {
+              <div class="review-form-card">
+                <h4><i class="fa-solid fa-pen"></i> Vélemény írása</h4>
+
+                <!-- Csillag értékelés -->
+                <div class="star-picker">
+                  <span>Értékelés:</span>
+                  <div class="star-picker-stars">
+                    @for (i of [1, 2, 3, 4, 5]; track i) {
+                      <i
+                        class="fa-solid fa-star"
+                        [class.filled]="i <= reviewRating()"
+                        (click)="setReviewRating(i)"
+                        style="cursor: pointer"
+                      ></i>
+                    }
+                  </div>
+                  <span class="star-picker-label">{{ reviewRating() }}/5</span>
+                </div>
+
+                <!-- Szöveg -->
+                <div class="review-form-field">
+                  <label>Vélemény szövege</label>
+                  <textarea
+                    rows="4"
+                    placeholder="Írd le a tapasztalataidat ezzel a termékkel kapcsolatban..."
+                    [value]="reviewComment()"
+                    (input)="reviewComment.set($any($event.target).value)"
+                  ></textarea>
+                </div>
+
+                @if (reviewSubmitError()) {
+                  <div class="review-error-banner">
+                    <i class="fa-solid fa-circle-exclamation"></i>
+                    <p>{{ reviewSubmitError() }}</p>
+                  </div>
+                }
+
+                <button
+                  class="review-submit-btn"
+                  (click)="submitReview()"
+                  [disabled]="isSubmittingReview()"
+                >
+                  @if (isSubmittingReview()) {
+                    <i class="fa-solid fa-spinner fa-spin"></i> Beküldés...
+                  } @else {
+                    <i class="fa-solid fa-paper-plane"></i> Vélemény beküldése
+                  }
+                </button>
+              </div>
+            }
+
+            @if (reviewSubmitSuccess()) {
+              <div class="review-success-banner">
+                <i class="fa-solid fa-circle-check"></i>
+                <p>Köszönjük a véleményed!</p>
+              </div>
+            }
+
+            <!-- Vélemények listája -->
+            @if (isLoadingReviews()) {
+              <div class="loading-container" style="min-height: 120px">
+                <i class="fa-solid fa-spinner fa-spin"></i>
+                <p>Vélemények betöltése...</p>
+              </div>
+            } @else if (reviews().length === 0) {
+              <div class="no-reviews">
+                <i class="fa-solid fa-comment-slash"></i>
+                <p>Még nincs vélemény ehhez a termékhez. Legyél az első!</p>
+              </div>
+            } @else {
+              <div class="reviews-list">
+                @for (review of reviews(); track review.id) {
+                  <div class="review-card">
+                    <div class="review-header">
+                      <div class="reviewer-info">
+                        <div class="reviewer-avatar">
+                          {{
+                            review.userId === currentUserId()
+                              ? currentUserName().charAt(0).toUpperCase()
+                              : '#' + review.userId
+                          }}
+                        </div>
+                        <div class="reviewer-details">
+                          <strong>{{
+                            review.userId === currentUserId()
+                              ? currentUserName()
+                              : 'Vásárló #' + review.userId
+                          }}</strong>
+                          <span class="review-date">{{ review.createdAt }}</span>
+                        </div>
+                      </div>
+                      <div class="review-rating">
+                        @for (isFull of getReviewStars(review.rating); track $index) {
+                          <i class="fa-solid fa-star" [class.filled]="isFull"></i>
+                        }
+                      </div>
+                    </div>
+                    <p class="review-text">{{ review.comment }}</p>
+                  </div>
+                }
+              </div>
+            }
+          </div>
+        }
+      </div>
+    </div>
+  </div>
+} @else {
+  <div class="not-found-container">
+    <i class="fa-solid fa-box-open"></i>
+    <h2>Termék nem található</h2>
+  </div>
+}

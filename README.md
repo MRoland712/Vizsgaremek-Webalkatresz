@@ -1,24 +1,76 @@
-# Car Parts Shop csapatának adatbázis Dokumentációja
+# CarComps – Autóalkatrész Webáruház
 
-## Áttekintés
+A **CarComps** egy Java EE alapú autóalkatrész webáruház vizsgaremek projekt, járműkompatibilitás-kezeléssel és teljes körű e-commerce funkcionalitással.
 
-A **car_parts_shop_fix** egy komplex adatbázis-séma, amely egy autóalkatrész webáruház teljes körű működését támogatja. Az adatbázis tartalmazza a felhasználókezelést, termékkezelést, rendeléskezelést, raktárkezelést, fizetési és szállítási funkciókat.
+## A Teljes Weboldal a [carcomps.hu](https://carcomps.hu) címen elérhető 
 
-## Technikai Információk
+## Tech Stack
 
-- **Adatbázis motor:** MySQL 5.7.24
-- **Karakterkészlet:** UTF-8
-- **Collation:** utf8_general_ci
-- **PHP verzió:** 8.3.1
-- **Exportálás dátuma:** 2025. november 17.
+|Réteg|Technológia|
+|-|-|
+|Backend|Java 17, JAX-RS (RESTEasy)|
+|Alkalmazásszerver|WildFly 26.1.1|
+|Adatbázis|MySQL 5.7 (`car\\\_parts\\\_shop\\\_fix`)|
+|ORM|JPA / EntityManager|
+|Build|Maven|
+|Frontend|Angular|
+|Auth|JWT + Google Authenticator (TOTP)|
+|Adatbázis-connector|MySQL Connector/J 8.0.23|
 
-Ez a séma egy autóalkatrész webáruház belső használatára készült. A soft delete mechanizmus biztosítja, hogy az üzleti és jogszabályi követelményeknek megfelelően őrizzük meg a kritikus adatokat.
 
-## Változásnapló
+## Architektúra
 
-### 2.3 verzió (2025. november 17.)
+A projekt szigorú rétegelt (layered) architektúrát követ:
 
-## Verzió
+```
+Tárolt eljárások (Stored Procedures)
+        ↓
+    Model réteg
+        ↓
+   Service réteg
+        ↓
+  Controller (JAX-RS REST végpontok)
+```
 
-**Aktuális verzió:** 2.3
-**Utolsó módosítás:** 2025. november 17.
+A konfiguráció egy külön `config` csomagban van kezelve.
+
+
+## Főbb funkciók
+
+* Felhasználókezelés (regisztráció, bejelentkezés, 2FA, email-verifikáció, jelszó-visszaállítás)
+* Termékkezelés (alkatrészek, gyártók, képek, járműkompatibilitás)
+* Rendeléskezelés (kosár, fizetés, PDF számla generálás, email értesítések)
+* Garázs funkció (felhasználó járműveinek mentése)
+* Admin felület
+* Soft delete minden kritikus entitáson (`is_deleted`, `deleted_at`)
+
+
+## Adatbázis
+
+Az adatbázisséma a `car_parts_shop_fix.sql` fájlban található. Importálás:
+
+```bash
+mysql -u root -p < car_parts_shop_fix.sql
+```
+
+Minden adatbázis-művelet tárolt eljárásokon keresztül történik.
+
+
+## Fejlesztői környezet
+
+* **IDE:** IntelliJ IDEA / NetBeans
+* **API tesztelés:** Postman
+* **Verziókezelés:** GitHub
+* **Produkció:** Cloudflare tunnel → [carcomps.hu](https://carcomps.hu)
+
+
+## Fejlesztők
+
+|Név|Szerep|
+|-|-|
+|Kis-Borbás Dorián|Backend, Szerver|
+|Mészáros Roland|Frontend, PM|
+|Nebl Gergő|Adatbázis, Backend|
+
+
+

@@ -1,0 +1,57 @@
+<!-- profile-sidenav.component.html -->
+<nav class="profile-sidenav">
+  <!-- Logo felül -->
+  <div class="sidenav-logo">
+    <img src="/assets/CarComps_Logo_C_white.png" alt="CarComps Logo" />
+  </div>
+
+  <!-- Navigációs linkek -->
+  <ul class="sidenav-menu">
+    <li class="sidenav-item">
+      <a
+        routerLink="/profile"
+        routerLinkActive="active"
+        class="sidenav-link"
+        data-tooltip="Profilom"
+      >
+        <i class="fa-solid fa-user"></i>
+        <span>Profilom</span>
+      </a>
+    </li>
+    <li class="sidenav-item">
+      <a
+        routerLink="/profile/garage"
+        routerLinkActive="active"
+        class="sidenav-link"
+        data-tooltip="Garázsom"
+      >
+        <i class="fa-solid fa-warehouse"></i>
+        <span>Garázsom</span>
+      </a>
+    </li>
+  </ul>
+
+  <!-- Divider -->
+  <div class="sidenav-divider"></div>
+
+  <!-- Extra linkek -->
+  <ul class="sidenav-menu sidenav-secondary">
+    <li class="sidenav-item">
+      <a
+        routerLink="/profile/settings"
+        routerLinkActive="active"
+        class="sidenav-link"
+        data-tooltip="Beállítások"
+      >
+        <i class="fa-solid fa-gear"></i>
+        <span>Beállítások</span>
+      </a>
+    </li>
+    <li class="sidenav-item">
+      <a routerLink="/" class="sidenav-link" data-tooltip="Vissza a főoldalra">
+        <i class="fa-solid fa-house"></i>
+        <span>Vissza a főoldalra</span>
+      </a>
+    </li>
+  </ul>
+</nav>

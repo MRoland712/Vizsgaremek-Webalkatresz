@@ -1,0 +1,172 @@
+import { Component, DestroyRef, inject, signal, OnInit } from '@angular/core';
+import { FormControl, ReactiveFormsModule } from '@angular/forms';
+import { CommonModule } from '@angular/common';
+import { RouterLink, Router, RouterLinkActive } from '@angular/router';
+import { debounceTime, distinctUntilChanged } from 'rxjs';
+import { SearchService, SearchResult } from './search.service';
+import { AuthService } from '../services/auth.service';
+import { CartService } from '../services/cart.service';
+import { FilterService, VehicleType } from '../services/filter.service';
+
+interface SavedCar {
+  brand: string;
+  model: string;
+  year: number;
+}
+
+@Component({
+  selector: 'app-main-header',
+  imports: [ReactiveFormsModule, CommonModule, RouterLink, RouterLinkActive],
+  templateUrl: './main-header.component.html',
+  styleUrl: './main-header.component.css',
+})
+export class MainHeaderComponent implements OnInit {
+  private destroyRef = inject(DestroyRef);
+  authService = inject(AuthService);
+  cartService = inject(CartService);
+  private searchService = inject(SearchService);
+  private router = inject(Router);
+  filterService = inject(FilterService);
+
+  imgSrc = '/assets/CarComps_Logo_BigassC.png';
+  searchControl = new FormControl('');
+  searchResults = signal<SearchResult[]>([]);
+  isSearching = signal(false);
+  showDropdown = signal(false);
+
+  isLoggedIn = this.authService.isLoggedIn;
+  userName = this.authService.userName;
+  userEmail = this.authService.userEmail;
+
+  cartItems = this.cartService.cartItems;
+  cartItemCount = this.cartService.cartItemCount;
+  cartTotal = this.cartService.cartTotal;
+
+  savedCars = signal<SavedCar[]>([]);
+  selectedCar = signal<SavedCar | null>(null);
+
+  garageMakeControl = new FormControl('');
+  garageModelControl = new FormControl({ value: '', disabled: true });
+  garageYearControl = new FormControl({ value: '', disabled: true });
+
+  ngOnInit(): void {
+    this.authService.refreshUserData();
+    if (this.authService.isLoggedIn()) {
+      this.cartService.loadCartFromBackend();
+      this.loadSavedCars();
+    }
+    // Adatok előbetöltése
+    this.filterService.loadData();
+  }
+
+  private loadSavedCars() {
+    const raw = localStorage.getItem('my-garage');
+    if (raw) {
+      try {
+        this.savedCars.set(JSON.parse(raw));
+      } catch {}
+    }
+    const selected = localStorage.getItem('selected-garage-car');
+    if (selected) {
+      try {
+        this.selectedCar.set(JSON.parse(selected));
+      } catch {}
+    }
+  }
+
+  selectSavedCar(car: SavedCar) {
+    this.selectedCar.set(car);
+    localStorage.setItem('selected-garage-car', JSON.stringify(car));
+  }
+
+  clearSelectedCar() {
+    this.selectedCar.set(null);
+    localStorage.removeItem('selected-garage-car');
+  }
+
+  // ── Jármű típus váltás ────────────────────────────────────
+  selectVehicleType(type: VehicleType) {
+    this.filterService.setVehicleType(type);
+    // Ha nem vagyunk a products oldalon, navigáljunk oda
+    if (!this.router.url.includes('/products')) {
+      this.router.navigate(['/products']);
+    }
+  }
+
+  isVehicleTypeActive(type: VehicleType): boolean {
+    return this.filterService.selectedVehicleType() === type;
+  }
+
+  constructor() {
+    const searchSub = this.searchControl.valueChanges
+      .pipe(debounceTime(300), distinctUntilChanged())
+      .subscribe((term) => {
+        if (term && term.trim().length > 0) {
+          this.performSearch(term.trim());
+        } else {
+          this.searchResults.set([]);
+          this.showDropdown.set(false);
+        }
+      });
+
+    const makeSub = this.garageMakeControl.valueChanges.subscribe((makeId) => {
+      this.garageModelControl.setValue('');
+      this.garageYearControl.setValue('');
+      this.garageYearControl.disable();
+      if (makeId) this.garageModelControl.enable();
+      else this.garageModelControl.disable();
+    });
+
+    const modelSub = this.garageModelControl.valueChanges.subscribe((modelId) => {
+      this.garageYearControl.setValue('');
+      if (modelId) this.garageYearControl.enable();
+      else this.garageYearControl.disable();
+    });
+
+    this.destroyRef.onDestroy(() => {
+      searchSub.unsubscribe();
+      makeSub.unsubscribe();
+      modelSub.unsubscribe();
+    });
+  }
+
+  removeFromCart(itemId: number) {
+    this.cartService.removeFromCart(itemId);
+  }
+
+  performSearch(searchTerm: string) {
+    this.isSearching.set(true);
+    this.showDropdown.set(true);
+    this.searchService.search(searchTerm).subscribe({
+      next: (results) => {
+        this.searchResults.set(results);
+        this.isSearching.set(false);
+      },
+      error: () => {
+        this.searchResults.set([]);
+        this.isSearching.set(false);
+      },
+    });
+  }
+
+  selectResult(result: SearchResult) {
+    this.searchControl.setValue('');
+    this.showDropdown.set(false);
+    this.router.navigate(['/product', result.id]);
+  }
+
+  closeDropdown() {
+    setTimeout(() => this.showDropdown.set(false), 200);
+  }
+  onSearchSubmit() {
+    this.showDropdown.set(false);
+  }
+  selectGarageCar() {
+    const y = this.garageYearControl.value;
+    if (!y) return;
+  }
+  logout() {
+    this.cartService.clearCart();
+    this.authService.logout();
+  }
+}

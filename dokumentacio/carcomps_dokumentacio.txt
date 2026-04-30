@@ -1,0 +1,462 @@
+FIGYELEM EZ CSAK A SZÖVEGE A DOKUMENTÁCIÓNAK. LEGYEN SZÍVES A Dokumentáció.docx-ET OLVASNI
+
+ 
+Feladat rövid ismertetése
+Bevezetés
+A Carcomps.hu egy modern architektúrát alkalmazó autóalkatrész-webáruház demóoldal, amelyet a Baranya Vármegyei SzC Radnóti Miklós Közgazdasági Technikum szoftverfejlesztő és tesztelő képzésének vizsgaremekeként fejlesztettük. A projekt célja egy teljes értékű, éles környezetben is működőképes e-kereskedelmi platform megvalósítása volt, amely demonstrálja a modern webalkalmazás-fejlesztés legjobb gyakorlatait.
+Az alkalmazás elérhető a www.carcomps.hu címen, és Cloudflare Tunnel technológia segítségével, egy RackHost.hu-n bérelt VPS szerveren fut (Ubuntu 22.04 LTS operációs rendszer).
+Cél
+A projekt alapvető célja egy olyan platform létrehozása, amelyen a felhasználók autóalkatrészeket böngészhetnek, kereshetnek és rendelhetnek. A rendszer három felhasználói szerepkört különböztet meg: vendég látogató, bejelentkezett felhasználó és adminisztrátor. A platform tartalmaz autó-kompatibilitási keresőt (MMT-szelektor), kosárkezelést, teljes fizetési folyamatot, profilkezelést, garázsfunkciót és adminisztrátori felügyeleti panelt.
+Összefoglalás
+Az elkészült alkalmazás kielégíti a modern webáruházakkal szemben támasztott elvárásokat: reszponzív megjelenés, biztonságos hitelesítés (JWT, OTP, kétfaktoros azonosítás), valós idejű kosárszinkronizáció a backendlel, valamint adminisztrátori szintű analitika és e-commerce dashboard PDF-exportálási lehetőséggel.
+________________________________________
+ 
+Használt technológiák
+Programozási nyelvek és keretrendszerek
+Backend: Java 17 (LTS) a JAX-RS (Jakarta RESTful Web Services) szabvány alapján. A JAX-RS lehetővé teszi az annotáció-alapú, keretrendszerfüggetlen REST API fejlesztést, amely könnyen integrálható más Java EE technológiákkal.
+Frontend: Angular (TypeScript). Az Angular egységes, komponensalapú fejlesztési modellt nyújt, amelynek segítségével jól szeparálható, újrafelhasználható UI-egységek hozhatók létre. A projekten belül Angular standalone komponenseket és Signals-alapú reaktív állapotkezelést alkalmaztunk.
+Adatbázis
+MySQL 8.0, a MySQL Java Connector 8.0.23 verzión keresztül csatlakoztatva a backendhez. A relációs adatbázis 29 táblát tartalmaz.
+Alkalmazásszerver
+WildFly 26.1.1 Java EE alkalmazásszerver. A backend WAR-fájlként kerül telepítésre a WildFly példányra, amely a HTTP kérések kiszolgálásáért és az alkalmazás életciklusának kezeléséért felel.
+Fejlesztői eszközök
+Az alábbi eszközöket alkalmaztuk a fejlesztési folyamat során:
+•	IntelliJ IDEA / NetBeans: Java backend fejlesztői környezet
+•	Visual Studio Code: Angular frontend fejlesztői környezet
+•	Postman: REST API teszteléshez és dokumentáláshoz
+•	Git + GitHub: Verziókezelés és csapatmunka
+•	Jira: Projektmenedzsment, sprint-tervezés és munkaidő-nyilvántartás
+•	Figma: UI/UX tervezés és prototípuskészítés
+Hosting és infrastruktúra
+•	RackHost.hu VPS (Ubuntu 22.04 LTS): az adatbázis, a WildFly szerver és a Cloudflare Tunnel daemon futtatása
+•	Cloudflare Tunnel: biztonságos, portnyitás nélküli HTTPS-alagút a backend publikus elérhetőségéhez
+•	Vercel / statikus hosting: az Angular frontend kiszolgálása
+Egyéb technológiák
+•	Node.js (npm): Angular CLI és frontend függőségek kezelése
+•	Font Awesome: ikonkészlet a frontenden
+•	Chart.js: interaktív diagramok az adminisztrátori dashboardon
+•	jsPDF: PDF-exportálás az analitika és e-commerce dashboardhoz
+________________________________________
+Adatbázis
+Az adatbázis rövid ismertetése
+Az alkalmazás MySQL 8.0 relációs adatbázisra épül, amely 29 táblát tartalmaz. Az adatbázis tervezésénél az adat-integritás, a normalizáció és a lekérdezési teljesítmény egyaránt szempont volt. A táblák közötti kapcsolatokat elsődleges és idegen kulcsok biztosítják. A soft delete (logikai törlés) minta alkalmazásával az adatok nem törlődnek fizikailag, hanem is_deleted jelzővel inaktívként kerülnek megjelölésre, ami lehetővé teszi az auditálást és az esetleges visszaállítást.
+Az adatbázis tábláinak csoportosítása
+Felhasználókezelés: A users tábla tárolja az összes felhasználói fiókot (email, felhasználónév, jelszó hash, szerepkör, aktiválási állapot, sikertelen bejelentkezések száma, zárolás időpontja, időzóna). Kapcsolódó táblák: addresses (szállítási és számlázási cím), user_twofa (kétfaktoros hitelesítés titka és helyreállítási kódjai), sessions (JWT munkamenetek tokennel és lejárati idővel), login_logs (belépési napló IP-cím és user-agent adatokkal), user_logs (felhasználói tevékenységnapló), email_verifications (e-mail-megerősítési tokenek), password_resets (jelszó-visszaállítási tokenek).
+Termékkatalógus: A parts tábla tartalmazza az alkatrész-rekordokat (SKU, név, kategória, ár, készlet, státusz, aktív jelző, gyártói hivatkozás). A manufacturers tábla a gyártók nevét és országát rögzíti. A part_images tábla az alkatrészekhez rendelt képek URL-jét és elsődleges jelzőjét tárolja. A part_variants tábla a termékváltozatokat (név, érték, felárszorzó) kezeli. A part_compatibility tábla rögzíti, hogy egy alkatrész melyik járműtípushoz és jármű-rekordhoz kompatibilis.
+Járműadatbázis: A cars, motors és trucks táblák tartalmazzák a különböző járműkategóriák márkáit, modelljeit és évjárattartományait. A user_vehicles tábla a felhasználók mentett járműveit rögzíti járműtípus, jármű-azonosító és évjárat szerint.
+Rendelési folyamat: Az orders tábla a rendelési fejlécet rögzíti (felhasználó, státusz, időbélyeg). Az order_items tábla a rendelési tételeket tárolja alkatrész-hivatkozással, mennyiséggel és egységárral. Az order_logs tábla az állapotváltozásokat naplózza. A cart_items tábla a felhasználók aktív kosártételeit tartja nyilván.
+Fizetés és szállítás: A payments tábla a fizetési tranzakciókat rögzíti (rendelés, összeg, módszer, státusz). A refunds tábla a visszatérítéseket kezeli. A shipping_methods tábla az elérhető szállítási módokat és áraikat tárolja. A shipping_status tábla a szállítási állapotot és a csomagkövetési számot rögzíti. Az invoices tábla a számla PDF URL-jét és a kapcsolódó rendelés hivatkozását tartja nyilván.
+Vélemények és analitika: A reviews tábla a felhasználói értékeléseket (csillagszám, szöveg, alkatrész- és felhasználó-hivatkozás) tárolja. A page_statistics tábla az oldalmegtekintési és egyedi látogatói adatokat naplózza. A stock_logs tábla a készletváltozásokat rögzíti auditálási célból.
+ER-diagram
+Az adatbázis entitás-kapcsolati diagramja a projekt dokumentációs repositoriumban található. A diagram tartalmazza a táblák összes attribútumát, az elsődleges kulcsokat (PK) és az idegen kulcsokat (FK), valamint a táblák közötti egy-a-többhöz és több-a-többhöz kapcsolatokat.
+________________________________________
+ 
+Fejlesztési módszertan
+A fejlesztés Scrum-alapú agilis keretrendszer szerint folyt, amelynek munkáit Jira projektmenedzsment eszközben rögzítettük. Az egyes taskok részletezték a feladatot, a becsült és tényleges munkaidőt, valamint a hozzárendelt fejlesztőt. A verziókezelést GitHub biztosította, három főágon: backend_dev, frontend_dev és Documentations.
+Sprint-bontás
+1. sprint – Tervezési fázis (szeptember 1–18.)
+A csapat ebben az időszakban elvégezte a projekttervezést: meghatározta az alkalmazás fő funkcióit, a szükséges technológiai stacket, és elkészítette a kezdeti adatbázis-sémát. A Jira-projekt felállítása és a GitHub-repository inicializálása szintén ebben a szakaszban történt.
+2. sprint (szeptember 19. – november 14.)
+A végleges designterv elkészítése Figmában. A backend API-sablon létrehozása JAX-RS alapon, a WildFly konfiguráció beállítása. A felhasználói regisztrációs és bejelentkezési folyamat megvalósítása JWT-tokennel, beleértve a jelszókészítési validátorokat és az e-mail-formátum ellenőrzést.
+3. sprint – Adminisztrátori funkciók
+Az adminisztrátori panel megvalósítása: új termék felvétele (képfeltöltéssel), meglévő termékek listázása és részleteinek megtekintése, e-commerce dashboard (rendelési statisztikák, havi forgalom diagram, top termékek), és analitika dashboard (oldalmegtekintések, egyedi látogatók, aktív felhasználók, PDF-export).
+4–5. sprint – Felhasználói funkciók és tesztelés
+A felhasználói felület teljes körű megvalósítása: főoldal kategóriakártyákkal, terméklista szűrővel és MMT-szelektor komponenssel, termékrészlet-oldal képgaléria és értékelések funkcióval, kosárkezelés backendszinkronizációval, teljes checkout folyamat (kosár → szállítási adatok → fizetési mód → nyugtázás), profil- és garázsoldalak, OTP e-mail-megerősítés, kétfaktoros hitelesítés QR-kódos beállítással és helyreállítási kódokkal. A sprint végén megkezdődött a unit tesztek és a manuális tesztesetek meghatározása.
+6. sprint – Tesztelés, hibajavítás
+A manuális és unit tesztek lefuttatása, bug reportok készítése a Jirában. Az azonosított hibák javítása. Angol nyelvű bemutató előkészítése a próbavizsgára.
+7. sprint – Utolsó simítások
+Kódminőség javítása, éles környezeti tesztelés, dokumentáció véglegesítése, deployment ellenőrzése.
+________________________________________
+ 
+Elvégzett tesztek
+Tesztelési megközelítés
+A projekt során háromféle tesztelési módszert alkalmaztunk, amelyek kiegészítik egymást a szoftverminőség átfogó biztosítása érdekében.
+Manuális tesztelés az alkalmazás felhasználói felületének funkcionális ellenőrzésére. A tesztelő valós böngészőkörnyezetben végzi a tesztlépéseket, és rögzíti a várt és a tényleges eredményt. Ez a módszer különösen fontos a felhasználói élmény validálásához, a reszponzív megjelenés ellenőrzéséhez és a komplex folyamatok (például a teljes checkout-folyamat) végponttól végpontig tartó teszteléséhez.
+Unit tesztelés az egyes frontend metódusok izolált ellenőrzésére Cypress segítségével. Backend methódusokhoz Jbosst alkazmaztunk. A unit tesztek automatizáltak és ismételhetők, ezért gyors visszajelzést adnak a kód működéséről fejlesztés közben és regressziós ellenőrzésként egyaránt.
+LiveDesign ellenőrzés a Figma-tervek és az elkészült frontend vizuális összehasonlítására, biztosítva, hogy az implementált komponensek megfelelnek a designspecifikációnak.
+Teszteléshez használt eszközök
+A manuális tesztelésnél Google Chrome (legfrissebb stabil verzió) böngészőt alkalmaztunk Windows 11 operációs rendszeren. A unit tesztek Cypress keretrendszerrel futnak.
+________________________________________
+ 
+Oldal működésének részletes leírása
+Vendég felhasználó
+A www.carcomps.hu főoldalán a látogató egy reklámszalag-slidert, majd alatta az elérhető alkatrész-kategóriákat látja kártyás elrendezésben. Az MMT-szelektor (Márka–Modell–Típus legördülő menük sorozata) lehetővé teszi a járműspecifikus keresést: a márka kiválasztása után dinamikusan szűkül a modellek listája, majd az évjárattartomány is a kiválasztott modell adatai alapján töltődik be.
+A navigációs sávban keresőmező, garázs-, kosár- és felhasználó-ikon található. Bejelentkezés nélkül a garázs és a kosár funkció nem érhető el, a rendszer a bejelentkezési oldalra irányít.
+Bejelentkezés és regisztráció
+A regisztrációs oldalon a felhasználó megadja felhasználónevét, e-mail-címét, vezeték- és keresztnevét, telefonszámát, jelszavát és jelszavának megerősítését. A jelszónak legalább 8 karaktert, nagybetűt, számot és speciális karaktert kell tartalmaznia. Sikeres regisztrációt követően a rendszer a bejelentkezési oldalra irányít.
+A bejelentkezési folyamat:
+1.	Az e-mail és jelszó megadása után a szerver JWT-tokent ad vissza, amelyet a kliens a localStorage-ban tárol.
+2.	A rendszer OTP-kódot küld a regisztrált e-mail-címre, amelyet a felhasználónak meg kell adnia a hatjegyű mezősorban.
+3.	Ha a felhasználónál kétfaktoros hitelesítés van beállítva, az OTP-lépést az authenticator-alkalmazásban megjelenő 6 számjegyű kód megadása váltja fel.
+4.	Sikeres azonosítás után a rendszer szerepkör alapján irányít tovább: admin felhasználók az adminisztrátori panelre, normál felhasználók a főoldalra kerülnek.
+Termékböngészés
+A terméklista oldalon az oldalsó szűrőpanelen belül kategória és gyártó szerint szűrhetők a termékek. Az URL-slug alapú navigáció lehetővé teszi, hogy egy adott kategória közvetlen linkkel érhető el. A termékek kártyás megjelenítésben láthatók képpel, SKU-val, kategóriával, árral és raktárkészlettel. A mennyiségszabályzó és a "Kosárba" gomb közvetlenül a kártyán elérhető. Az "elfogyott" állapotú termékeknél a gomb inaktív. A termékkártyán a kép és a terméknév kattintható, a termékrészlet-oldalra irányítva.
+A termékrészlet-oldalon a fő kép mellett bélyegképes galéria is megjelenik, ha az adott termékhez több kép áll rendelkezésre. A termék adatai (raktárkészlet, gyártó, státusz) és a vásárlási gombok mellett értékelések is láthatók. A lap alján füles elrendezésben elérhető a termékleírás és a vásárlói vélemények listája.
+Fizetési folyamat
+A checkout négy lépésből áll, amelyeket egy vizuális progress indicator követ végig:
+1.	Kosár: Az összes kosártétel listája képpel, márkalogóval, terméknévvel, mennyiségszabályzóval és törlési gombbal. A jobb oldalon az összegzőpanel mutatja a részösszeget, az ingyenes szállítást és a végösszeget.
+2.	Szállítási adatok: A felhasználó megadja a szállítási nevet, várost, irányítószámot, országot, telefonszámot és lakcímet. Az "Automatikus kitöltés" gomb a profilban tárolt vagy korábban mentett szállítási adatokat tölti be.
+3.	Fizetési mód: Jelenleg csak a készpénzes fizetés érhető el. A Mastercard, VISA és PayPal opciók szürkítve, inaktívan láthatók, jelezve a jövőbeli fejlesztési irányt.
+4.	Nyugtázás: A rendelés véglegesítése után megjelennek a szállítási adatok, a fizetési mód és a megrendelt tételek listája. A rendszer e-mail-értesítést küld a rendelés részleteivel.
+Felhasználói profil és garázs
+A profil oldalon kártyás elrendezésben szerkeszthetők a személyes adatok: teljes név, felhasználónév, e-mail-cím, jelszó, telefonszám, szállítási cím és a kétfaktoros hitelesítés beállítása. Szerkesztéskor modális ablak nyílik, amelyben az érintett adatmező módosítható. Ha kétfaktoros hitelesítés aktív, e-mail- vagy jelszóváltoztatáskor a rendszer először a TFA-kód megadását kéri. A "Rendeléseim" kártyán a felhasználó megtekintheti korábbi rendeléseit azok státuszával és tételeivel együtt.
+A garázs oldalon a felhasználó mentett járműveit kezelheti: új járművet adhat hozzá márka, modell és évjárat kiválasztásával (az adatok a backend járműadatbázisából töltődnek), és a mentett járműveket bármikor törölheti. A főoldalon a garázs-ikonra kattintva a mentett járművek gyorspanelből kiválasztható aktív jármű a termékszűréshez használható.
+Adminisztrátori panel
+Az adminisztrátori panel csak admin szerepkörű, bejelentkezett felhasználók számára érhető el (adminGuard). Négy fő szekciót tartalmaz:
+•	Új termék felvétele: járműkategória, gyártó, SKU (automatikusan nagybetűsre konvertálva), terméknév, kategória, ár, készlet, státusz és opcionális képfeltöltés. A létrehozás után a rendszer SKU alapján megkeresi az újonnan létrehozott termék azonosítóját és feltölti a képet.
+•	Jelenlegi termékek: az összes termék rácsnézetes listája szűrési lehetőséggel (keresés, státusz, kategória). Egy termékre kattintva jobbról becsúszó részletpanel jelenik meg a termék összes adatával.
+•	E-Commerce Dashboard: regisztrált ügyfelek száma és aktivitási aránya, rendelések száma státusz szerinti bontásban (függőben, szállítás alatt, teljesített), havi rendelési diagram, legtöbbet vásárolt termékek rangsora. A dashboard PDF-formátumban exportálható.
+•	Analitika Dashboard: oldalmegtekintések, egyedi látogatók, regisztrált felhasználók száma, aktív felhasználók valós idejű száma sparkline vizualizációval, havi rendelési diagramm. Ez a dashboard szintén exportálható PDF-be.
+________________________________________
+ 
+Fejlesztői dokumentáció
+API alap URL
+Az összes backend végpont az alábbi alap URL-en érhető el:
+https://api.carcomps.hu/vizsgaremek-1.0-SNAPSHOT/webresources/
+A jelölésekben {{baseUrl}} erre az alap URL-re utal.
+Hitelesítés
+A védett végpontok JWT-token alapú hitelesítést igényelnek. A tokent a bejelentkezési válaszból kell kinyerni, és minden kérés HTTP-fejlécébe token kulcsként kell elhelyezni. Az adminisztrátori végpontok ezen felül admin szerepkört igényelnek.
+HTTP protokollok
+A kommunikáció során az alábbi HTTP-metódusokat alkalmaztuk:
+A GET metódus adatok lekérésére szolgál. A paramétereket query string formájában adjuk át, a válaszok gyorsítótárazhatók. A POST metódus új erőforrások létrehozásához és tranzakcionális műveletekhez használatos; az adatokat a kérés törzsében küldjük JSON formátumban. A PUT metódus meglévő erőforrások frissítésére szolgál. A DELETE metódus soft delete műveletek végrehajtásához használatos, a rekordok fizikailag nem törlődnek.
+Végpontok dokumentációja
+Felhasználók (Users)
+Végpont	Metódus	Leírás
+{{baseUrl}}user/createUser	POST	Új felhasználó regisztrálása
+{{baseUrl}}user/loginUser	PUT	Bejelentkezés, JWT-token visszaadása
+{{baseUrl}}user/getUserById?id={id}	GET	Felhasználó lekérdezése azonosító alapján
+{{baseUrl}}user/getUserByEmail?email={email}	GET	Felhasználó lekérdezése e-mail alapján
+{{baseUrl}}user/getUsers	GET	Összes felhasználó listázása (admin)
+{{baseUrl}}user/getActivatedUsers	GET	Aktivált felhasználók listázása
+{{baseUrl}}user/updateUser?email={email}	PUT	Felhasználói adatok frissítése
+{{baseUrl}}user/softDeleteUser?id={id}	DELETE	Felhasználó logikai törlése
+{{baseUrl}}user/activateUser?activationToken={token}	GET	Fiók aktiválása tokennel
+{{baseUrl}}user/getAdminByEmail?email={email}	GET	Admin felhasználó lekérdezése (admin)
+E-mail és OTP
+Végpont	Metódus	Leírás
+{{baseUrl}}email/sendOTP?email={email}	POST	OTP-kód küldése e-mailben
+{{baseUrl}}OTP/verifyOTP	POST	OTP-kód ellenőrzése
+{{baseUrl}}email/sendActivateUser?email={email}	PUT	Aktiváló e-mail küldése
+{{baseUrl}}email/sendPromotion	POST	Promóciós e-mail küldése
+{{baseUrl}}email/sendCustomerSupport	POST	Ügyfélszolgálati üzenet küldése
+{{baseUrl}}email/getMessages	GET	Beérkezett üzenetek listázása
+{{baseUrl}}email/archiveEmail?messageId={id}	DELETE	E-mail archiválása
+{{baseUrl}}EmailVerifications/activateEmail?activationToken={token}	GET	E-mail-cím aktiválása
+{{baseUrl}}EmailVerifications/createEmailVerificationAndSendEmail	POST	Verifikációs e-mail létrehozása és küldése
+Kétfaktoros hitelesítés (TFA)
+Végpont	Metódus	Leírás
+{{baseUrl}}TFA/generateQR	POST	QR-kód és titkos kulcs generálása
+{{baseUrl}}TFA/validateTFACode	POST	TFA-kód ellenőrzése
+{{baseUrl}}UserTwofa/createUserTwofa	POST	TFA-rekord létrehozása a felhasználóhoz
+{{baseUrl}}UserTwofa/getUserTwofaByUserId?userId={id}	GET	TFA-adatok lekérdezése felhasználó alapján
+{{baseUrl}}UserTwofa/softDeleteUserTwofa?id={id}	DELETE	TFA kikapcsolása
+{{baseUrl}}UserTwofa/checkUserTwoFaEnabled?userId={id}	GET	TFA állapotának ellenőrzése
+JWT és munkamenetek
+Végpont	Metódus	Leírás
+{{baseUrl}}JWT/validateJWT	GET	JWT-token érvényesítése
+{{baseUrl}}JWT/extractJWTData	GET	Token adatainak kinyerése
+{{baseUrl}}Sessions/createSession?userId={id}	POST	Munkamenet-token létrehozása
+{{baseUrl}}Sessions/getSessionTokenByUserId?userId={id}	GET	Munkamenet lekérdezése felhasználó alapján
+Jelszó-visszaállítás
+Végpont	Metódus	Leírás
+{{baseUrl}}passwordReset/createPasswordReset	POST	Visszaállítási token létrehozása
+{{baseUrl}}passwordReset/getPasswordResetByToken?token={token}	GET	Token érvényességének ellenőrzése
+{{baseUrl}}passwordReset/resetPassword	PUT	Jelszó visszaállítása
+{{baseUrl}}passwordReset/softDeletePasswordReset?userId={id}	DELETE	Token érvénytelenítése
+Termékek (Parts)
+Végpont	Metódus	Leírás
+{{baseUrl}}parts/getAllParts	GET	Összes termék listázása
+{{baseUrl}}parts/getAllPartsWithImages	GET	Termékek listázása képekkel
+{{baseUrl}}parts/getPartsById?id={id}	GET	Termék lekérdezése azonosító alapján
+{{baseUrl}}parts/getPartsByManufacturerId?manufacturerId={id}	GET	Termékek szűrése gyártó szerint
+{{baseUrl}}parts/getPartsBySku?sku={sku}	GET	Termék lekérdezése SKU alapján
+{{baseUrl}}parts/getPartsCategory	GET	Elérhető kategóriák listázása
+{{baseUrl}}parts/getPartsByVehicleType?vehicleType={type}	GET	Termékek szűrése járműtípus szerint
+{{baseUrl}}parts/createParts	POST	Új termék létrehozása (admin)
+{{baseUrl}}parts/updateParts?id={id}	PUT	Termék frissítése (admin)
+{{baseUrl}}parts/softDeleteParts?id={id}	DELETE	Termék logikai törlése (admin)
+Termékvariánsok (PartVariants)
+Végpont	Metódus	Leírás
+{{baseUrl}}partVariants/getAllPartVariants	GET	Összes variáns listázása
+{{baseUrl}}partVariants/getPartVariantsById?id={id}	GET	Variáns azonosító alapján
+{{baseUrl}}partVariants/getPartVariantsByName?name={name}	GET	Variánsok szűrése név alapján
+{{baseUrl}}partVariants/getPartVariantsByValue?value={value}	GET	Variánsok szűrése érték alapján
+{{baseUrl}}partVariants/createPartVariants	POST	Új variáns létrehozása
+{{baseUrl}}partVariants/updatePartVariants?id={id}	PUT	Variáns frissítése
+{{baseUrl}}partVariants/softDeletePartVariants?id={id}	DELETE	Variáns logikai törlése
+Termékképek (PartImages)
+Végpont	Metódus	Leírás
+{{baseUrl}}partimages/getAllPartImages	GET	Összes termékkép listázása
+{{baseUrl}}partimages/getPartImagesById?id={id}	GET	Kép lekérdezése azonosító alapján
+{{baseUrl}}partimages/getPartImagesByPartId?partId={id}	GET	Termékhez tartozó képek
+{{baseUrl}}partimages/getPartImagesByUrl?urlIN={url}	GET	Kép lekérdezése URL alapján
+{{baseUrl}}partimages/createPartImage	POST	Kép-rekord létrehozása
+{{baseUrl}}partimages/uploadPartImage	POST	Képfájl feltöltése
+{{baseUrl}}partimages/updatePartImage	PUT	Képrekord frissítése
+{{baseUrl}}partimages/softDeletePartImages?idIN={id}	DELETE	Kép logikai törlése
+Alkatrész-kompatibilitás (PartCompatibility)
+Végpont	Metódus	Leírás
+{{baseUrl}}partCompatibility/getAllPartCompatibility	GET	Összes kompatibilitás listázása
+{{baseUrl}}partCompatibility/getPartCompatibilityById?id={id}	GET	Kompatibilitás azonosító alapján
+{{baseUrl}}partCompatibility/getPartCompatibilityByVehicleId?vehicleId={id}	GET	Jármű-azonosító alapján
+{{baseUrl}}partCompatibility/getPartCompatibilityByVehicleType?vehicleType={type}	GET	Járműtípus alapján
+{{baseUrl}}partCompatibility/createPartCompatibility	POST	Új kompatibilitás-rekord
+{{baseUrl}}partCompatibility/updatePartCompatibility?id={id}	PUT	Kompatibilitás frissítése
+{{baseUrl}}partCompatibility/softDeletePartCompatibility?id={id}	DELETE	Kompatibilitás logikai törlése
+Gyártók (Manufacturers)
+Végpont	Metódus	Leírás
+{{baseUrl}}manufacturers/getAllManufacturers	GET	Összes gyártó listázása
+{{baseUrl}}manufacturers/getManufacturersById?id={id}	GET	Gyártó azonosító alapján
+{{baseUrl}}manufacturers/getManufacturersByName?name={name}	GET	Gyártó név alapján
+{{baseUrl}}manufacturers/createManufacturers	POST	Új gyártó felvétele
+{{baseUrl}}manufacturers/updateManufacturers?id={id}	PUT	Gyártó frissítése
+{{baseUrl}}manufacturers/softDeleteManufacturers?id={id}	DELETE	Gyártó logikai törlése
+Járművek (Cars, Motors, Trucks)
+Végpont	Metódus	Leírás
+{{baseUrl}}cars/getAllCars	GET	Összes személygépkocsi
+{{baseUrl}}cars/getCarsById?id={id}	GET	Személygépkocsi azonosító alapján
+{{baseUrl}}cars/getCarsByBrand?brand={brand}	GET	Szűrés márka szerint
+{{baseUrl}}cars/getCarsByModel?model={model}	GET	Szűrés modell szerint
+{{baseUrl}}cars/createCars	POST	Új személygépkocsi-rekord
+{{baseUrl}}cars/updateCars?id={id}	PUT	Személygépkocsi frissítése
+{{baseUrl}}cars/softDeleteCars?id={id}	DELETE	Logikai törlés
+{{baseUrl}}motors/getAllMotors	GET	Összes motorkerékpár
+{{baseUrl}}motors/getMotorsById?id={id}	GET	Motorkerékpár azonosító alapján
+{{baseUrl}}motors/getMotorsByBrand?brand={brand}	GET	Szűrés márka szerint
+{{baseUrl}}motors/getMotorsByModel?model={model}	GET	Szűrés modell szerint
+{{baseUrl}}motors/createMotors	POST	Új motorkerékpár-rekord
+{{baseUrl}}motors/updateMotors?id={id}	PUT	Motorkerékpár frissítése
+{{baseUrl}}motors/softDeleteMotors?id={id}	DELETE	Logikai törlés
+{{baseUrl}}trucks/getAllTrucks	GET	Összes teherautó
+{{baseUrl}}trucks/getTrucksById?id={id}	GET	Teherautó azonosító alapján
+{{baseUrl}}trucks/getTrucksByBrand?brand={brand}	GET	Szűrés márka szerint
+{{baseUrl}}trucks/getTrucksByModel?model={model}	GET	Szűrés modell szerint
+{{baseUrl}}trucks/createTrucks	POST	Új teherautó-rekord
+{{baseUrl}}trucks/updateTrucks	PUT	Teherautó frissítése
+{{baseUrl}}trucks/softDeleteTrucks?id={id}	DELETE	Logikai törlés
+Felhasználói járművek (UserVehicles)
+Végpont	Metódus	Leírás
+{{baseUrl}}userVehicles/getUserVehiclesByUserId?userId={id}	GET	Felhasználó mentett járművei
+{{baseUrl}}userVehicles/createUserVehicle	POST	Jármű mentése a garázsba
+{{baseUrl}}userVehicles/softDeleteUserVehicle?id={id}	DELETE	Jármű eltávolítása a garázsból
+Kosár (CartItems)
+Végpont	Metódus	Leírás
+{{baseUrl}}cartItems/getAllCartItems	GET	Összes kosártétel (admin)
+{{baseUrl}}cartItems/getCartItemById?id={id}	GET	Kosártétel azonosító alapján
+{{baseUrl}}cartItems/getCartItemsByUserId?userId={id}	GET	Felhasználó kosártételei
+{{baseUrl}}cartItems/getCartItemsByPartId?partId={id}	GET	Kosártételek termék alapján
+{{baseUrl}}cartItems/createCartItems	POST	Termék hozzáadása kosárhoz
+{{baseUrl}}cartItems/updateCartItem?id={id}	PUT	Kosártétel frissítése
+{{baseUrl}}cartItems/softDeleteCartItem?id={id}	DELETE	Termék eltávolítása a kosárból
+Rendelések (Orders, OrderItems)
+Végpont	Metódus	Leírás
+{{baseUrl}}orders/getAllOrders	GET	Összes rendelés (admin)
+{{baseUrl}}orders/getOrdersById?id={id}	GET	Rendelés azonosító alapján
+{{baseUrl}}orders/getOrdersByUserId?id={id}	GET	Felhasználó rendelései
+{{baseUrl}}orders/createOrders	POST	Új rendelés létrehozása
+{{baseUrl}}orders/createOrderWithItem	POST	Rendelés létrehozása kosárból (tranzakció)
+{{baseUrl}}orders/updateOrders?id={id}	PUT	Rendelés frissítése
+{{baseUrl}}orders/softDeleteOrders?id={id}	DELETE	Rendelés logikai törlése
+{{baseUrl}}OrderItems/getAllOrderItemsAdmin	GET	Összes rendeléstétel (admin)
+{{baseUrl}}OrderItems/getAllOrderItems	GET	Rendeléstételek listázása
+{{baseUrl}}OrderItems/getOrderItemById?id={id}	GET	Rendeléstétel azonosító alapján
+{{baseUrl}}OrderItems/getOrderItemsByOrderId?orderId={id}	GET	Rendelés tételei
+{{baseUrl}}orderItems/createOrderItems	POST	Rendeléstétel létrehozása
+{{baseUrl}}orderItems/updateOrderItem?id={id}	PUT	Rendeléstétel frissítése
+{{baseUrl}}orderItems/softDeleteOrderItem?id={id}	DELETE	Rendeléstétel logikai törlése
+Fizetések és számlák (Payments, Invoices)
+Végpont	Metódus	Leírás
+{{baseUrl}}payments/getAllPayments	GET	Összes fizetés (admin)
+{{baseUrl}}payments/getPaymentById?id={id}	GET	Fizetés azonosító alapján
+{{baseUrl}}payments/getPaymentsByOrderId?orderId={id}	GET	Rendelés fizetései
+{{baseUrl}}payments/createPayments	POST	Fizetés létrehozása
+{{baseUrl}}payments/processPayment	POST	Fizetés feldolgozása (tranzakció)
+{{baseUrl}}payments/updatePayment?id={id}	PUT	Fizetés frissítése
+{{baseUrl}}payments/softDeletePayment?id={id}	DELETE	Fizetés logikai törlése
+{{baseUrl}}invoices/getAllInvoices	GET	Összes számla (admin)
+{{baseUrl}}invoices/getInvoiceById?id={id}	GET	Számla azonosító alapján
+{{baseUrl}}invoices/getInvoicesByOrderId?orderId={id}	GET	Rendelés számlái
+{{baseUrl}}invoices/createInvoice	POST	Számla létrehozása
+{{baseUrl}}invoices/updateInvoice?id={id}	PUT	Számla frissítése
+{{baseUrl}}invoices/softDeleteInvoice?id={id}	DELETE	Számla logikai törlése
+Értékelések (Reviews)
+Végpont	Metódus	Leírás
+{{baseUrl}}reviews/getAllReviews	GET	Összes értékelés
+{{baseUrl}}reviews/getReviewsById?id={id}	GET	Értékelés azonosító alapján
+{{baseUrl}}reviews/getReviewsByPartId?partId={id}	GET	Termék értékelései
+{{baseUrl}}reviews/getReviewsByUserId?userId={id}	GET	Felhasználó értékelései
+{{baseUrl}}reviews/getReviewsByRating?rating={rating}	GET	Értékelések csillagszám szerint
+{{baseUrl}}reviews/createReviews	POST	Új értékelés létrehozása
+{{baseUrl}}reviews/updateReviews?id={id}	PUT	Értékelés frissítése
+{{baseUrl}}reviews/softDeleteReviews?id={id}	DELETE	Értékelés logikai törlése
+Címek (Addresses)
+Végpont	Metódus	Leírás
+{{baseUrl}}addresses/getAllAddresses	GET	Összes cím
+{{baseUrl}}addresses/getAddressById?id={id}	GET	Cím azonosító alapján
+{{baseUrl}}addresses/createAddress	POST	Új cím létrehozása
+{{baseUrl}}addresses/updateAddress?id={id}	PUT	Cím frissítése
+{{baseUrl}}addresses/softDeleteAddress?id={id}	DELETE	Cím logikai törlése
+Analitika (Analytics)
+Végpont	Metódus	Leírás
+{{baseUrl}}Analitics/getAllStat?days={n}	GET	Összesített statisztika (admin)
+{{baseUrl}}Analitics/getMostPurchasedPart	GET	Legtöbbet vásárolt termékek (admin)
+________________________________________
+A projektben való rétegek felépítése
+A backend JAX-RS projekt négy rétegre tagolódik, a klasszikus N-tier architektúra elvei szerint.
+Config réteg
+A konfigurációs réteg az alkalmazás indulásához szükséges beállításokat tartalmazza.
+•	CorsFilter: A Cross-Origin Resource Sharing (CORS) házirendet kezeli. Engedélyezi az Angular frontend URL-jéről érkező kéréseket, beállítva az Access-Control-Allow-Origin, Access-Control-Allow-Methods és Access-Control-Allow-Headers fejléceket. Ez szükséges, mert az Angular fejlesztői szerver és a WildFly különböző porton fut.
+•	Database: Az adatbázis-kapcsolat inicializálásáért felelős osztály. Betölti a JDBC URL-t, a felhasználónevet és a jelszót, és kezel egy ConnectionPool példányt a hatékony kapcsolatkezelés érdekében.
+•	Token: A JWT-tokenek generálásáért és ellenőrzéséért felelős segédosztály. Tartalmazza a token aláírásához szükséges titkos kulcsot, az érvényességi idő beállítását és a payload kinyerésének logikáját.
+Model réteg
+A modell réteg az alkalmazás adatstruktúráit reprezentálja Java osztályok formájában. Minden osztály egy adatbázistáblának felel meg, és az összes adatmező getter-setter metódusával együtt tartalmazza a szükséges validációs annotációkat.
+Főbb modellosztályok: User, Address, Part, PartImage, PartVariant, PartCompatibility, Manufacturer, Car, Motor, Truck, UserVehicle, CartItem, Order, OrderItem, Payment, Invoice, Review, Session, UserTwofa, EmailVerification, PasswordReset, PageStatistic, StockLog.
+Controller réteg
+A controller réteg fogadja a beérkező HTTP kéréseket, elvégzi az alap bemeneti validációt, meghívja a megfelelő service metódust, és visszaadja a HTTP-választ JSON formátumban.
+•	ApplicationConfig: Az alkalmazás JAX-RS konfigurációját és az alap URL-prefix beállítását tartalmazza.
+•	UserController: Felhasználói műveleteket kezel (regisztráció, bejelentkezés, adatlekérés, frissítés, törlés, aktiválás).
+•	PartController: Termékekhez kapcsolódó kéréseket kezel.
+•	ManufacturerController: Gyártói adatokat kezel.
+•	CarController, MotorController, TruckController: A három járműkategória adatait kezelik.
+•	CartItemController: Kosárkezelési kéréseket kezel.
+•	OrderController: Rendelési folyamatot kezel.
+•	OrderItemController: Rendeléstételeket kezel.
+•	PaymentController: Fizetési tranzakciókat kezel.
+•	InvoiceController: Számlaadatokat kezel.
+•	ReviewController: Értékeléseket kezel.
+•	AddressController: Szállítási és számlázási címeket kezel.
+•	PartImageController: Termékképeket kezel, beleértve a multipart/form-data feltöltést.
+•	PartVariantController és PartCompatibilityController: Termékváltozatokat és -kompatibilitást kezelnek.
+•	TFAController és UserTwofaController: Kétfaktoros hitelesítést kezelnek.
+•	JWTController és SessionController: Token-érvényesítést és munkamenet-kezelést végeznek.
+•	OTPController és EmailController: E-mail küldési és OTP-ellenőrzési funkciókat kezelnek.
+•	PasswordResetController: Jelszó-visszaállítási folyamatot kezel.
+•	AnalyticsController: Statisztikai adatokat ad vissza admin felhasználóknak.
+•	UserVehicleController: Mentett felhasználói járműveket kezel.
+Service réteg
+A service réteg tartalmazza az üzleti logikát. Közvetlenül kommunikál az adatbázissal a Database osztályon keresztül, elvégzi az összetett validációkat, és adja vissza a feldolgozott adatokat a controllernek.
+•	UserService: Felhasználói műveletek validációját és adatbázis-interakcióját tartalmazza; jelszavak hash-elése, token-generálás, szerepkör-ellenőrzés.
+•	PartService: Termékadatok kezelésére, szűrési logikára és készletváltozás-naplózásra vonatkozó metódusokat tartalmaz.
+•	OrderService: Rendelési tranzakció logikáját tartalmazza: kosárból rendelés létrehozása, rendelési tételek generálása, fizetés feldolgozása.
+•	TimetableService (jelen esetben: AnalyticsService): Statisztikai adatok összesítésének logikáját tartalmazza.
+•	SubjectService (jelen esetben: ManufacturerService, CarService stb.): Az egyes entitások CRUD-logikáját tartalmazzák.
+________________________________________
+A frontend részletes leírása
+Könyvtárstruktúra
+Az Angular projekt a src/app könyvtárban helyezkedik el. A főbb alkönyvtárak: admin-page (adminisztrátori komponensek), cards (termék- és kategóriakártya-komponensek), filter (szűrő komponens), footer.component, homepage.component, login, main-header, mmt-container és mmt-selector (MMT-szelektor), payment (checkout folyamat), product-page.component (terméklista oldal), product-page (termékrészlet), profile-page, registration, services, models, shared (megosztott komponensek), side-navbar.component és verifications (OTP, TFA).
+Routing
+Az alkalmazás Angular Router alapú navigációt alkalmaz. Az útvonalak két guard típussal védhetők: az authGuard bejelentkezett felhasználót, az adminGuard admin szerepkört igényel.
+Útvonal	Komponens	Védett
+/	HomepageComponent	nem
+/login	LoginComponent	nem
+/registration	RegistrationComponent	nem
+/products/:category	ProductPageComponent	nem
+/product/:id	ProductDetailComponent	nem
+/cart	CartComponent	authGuard
+/delivery	DeliveryComponent	authGuard
+/payment	PayComponent	authGuard
+/summary	SummaryComponent	authGuard
+/profile	UserProfileComponent	authGuard
+/profile/garage	UserMygarageComponent	authGuard
+/admin	AdminLandingComponent	adminGuard
+/admin/new-product	NewProductComponent	adminGuard
+/admin/products	ProductListAdminComponent	adminGuard
+/admin/ecommerce	EcommerceDashboardComponent	adminGuard
+/admin/analytics	AnalyticsComponent	adminGuard
+Főbb komponensek
+MainHeaderComponent: A sticky navigációs sáv. Tartalmaz egy keresőmezőt debounce-olt keresési logikával, garázs-dropdownt a mentett járművekkel, kosár-dropdownt az aktuális kosártételek listájával és összegével, valamint felhasználó-dropdownt a profil- és kijelentkezési lehetőségekkel. Bejelentkezési állapottól és kosártartalomtól függően dinamikusan változik a megjelenése.
+MMTSelectorComponent: Egymáshoz kaszkádolt legördülő menük (márka → modell → évjárat) a járműspecifikus alkatrész-kereséshez. Az adatok a backend járműadatbázisából töltődnek be, és a kiválasztott márka alapján szűkül a modellek listája, majd az évjárattartomány.
+CategoryCardComponent (FilterCardComponent): A főoldalon megjelenő kategóriakártyák. Az összes terméket és képet párhuzamosan kéri le a backenből (forkJoin), majd kategóriánként összesíti a termékszámot és az első elérhető képet rendeli hozzá. Az URL-slug normalizálás NFD-dekompozícióval és ékezet-eltávolítással történik, hogy az URL-ek érvényesek maradjanak.
+ProductListComponent: A terméklista a kategória URL-slug alapján szűri a termékeket. A FilterService-szel reaktívan követi az aktív szűrők változásait. Ha nincs aktív szűrő, az összes terméket megjeleníti.
+ProductCardComponent: Egyetlen termékkártya komponens. Mennyiségszabályzót és kosárba helyező gombot tartalmaz. A kosárba helyezés után 3 másodperces cooldown aktív, amely alatt a gomb ellenőrző ikont mutat. Ha a termék elfogyott vagy inaktív, a gomb le van tiltva.
+FilterComponent: Az oldalsó szűrőpanel háromszintű szűrést kínál: összes kategória, összes gyártó, és kategóriánkénti gyártók szekciók. A szekciók összecsukhatók. Az URL-alapú kategórianavigáció esetén az érintett kategória automatikusan bejelölésre kerül.
+CartComponent: A kosár oldal a backendről szinkronizált kosártételeket mutatja. A mennyiség módosítása soft delete és újralétrehozás kombinációjával szinkronizálódik a backendlel. Az egyes tételek neve fölé húzva tooltip jelenik meg a termék részletes adataival.
+CheckoutProgressComponent: A négy lépéses fizetési folyamat vizuális haladásjelzője. Az aktuális lépéstől korábbi lépések "teljesített" állapotúak (pipával), a következők inaktívak.
+DeliveryComponent: A szállítási adatok bekérő oldal reaktív form-validációval. Az "Automatikus kitöltés" gomb a profilban mentett cím vagy a korábban megadott szállítási adatok alapján tölti ki a mezőket.
+AdminLandingComponent: Az adminisztrátori főoldal négy navigációs kártyával. A kártyákra kattintva az adminGuard által védett aloldalak töltődnek be.
+AnalyticsComponent és EcommerceDashboardComponent: Mindkét dashboard a GetAllStatsService-en keresztül lekéri a statisztikai adatokat, azokat Chart.js-sel vizualizálja, és lehetővé teszi a jsPDF alapú PDF-exportálást.
+OtpComponent: Hatjegyű OTP bevitelére szolgáló modális dialóg. Mező-to-mező automatikus fókuszugrással, vágólapbeillesztés-kezeléssel és 60 másodperces újraküldési visszaszámlálóval.
+TfaVerifyDialogComponent: A kétfaktoros hitelesítési kód bevitelére szolgáló modális dialóg, amelyet bejelentkezéskor TFA aktiválása esetén, illetve profilmódosításkor (e-mail- vagy jelszóváltoztatás esetén) jelenít meg a rendszer.
+ProfileInfoSelectorComponent: A profiloldalon kártyás elrendezésben szerkeszthető felhasználói adatok. A 2FA szekció tartalmazza a QR-kód megjelenítést, a titkos kulcs feltárás/másolás lehetőséget, az authenticator-kód beviteli lépést és a helyreállítási kódok letöltési/másolási funkcióját.
+Szolgáltatások
+AuthService: Az alkalmazás hitelesítési állapotát Angular Signals segítségével kezeli. A localStorage-ból inicializálja a bejelentkezett felhasználó adatait (e-mail, felhasználónév, névadatok, telefonszám, szerepkör, azonosító). Az isAdmin() signal alapján különbözteti meg az admin és a normál felhasználókat.
+CartService: A kosár állapotát Signal alapú reaktív tárolóban kezeli. A loadCartFromBackend() metódus forkJoin-nal párhuzamosan kéri le a kosártételeket, a termékképeket, a gyártókat és a termékadatokat, majd ezeket összekapcsolja. A mennyiség módosítása és a törlés soft delete + create kombinációval szinkronizálódik.
+FilterService: Az aktív kategória- és gyártószűrőket Set adatstruktúrában tárolja Signal-ként. A matchesFilters() metódus határozza meg, hogy egy adott termék megfelel-e az aktív szűrőknek.
+BreadcrumbService: Az URL-navigáció alapján dinamikusan generálja a morzsa-navigáció elemeit. A termékoldalakra vonatkozó bejegyzéseknél az utoljára meglátogatott kategóriát tárolja, és a termék nevét a backendből kapott adattal frissíti.
+________________________________________
+Csapatmunka
+Szerepek és felelősségi területek
+Kis-Borbás Dorián Zsolt – Backend fejlesztő és szerverkezelő. Felelős volt a Java JAX-RS REST API teljes megvalósításáért, a WildFly alkalmazásszerver konfigurációjáért, a Cloudflare Tunnel beállításáért és a RackHost VPS üzemeltetéséért. Az adatbázis-kapcsolat, a JWT-kezelés, az OTP- és TFA-integráció, a fizetési tranzakció logikája és az analitikai adatlekérdezések az ő munkájának eredménye. Ezen felül felelős volt egyéb segítségekben mint például a képszerkesztésekben.
+Nebl Gergő – Adatbázis-tervező és backend-segítő. Felelős volt a MySQL adatbázisséma megtervezéséért és implementálásáért, beleértve a 29 tábla struktúráját, az idegen kulcskapcsolatokat és az indexelési stratégiát. Emellett részt vett egyes backend metódusok megvalósításában.
+Mészáros Roland – Projektmenedzser és frontend fejlesztő. Felelős volt a Jira-alapú sprint-tervezésért és a csapatkoordinációért, az Angular frontend teljes megvalósításáért, a Figma-designtervek elkészítéséért és az összes UI-komponens implementálásáért. A checkout-folyamat, az adminisztrátori dashboard és a felhasználói profilszerkesztés az ő munkájának eredménye.
+Verziókezelés és projektmenedzsment
+A Git verziókezelő rendszert GitHub platformon alkalmaztuk. A fejlesztés 4 párhuzamos ágon folyt: backend a Java backend kódjának, amelynek volt 2 alága, backend-dorián és backend-gergő, ezáltal egy backend projekten egyszerre tudtunk dolgozni főbb problémák nélkül, Frontend az Angular kódjának, és Database az adatbázis sql kódjának. Ezen felül volt a main amelyen van az egész weboldal legfrissebb verziója és mainBackTest amely azért volt felelős hogy a merge conflictokat és az esetleges súlyos hibákat ne a fő branchre töltsük fel.A Jira projektmenedzsment eszközben az egyes feladatokhoz taskok kerültek rögzítésre a sprint-hozzárendeléssel, a becsült és tényleges munkaidővel, a felelős személlyel és a státusszal.
+________________________________________
+Jövőbeli terveink
+Valódi online fizetési integráció: A jelenlegi készpénzes fizetési mód mellé Stripe vagy PayPal integráció bevezetése Mastercard, VISA és PayPal fizetési lehetőségekkel.
+Értékelés-válaszolási funkció: Az adminisztrátorok és a vásárlók számára lehetőség biztosítása a termékértékelésekre adott válaszokra, erősítve a vásárlói kapcsolatot.
+Szállítmánykövetés integráció: Valós szállítmánykövetési rendszer (pl. GLS, DPD vagy Magyar Posta API) integrálása, hogy a vásárlók nyomon követhessék csomagjuk állapotát.
+AI-alapú ügyfélszolgálat: Mesterséges intelligencián alapuló chatbot bevezetése, amely automatikusan válaszol a gyakori termék- és rendeléssel kapcsolatos kérdésekre, és szükség esetén élő ügynökhöz irányít.
+Teljes értékű admin-felhasználókezelés: Adminisztrátori felület kiterjesztése felhasználói fiókok kezelésével, szerepkörök módosításával és részletes felhasználói tevékenységnapló megtekintésével.
+________________________________________
+TELEPÍTÉSI ÚTMUTATÓ
+Rendszerkövetelmény
+Az alkalmazás böngészőalapú webalkalmazás, ezért sem a végfelhasználónak, sem a fejlesztőnek nem szükséges semmilyen szoftvert telepítenie. Az alkalmazás teljes egészében egy távoli szerveren fut, és böngészőn keresztül érhető el.
+A használathoz szükséges minimális feltételek:
+Bármilyen asztali számítógép, laptop, táblagép vagy okostelefon
+Stabil internetkapcsolat
+Támogatott böngészők: Google Chrome, Mozilla Firefox, Microsoft Edge, Safari
+Az optimális megjelenítéshez és teljesítményhez az adott böngésző legfrissebb verziójának használata ajánlott.
+ 
+A program telepítése
+Felhasználói hozzáférés
+Az alkalmazás telepítés nélkül, közvetlenül elérhető a következő címen:
+https://www.carcomps.hu
+Regisztráció után a felhasználó azonnal hozzáférhet az összes felhasználói funkcióhoz. Adminisztrátori hozzáféréshez admin szerepkörű fiók szükséges.
+Szerver-infrastruktúra
+Az alkalmazás egy RackHost.hu-n bérelt VPS szerveren fut Ubuntu 22.04 LTS operációs rendszeren. A szerveren fut a MySQL adatbázis, a WildFly alkalmazásszerver a backend WAR-fájlával, és a Cloudflare Tunnel daemon, amely az API biztonságos HTTPS-elérését biztosítja portnyitás nélkül.
+A backend API az éles környezetben az alábbi alap URL-en érhető el:
+https://api.carcomps.hu/vizsgaremek-1.0-SNAPSHOT/webresources/
+Szerverhozzáférés
+A szerver SSH-kapcsolaton keresztül érhető el. Biztonsági okokból a hozzáférési adatok (felhasználónév, jelszó, szerver IP-cím) nem kerülnek nyilvános dokumentációba. Az elérési adatokat a csapat tagjai külön, biztonságos csatornán tartják nyilván.
+ssh root@[szerver-ip]
+________________________________________
+ 
+UNIT TESZTELÉS
+Frontend Tesztelés futtatása
+A unit tesztek Cypress keretrendszer segítségével futnak. A tesztek futtatásához navigáljon a frontend projekt könyvtárába, majd indítsa el a Cypress futtatókörnyezetet:
+npx cypress open
+A megjelenő felületen válassza az E2E Testing módot, majd válassza ki a futtatni kívánt tesztfájlt.
+Alternatívan headless módban, CI-környezetben:
+npx cypress run
+Backend Tesztelés futtatása
+A unit tesztek JUnit 5 keretrendszer segítségével futnak, Maven build rendszeren keresztül.
+A tesztek futtatásához navigáljon a backend projekt könyvtárába, majd futtassa az alábbi parancsot:
+mvn test
+Ez automatikusan lefordítja a projektet és lefuttatja az összes tesztet a src/test/java könyvtárból.
+Az eredmények a konzolon jelennek meg, részletes riport pedig a target/surefire-reports mappában érhető el.
+Alternatívan, NetBeans IDE-ben jobb klikk a projekten, majd válassza a "Test" opciót.
+a teszteredmények az IDE beépített tesztfuttatójában jelennek meg.
+________________________________________
+ 
+LIVEDESIGN
+A LiveDesign szakasz az alkalmazás felhasználói felületének és a Figma-prototípusnak az összehasonlítására szolgál.
+A Figma-design megtekintése
+1.	Nyissa meg a Figma alkalmazást vagy a webes verziót.
+2.	Importálja a projekthez mellékelt Figma-fájlt, vagy nyissa meg ezen a linken:
+https://www.figma.com/design/yKm9WwvjSPzSsSK1rR1Z4U/Carcomps?node-id=174-52&t=FeMALc7vYSpM31C6-1
+3.	A jobb felső sarokban található "Play" gombra kattintva indítsa el a prezentációs módot (Ctrl+Alt+Enter billentyűkombinációval is elérhető).
+4.	Az interaktív elemekre (gombok, navigációs linkek) kattintva megtekinthetők az átmenetek és az interakciók.
+Figma design link
+A Figma-tervek a projekt dokumentációs repository-ában is megtalálható és a korábban megadott linken is elérhető. A design a következő főbb képernyőket tartalmazza: főoldal kategóriakártyákkal, terméklista szűrőpanellel, termékrészlet-oldal, checkout-folyamat négy lépése, profil- és garázsoldalak, adminisztrátori panel és dashboardok, bejelentkezési és regisztrációs képernyők, mobil reszponzív nézetek.
+________________________________________
+ 
+MANUÁLIS TESZTELÉS
+A manuális tesztelés Excel-alapú tesztjegyzőkönyvben van rögzítve. Az alábbi táblázat a fontosabb teszteseteket foglalja össze. A teljes tesztjegyzőkönyv a projekt dokumentációs repositoryban is, és az alábbi linken is elérhető.
+
+https://docs.google.com/spreadsheets/d/1V6uiRBgM8B8olH_kpqG5W12J1VVR-8oXW8fhtHdOAeI/edit?usp=sharing
+
+Tesztelt szoftver: Carcomps.hu weboldal
+Tesztek rögzítésének időszaka: 2025. Szeptember  – 2026. Április
+Böngésző: Chromium alapú böngésző
+Operációs rendszer: Windows 11

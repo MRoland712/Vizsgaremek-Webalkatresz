@@ -1,0 +1,157 @@
+<div class="ecommerce-dashboard">
+  <!-- ── Loading ──────────────────────────────────────────── -->
+  @if (isLoading) {
+    <div class="loading-overlay">
+      <div class="spinner"></div>
+      <span>Adatok betöltése...</span>
+    </div>
+  }
+
+  <!-- ── Hiba ─────────────────────────────────────────────── -->
+  @if (hasError && !isLoading) {
+    <div class="error-banner">
+      <i class="fa-solid fa-triangle-exclamation"></i>
+      <span>Nem sikerült betölteni az adatokat. Kérjük, próbálja újra.</span>
+      <button class="retry-btn" (click)="loadStats('365')">
+        <i class="fa-solid fa-rotate-right"></i> Újrapróbálás
+      </button>
+    </div>
+  }
+
+  <!-- ── Fő tartalom ──────────────────────────────────────── -->
+  @if (!isLoading && !hasError) {
+    <div class="dashboard-header">
+      <button class="back-btn" (click)="goBack()">
+        <i class="fa-solid fa-arrow-left"></i>
+      </button>
+      <div class="header-title">
+        <h1><i class="fa-solid fa-chart-line"></i> E-Commerce Dashboard</h1>
+      </div>
+      <div class="header-right">
+        <span class="date-label">Utolsó frissítés:</span>
+        <span class="date-value">{{ lastUpdated | date: 'yyyy. MM. dd. HH:mm' }}</span>
+        <button class="export-btn" (click)="exportPdf()">
+          <i class="fa-solid fa-download"></i> Letöltés
+        </button>
+      </div>
+    </div>
+
+    <!-- ── Stats Cards ──────────────────────────────────────── -->
+    <div class="stats-grid">
+      <div class="stat-card">
+        <div class="card-glow"></div>
+        <div class="stat-card-inner">
+          <div class="card-icon">
+            <i class="fa-solid fa-users"></i>
+          </div>
+          <div class="card-content">
+            <span class="card-label">Regisztrált Ügyfelek</span>
+            <div class="card-value-row">
+              <span class="card-value">{{ totalCustomers | number }}</span>
+            </div>
+            <div class="card-sub">
+              <span class="sub-item">
+                <i class="fa-solid fa-circle-check"></i>
+                Aktív: {{ activeCustomers | number }}
+              </span>
+            </div>
+            <div class="progress-bar">
+              <div class="progress-fill" [style.width.%]="customerRetentionRate"></div>
+            </div>
+            <span class="progress-label">Aktivitási arány: {{ customerRetentionRate }}%</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="stat-card">
+        <div class="card-glow"></div>
+        <div class="stat-card-inner">
+          <div class="card-icon">
+            <i class="fa-solid fa-box-open"></i>
+          </div>
+          <div class="card-content">
+            <span class="card-label">Rendelések</span>
+            <div class="card-value-row">
+              <span class="card-value">{{ totalOrders | number }}</span>
+            </div>
+            <div class="order-status-grid">
+              <div class="status-item pending">
+                <span class="status-dot"></span>
+                <span class="status-label">Függőben</span>
+                <span class="status-count">{{ pendingOrders }}</span>
+              </div>
+              <div class="status-item shipped">
+                <span class="status-dot"></span>
+                <span class="status-label">Szállítás</span>
+                <span class="status-count">{{ shippedOrders }}</span>
+              </div>
+              <div class="status-item delivered">
+                <span class="status-dot"></span>
+                <span class="status-label">Teljesített</span>
+                <span class="status-count">{{ deliveredOrders }}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── Chart + Top Purchases ──────────────────────────── -->
+    <div class="bottom-grid">
+      <div class="chart-card">
+        <div class="card-glow"></div>
+        <div class="chart-header">
+          <div>
+            <h3 class="chart-title"><i class="fa-solid fa-chart-area"></i> Havi Forgalom</h3>
+            <span class="chart-subtitle">{{ currentYear }} • Rendelések havi bontása</span>
+          </div>
+          <div class="chart-legend">
+            <span class="legend-item"> <span class="legend-dot sales"></span>Rendelések </span>
+          </div>
+        </div>
+        <div class="chart-area">
+          <canvas #monthlyChart></canvas>
+        </div>
+      </div>
+
+      <div class="top-purchases-card">
+        <div class="card-glow"></div>
+        <div class="purchases-header">
+          <h3 class="purchases-title"><i class="fa-solid fa-trophy"></i> Top Termékek</h3>
+          <span class="purchases-subtitle">Legtöbbet vásárolt alkatrészek</span>
+        </div>
+
+        @if (topProducts.length === 0) {
+          <div class="empty-state">
+            <i class="fa-solid fa-box-open"></i>
+            <span>Nincs elérhető adat</span>
+          </div>
+        }
+
+        @if (topProducts.length > 0) {
+          <div class="purchases-list">
+            @for (product of topProducts; track product.name; let i = $index) {
+              <div class="purchase-item">
+                <div class="purchase-rank" [class]="'rank-' + (i + 1)">
+                  <span>{{ i + 1 }}</span>
+                </div>
+                <div class="purchase-img">
+                  <i class="fa-solid fa-gear"></i>
+                </div>
+                <div class="purchase-info">
+                  <span class="purchase-name">{{ product.name }}</span>
+                </div>
+                <div class="purchase-stats">
+                  <span class="purchase-count">{{ product.count | number }} db</span>
+                </div>
+                <div class="purchase-bar-wrapper">
+                  <div class="purchase-bar" [style.width.%]="getBarWidth(product.count)"></div>
+                </div>
+              </div>
+            }
+          </div>
+        }
+      </div>
+    </div>
+  }
+</div>

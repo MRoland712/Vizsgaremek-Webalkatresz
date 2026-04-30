@@ -1,0 +1,82 @@
+<div class="product-wrapper">
+  <!-- BAL OLDAL - Kattintható kép -->
+  <div class="left clickable" (click)="viewProductDetails()">
+    <img [src]="product().imageUrl" [alt]="product().name" />
+    <div class="image-overlay">
+      <i class="fa-solid fa-magnifying-glass"></i>
+      <span>Részletek</span>
+    </div>
+  </div>
+
+  <!-- JOBB OLDAL - Infók -->
+  <div class="right">
+    <div class="product-desc">
+      <h2 class="clickable-title" (click)="viewProductDetails()">
+        {{ product().name }}
+      </h2>
+      <h3>Article Number: {{ product().sku }}</h3>
+      <ul>
+        @for (detail of productDetails(); track $index) {
+          <li>
+            <span>{{ detail.label }}:</span>
+            @if (detail.label === 'Állapot') {
+              <span
+                [class.status-available]="detail.available"
+                [class.status-unavailable]="!detail.available"
+              >
+                {{ detail.value }}
+              </span>
+            } @else {
+              <span>{{ detail.value }}</span>
+            }
+          </li>
+        }
+      </ul>
+    </div>
+
+    <div class="price-section">
+      <h3 class="price">{{ product().price }} Ft</h3>
+    </div>
+
+    <div class="button-container">
+      <div class="quantity-controls">
+        <button
+          type="button"
+          class="quantity-btn decrease"
+          (click)="decreaseQuantity()"
+          [disabled]="isCooldown() || isOutOfStock()"
+        >
+          <i class="fa-solid fa-angle-down"></i>
+        </button>
+        <span class="quantity-display">{{ quantity() }}</span>
+        <button
+          type="button"
+          class="quantity-btn increase"
+          (click)="increaseQuantity()"
+          [disabled]="isCooldown() || isOutOfStock()"
+        >
+          <i class="fa-solid fa-angle-up"></i>
+        </button>
+      </div>
+
+      <button
+        type="button"
+        class="add-to-cart-btn"
+        [class.cooldown]="isCooldown()"
+        [class.out-of-stock]="isOutOfStock()"
+        (click)="addToCart()"
+        [disabled]="isCooldown() || isOutOfStock()"
+        [title]="isOutOfStock() ? 'Elfogyott' : 'Kosárba'"
+      >
+        @if (isOutOfStock()) {
+          <i class="fa-solid fa-ban"></i>
+          <span>Elfogyott</span>
+        } @else if (isCooldown()) {
+          <i class="fa-solid fa-check"></i>
+        } @else {
+          <i class="fa-solid fa-cart-shopping"></i>
+        }
+      </button>
+    </div>
+  </div>
+</div>

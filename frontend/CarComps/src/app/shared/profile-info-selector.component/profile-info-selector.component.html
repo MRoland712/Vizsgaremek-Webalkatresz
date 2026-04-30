@@ -1,0 +1,399 @@
+<div class="profile-info-selector-box">
+  @for (item of [ProfileDatas()]; track $index) {
+    <div class="info-row" (click)="openDialog('fullname')">
+      <i class="fa-solid fa-address-book info-icon"></i>
+      <h3>Teljes név</h3>
+      <p>{{ item.firstname }} {{ item.lastname }}</p>
+    </div>
+    <div class="info-row" (click)="openDialog('username')">
+      <i class="fa-solid fa-user info-icon"></i>
+      <h3>Felhasználónév</h3>
+      <p>{{ item.username }}</p>
+    </div>
+    <div class="info-row" (click)="openDialog('email')">
+      <i class="fa-solid fa-envelope info-icon"></i>
+      <h3>Email</h3>
+      <p>{{ item.email }}</p>
+    </div>
+    <div class="info-row" (click)="openDialog('password')">
+      <i class="fa-solid fa-key info-icon"></i>
+      <h3>Jelszó</h3>
+      <p>********</p>
+    </div>
+    <div class="info-row" (click)="openDialog('phone')">
+      <i class="fa-solid fa-phone info-icon"></i>
+      <h3>Telefonszám</h3>
+      <p>{{ item.phone }}</p>
+    </div>
+    <div class="info-row" (click)="openDialog('orders')">
+      <i class="fa-solid fa-box info-icon"></i>
+      <h3>Rendeléseim</h3>
+      <p>Megrendelések</p>
+    </div>
+    <div class="info-row" (click)="openDialog('address')">
+      <i class="fa-solid fa-location-dot info-icon"></i>
+      <h3>Szállítási cím</h3>
+      <p>{{ savedAddressSummary() }}</p>
+    </div>
+    <div class="info-row" [class.tfa-active-row]="isTfaActive()" (click)="openDialog('2fa')">
+      <i
+        class="fa-solid info-icon"
+        [class.fa-shield-halved]="isTfaActive()"
+        [class.fa-shield]="!isTfaActive()"
+        [class.icon-active]="isTfaActive()"
+      ></i>
+      <h3>2FA</h3>
+      <p [class.text-active]="isTfaActive()">
+        {{ isTfaActive() ? '✓ Aktiválva' : 'Nincs aktiválva' }}
+      </p>
+    </div>
+  }
+</div>
+
+@if (isDialogOpen()) {
+  <div class="dialog-overlay" (click)="closeDialog()">
+    <div
+      class="dialog-content"
+      [class.wide-dialog]="currentEditField() === 'orders'"
+      [class.tfa-dialog]="currentEditField() === '2fa'"
+      (click)="$event.stopPropagation()"
+    >
+      <div class="dialog-header">
+        <h2>{{ getDialogTitle() }}</h2>
+        <button class="close-btn" (click)="closeDialog()">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+      </div>
+      <form [formGroup]="editForm" (ngSubmit)="onSave()">
+        @if (currentEditField() === 'fullname') {
+          <div class="form-group">
+            <label>Keresztnév</label>
+            <input type="text" formControlName="firstname" placeholder="Keresztnév" />
+            @if (editForm.controls.firstname.invalid && editForm.controls.firstname.touched) {
+              <span class="error">Minimum 2 karakter</span>
+            }
+          </div>
+          <div class="form-group">
+            <label>Vezetéknév</label>
+            <input type="text" formControlName="lastname" placeholder="Vezetéknév" />
+            @if (editForm.controls.lastname.invalid && editForm.controls.lastname.touched) {
+              <span class="error">Minimum 2 karakter</span>
+            }
+          </div>
+        }
+        @if (currentEditField() === 'username') {
+          <div class="form-group">
+            <label>Felhasználónév</label>
+            <input type="text" formControlName="username" placeholder="Felhasználónév" />
+            @if (editForm.controls.username.invalid && editForm.controls.username.touched) {
+              <span class="error">Minimum 3 karakter</span>
+            }
+          </div>
+        }
+        @if (currentEditField() === 'email') {
+          <div class="form-group">
+            <label>Email cím</label>
+            <input type="email" formControlName="email" placeholder="email@example.com" />
+            @if (editForm.controls.email.invalid && editForm.controls.email.touched) {
+              <span class="error">Érvénytelen email cím</span>
+            }
+          </div>
+        }
+        @if (currentEditField() === 'password') {
+          <div class="form-group">
+            <label>Jelenlegi jelszó</label>
+            <input type="password" formControlName="currentPassword" placeholder="••••••••" />
+          </div>
+          <div class="form-group">
+            <label>Új jelszó</label>
+            <input type="password" formControlName="newPassword" placeholder="••••••••" />
+            @if (editForm.controls.newPassword.invalid && editForm.controls.newPassword.touched) {
+              <span class="error">Minimum 8 karakter</span>
+            }
+          </div>
+          <div class="form-group">
+            <label>Új jelszó megerősítése</label>
+            <input type="password" formControlName="confirmPassword" placeholder="••••••••" />
+          </div>
+        }
+        @if (currentEditField() === 'phone') {
+          <div class="form-group">
+            <label>Telefonszám</label>
+            <input type="tel" formControlName="phone" placeholder="+36 30 123 4567" />
+            @if (editForm.controls.phone.invalid && editForm.controls.phone.touched) {
+              <span class="error">9-15 számjegy szükséges</span>
+            }
+          </div>
+        }
+
+        <!-- 2FA DIALOG -->
+        @if (currentEditField() === '2fa') {
+          @if (tfaStep() === 'disable') {
+            <div class="tfa-step">
+              <div class="tfa-active-header">
+                <i class="fa-solid fa-shield-halved icon-active"></i>
+                <h3>A kétfaktoros hitelesítés aktív</h3>
+              </div>
+              <p class="tfa-description">
+                A fiókod védve van a kétfaktoros hitelesítéssel. Ha ki szeretnéd kapcsolni, kattints
+                az alábbi gombra.
+              </p>
+              @if (disableError()) {
+                <div class="error-message">
+                  <i class="fa-solid fa-triangle-exclamation"></i>
+                  <p>{{ disableError() }}</p>
+                </div>
+              }
+              <button class="btn-tfa-danger" type="button" (click)="disableTFA()" [disabled]="isDisabling()">
+                @if (isDisabling()) {
+                  <i class="fa-solid fa-spinner fa-spin"></i> Kikapcsolás...
+                } @else {
+                  <i class="fa-solid fa-shield-xmark"></i> 2FA kikapcsolása
+                }
+              </button>
+            </div>
+          }
+          @else if (isLoadingTFA()) {
+            <div class="loading-state">
+              <i class="fa-solid fa-spinner fa-spin"></i>
+              <p>2FA beállítás indítása...</p>
+            </div>
+          } @else if (tfaError()) {
+            <div class="error-message">
+              <i class="fa-solid fa-triangle-exclamation"></i>
+              <p>{{ tfaError() }}</p>
+            </div>
+            <button class="btn-tfa-full" type="button" (click)="initiate2FA()">
+              <i class="fa-solid fa-rotate"></i> Újrapróbálás
+            </button>
+          } @else if (tfaStep() === 'qr' && tfaData()) {
+            <div class="tfa-step">
+              <p class="tfa-description">Szkenneld be a QR kódot egy hitelesítő alkalmazással.</p>
+              <div class="qr-image-container">
+                <img [src]="tfaData()!.result.QR" alt="2FA QR Code" class="qr-real-image" />
+              </div>
+              <div class="secret-key-section">
+                <div class="secret-key-header">
+                  <span>Nem tudod beolvasni?</span>
+                  <button type="button" class="btn-toggle-secret" (click)="toggleSecretKey()">
+                    <i class="fa-solid" [class.fa-eye]="!showSecretKey()" [class.fa-eye-slash]="showSecretKey()"></i>
+                    {{ showSecretKey() ? 'Elrejt' : 'Titkos kulcs' }}
+                  </button>
+                </div>
+                @if (showSecretKey()) {
+                  <div class="secret-key-display">
+                    <code>{{ tfaData()!.result.secretKey }}</code>
+                    <button type="button" class="btn-copy-mini" (click)="copyToClipboard(tfaData()!.result.secretKey)">
+                      <i class="fa-solid fa-copy"></i>
+                    </button>
+                  </div>
+                }
+              </div>
+              <button class="btn-tfa-full" type="button" (click)="tfaStep.set('verify')">
+                <i class="fa-solid fa-arrow-right"></i> Tovább az ellenőrzéshez
+              </button>
+            </div>
+          } @else if (tfaStep() === 'verify') {
+            <div class="tfa-step">
+              <p class="tfa-description">Add meg az alkalmazásban megjelenő 6 számjegyű kódot.</p>
+              <div class="form-group">
+                <label>Ellenőrző kód</label>
+                <input
+                  type="text"
+                  class="verification-code-input"
+                  placeholder="123-456"
+                  maxlength="7"
+                  [value]="verificationCode()"
+                  (input)="onVerificationInput($event)"
+                />
+              </div>
+              @if (verificationError()) {
+                <div class="error-message">
+                  <i class="fa-solid fa-xmark"></i>
+                  <p>{{ verificationError() }}</p>
+                </div>
+              }
+              <div class="tfa-btn-row">
+                <button type="button" class="btn-tfa-back" (click)="tfaStep.set('qr')">
+                  <i class="fa-solid fa-arrow-left"></i> Vissza
+                </button>
+                <button type="button" class="btn-tfa-primary" (click)="verifyCode()" [disabled]="isVerifying()">
+                  @if (isVerifying()) {
+                    <i class="fa-solid fa-spinner fa-spin"></i> Ellenőrzés...
+                  } @else {
+                    <i class="fa-solid fa-check"></i> Ellenőrzés
+                  }
+                </button>
+              </div>
+            </div>
+          } @else if (tfaStep() === 'recovery') {
+            <div class="tfa-step">
+              <div class="tfa-success-header">
+                <i class="fa-solid fa-circle-check"></i>
+                <h3>2FA sikeresen beállítva!</h3>
+              </div>
+              <div class="warning-box">
+                <i class="fa-solid fa-triangle-exclamation"></i>
+                <div>
+                  <strong>Fontos!</strong>
+                  <p>Mentsd el ezeket a helyreállítási kódokat biztonságos helyre.</p>
+                </div>
+              </div>
+              <div class="recovery-codes-container">
+                <h4>Helyreállítási kódok:</h4>
+                <div class="recovery-codes-grid">
+                  @for (code of tfaData()!.result.recoveryCodes; track $index) {
+                    <div class="recovery-code-item">
+                      <span class="code-number">{{ $index + 1 }}.</span>
+                      <code>{{ code }}</code>
+                    </div>
+                  }
+                </div>
+              </div>
+              <div class="tfa-btn-row">
+                <button type="button" class="btn-tfa-back" (click)="downloadRecoveryCodes()">
+                  <i class="fa-solid fa-download"></i> Letöltés
+                </button>
+                <button type="button" class="btn-tfa-back" (click)="copyAllRecoveryCodes()">
+                  <i class="fa-solid fa-copy"></i> Másolás
+                </button>
+              </div>
+              <button type="button" class="btn-tfa-full" (click)="finish2FASetup()">
+                <i class="fa-solid fa-check-double"></i> Befejezés
+              </button>
+            </div>
+          }
+        }
+
+        <!-- RENDELÉSEIM -->
+        @if (currentEditField() === 'orders') {
+          @if (isLoadingOrders()) {
+            <div class="loading-state">
+              <i class="fa-solid fa-spinner fa-spin"></i>
+              <p>Rendelések betöltése...</p>
+            </div>
+          } @else if (ordersError()) {
+            <div class="error-message">
+              <i class="fa-solid fa-circle-exclamation"></i>
+              <p>{{ ordersError() }}</p>
+            </div>
+          } @else if (orders().length === 0) {
+            <div class="empty-state">
+              <i class="fa-solid fa-box-open"></i>
+              <p>Még nincs rendelésed</p>
+            </div>
+          } @else {
+            <div class="orders-list">
+              @for (order of orders(); track order.id) {
+                <div class="order-card">
+                  <div class="order-header">
+                    <div class="order-id">
+                      <strong>Rendelés #{{ order.id }}</strong>
+                      <span class="order-date">{{ order.createdAt }}</span>
+                    </div>
+                    <span [class]="getOrderStatusClass(order.status)" class="order-status">
+                      {{ order.status }}
+                    </span>
+                  </div>
+                  <div class="order-meta">
+                    <span class="order-meta-item">
+                      <i class="fa-solid fa-clock"></i> Frissítve: {{ order.updatedAt }}
+                    </span>
+                  </div>
+                </div>
+              }
+            </div>
+          }
+        }
+
+        <!-- SZÁLLÍTÁSI CÍM -->
+        @if (currentEditField() === 'address') {
+          <div class="form-group">
+            <label>Keresztnév</label>
+            <input type="text" formControlName="firstname" placeholder="Keresztnév" />
+            @if (editForm.controls.firstname.invalid && editForm.controls.firstname.touched) {
+              <span class="error">Minimum 2 karakter</span>
+            }
+          </div>
+          <div class="form-group">
+            <label>Vezetéknév</label>
+            <input type="text" formControlName="lastname" placeholder="Vezetéknév" />
+            @if (editForm.controls.lastname.invalid && editForm.controls.lastname.touched) {
+              <span class="error">Minimum 2 karakter</span>
+            }
+          </div>
+          <div class="form-group">
+            <label>Telefonszám</label>
+            <input type="tel" formControlName="phone" placeholder="+36 30 123 4567" />
+          </div>
+          <div class="form-group">
+            <label>Adószám</label>
+            <input type="text" formControlName="taxnumber" placeholder="Adószám" />
+          </div>
+          <div class="form-group">
+            <label>Ország</label>
+            <input type="text" formControlName="country" placeholder="Magyarország" />
+            @if (editForm.controls.country.invalid && editForm.controls.country.touched) {
+              <span class="error">Kötelező mező</span>
+            }
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label>Irányítószám</label>
+              <input type="text" formControlName="postalCode" placeholder="1234" maxlength="4" />
+              @if (editForm.controls.postalCode.invalid && editForm.controls.postalCode.touched) {
+                <span class="error">4 számjegy</span>
+              }
+            </div>
+            <div class="form-group">
+              <label>Város</label>
+              <input type="text" formControlName="city" placeholder="Budapest" />
+              @if (editForm.controls.city.invalid && editForm.controls.city.touched) {
+                <span class="error">Kötelező mező</span>
+              }
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label>Utca</label>
+              <input type="text" formControlName="street" placeholder="Fő utca" />
+              @if (editForm.controls.street.invalid && editForm.controls.street.touched) {
+                <span class="error">Kötelező mező</span>
+              }
+            </div>
+            <div class="form-group">
+              <label>Házszám</label>
+              <input type="text" formControlName="houseNumber" placeholder="12" />
+            </div>
+          </div>
+        }
+
+        @if (saveSuccess()) {
+          <div class="success-message">
+            <i class="fa-solid fa-circle-check"></i>
+            <p>Sikeres mentés!</p>
+          </div>
+        }
+        @if (saveError()) {
+          <div class="error-message">
+            <i class="fa-solid fa-circle-exclamation"></i>
+            <p>{{ saveError() }}</p>
+          </div>
+        }
+        @if (currentEditField() !== 'orders' && currentEditField() !== '2fa') {
+          <div class="dialog-footer">
+            <button type="button" class="btn-cancel" (click)="closeDialog()">Mégse</button>
+            <button type="submit" class="btn-save" [disabled]="isSaving()">
+              @if (isSaving()) {
+                <i class="fa-solid fa-spinner fa-spin"></i> Mentés...
+              } @else {
+                Mentés
+              }
+            </button>
+          </div>
+        }
+      </form>
+    </div>
+    <app-tfa (verified)="onTFAVerifiedForSave()" (cancelled)="onTFACancelledForSave()"></app-tfa>
+  </div>
+}

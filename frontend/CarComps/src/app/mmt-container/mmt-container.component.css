@@ -1,0 +1,53 @@
+/* ==========================================
+   MMT CONTAINER CSS
+   ========================================== 
+   
+   Ez a CSS-t tedd a styles.css-be (globális)
+   vagy az app.component.css-be
+*/
+
+/* MMT Container - középre igazítja a dropdown-okat */
+.mmt-container {
+  display: flex;
+  justify-content: center; /* Vízszintesen középre */
+  align-items: flex-start; /* Felülre igazítás */
+  width: 100%;
+  padding: 20px 0; /* Felül-alul térköz */
+  /* Opcionális háttér */
+}
+
+/* ==========================================
+   ALTERNATÍVA 1: Text-align módszer
+   ========================================== */
+
+.mmt-text-center {
+  text-align: center; /* Inline-block elemeket középre teszi */
+  width: 100%;
+  padding: 20px 0;
+}
+
+/* ==========================================
+   ALTERNATÍVA 2: Grid módszer
+   ========================================== */
+
+.mmt-grid-center {
+  display: grid;
+  place-items: center; /* Minden irányba középre */
+  width: 100%;
+  padding: 20px 0;
+  background-color: #f5f5f5;
+}
+
+/* ==========================================
+   RESPONSIVE
+   ========================================== */
+
+@media (max-width: 768px) {
+  .mmt-container {
+    padding: 16px;
+  }
+
+  .product-grid-container {
+    padding: 20px 12px;
+  }
+}

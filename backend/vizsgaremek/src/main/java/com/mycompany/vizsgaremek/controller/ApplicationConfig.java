@@ -1,0 +1,57 @@
+/*
+ * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
+ * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
+ */
+package com.mycompany.vizsgaremek.controller;
+
+import java.util.Set;
+import javax.ws.rs.core.Application;
+
+/**
+ *
+ * @author neblg
+ */
+@javax.ws.rs.ApplicationPath("webresources")
+public class ApplicationConfig extends Application {
+
+    @Override
+    public Set<Class<?>> getClasses() {
+        Set<Class<?>> resources = new java.util.HashSet<>();
+            addRestResourceClasses(resources);
+            return resources;
+        }
+        
+    
+
+    private void addRestResourceClasses(Set<Class<?>> resources) {
+        resources.add(com.mycompany.vizsgaremek.config.CorsFilter.class);
+        resources.add(com.mycompany.vizsgaremek.controller.AddressesController.class);
+        resources.add(com.mycompany.vizsgaremek.controller.AnaliticsController.class);
+        resources.add(com.mycompany.vizsgaremek.controller.CarsController.class);
+        resources.add(com.mycompany.vizsgaremek.controller.CartItemsController.class);
+        resources.add(com.mycompany.vizsgaremek.controller.EmailVerificationsController.class);
+        resources.add(com.mycompany.vizsgaremek.controller.ImagesResourcesController.class);
+        resources.add(com.mycompany.vizsgaremek.controller.InvoicesController.class);
+        resources.add(com.mycompany.vizsgaremek.controller.JWTController.class);
+        resources.add(com.mycompany.vizsgaremek.controller.ManufacturersController.class);
+        resources.add(com.mycompany.vizsgaremek.controller.MotorsController.class);
+        resources.add(com.mycompany.vizsgaremek.controller.OTPController.class);
+        resources.add(com.mycompany.vizsgaremek.controller.OrderItemsController.class);
+        resources.add(com.mycompany.vizsgaremek.controller.OrdersController.class);
+        resources.add(com.mycompany.vizsgaremek.controller.PartCompatibilityController.class);
+        resources.add(com.mycompany.vizsgaremek.controller.PartImagesController.class);
+        resources.add(com.mycompany.vizsgaremek.controller.PartVariantsController.class);
+        resources.add(com.mycompany.vizsgaremek.controller.PartsController.class);
+        resources.add(com.mycompany.vizsgaremek.controller.PasswordResetsController.class);
+        resources.add(com.mycompany.vizsgaremek.controller.PaymentsController.class);
+        resources.add(com.mycompany.vizsgaremek.controller.ReviewsController.class);
+        resources.add(com.mycompany.vizsgaremek.controller.SendEmailController.class);
+        resources.add(com.mycompany.vizsgaremek.controller.SessionsController.class);
+        resources.add(com.mycompany.vizsgaremek.controller.TFAController.class);
+        resources.add(com.mycompany.vizsgaremek.controller.TrucksController.class);
+        resources.add(com.mycompany.vizsgaremek.controller.UserLogsController.class);
+        resources.add(com.mycompany.vizsgaremek.controller.UserTwofaController.class);
+        resources.add(com.mycompany.vizsgaremek.controller.UserVehiclesController.class);
+        resources.add(com.mycompany.vizsgaremek.controller.UsersController.class);
+    }
+}

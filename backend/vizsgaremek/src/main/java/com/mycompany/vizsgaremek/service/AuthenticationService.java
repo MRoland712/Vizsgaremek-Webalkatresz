@@ -1,0 +1,1683 @@
+/*
+ * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
+ * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
+ */
+package com.mycompany.vizsgaremek.service;
+
+import com.mycompany.vizsgaremek.model.*;
+import com.mycompany.vizsgaremek.config.Encrypt;
+import io.jsonwebtoken.Claims;
+import java.math.BigDecimal;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.regex.Pattern;
+import javax.mail.Address;
+import org.json.JSONArray;
+import org.json.JSONObject;
+
+/**
+ *
+ * @author ddori
+ */
+public class AuthenticationService {
+
+    public static class errorAuth {
+
+        /**
+         * Checks if given JSONArray has data and returns a Boolean
+         *
+         * @param errors The JSONArray that needs to be checked
+         * @return Boolean true or false based on if the errors JSONArray has
+         * data
+         */
+        public static boolean hasErrors(JSONArray errors) {
+            return errors.length() > 0;
+        }
+
+        /**
+         * Creates an JSONObject error response with the given JSONArray errors
+         * and status code
+         *
+         * @param errors The JSONArray that contains the errors
+         *
+         * @param statusCode An integer value with a given status code, see
+         * common error codes: 400 - Bad request (validation error / client
+         * sends wrong data) 401 - Unauthorised (Authentication error ex: Wrong
+         * password entered) 404 - Missing (ex:Couldnt find user with given
+         * data) 409 - Conflict (something is the same as in db ex: Email is
+         * same as in DB) 500 - Internal Server Error (Missing required data in
+         * DB ex: isDeleted == null)
+         *
+         * @return a JSONObject with the errors array, a status of "failed" and
+         * the given status code in this format: { "errors": [#errors#],
+         * "status": "failed", "statusCode": #Given status code# }
+         *
+         */
+        public static JSONObject createErrorResponse(JSONArray errors, int statusCode) {
+            JSONObject response = new JSONObject();
+            response.put("errors", errors);
+            response.put("status", "failed");
+            response.put("statusCode", statusCode);
+            return response;
+        }
+
+        /**
+         * Creates an JSONArray OK response with the given JSONArray result data
+         *
+         * @param result The JSONArray that contains the result data
+         *
+         * @return a JSONArray with the result JSONArray as a "result" a status
+         * of "success" and a "statusCode" of 200 in this format { "result": [ {
+         * #result data# } ], "status": "success", "statusCode": 200 }
+         */
+        public static JSONObject createOKResponse(JSONArray result) {
+            JSONObject response = new JSONObject();
+            response.put("result", result);
+            response.put("status", "success");
+            response.put("statusCode", 200);
+            return response;
+        }
+
+        /**
+         * Creates an JSONObject OK response with the given JSONObject result
+         * data
+         *
+         * @param result The JSONObject that contains the result data
+         *
+         * @return a JSONObject with the result JSONObject as a "result" a
+         * status of "success" and a "statusCode" of 200 in this format {
+         * "result": [ { #result data# } ], "status": "success", "statusCode":
+         * 200 }
+         */
+        public static JSONObject createOKResponse(JSONObject result) {
+            JSONObject response = new JSONObject();
+            response.put("result", result);
+            response.put("status", "success");
+            response.put("statusCode", 200);
+            return response;
+        }
+
+        /**
+         * Creates an JSONObject OK response with the given Claims result data
+         *
+         * @param result The Claims object that contains the result data
+         *
+         * @return a JSONObject with the result Claims as "result", a status of
+         * "success" and a "statusCode" of 200
+         */
+        public static JSONObject createOKResponse(Claims result) {
+            JSONObject response = new JSONObject();
+            response.put("result", result);
+            response.put("status", "success");
+            response.put("statusCode", 200);
+            return response;
+        }
+
+        /**
+         * Creates an JSONObject OK response with the given String result data
+         *
+         * @param result The String that contains the result data
+         *
+         * @return a JSONObject with the result String as "result", a status of
+         * "success" and a "statusCode" of 200 in this format { "result": [ {
+         * #result data# } ], "status": "success", "statusCode": 200 }
+         */
+        public static JSONObject createOKResponse(String result) {
+            JSONObject response = new JSONObject();
+            response.put("result", result);
+            response.put("status", "success");
+            response.put("statusCode", 200);
+            return response;
+        }
+
+        /**
+         * Creates an OK response
+         *
+         * @return a JSONObject with a status of "success" and a "statusCode" of
+         * 200 in this format
+         *
+         * { "status": "success", "statusCode": 200 }
+         */
+        public static JSONObject createOKResponse() {
+            JSONObject response = new JSONObject();
+            response.put("status", "success");
+            response.put("statusCode", 200);
+            return response;
+        }
+
+    }//Class closer
+
+    public static class JWTAuth {
+
+        public boolean isDataMissing(String data) {
+            return data.isEmpty() || data == null;
+        }
+    }
+
+    public static class userAuth {
+
+        private static final Pattern EMAIL_PATTERN
+                = Pattern.compile("^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}$");
+
+        // Legalább 8 karakter, tartalmaz nagybetűt, számot és speciális karaktert
+        private static final Pattern PASSWORD_PATTERN
+                = Pattern.compile("^(?=.*[A-Z])(?=.*\\d)(?=.*[^A-Za-z0-9]).{8,}$");
+
+        public boolean isDataMissing(String data) {
+            return (data == null);
+        }
+
+        public boolean isDataMissing(Integer data) {
+            return (data == null);
+        }
+
+        public boolean isDataMissing(ArrayList<Users> data) {
+            return (data == null || data.isEmpty());
+        }
+
+        public boolean isDataMissing(Boolean data) {
+            return (data == null);
+        }
+
+        public boolean isDataMissing(Users data) {
+            return (data == null);
+        }
+
+        public boolean isDataMissing(List<Object[]> data) {
+            return (data == null || data.isEmpty());
+        }
+
+        public boolean isValidId(Integer id) {
+            return id > 0 && id.toString().length() <= 11;
+        }
+
+        public boolean isValidEmail(String email) {
+            return EMAIL_PATTERN.matcher(email).matches();
+        }
+
+        public boolean isValidPassword(String password) {
+            return PASSWORD_PATTERN.matcher(password).matches();
+        }
+
+        //ToDo: is username in db? 
+        public boolean isValidUsername(String username) {
+            return username.length() <= 30 && username.length() >= 3;
+        }
+
+        public boolean isValidFirstName(String firstName) {
+            return firstName.length() <= 50;
+        }
+
+        public boolean isValidLastName(String lastName) {
+            return lastName.length() <= 50;
+        }
+
+        public boolean isValidPhone(String phone) {
+            return phone.length() <= 50;
+        }
+
+        public boolean isValidRegistrationToken(String token) {
+            return token.length() == 36;
+        }
+
+        public boolean isValidRole(String role) {
+            return role.length() <= 20;
+        }
+
+        public boolean isValidIsActive(Boolean isActive) {
+            return isActive instanceof Boolean;
+        }
+
+        public boolean isValidAuthSecret(String authSecret) {
+            try {
+                return authSecret.length() <= 255;
+            } catch (Exception ex) {
+                ex.printStackTrace();
+                return false;
+            }
+        }
+
+        public boolean isValidIsSubscribed(Boolean isSubscribed) {
+            return true; //ToDo: create Authentication for a boolean :O
+        }
+
+        public boolean isUserDeleted(Boolean isDeleted) {
+            return (isDeleted == true);
+        }
+
+        /**
+         * Checks if the plain password is the same as the Encrypted password in
+         * the DB
+         *
+         * @param password The password that needs to be checked
+         * @param userId Users Id
+         * @return true / false based if the password is the same as the one in
+         * the db
+         * @throws Exception If somehow one of the methods in the return went
+         * wrong
+         */
+        public boolean isPasswordSame(String password, Integer userId) {
+            Users userdata = Users.getUserById(userId);
+            if (userdata == null) {
+                System.err.println("isPasswordSame: Could not find user via id");
+            }
+            try {
+                //debug:
+                /*System.out.println("isPasswordSame:");
+            System.out.println(userdata.getPassword() + " == " + Encrypt.encrypt(password) + " (" + password + ")");*/
+                return userdata.getPassword().equals(Encrypt.encrypt(password));
+            } catch (Exception e) {
+                e.printStackTrace();
+                return false;
+            }
+        }
+
+        /**
+         * Checks if the plain password is the same as the Encrypted password in
+         * the DB
+         *
+         * @param password The password that needs to be checked
+         * @param email User Email
+         * @return true / false based if the password is the same as the one in
+         * the db
+         * @throws Exception and returns false
+         */
+        public boolean isPasswordSame(String password, String email) {
+            Users userdata = Users.getUserByEmail(email);
+            if (userdata == null) {
+                System.err.println("isPasswordSame: Could not find user via email");
+            }
+            try {
+                //debug:
+                /*System.out.println("isPasswordSame:");
+                System.out.println(userdata.getPassword() + " == " + Encrypt.encrypt(password) + " (" + password + ")");*/
+                return userdata.getPassword().equals(Encrypt.encrypt(password));
+            } catch (Exception e) {
+                e.printStackTrace();
+                return false;
+            }
+        }
+
+        /**
+         * Checks if the searchCriteria is Integer (id) or String (email) and
+         * runs the coresponding method
+         *
+         * @param password The password that needs to be checked
+         * @param searchCriteria The Object that needs to be checked
+         *
+         * @return true / false based if the password is the same as the one in
+         * the db
+         * @throws IlleagalArgumentExeption with message of "Not acceptable
+         * search criteria: {Object's type that is not supported} "
+         */
+        public boolean isPasswordSame(String password, Object searchCriteria) {
+            if (searchCriteria instanceof Integer) {
+                return isPasswordSame(password, (Integer) searchCriteria);
+            } else if (searchCriteria instanceof String) {
+                return isPasswordSame(password, (String) searchCriteria);
+            } else {
+                throw new IllegalArgumentException("Not acceptable search criteria: " + (searchCriteria != null ? searchCriteria.getClass().getName() : "null"));
+            }
+        }
+
+        /**
+         * Checks if email is existing in DB
+         *
+         * @param email Email that needs checking
+         *
+         * @return true / false based if the email is in use by an active user
+         */
+        public boolean isEmailSame(String email) {
+            Users userdata = Users.getUserByEmail(email);
+            //if user is not found, or the found user is deleted = return false
+            if (userdata == null || userdata.getIsDeleted()) {
+                return false;
+            }
+            return true;
+        }
+
+        /**
+         * Checks if username is existing in DB
+         *
+         * @param username Username that needs checking
+         *
+         * @return true / false based if the username is existing in DB
+         */
+        public boolean isUsernameSame(String username) {
+            ArrayList<Users> users = Users.getUsers();
+            //if user is found and not deleted = return true
+            for (Users user : users) {
+                if (user.getUsername().equals(username) && !user.getIsDeleted()) {
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        /**
+         * Checks if phone is existing in DB
+         *
+         * @param phone phone number that needs checking
+         *
+         * @return true / false based if the phone is existing in DB
+         */
+        public boolean isPhoneSame(String phone) {
+            ArrayList<Users> users = Users.getUsers();
+            //if user is found and is not deleted = return true
+            for (Users user : users) {
+                if (user.getPhone().equals(phone) && !user.getIsDeleted()) {
+                    return true;
+                }
+            }
+            return false;
+        }
+
+    } //User Auth Class closer
+
+    //Address 
+    public static class addressAuth {
+
+        public boolean isDataMissing(String data) {
+            return (data == null || data.trim().isEmpty());
+        }
+
+        public boolean isDataMissing(Users data) {
+            return (data == null);
+        }
+
+        public boolean isDataMissing(Integer data) {
+            return (data == null);
+        }
+
+        public boolean isDataMissing(ArrayList<Addresses> data) {
+            return (data == null || data.isEmpty());
+        }
+
+        public boolean isDataMissing(Boolean data) {
+            return (data == null);
+        }
+
+        public boolean isDataMissing(Address data) {
+            return (data == null);
+        }
+
+        public boolean isDataMissing(List<Object[]> data) {
+            return (data == null || data.isEmpty());
+        }
+
+        public boolean isValidId(Integer id) {
+            return id > 0 && id.toString().length() <= 11;
+        }
+
+        public boolean isValidUserId(Users user) {
+            Integer userId = user.getId();
+            return userId > 0 && userId.toString().length() <= 11;
+        }
+
+        public boolean isValidUserId(Integer userId) {
+            return userId > 0 && userId.toString().length() <= 11;
+        }
+
+        public boolean isValidFirstName(String firstName) {
+            return firstName.length() <= 50;
+        }
+
+        public boolean isValidLastName(String lastName) {
+            return lastName.length() <= 50;
+        }
+
+        public boolean isValidCompany(String company) {
+            return company.length() <= 50;
+        }
+
+        public boolean isValidTaxNumber(String taxNumber) {
+            return taxNumber.length() <= 50;
+        }
+
+        public boolean isValidZipCode(String zipCode) {
+            return zipCode.length() <= 50;
+        }
+
+        public boolean isValidStreet(String street) {
+            return street.length() <= 50;
+        }
+
+        public boolean isValidCity(String city) {
+            return city.length() <= 50;
+        }
+
+        public boolean isValidCountry(String country) {
+            return country.length() <= 50;
+        }
+
+        public boolean isValidIsDefault(Boolean isDefault) {
+            return isDefault instanceof Boolean;
+        }
+
+        public boolean isAddressDeleted(Boolean isDeleted) {
+            return (isDeleted == true);
+        }
+
+        public boolean isDataMissing(Addresses data) {
+            return (data == null);
+        }
+
+    } //Address Auth Class closer
+
+    //UserLogs
+    public static class userLogsAuth {
+
+        public boolean isDataMissing(Integer data) {
+            return data == null;
+        }
+
+        public boolean isDataMissing(String data) {
+            return data == null || data.trim().isEmpty();
+        }
+
+        public boolean isDataMissing(Boolean data) {
+            return data == null;
+        }
+
+        public boolean isDataMissing(JSONObject data) {
+            return data.isEmpty() || data == null;
+        }
+
+        public boolean isValidId(Integer id) {
+            return id != null && id > 0;
+        }
+
+        public boolean isValidUserId(Integer userId) {
+            return userId != null && userId > 0;
+        }
+
+        public boolean isValidAction(String action) {
+            if (action == null) {
+                return false;
+            }
+            return action.length() >= 3 && action.length() <= 255;
+        }
+
+        public boolean isValidDetail(String details) {
+            if (details == null || details.trim().isEmpty()) {
+                return true;
+            }
+            return details.length() <= 5000;
+        }
+    }//userLogs closer
+
+    //Parts
+    public static class partsAuth {
+
+        public boolean isDataMissing(String data) {
+            return (data == null || data.trim().isEmpty());
+        }
+
+        public boolean isDataMissing(Manufacturers data) {
+            return (data == null);
+        }
+
+        public boolean isDataMissing(Integer data) {
+            return (data == null);
+        }
+
+        public boolean isDataMissing(ArrayList<Parts> data) {
+            return (data == null || data.isEmpty());
+        }
+
+        public boolean isDataMissing(Boolean data) {
+            return (data == null);
+        }
+
+        public boolean isDataMissing(Parts data) {
+            return (data == null);
+        }
+
+        public boolean isDataMissing(BigDecimal data) {
+            return (data == null);
+        }
+
+        public boolean isDataMissing(List<Object[]> data) {
+            return (data == null || data.isEmpty());
+        }
+
+        public boolean isValidId(Integer id) {
+            return id > 0 && id.toString().length() <= 11;
+        }
+
+        public boolean isValidManufacturerId(Manufacturers manufacturer) {
+            Integer manufacturerId = manufacturer.getId();
+            return manufacturerId > 0 && manufacturerId.toString().length() <= 11;
+        }
+
+        public boolean isValidManufacturerId(Integer manufacturerId) {
+            return manufacturerId > 0 && manufacturerId.toString().length() <= 11;
+        }
+
+        public boolean isValidSku(String sku) {
+            return sku.length() <= 100;
+        }
+
+        public boolean isValidName(String name) {
+            return name.length() <= 255;
+        }
+        
+        public boolean isValidDescription(String description) {
+            return description.length() <= 255;
+        }
+
+        public boolean isValidCategory(String category) {
+            return category.length() <= 100;
+        }
+
+        //BigDecimal 
+        public boolean isValidPrice(BigDecimal price) {
+            return price.compareTo(new BigDecimal("0.00")) > 0;
+        }
+
+        //Integer
+        public boolean isValidStock(Integer stock) {
+            return stock > 0 && stock.toString().length() <= 11;
+        }
+
+        public boolean isValidStatus(String status) {
+            return status.length() <= 50;
+        }
+
+        // we will have to talk about this
+        public boolean isValidActive(Boolean isActive) {
+            return isActive instanceof Boolean;
+        }
+
+        public boolean isPartsDeleted(Boolean isDeleted) {
+            return (isDeleted == true);
+        }
+
+    } //Parts Auth Class closer
+
+    //Manufacturers
+    public static class manufacturersAuth {
+
+        public boolean isDataMissing(String data) {
+            return (data == null || data.trim().isEmpty());
+        }
+
+        public boolean isDataMissing(Manufacturers data) {
+            return (data == null);
+        }
+
+        public boolean isDataMissing(Integer data) {
+            return (data == null);
+        }
+
+        public boolean isDataMissing(ArrayList<Manufacturers> data) {
+            return (data == null || data.isEmpty());
+        }
+
+        public boolean isDataMissing(Boolean data) {
+            return (data == null);
+        }
+
+        public boolean isDataMissing(List<Object[]> data) {
+            return (data == null || data.isEmpty());
+        }
+
+        public boolean isValidId(Integer id) {
+            return id > 0 && id.toString().length() <= 11;
+        }
+
+        public boolean isValidName(String name) {
+            return name.length() <= 50;
+        }
+
+        public boolean isValidCountry(String name) {
+            return name.length() <= 50;
+        }
+
+        public boolean isManufacturersDeleted(Boolean isDeleted) {
+            return (isDeleted == true);
+        }
+
+    } //Manufacturers Auth Class closer
+
+    //PartVaraints
+    public static class partvariantsAuth {
+
+        public boolean isDataMissing(String data) {
+            return (data == null || data.trim().isEmpty());
+        }
+
+        public boolean isDataMissing(PartVariants data) {
+            return (data == null);
+        }
+
+        public boolean isDataMissing(Integer data) {
+            return (data == null);
+        }
+
+        public boolean isDataMissing(ArrayList<PartVariants> data) {
+            return (data == null || data.isEmpty());
+        }
+
+        public boolean isDataMissing(BigDecimal data) {
+            return (data == null);
+        }
+
+        public boolean isValidAdditionalPrice(BigDecimal price) {
+            return price.compareTo(new BigDecimal("0.00")) > 0;
+        }
+
+        public boolean isValidPartsId(Parts parts) {
+            Integer partsId = parts.getId();
+            return partsId > 0 && partsId.toString().length() <= 11;
+        }
+
+        public boolean isValidPartsId(Integer partsId) {
+            return partsId > 0 && partsId.toString().length() <= 11;
+        }
+
+        public boolean isDataMissing(Boolean data) {
+            return (data == null);
+        }
+
+        public boolean isDataMissing(List<Object[]> data) {
+            return (data == null || data.isEmpty());
+        }
+
+        public boolean isValidId(Integer id) {
+            return id > 0 && id.toString().length() <= 11;
+        }
+
+        public boolean isValidName(String name) {
+            return name.length() <= 50;
+        }
+
+        public boolean isValidValue(String name) {
+            return name.length() <= 50;
+        }
+
+    } //PartsVariants Auth Class closer
+
+    //PartImages
+    public static class partImagesAuth {
+
+        public boolean isDataMissing(String data) {
+            return (data == null || data.trim().isEmpty());
+        }
+
+        public boolean isDataMissing(PartImages data) {
+            return (data == null);
+        }
+
+        public boolean isDataMissing(Integer data) {
+            return (data == null);
+        }
+
+        public boolean isDataMissing(ArrayList<PartImages> data) {
+            return (data == null || data.isEmpty());
+        }
+
+        public boolean isDataMissing(Boolean data) {
+            return (data == null);
+        }
+
+        public boolean isDataMissing(Parts data) {
+            return (data == null);
+        }
+
+        public boolean isDataMissing(List<Object[]> data) {
+            return (data == null || data.isEmpty());
+        }
+
+        public boolean isValidId(Integer id) {
+            return id > 0 && id.toString().length() <= 11;
+        }
+
+        public boolean isValidPartId(Parts part) {
+            Integer partId = part.getId();
+            return partId > 0 && partId.toString().length() <= 11;
+        }
+
+        public boolean isValidPartId(Integer partId) {
+            return partId > 0 && partId.toString().length() <= 11;
+        }
+
+        public boolean isValidUrl(String url) {
+            return url.length() <= 255;
+        }
+
+        public boolean isPartImagePrimary(Boolean isPrimary) {
+            return isPrimary instanceof Boolean;
+        }
+
+        public boolean isPartImagesDeleted(Boolean isDeleted) {
+            return (isDeleted == true);
+        }
+
+    } //partImagesAuth Auth Class closer
+
+    public static class userTwofaAuth {
+
+        private static final Pattern EMAIL_PATTERN
+                = Pattern.compile("^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}$");
+
+        public static boolean isDataMissing(String data) {
+            return (data == null || data.trim().isEmpty());
+        }
+
+        public static boolean isDataMissing(List<Object[]> data) {
+            return data.isEmpty() || data == null;
+        }
+
+        public static boolean isDataMissing(ArrayList<UserTwofa> data) {
+            return (data == null || data.isEmpty());
+        }
+
+        public static boolean isDataMissing(Integer data) {
+            return (data == null);
+        }
+
+        public static boolean isDataMissing(Users data) {
+            return (data == null);
+        }
+
+        public static boolean isDataMissing(UserTwofa data) {
+            return (data == null);
+        }
+
+        public static boolean isValidEmail(String email) {
+            return EMAIL_PATTERN.matcher(email).matches();
+        }
+
+        public static boolean isValidUserId(Integer userId) {
+            return userId > 0 && userId.toString().trim().length() <= 11;
+        }
+
+    } //userTwofaAuth
+
+    public static class carsAuth {
+
+        public boolean isDataMissing(String data) {
+            return (data == null || data.trim().isEmpty());
+        }
+
+        public boolean isDataMissing(Cars data) {
+            return (data == null);
+        }
+
+        public boolean isDataMissing(Integer data) {
+            return (data == null);
+        }
+
+        public boolean isDataMissing(ArrayList<Cars> data) {
+            return (data == null || data.isEmpty());
+        }
+
+        public boolean isDataMissing(Boolean data) {
+            return (data == null);
+        }
+
+        public boolean isDataMissing(List<Object[]> data) {
+            return (data == null || data.isEmpty());
+        }
+
+        public boolean isValidId(Integer id) {
+            return id > 0 && id.toString().length() <= 11;
+        }
+
+        public boolean isValidBrand(String brand) {
+            return brand.length() <= 50;
+        }
+
+        public boolean isValidModel(String model) {
+            return model.length() <= 50;
+        }
+
+        public boolean isValidYearFrom(Integer yearFrom) {
+            return yearFrom != null && yearFrom >= 1990 && yearFrom <= 2035;
+        }
+
+        public boolean isValidYearTo(Integer yearTo) {
+            return yearTo != null && yearTo >= 1990 && yearTo <= 2035;
+        }
+
+        public boolean isCarsDeleted(Boolean isDeleted) {
+            return (isDeleted == true);
+        }
+
+        public boolean isYearRangeValid(Integer yearFrom, Integer yearTo) {
+            if (yearFrom == null || yearTo == null) {
+                return true;
+            }
+            return yearFrom <= yearTo;
+        }
+
+    } //Cars Auth Class closer
+
+    public static class motorsAuth {
+
+        public boolean isDataMissing(String data) {
+            return (data == null || data.trim().isEmpty());
+        }
+
+        public boolean isDataMissing(Motors data) {
+            return (data == null);
+        }
+
+        public boolean isDataMissing(Integer data) {
+            return (data == null);
+        }
+
+        public boolean isDataMissing(ArrayList<Motors> data) {
+            return (data == null || data.isEmpty());
+        }
+
+        public boolean isDataMissing(Boolean data) {
+            return (data == null);
+        }
+
+        public boolean isDataMissing(List<Object[]> data) {
+            return (data == null || data.isEmpty());
+        }
+
+        public boolean isValidId(Integer id) {
+            return id > 0 && id.toString().length() <= 11;
+        }
+
+        public boolean isValidBrand(String brand) {
+            return brand.length() <= 50;
+        }
+
+        public boolean isValidModel(String model) {
+            return model.length() <= 50;
+        }
+
+        public boolean isValidYearFrom(Integer yearFrom) {
+            return yearFrom != null && yearFrom >= 1990 && yearFrom <= 2035;
+        }
+
+        public boolean isValidYearTo(Integer yearTo) {
+            return yearTo != null && yearTo >= 1990 && yearTo <= 2035;
+        }
+
+        public boolean isMotorsDeleted(Boolean isDeleted) {
+            return (isDeleted == true);
+        }
+
+        public boolean isYearRangeValid(Integer yearFrom, Integer yearTo) {
+            if (yearFrom == null || yearTo == null) {
+                return true;
+            }
+            return yearFrom <= yearTo;
+        }
+
+    } //Motors Auth Class closer
+
+    public static class trucksAuth {
+
+        public boolean isDataMissing(String data) {
+            return (data == null || data.trim().isEmpty());
+        }
+
+        public boolean isDataMissing(Trucks data) {
+            return (data == null);
+        }
+
+        public boolean isDataMissing(Integer data) {
+            return (data == null);
+        }
+
+        public boolean isDataMissing(ArrayList<Trucks> data) {
+            return (data == null || data.isEmpty());
+        }
+
+        public boolean isDataMissing(Boolean data) {
+            return (data == null);
+        }
+
+        public boolean isDataMissing(List<Object[]> data) {
+            return (data == null || data.isEmpty());
+        }
+
+        public boolean isValidId(Integer id) {
+            return id > 0 && id.toString().length() <= 11;
+        }
+
+        public boolean isValidBrand(String brand) {
+            return brand.length() <= 50;
+        }
+
+        public boolean isValidModel(String model) {
+            return model.length() <= 50;
+        }
+
+        public boolean isValidYearFrom(Integer yearFrom) {
+            return yearFrom != null && yearFrom >= 1990 && yearFrom <= 2035;
+        }
+
+        public boolean isValidYearTo(Integer yearTo) {
+            return yearTo != null && yearTo >= 1990 && yearTo <= 2035;
+        }
+
+        public boolean isTrucksDeleted(Boolean isDeleted) {
+            return (isDeleted == true);
+        }
+
+        public boolean isYearRangeValid(Integer yearFrom, Integer yearTo) {
+            if (yearFrom == null || yearTo == null) {
+                return true;
+            }
+            return yearFrom <= yearTo;
+        }
+
+    } //Trucks Auth Class closer
+
+    public static class reviewsAuth {
+
+        public boolean isDataMissing(String data) {
+            return (data == null || data.trim().isEmpty());
+        }
+
+        public boolean isDataMissing(Reviews data) {
+            return (data == null);
+        }
+
+        public boolean isDataMissing(Parts data) {
+            return (data == null);
+        }
+
+        public boolean isDataMissing(Users data) {
+            return (data == null);
+        }
+
+        public boolean isDataMissing(Integer data) {
+            return (data == null);
+        }
+
+        public boolean isDataMissing(ArrayList<Reviews> data) {
+            return (data == null || data.isEmpty());
+        }
+
+        public boolean isDataMissing(Boolean data) {
+            return (data == null);
+        }
+
+        public boolean isDataMissing(List<Object[]> data) {
+            return (data == null || data.isEmpty());
+        }
+
+        public boolean isValidId(Integer id) {
+            return id > 0 && id.toString().length() <= 11;
+        }
+
+        public boolean isValidUserId(Users users) {
+            Integer usersId = users.getId();
+            return usersId > 0 && usersId.toString().length() <= 11;
+        }
+
+        public boolean isValidUserId(Integer usersId) {
+            return usersId > 0 && usersId.toString().length() <= 11;
+        }
+
+        public boolean isValidPartId(Parts parts) {
+            Integer partsId = parts.getId();
+            return partsId > 0 && partsId.toString().length() <= 11;
+        }
+
+        public boolean isValidPartId(Integer partsId) {
+            return partsId > 0 && partsId.toString().length() <= 11;
+        }
+
+        public boolean isValidComment(String comment) {
+            return comment.length() <= 200;
+        }
+
+        public boolean isValidRating(Integer rating) {
+            return rating <= 5;
+        }
+
+        public boolean isReviewsDeleted(Boolean isDeleted) {
+            return (isDeleted == true);
+        }
+
+    } //Reviews Auth Class closer
+
+    public static class ordersAuth {
+
+        public boolean isDataMissing(String data) {
+            return (data == null || data.trim().isEmpty());
+        }
+
+        public boolean isDataMissing(Users data) {
+            return (data == null);
+        }
+
+        public boolean isDataMissing(Orders data) {
+            return (data == null);
+        }
+
+        public boolean isDataMissing(Integer data) {
+            return (data == null);
+        }
+
+        public boolean isDataMissing(Boolean data) {
+            return (data == null);
+        }
+
+        public boolean isDataMissing(ArrayList<Orders> data) {
+            return (data == null || data.isEmpty());
+        }
+
+        public boolean isDataMissing(List<Object[]> data) {
+            return (data == null || data.isEmpty());
+        }
+
+        public boolean isValidId(Integer id) {
+            return id > 0 && id.toString().length() <= 11;
+        }
+
+        public boolean isValidUserId(Users user) {
+            Integer manufacturerId = user.getId();
+            return manufacturerId > 0 && manufacturerId.toString().length() <= 11;
+        }
+
+        public boolean isValidUserId(Integer userId) {
+            return userId > 0 && userId.toString().length() <= 11;
+        }
+
+        public boolean isValidQuantity(Integer quantity) {
+            return quantity > 0 && quantity.toString().length() <= 11;
+        }
+
+        public boolean isValidPartId(Integer partId) {
+            return partId > 0 && partId.toString().length() <= 11;
+        }
+
+        public boolean isValidStatus(String status) {
+            return status.length() <= 20 && (status.equals("delivered") || status.equals("pending") || status.equals("inTransit"));
+        }
+
+        public boolean isOrdersDeleted(Boolean isDeleted) {
+            return (isDeleted == true);
+        }
+
+    } //Order Items Auth Class closer
+
+    /*
+    commented if needed
+    public static class orderItemsAuth {
+
+        public boolean isDataMissing(String data) {
+            return (data == null || data.trim().isEmpty());
+        }
+
+        public boolean isDataMissing(Users data) {
+            return (data == null);
+        }
+
+        public boolean isDataMissing(Orders data) {
+            return (data == null);
+        }
+
+        public boolean isDataMissing(Integer data) {
+            return (data == null);
+        }
+
+        public boolean isDataMissing(Boolean data) {
+            return (data == null);
+        }
+
+        public boolean isDataMissing(ArrayList<OrderItems> data) {
+            return (data == null || data.isEmpty());
+        }
+
+        public boolean isDataMissing(List<Object[]> data) {
+            return (data == null || data.isEmpty());
+        }
+
+        public boolean isValidId(Integer id) {
+            return id > 0 && id.toString().length() <= 11;
+        }
+
+        public boolean isValidUserId(Users user) {
+            Integer manufacturerId = user.getId();
+            return manufacturerId > 0 && manufacturerId.toString().length() <= 11;
+        }
+
+        public boolean isValidUserId(Integer userId) {
+            return userId > 0 && userId.toString().length() <= 11;
+        }
+        
+        public boolean isValidQuantity(Integer quantity) {
+            return quantity > 0 && quantity.toString().length() <= 11;
+        }
+        
+        public boolean isValidPartId(Integer partId) {
+            return partId > 0 && partId.toString().length() <= 11;
+        }
+
+        public boolean isValidStatus(String status) {
+            return status.length() <= 20 && (status.equals("delivered") || status.equals("pending") || status.equals("inTransit"));
+        }
+
+        public boolean isOrdersDeleted(Boolean isDeleted) {
+            return (isDeleted == true);
+        }
+
+    } //OrderItems Auth Class closer*/
+    //CartItems
+    public static class cartItemsAuth {
+
+        public boolean isDataMissing(String data) {
+            return (data == null || data.trim().isEmpty());
+        }
+
+        public boolean isDataMissing(Users data) {
+            return (data == null);
+        }
+
+        public boolean isDataMissing(Parts data) {
+            return (data == null);
+        }
+
+        public boolean isDataMissing(CartItems data) {
+            return (data == null);
+        }
+
+        public boolean isDataMissing(Integer data) {
+            return (data == null);
+        }
+
+        public boolean isDataMissing(ArrayList<CartItems> data) {
+            return (data == null || data.isEmpty());
+        }
+
+        public boolean isDataMissing(Boolean data) {
+            return (data == null);
+        }
+
+        public boolean isDataMissing(List<Object[]> data) {
+            return (data == null || data.isEmpty());
+        }
+
+        public boolean isValidId(Integer id) {
+            return id > 0 && id.toString().length() <= 11;
+        }
+
+        public boolean isValidUserId(Users user) {
+            Integer userId = user.getId();
+            return userId > 0 && userId.toString().length() <= 11;
+        }
+
+        public boolean isValidUserId(Integer userId) {
+            return userId > 0 && userId.toString().length() <= 11;
+        }
+
+        public boolean isValidPartId(Parts part) {
+            Integer partId = part.getId();
+            return partId > 0 && partId.toString().length() <= 11;
+        }
+
+        public boolean isValidPartId(Integer partId) {
+            return partId > 0 && partId.toString().length() <= 11;
+        }
+
+        public boolean isValidQuantity(Integer quantity) {
+            return quantity > 0 && quantity.toString().length() <= 11;
+        }
+
+        public boolean isCartItemsDeleted(Boolean isDeleted) {
+            return (isDeleted == true);
+        }
+
+    } //cartItems Auth Class closer
+
+    //Payments
+    public static class paymentsAuth {
+
+        public boolean isDataMissing(String data) {
+            return (data == null || data.trim().isEmpty());
+        }
+
+        public boolean isDataMissing(Orders data) {
+            return (data == null);
+        }
+
+        public boolean isDataMissing(Payments data) {
+            return (data == null);
+        }
+
+        public boolean isDataMissing(Integer data) {
+            return (data == null);
+        }
+
+        public boolean isDataMissing(BigDecimal data) {
+            return (data == null);
+        }
+
+        public boolean isDataMissing(ArrayList<Payments> data) {
+            return (data == null || data.isEmpty());
+        }
+
+        public boolean isDataMissing(Boolean data) {
+            return (data == null);
+        }
+
+        public boolean isDataMissing(List<Object[]> data) {
+            return (data == null || data.isEmpty());
+        }
+
+        public boolean isValidId(Integer id) {
+            return id > 0 && id.toString().length() <= 11;
+        }
+
+        public boolean isValidOrderId(Orders order) {
+            Integer orderId = order.getId();
+            return orderId > 0 && orderId.toString().length() <= 11;
+        }
+
+        public boolean isValidOrderId(Integer orderId) {
+            return orderId > 0 && orderId.toString().length() <= 11;
+        }
+
+        private static final List<String> AllowedPaymentStatuses = Arrays.asList(
+                "pending", "completed", "failed", "refunded", "cancelled"
+        );
+
+        public static boolean isValidStatus(String status) {
+            return status != null && AllowedPaymentStatuses.contains(status);
+        }
+
+        private static final List<String> AllowedPaymentMethods = Arrays.asList(
+                "credit_card", "debit_card", "paypal", "cash_on_delivery", "bank_transfer"
+        );
+
+        public static boolean isValidMethod(String method) {
+            return method != null && AllowedPaymentMethods.contains(method);
+        }
+
+        //BigDecimal 
+        public boolean isValidAmount(BigDecimal amount) {
+            return amount.compareTo(new BigDecimal("0.00")) > 0;
+        }
+
+        public boolean isPaymentsDeleted(Boolean isDeleted) {
+            return (isDeleted == true);
+
+        }
+
+    } //Payments Auth Class closer
+
+    //Invoices
+    public static class invoicesAuth {
+
+        public boolean isDataMissing(String data) {
+            return (data == null || data.trim().isEmpty());
+        }
+
+        public boolean isDataMissing(Orders data) {
+            return (data == null);
+        }
+
+        public boolean isDataMissing(Invoices data) {
+            return (data == null);
+        }
+
+        public boolean isDataMissing(Integer data) {
+            return (data == null);
+        }
+
+        public boolean isDataMissing(ArrayList<Invoices> data) {
+            return (data == null || data.isEmpty());
+        }
+
+        public boolean isDataMissing(Boolean data) {
+            return (data == null);
+        }
+
+        public boolean isDataMissing(List<Object[]> data) {
+            return (data == null || data.isEmpty());
+        }
+
+        public boolean isValidId(Integer id) {
+            return id > 0 && id.toString().length() <= 11;
+        }
+
+        public boolean isValidOrderId(Orders order) {
+            Integer orderId = order.getId();
+            return orderId > 0 && orderId.toString().length() <= 11;
+        }
+
+        public boolean isValidOrderId(Integer orderId) {
+            return orderId > 0 && orderId.toString().length() <= 11;
+        }
+
+        public boolean isValidPdfUrl(String pdfUrl) {
+            return pdfUrl.length() <= 255;
+        }
+
+        public boolean isInvoicesDeleted(Boolean isDeleted) {
+            return (isDeleted == true);
+
+        }
+
+    } //Invoices Auth Class closer
+
+    //OrderItems
+    public static class orderItemsAuth {
+
+        public boolean isDataMissing(String data) {
+            return (data == null || data.trim().isEmpty());
+        }
+
+        public boolean isDataMissing(Orders data) {
+            return (data == null);
+        }
+
+        public boolean isDataMissing(Parts data) {
+            return (data == null);
+        }
+
+        public boolean isDataMissing(OrderItems data) {
+            return (data == null);
+        }
+
+        public boolean isDataMissing(Integer data) {
+            return (data == null);
+        }
+
+        public boolean isDataMissing(ArrayList<OrderItems> data) {
+            return (data == null || data.isEmpty());
+        }
+
+        public boolean isDataMissing(Boolean data) {
+            return (data == null);
+        }
+
+        public boolean isDataMissing(BigDecimal data) {
+            return (data == null);
+        }
+
+        public boolean isDataMissing(List<Object[]> data) {
+            return (data == null || data.isEmpty());
+        }
+
+        public boolean isValidId(Integer id) {
+            return id > 0 && id.toString().length() <= 11;
+        }
+
+        public boolean isValidOrderId(Orders order) {
+            Integer orderId = order.getId();
+            return orderId > 0 && orderId.toString().length() <= 11;
+        }
+
+        public boolean isValidOrderId(Integer orderId) {
+            return orderId > 0 && orderId.toString().length() <= 11;
+        }
+
+        public boolean isValidPartId(Parts part) {
+            Integer partId = part.getId();
+            return partId > 0 && partId.toString().length() <= 11;
+        }
+
+        public boolean isValidPartId(Integer partId) {
+            return partId > 0 && partId.toString().length() <= 11;
+        }
+
+        public boolean isValidQuantity(Integer quantity) {
+            return quantity > 0 && quantity.toString().length() <= 11;
+        }
+
+        public boolean isValidPrice(BigDecimal price) {
+            return price.compareTo(new BigDecimal("0.00")) > 0;
+        }
+
+        public boolean isOrderItemsDeleted(Boolean isDeleted) {
+            return (isDeleted == true);
+
+        }
+
+    } //OrderItems Auth Class closer
+
+    //PartCompatibility
+    public static class partCompatibilityAuth {
+
+        // ENUM validáció megengedett vehicle típusok
+        private static final List<String> ALLOWED_VEHICLE_TYPES = Arrays.asList("car", "motor", "truck");
+
+        public boolean isDataMissing(String data) {
+            return (data == null || data.trim().isEmpty());
+        }
+
+        public boolean isDataMissing(Parts data) {
+            return (data == null);
+        }
+
+        public boolean isDataMissing(PartCompatibility data) {
+            return (data == null);
+        }
+
+        public boolean isDataMissing(Integer data) {
+            return (data == null);
+        }
+
+        public boolean isDataMissing(ArrayList<PartCompatibility> data) {
+            return (data == null || data.isEmpty());
+        }
+
+        public boolean isDataMissing(Boolean data) {
+            return (data == null);
+        }
+
+        public boolean isDataMissing(List<Object[]> data) {
+            return (data == null || data.isEmpty());
+        }
+
+        public boolean isValidId(Integer id) {
+            return id > 0 && id.toString().length() <= 11;
+        }
+
+        public boolean isValidPartId(Parts part) {
+            Integer partId = part.getId();
+            return partId > 0 && partId.toString().length() <= 11;
+        }
+
+        public boolean isValidPartId(Integer partId) {
+            return partId > 0 && partId.toString().length() <= 11;
+        }
+
+        public boolean isValidQuantity(Integer quantity) {
+            return quantity > 0 && quantity.toString().length() <= 11;
+        }
+
+        public boolean isValidPrice(BigDecimal price) {
+            return price.compareTo(new BigDecimal("0.00")) > 0;
+        }
+
+        // Vehicle Type validáció csak car/motor/truck engedélyezett
+        public boolean isValidVehicleType(String vehicleType) {
+            return vehicleType != null && ALLOWED_VEHICLE_TYPES.contains(vehicleType);
+        }
+
+        // Vehicle ID validáció
+        public boolean isValidVehicleId(Integer vehicleId) {
+            return vehicleId != null && vehicleId > 0 && vehicleId.toString().length() <= 11;
+        }
+
+        public boolean isPartCompatibilityDeleted(Boolean isDeleted) {
+            return (isDeleted == true);
+        }
+
+    } //PartCompatibility Auth Class closer
+
+    public static class userVehiclesAuth {
+
+        public boolean isDataMissing(String data) {
+            return (data == null || data.trim().isEmpty());
+        }
+
+        public boolean isDataMissing(UserVehicles data) {
+            return (data == null);
+        }
+
+        public boolean isDataMissing(Users data) {
+            return (data == null);
+        }
+
+        public boolean isDataMissing(Integer data) {
+            return (data == null);
+        }
+
+        public boolean isDataMissing(ArrayList<UserVehicles> data) {
+            return (data == null || data.isEmpty());
+        }
+
+        public boolean isDataMissing(Boolean data) {
+            return (data == null);
+        }
+
+        public boolean isDataMissing(List<Object[]> data) {
+            return (data == null || data.isEmpty());
+        }
+
+        public boolean isValidId(Integer id) {
+            return id > 0 && id.toString().length() <= 11;
+        }
+
+        public boolean isValidUserId(Integer userId) {
+            return userId > 0 && userId.toString().length() <= 11;
+        }
+
+        public boolean isValidVehicleId(Integer vehicleId) {
+            return vehicleId > 0 && vehicleId.toString().length() <= 11;
+        }
+
+        public boolean isValidVehicleType(String vehicleType) {
+            return vehicleType.equals("car") || vehicleType.equals("motor") || vehicleType.equals("truck");
+        }
+
+        public boolean isValidYear(Integer year) {
+            return year >= 1900 && year <= 2026;
+        }
+
+        public boolean isUserVehicleDeleted(Boolean isDeleted) {
+            return (isDeleted == true);
+        }
+
+    } // userVehiclesAuth Class closer
+
+    public static class passwordResetsAuth {
+
+        public boolean isDataMissing(String data) {
+            return (data == null || data.trim().isEmpty());
+        }
+
+        public boolean isDataMissing(Integer data) {
+            return (data == null);
+        }
+
+        public boolean isDataMissing(Boolean data) {
+            return (data == null);
+        }
+
+        public boolean isDataMissing(PasswordResets data) {
+            return (data == null);
+        }
+
+        public boolean isDataMissing(ArrayList<PasswordResets> data) {
+            return (data == null || data.isEmpty());
+        }
+
+        public boolean isDataMissing(List<Object[]> data) {
+            return (data == null || data.isEmpty());
+        }
+
+        public boolean isValidId(Integer id) {
+            return id > 0 && id.toString().length() <= 11;
+        }
+
+        public boolean isValidToken(String token) {
+            return token.length() <= 255;
+        }
+
+        public boolean isValidEmail(String email) {
+            return email.matches("^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+$") && email.length() <= 255;
+        }
+
+        private static final Pattern PASSWORD_PATTERN
+                = Pattern.compile("^(?=.*[A-Z])(?=.*\\d)(?=.*[^A-Za-z0-9]).{8,}$");
+
+        public boolean isValidPassword(String password) {
+            return PASSWORD_PATTERN.matcher(password).matches();
+        }
+
+        public boolean isPasswordResetUsed(Boolean used) {
+            return (used == true);
+        }
+    } // passwordResetsAuth Class closer
+    
+    public static class sessionsAuth {
+        
+        public boolean isDataMissing(String data) {
+            return (data == null || data.trim().isEmpty());
+        }
+
+        public boolean isDataMissing(Integer data) {
+            return (data == null);
+        }
+
+        public boolean isDataMissing(Boolean data) {
+            return (data == null);
+        }
+
+        public boolean isDataMissing(Sessions data) {
+            return (data == null);
+        }
+
+        public boolean isDataMissing(ArrayList<Sessions> data) {
+            return (data == null || data.isEmpty());
+        }
+
+        public boolean isDataMissing(List<Object[]> data) {
+            return (data == null || data.isEmpty());
+        }
+    }
+    
+    public static class emailVerificationsAuth {
+        
+        public boolean isDataMissing(String data) {
+            return (data == null || data.trim().isEmpty());
+        }
+
+        public boolean isDataMissing(Integer data) {
+            return (data == null);
+        }
+
+        public boolean isDataMissing(Boolean data) {
+            return (data == null);
+        }
+
+        public boolean isDataMissing(Sessions data) {
+            return (data == null);
+        }
+
+        public boolean isDataMissing(ArrayList<Sessions> data) {
+            return (data == null || data.isEmpty());
+        }
+
+        public boolean isDataMissing(List<Object[]> data) {
+            return (data == null || data.isEmpty());
+        }
+        
+        public boolean isValidUserId(Integer userId) {
+            return userId > 0 && userId.toString().length() <= 11;
+        }
+        
+        public boolean isValidToken(String status) {
+            return status.length() <= 20 && (status.equals("delivered") || status.equals("pending") || status.equals("inTransit"));
+        }
+    }
+
+}//Auth Service Class closer
+
