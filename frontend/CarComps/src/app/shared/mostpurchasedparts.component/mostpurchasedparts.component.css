@@ -217,7 +217,6 @@
   justify-content: center;
   gap: 8px;
   font-family: inherit;
-  transition: background 0.2s;
 }
 
 .top-card-cart-btn:hover:not(:disabled) {
