@@ -17,13 +17,12 @@ export class CartItemsService {
 
   private getHeaders(): { headers: HttpHeaders } {
     const token = localStorage.getItem('jwt') ?? '';
-    console.log('🔑 JWT token:', token ? token.substring(0, 30) + '...' : 'ÜRES!');
+
     return { headers: new HttpHeaders({ 'Content-Type': 'application/json', token }) };
   }
 
   // POST cartItems/createCartItems
   createCartItem(body: CreateCartItemRequest): Observable<CreateCartItemResponse> {
-    console.log('🛒 createCartItem body:', body);
     return this.http.post<CreateCartItemResponse>(
       `${this.baseUrl}cartItems/createCartItems`,
       body,
@@ -34,12 +33,7 @@ export class CartItemsService {
   // GET cartItems/getCartItemsByUserId?userId=X
   getCartItemsByUserId(userId: number): Observable<GetCartItemsResponse> {
     const token = localStorage.getItem('jwt') ?? '';
-    console.log(
-      '🛒 getCartItems userId:',
-      userId,
-      '| token:',
-      token ? token.substring(0, 30) + '...' : 'ÜRES!',
-    );
+
     const headers = new HttpHeaders({ 'Content-Type': 'application/json', token });
     return this.http.get<GetCartItemsResponse>(
       `${this.baseUrl}cartItems/getCartItemsByUserId?userId=${userId}`,

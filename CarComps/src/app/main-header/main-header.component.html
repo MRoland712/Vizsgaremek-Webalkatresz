@@ -278,9 +278,7 @@
   </div>
 </nav>
 
-<!-- ==========================================
-     MOBIL BOTTOM NAV BAR (Instagram stílus)
-     ========================================== -->
+<!-- MOBIL BOTTOM NAV BAR -->
 <nav class="mobile-bottom-nav">
   <a
     class="mobile-nav-item"
@@ -305,12 +303,20 @@
     }
     <span>Kosár</span>
   </a>
-  <a
-    class="mobile-nav-item"
-    [routerLink]="isLoggedIn() ? '/profile' : '/registration'"
-    routerLinkActive="mobile-nav-item--active"
-  >
-    <i class="fa-solid fa-user"></i>
-    <span>Profil</span>
-  </a>
+  <!-- ⭐ Bejelentkezve: Profil | Nem: Bejelentkezés -->
+  @if (isLoggedIn()) {
+    <a class="mobile-nav-item" routerLink="/profile" routerLinkActive="mobile-nav-item--active">
+      <i class="fa-solid fa-user"></i>
+      <span>Profil</span>
+    </a>
+    <button class="mobile-nav-item mobile-logout-btn" (click)="logout()">
+      <i class="fa-solid fa-right-from-bracket"></i>
+      <span>Kilépés</span>
+    </button>
+  } @else {
+    <a class="mobile-nav-item" routerLink="/login" routerLinkActive="mobile-nav-item--active">
+      <i class="fa-solid fa-user"></i>
+      <span>Belépés</span>
+    </a>
+  }
 </nav>

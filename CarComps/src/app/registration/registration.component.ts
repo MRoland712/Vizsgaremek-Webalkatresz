@@ -153,8 +153,6 @@ export class RegistrationComponent {
       return;
     }
 
-    console.log('📋 Form value:', this.signupForm.value);
-
     const finalRegisterData = {
       firstName: this.signupForm.value.firstname || 'User',
       lastName: this.signupForm.value.lastname || 'User',
@@ -165,12 +163,8 @@ export class RegistrationComponent {
       phone: this.signupForm.value.phone!,
     };
 
-    console.log('📤 Regisztráció küldése...', finalRegisterData);
-
     this.registerService.register(finalRegisterData).subscribe({
       next: (res) => {
-        console.log('✅ Sikeres regisztráció!', res);
-
         // ⭐ Ha feliratkozott hírlevélre → updateUser
         if (this.signupForm.value.subscribeNews) {
           this.subscribeNewsletter(finalRegisterData.email);
