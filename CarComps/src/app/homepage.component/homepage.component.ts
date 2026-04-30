@@ -17,6 +17,7 @@ import { DeliveryComponent } from '../payment/delivery.component/delivery.compon
 import { PayComponent } from '../payment/pay.component/pay.component';
 import { SummaryComponent } from '../payment/summary.component/summary.component';
 import { AdvertisementComponent } from '../shared/advertisement.component/advertisement.component';
+import { GetMostPurchasedPartsComponent } from '../shared/mostpurchasedparts.component/mostpurchasedparts.component';
 
 @Component({
   selector: 'app-homepage',
@@ -39,6 +40,7 @@ import { AdvertisementComponent } from '../shared/advertisement.component/advert
     PayComponent,
     SummaryComponent,
     AdvertisementComponent,
+    GetMostPurchasedPartsComponent,
   ],
   templateUrl: './homepage.component.html',
   styleUrl: './homepage.component.css',

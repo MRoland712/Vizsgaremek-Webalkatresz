@@ -18,8 +18,8 @@ export class FooterComponent {
   ];
 
   legalLinks = [
-    { label: 'ÁSZF', url: '/terms' },
-    { label: 'Adatvédelmi irányelvek', url: '/privacy' },
+    { label: 'ÁSZF', url: 'assets/aszf-1.pdf' },
+    { label: 'Adatvédelmi irányelvek', url: 'assets/adatvedelem.pdf' },
     { label: 'Cookie szabályzat', url: '/cookies' },
     { label: 'Szállítási információk', url: '/shipping' },
   ];

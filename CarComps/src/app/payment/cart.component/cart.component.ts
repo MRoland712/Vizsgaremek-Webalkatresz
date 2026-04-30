@@ -32,7 +32,9 @@ export class CartComponent implements OnInit {
 
   ngOnInit(): void {
     // Kosár betöltése backendből
-    this.cartService.loadCartFromBackend();
+    if (this.cartService.cartItems().length === 0) {
+      this.cartService.loadCartFromBackend();
+    }
   }
 
   increaseQty(id: number) {

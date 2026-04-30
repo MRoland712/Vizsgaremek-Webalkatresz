@@ -1256,3 +1256,21 @@ form {
   opacity: 0.5;
   cursor: not-allowed;
 }
+
+.order-meta {
+  display: flex;
+  gap: 16px;
+  margin-top: 8px;
+  flex-wrap: wrap;
+}
+.order-meta-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  color: #888;
+}
+.order-meta-item i {
+  color: #ff6600;
+  font-size: 12px;
+}

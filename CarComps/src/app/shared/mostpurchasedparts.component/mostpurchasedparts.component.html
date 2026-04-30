@@ -1,0 +1,81 @@
+<section class="top-products-section">
+  <div class="section-header">
+    <div class="section-title-wrap">
+      <i class="fa-solid fa-trophy"></i>
+      <h2>Legjobban vásárolt termékek</h2>
+    </div>
+    <span class="section-subtitle">Az ügyfelek kedvencei</span>
+  </div>
+
+  @if (isLoading()) {
+    <div class="top-loading">
+      <i class="fa-solid fa-spinner fa-spin"></i>
+      <p>Betöltés...</p>
+    </div>
+  } @else if (hasError()) {
+    <div class="top-error">
+      <i class="fa-solid fa-triangle-exclamation"></i>
+      <p>Nem sikerült betölteni</p>
+      <button (click)="retry()">Újrapróbálás</button>
+    </div>
+  } @else if (topProducts().length === 0) {
+    <div class="top-empty">
+      <i class="fa-solid fa-box-open"></i>
+      <p>Nincs elérhető adat</p>
+    </div>
+  } @else {
+    <div class="top-cards">
+      @for (item of topProducts(); track item.part.id) {
+        <div class="top-card">
+          <!-- Rank badge -->
+          <div class="top-card-rank" [class]="'rank-' + item.rank">
+            {{ item.rank }}
+          </div>
+
+          <!-- Kép — kattintásra termék oldal -->
+          <div class="top-card-image" (click)="navigateToPart(item.part)">
+            <img
+              [src]="item.part.imageUrl || 'assets/placeholder.jpg'"
+              [alt]="item.part.name"
+              (error)="$any($event.target).src = 'assets/placeholder.jpg'"
+            />
+            <div class="top-card-overlay">
+              <i class="fa-solid fa-magnifying-glass"></i>
+              <span>Részletek</span>
+            </div>
+          </div>
+
+          <!-- Infók -->
+          <div class="top-card-body">
+            <p class="top-card-category">{{ item.part.category }}</p>
+            <h3 class="top-card-name" (click)="navigateToPart(item.part)">
+              {{ item.part.name }}
+            </h3>
+            <p class="top-card-sold">
+              <i class="fa-solid fa-chart-simple"></i>
+              {{ item.quantity }} db eladva
+            </p>
+            <p class="top-card-price">{{ item.part.price | number: '1.0-0' }} Ft</p>
+          </div>
+
+          <!-- Kosárba gomb -->
+          <button
+            class="top-card-cart-btn"
+            [class.cooldown]="item.isCooldown"
+            [class.out-of-stock]="isOutOfStock(item)"
+            [disabled]="item.isCooldown || isOutOfStock(item)"
+            (click)="addToCart(item)"
+          >
+            @if (isOutOfStock(item)) {
+              <i class="fa-solid fa-ban"></i> Elfogyott
+            } @else if (item.isCooldown) {
+              <i class="fa-solid fa-check"></i> Hozzáadva
+            } @else {
+              <i class="fa-solid fa-cart-shopping"></i> Kosárba
+            }
+          </button>
+        </div>
+      }
+    </div>
+  }
+</section>

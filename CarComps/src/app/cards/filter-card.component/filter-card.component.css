@@ -1,15 +1,15 @@
 /* ==========================================
-   CATEGORY GRID - RESPONSIVE
+   CATEGORY GRID - FLEXBOX CENTERED
    ========================================== */
 
 .category-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
   gap: 32px;
   padding: 40px;
   max-width: 1400px;
   margin: 0 auto;
-  justify-items: center; /* ← Középre igazítás */
 }
 
 /* ==========================================
@@ -29,9 +29,8 @@
   box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
   cursor: pointer;
   border: 2px solid transparent;
-  min-width: 180px;
-  max-width: 220px;
-  width: 100%; /* ← Grid cell kitöltése */
+  width: 220px;
+  flex-shrink: 0;
 }
 
 .category-card:hover {
@@ -82,10 +81,6 @@
   color: #ff6600;
 }
 
-/* ==========================================
-   CATEGORY COUNT (új elem)
-   ========================================== */
-
 .category-count {
   display: block;
   margin-top: 8px;
@@ -132,14 +127,8 @@
   color: #ff4444;
 }
 
-.error-state i {
-  font-size: 48px;
-}
-
-.error-state p {
-  font-size: 1.1rem;
-  margin: 0;
-}
+.error-state i { font-size: 48px; }
+.error-state p { font-size: 1.1rem; margin: 0; }
 
 .error-state button {
   padding: 12px 24px;
@@ -153,9 +142,7 @@
   transition: background-color 0.3s;
 }
 
-.error-state button:hover {
-  background-color: #ff8833;
-}
+.error-state button:hover { background-color: #ff8833; }
 
 /* ==========================================
    EMPTY STATE
@@ -171,82 +158,31 @@
   color: #999;
 }
 
-.empty-state i {
-  font-size: 48px;
-}
-
-.empty-state p {
-  font-size: 1.1rem;
-  margin: 0;
-}
+.empty-state i { font-size: 48px; }
+.empty-state p { font-size: 1.1rem; margin: 0; }
 
 /* ==========================================
-   RESPONSIVE - TABLET
+   RESPONSIVE
    ========================================== */
 
 @media (max-width: 992px) {
-  .category-grid {
-    padding: 30px;
-    gap: 24px;
-  }
+  .category-grid { padding: 30px; gap: 24px; }
+  .category-card { width: 200px; }
 }
 
 @media (max-width: 768px) {
-  .category-grid {
-    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-    padding: 20px;
-    gap: 20px;
-  }
-
-  .category-card {
-    min-width: 150px;
-    max-width: 180px;
-    padding: 25px 15px 20px;
-  }
-
-  .image-container {
-    height: 120px;
-  }
-
-  .category-name {
-    font-size: 1rem;
-  }
-
-  .divider {
-    width: 50px;
-  }
-
-  .category-count {
-    font-size: 0.85rem;
-  }
+  .category-grid { padding: 20px; gap: 20px; }
+  .category-card { width: 180px; padding: 25px 15px 20px; }
+  .image-container { height: 120px; }
+  .category-name { font-size: 1rem; }
+  .divider { width: 50px; }
+  .category-count { font-size: 0.85rem; }
 }
 
-/* ==========================================
-   RESPONSIVE - MOBIL
-   ========================================== */
-
 @media (max-width: 480px) {
-  .category-grid {
-    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
-    padding: 16px;
-    gap: 16px;
-  }
-
-  .category-card {
-    min-width: 140px;
-    max-width: 160px;
-    padding: 20px 12px 18px;
-  }
-
-  .image-container {
-    height: 100px;
-  }
-
-  .category-name {
-    font-size: 0.95rem;
-  }
-
-  .category-count {
-    font-size: 0.8rem;
-  }
+  .category-grid { padding: 16px; gap: 16px; }
+  .category-card { width: 160px; padding: 20px 12px 18px; }
+  .image-container { height: 100px; }
+  .category-name { font-size: 0.95rem; }
+  .category-count { font-size: 0.8rem; }
 }

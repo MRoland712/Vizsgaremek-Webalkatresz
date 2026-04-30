@@ -4,6 +4,7 @@ export interface CreatePartsRequest {
   name: string;
   category: string;
   price: string;
+  description: string;
   stock: number;
   status: string;
   isActive: boolean;

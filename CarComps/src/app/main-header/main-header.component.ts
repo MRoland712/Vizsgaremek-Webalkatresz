@@ -1,11 +1,12 @@
-import { Component, DestroyRef, inject, signal, OnInit, computed } from '@angular/core';
+import { Component, DestroyRef, inject, signal, OnInit } from '@angular/core';
 import { FormControl, ReactiveFormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
-import { RouterLink } from '@angular/router';
+import { RouterLink, Router, RouterLinkActive } from '@angular/router';
 import { debounceTime, distinctUntilChanged } from 'rxjs';
-import { SearchResult } from './search.service';
+import { SearchService, SearchResult } from './search.service';
 import { AuthService } from '../services/auth.service';
 import { CartService } from '../services/cart.service';
+import { FilterService, VehicleType } from '../services/filter.service';
 
 interface SavedCar {
   brand: string;
@@ -15,7 +16,7 @@ interface SavedCar {
 
 @Component({
   selector: 'app-main-header',
-  imports: [ReactiveFormsModule, CommonModule, RouterLink],
+  imports: [ReactiveFormsModule, CommonModule, RouterLink, RouterLinkActive],
   templateUrl: './main-header.component.html',
   styleUrl: './main-header.component.css',
 })
@@ -23,6 +24,9 @@ export class MainHeaderComponent implements OnInit {
   private destroyRef = inject(DestroyRef);
   authService = inject(AuthService);
   cartService = inject(CartService);
+  private searchService = inject(SearchService);
+  private router = inject(Router);
+  filterService = inject(FilterService);
 
   imgSrc = '/assets/CarComps_Logo_BigassC.png';
   searchControl = new FormControl('');
@@ -38,7 +42,6 @@ export class MainHeaderComponent implements OnInit {
   cartItemCount = this.cartService.cartItemCount;
   cartTotal = this.cartService.cartTotal;
 
-  // ── Garázs: mentett autók localStorage-ból ───────────────
   savedCars = signal<SavedCar[]>([]);
   selectedCar = signal<SavedCar | null>(null);
 
@@ -52,6 +55,8 @@ export class MainHeaderComponent implements OnInit {
       this.cartService.loadCartFromBackend();
       this.loadSavedCars();
     }
+    // Adatok előbetöltése
+    this.filterService.loadData();
   }
 
   private loadSavedCars() {
@@ -61,7 +66,6 @@ export class MainHeaderComponent implements OnInit {
         this.savedCars.set(JSON.parse(raw));
       } catch {}
     }
-    // Visszaállítjuk a korábban kiválasztott autót is
     const selected = localStorage.getItem('selected-garage-car');
     if (selected) {
       try {
@@ -73,13 +77,24 @@ export class MainHeaderComponent implements OnInit {
   selectSavedCar(car: SavedCar) {
     this.selectedCar.set(car);
     localStorage.setItem('selected-garage-car', JSON.stringify(car));
-    // TODO: szűrőservice-t itt hívni a terméklistán való szűréshez
-    console.log('🚗 Kiválasztott autó:', car);
   }
 
   clearSelectedCar() {
     this.selectedCar.set(null);
     localStorage.removeItem('selected-garage-car');
+  }
+
+  // ── Jármű típus váltás ────────────────────────────────────
+  selectVehicleType(type: VehicleType) {
+    this.filterService.setVehicleType(type);
+    // Ha nem vagyunk a products oldalon, navigáljunk oda
+    if (!this.router.url.includes('/products')) {
+      this.router.navigate(['/products']);
+    }
+  }
+
+  isVehicleTypeActive(type: VehicleType): boolean {
+    return this.filterService.selectedVehicleType() === type;
   }
 
   constructor() {
@@ -122,24 +137,22 @@ export class MainHeaderComponent implements OnInit {
   performSearch(searchTerm: string) {
     this.isSearching.set(true);
     this.showDropdown.set(true);
-    setTimeout(() => {
-      const mockResults: SearchResult[] = [
-        { id: 1, name: 'Fékbetét Bosch', category: 'Fékrendszer', price: 8990 },
-        { id: 2, name: 'Fékdob', category: 'Fékrendszer', price: 12500 },
-        { id: 3, name: 'Olajszűrő Mann', category: 'Szűrők', price: 2990 },
-      ].filter(
-        (item) =>
-          item.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          item.category.toLowerCase().includes(searchTerm.toLowerCase()),
-      );
-      this.searchResults.set(mockResults);
-      this.isSearching.set(false);
-    }, 500);
+    this.searchService.search(searchTerm).subscribe({
+      next: (results) => {
+        this.searchResults.set(results);
+        this.isSearching.set(false);
+      },
+      error: () => {
+        this.searchResults.set([]);
+        this.isSearching.set(false);
+      },
+    });
   }
 
   selectResult(result: SearchResult) {
     this.searchControl.setValue('');
     this.showDropdown.set(false);
+    this.router.navigate(['/product', result.id]);
   }
 
   closeDropdown() {
@@ -152,7 +165,6 @@ export class MainHeaderComponent implements OnInit {
     const y = this.garageYearControl.value;
     if (!y) return;
   }
-
   logout() {
     this.cartService.clearCart();
     this.authService.logout();
