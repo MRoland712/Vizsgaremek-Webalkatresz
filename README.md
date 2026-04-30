@@ -2,7 +2,7 @@
 
 A **CarComps** egy Java EE alapú autóalkatrész webáruház vizsgaremek projekt, járműkompatibilitás-kezeléssel és teljes körű e-commerce funkcionalitással.
 
-\---
+## A Teljes Weboldal a [carcomps.hu](https://carcomps.hu) címen elérhető 
 
 ## Tech Stack
 
@@ -17,7 +17,6 @@ A **CarComps** egy Java EE alapú autóalkatrész webáruház vizsgaremek projek
 |Auth|JWT + Google Authenticator (TOTP)|
 |Adatbázis-connector|MySQL Connector/J 8.0.23|
 
-\---
 
 ## Architektúra
 
@@ -35,7 +34,6 @@ Tárolt eljárások (Stored Procedures)
 
 A konfiguráció egy külön `config` csomagban van kezelve.
 
-\---
 
 ## Főbb funkciók
 
@@ -44,21 +42,19 @@ A konfiguráció egy külön `config` csomagban van kezelve.
 * Rendeléskezelés (kosár, fizetés, PDF számla generálás, email értesítések)
 * Garázs funkció (felhasználó járműveinek mentése)
 * Admin felület
-* Soft delete minden kritikus entitáson (`is\\\_deleted`, `deleted\\\_at`)
+* Soft delete minden kritikus entitáson (`is_deleted`, `deleted_at`)
 
-\---
 
 ## Adatbázis
 
-Az adatbázisséma a `car\\\_parts\\\_shop\\\_fix.sql` fájlban található. Importálás:
+Az adatbázisséma a `car_parts_shop_fix.sql` fájlban található. Importálás:
 
 ```bash
-mysql -u root -p < car\\\_parts\\\_shop\\\_fix.sql
+mysql -u root -p < car_parts_shop_fix.sql
 ```
 
 Minden adatbázis-művelet tárolt eljárásokon keresztül történik.
 
-\---
 
 ## Fejlesztői környezet
 
@@ -67,7 +63,6 @@ Minden adatbázis-művelet tárolt eljárásokon keresztül történik.
 * **Verziókezelés:** GitHub
 * **Produkció:** Cloudflare tunnel → [carcomps.hu](https://carcomps.hu)
 
-\---
 
 ## Fejlesztők
 
