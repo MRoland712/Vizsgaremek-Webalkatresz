@@ -1,8 +1,9 @@
 // profile-sidenav.component.ts
 
-import { Component } from '@angular/core';
+import { Component, inject } from '@angular/core';
 import { RouterLink, RouterLinkActive } from '@angular/router';
 import { CommonModule } from '@angular/common';
+import { AuthService } from '../services/auth.service';
 
 @Component({
   selector: 'app-profile-sidenav',
@@ -12,5 +13,6 @@ import { CommonModule } from '@angular/common';
   styleUrl: './side-navbar.component.css',
 })
 export class ProfileSidenavComponent {
-  // Ha kell valami state management, ide jöhet
+  authService = inject(AuthService);
+  logout = this.authService.logout.bind(this.authService);
 }

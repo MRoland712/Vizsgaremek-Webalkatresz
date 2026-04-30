@@ -1417,7 +1417,6 @@
   align-items: center;
   justify-content: center;
   gap: 6px;
-  padding: 8px 16px;
   background: #ff6600;
   color: #ffffff;
   text-decoration: none;
@@ -1633,4 +1632,161 @@
     height: 42px;
     font-size: 14px;
   }
+}
+/* ==========================================
+   MOBILE BOTTOM NAV — Instagram stílus
+   ========================================== */
+.mobile-bottom-nav {
+  display: none; /* csak mobilon látszik */
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 64px;
+  background: #2b2b2b;
+  border-top: 1px solid rgba(255, 102, 0, 0.3);
+  z-index: 2000;
+  display: none;
+  align-items: center;
+  justify-content: space-around;
+  padding: 0 8px;
+  box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.3);
+}
+
+.mobile-nav-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  color: rgba(255, 250, 250, 0.6);
+  text-decoration: none;
+  font-size: 11px;
+  font-weight: 500;
+  flex: 1;
+  padding: 8px 4px;
+  border-radius: 12px;
+  transition: color 0.2s;
+  position: relative;
+}
+
+.mobile-nav-item i {
+  font-size: 22px;
+}
+
+.mobile-nav-item--active,
+.mobile-nav-item:hover {
+  color: #ff6600;
+}
+
+.mobile-cart-badge {
+  position: absolute;
+  top: 4px;
+  right: calc(50% - 18px);
+  background: #ff6600;
+  color: #fff;
+  font-size: 10px;
+  font-weight: 700;
+  min-width: 16px;
+  height: 16px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 3px;
+}
+
+.mobile-badge {
+  position: absolute;
+  top: 6px;
+  right: calc(50% - 16px);
+  width: 8px;
+  height: 8px;
+  background: #ff6600;
+  border-radius: 50%;
+}
+
+/* ==========================================
+   MOBIL — a desktopOs ikonok eltűnnek
+   ========================================== */
+@media (max-width: 768px) {
+  /* Desktop ikonok elrejtése */
+  .desktop-icons {
+    display: none !important;
+  }
+
+  /* Bottom nav megjelenítése */
+  .mobile-bottom-nav {
+    display: flex;
+  }
+
+  /* Oldal aljára padding hogy ne takarja a bottom nav */
+  body {
+    padding-bottom: 64px;
+  }
+
+  /* Nav container mobilon: logo + search egymás alatt */
+  .nav-container {
+    grid-template-columns: 1fr;
+    gap: 10px;
+    padding: 10px 16px;
+  }
+
+  .nav-logo {
+    justify-self: center;
+  }
+
+  .nav-search {
+    max-width: 100%;
+  }
+
+  .search-form {
+    width: 100%;
+  }
+
+  /* Vehicle selector mobilon vízszintes scroll */
+  .vehicle-selector-body ul {
+    gap: 8px;
+    padding: 10px 16px;
+    justify-content: flex-start;
+    overflow-x: auto;
+    flex-wrap: nowrap;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+  }
+
+  .vehicle-selector-body ul::-webkit-scrollbar {
+    display: none;
+  }
+
+  .vehicle-selector-body li {
+    font-size: 13px;
+    padding: 7px 12px;
+    white-space: nowrap;
+    flex-shrink: 0;
+  }
+}
+
+@media (max-width: 480px) {
+  .nav-logo img {
+    height: 45px;
+  }
+
+  .search-input {
+    height: 42px;
+    font-size: 14px;
+  }
+}
+
+/* ── Mobile logout gomb ── */
+.mobile-logout-btn {
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  font-family: inherit;
+  padding: 8px 4px;
+}
+.mobile-logout-btn:hover,
+.mobile-logout-btn:hover i {
+  color: #ff4444;
 }
