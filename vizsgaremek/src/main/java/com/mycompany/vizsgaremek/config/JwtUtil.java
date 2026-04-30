@@ -24,6 +24,8 @@ public class JwtUtil {
     // Secret key for signing JWT tokens (minimum 32 characters for HS256!)
     private static final String SECRET_KEY = base64Converters.base64Converter(KvFetcher.getDataFromKV("JWTSecretKey"));
 
+    static String testSecretKey = null; // csak teszteléshez
+
     // Token validity: 24 hours 24 * 60 * 60 * 1000
     private static final long TOKEN_VALIDITY = 24 * 60 * 60 * 1000;
 
@@ -35,6 +37,7 @@ public class JwtUtil {
      * Get signing key from SECRET_KEY string
      */
     private static Key getSigningKey() {
+        String key = testSecretKey != null ? testSecretKey : SECRET_KEY; // módosítsd így
         // Ensure the key is at least 256 bits (32 bytes) for HS256
         byte[] keyBytes = SECRET_KEY.getBytes(StandardCharsets.UTF_8);
         return Keys.hmacShaKeyFor(keyBytes);

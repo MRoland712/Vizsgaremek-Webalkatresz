@@ -30,6 +30,7 @@ public class ApplicationConfig extends Application {
         resources.add(com.mycompany.vizsgaremek.controller.CarsController.class);
         resources.add(com.mycompany.vizsgaremek.controller.CartItemsController.class);
         resources.add(com.mycompany.vizsgaremek.controller.EmailVerificationsController.class);
+        resources.add(com.mycompany.vizsgaremek.controller.ImagesResourcesController.class);
         resources.add(com.mycompany.vizsgaremek.controller.InvoicesController.class);
         resources.add(com.mycompany.vizsgaremek.controller.JWTController.class);
         resources.add(com.mycompany.vizsgaremek.controller.ManufacturersController.class);
@@ -41,7 +42,6 @@ public class ApplicationConfig extends Application {
         resources.add(com.mycompany.vizsgaremek.controller.PartImagesController.class);
         resources.add(com.mycompany.vizsgaremek.controller.PartVariantsController.class);
         resources.add(com.mycompany.vizsgaremek.controller.PartsController.class);
-        resources.add(com.mycompany.vizsgaremek.controller.ImagesResourcesController.class);
         resources.add(com.mycompany.vizsgaremek.controller.PasswordResetsController.class);
         resources.add(com.mycompany.vizsgaremek.controller.PaymentsController.class);
         resources.add(com.mycompany.vizsgaremek.controller.ReviewsController.class);

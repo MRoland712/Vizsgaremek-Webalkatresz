@@ -18,9 +18,12 @@ public class Encrypt {
 
     private static final String AES_KEY = base64Converters.base64Converter(KvFetcher.getDataFromKV("EncryptionKey"));
 
+    // Encrypt.java-ba, az AES_KEY mező alá:
+    static String testAesKey = null;
+
     public static String encrypt(String plainText) throws Exception {
         // Use UTF-8 encoding explicitly ← CHANGED
-        byte[] keyBytes = AES_KEY.getBytes(StandardCharsets.UTF_8);
+        byte[] keyBytes = (testAesKey != null ? testAesKey : AES_KEY).getBytes(StandardCharsets.UTF_8);
         SecretKey secretKey = new SecretKeySpec(keyBytes, "AES");
 
         Cipher cipher = Cipher.getInstance("AES/ECB/PKCS5Padding");
@@ -33,7 +36,7 @@ public class Encrypt {
 
     public static String decrypt(String cipherText) throws Exception {
         // Use UTF-8 encoding explicitly ← CHANGED
-        byte[] keyBytes = AES_KEY.getBytes(StandardCharsets.UTF_8);
+        byte[] keyBytes = (testAesKey != null ? testAesKey : AES_KEY).getBytes(StandardCharsets.UTF_8);
         SecretKey secretKey = new SecretKeySpec(keyBytes, "AES");
 
         Cipher cipher = Cipher.getInstance("AES/ECB/PKCS5Padding");
