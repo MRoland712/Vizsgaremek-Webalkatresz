@@ -17,7 +17,6 @@
   overflow-x: hidden;
   transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
-
 .profile-sidenav:hover {
   width: 280px;
 }
@@ -86,7 +85,6 @@
   opacity: 1;
   transform: translateX(0);
 }
-
 .sidenav-link:hover {
   background: rgba(255, 102, 0, 0.1);
   color: #ff6600;
@@ -95,7 +93,6 @@
   color: #ff6600;
   transform: scale(1.1);
 }
-
 .sidenav-link.active {
   background: linear-gradient(90deg, rgba(255, 102, 0, 0.15) 0%, rgba(255, 102, 0, 0.05) 100%);
   color: #ff6600;
@@ -172,7 +169,7 @@
 }
 
 /* ==========================================
-   RESPONSIVE SIDENAV
+   RESPONSIVE — TABLET
    ========================================== */
 @media (max-width: 992px) {
   .profile-sidenav {
@@ -187,97 +184,133 @@
   .profile-sidenav:hover .sidenav-logo img {
     width: 60px;
   }
+  .garage-main {
+    margin-left: 70px;
+    padding: 28px 24px;
+  }
 }
 
+/* ==========================================
+   RESPONSIVE — MOBIL
+   ========================================== */
 @media (max-width: 768px) {
+  /* ⭐ Global bottom nav elrejtése profile oldalakon */
+  body:has(.profile-sidenav) .mobile-bottom-nav {
+    display: none !important;
+  }
+
   .profile-sidenav {
-    /* Mobilon: vízszintes sáv alul */
     width: 100% !important;
-    height: 60px;
+    height: 64px;
     position: fixed;
     top: auto;
-    bottom: 64px; /* a global bottom nav felett */
+    bottom: 0; /* ⭐ képernyő aljára */
     left: 0;
+    right: 0;
     flex-direction: row;
     border-right: none;
-    border-top: 1px solid rgba(255, 102, 0, 0.2);
-    box-shadow: 0 -4px 16px rgba(0, 0, 0, 0.2);
-    overflow-x: auto;
-    overflow-y: hidden;
-    z-index: 800;
+    border-top: 1px solid rgba(255, 102, 0, 0.25);
+    box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.3);
+    z-index: 2001; /* ⭐ global nav (2000) felett */
+    padding: 0;
+    overflow: hidden;
   }
 
   .profile-sidenav:hover {
     width: 100% !important;
+    height: 64px;
   }
 
   .sidenav-logo {
-    display: none;
-  }
-
-  .sidenav-menu {
-    padding: 0 8px;
-    display: flex;
-    flex-direction: row;
-    align-items: center;
-    gap: 0;
-    width: 100%;
-    overflow-x: auto;
-    scrollbar-width: none;
-  }
-  .sidenav-menu::-webkit-scrollbar {
-    display: none;
-  }
-
-  .sidenav-secondary {
     display: none;
   }
   .sidenav-divider {
     display: none;
   }
 
+  .sidenav-menu {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-around;
+    padding: 0;
+    margin: 0;
+    height: 64px;
+    width: 100%;
+    overflow: hidden;
+  }
+
+  .sidenav-secondary {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-around;
+    margin-top: 0;
+    height: 64px;
+    padding: 0;
+  }
+
   .sidenav-item {
-    flex-shrink: 0;
-    margin-bottom: 0;
+    flex: 1;
+    margin: 0;
+    display: flex;
+    height: 64px;
   }
 
   .sidenav-link {
+    flex: 1;
     flex-direction: column;
     gap: 3px;
-    padding: 8px 14px;
+    padding: 8px 4px;
     align-items: center;
     justify-content: center;
+    height: 64px;
+    min-width: 0;
+    border-radius: 0;
     white-space: nowrap;
   }
 
   .sidenav-link i {
     width: auto;
-    font-size: 18px;
+    font-size: 20px;
   }
 
   .sidenav-link span {
     opacity: 1 !important;
     transform: none !important;
-    font-size: 11px;
-  }
-
-  .sidenav-link::after {
-    display: none;
+    font-size: 10px;
+    font-weight: 500;
   }
 
   .sidenav-link.active::before {
-    left: 50%;
     top: 0;
+    left: 50%;
     transform: translateX(-50%);
     width: 60%;
     height: 3px;
     border-radius: 0 0 4px 4px;
   }
 
-  /* Garage main mobilon */
+  .sidenav-link::after {
+    display: none;
+  }
+
+  /* ⭐ Tartalom helyet hagy a bottom navnak */
   .garage-main {
     margin-left: 0 !important;
-    padding-bottom: 140px; /* helyet hagy a két nav barnak */
+    padding: 20px 16px 84px;
+  }
+}
+
+@media (max-width: 480px) {
+  .sidenav-link {
+    padding: 6px 2px;
+  }
+  .sidenav-link i {
+    font-size: 18px;
+  }
+  .sidenav-link span {
+    font-size: 9px;
   }
 }
 
@@ -299,7 +332,6 @@
   background: #fffafa;
 }
 
-/* Content */
 .garage-content {
   max-width: 860px;
   margin: 0 auto;
@@ -471,7 +503,6 @@
   color: #c62828;
   border: 1px solid #ef9a9a;
 }
-
 @keyframes fadeIn {
   from {
     opacity: 0;
@@ -608,7 +639,6 @@
 .state-box--error i {
   font-size: 32px;
 }
-
 .spinner {
   width: 36px;
   height: 36px;
@@ -622,7 +652,6 @@
     transform: rotate(360deg);
   }
 }
-
 .btn-retry {
   padding: 10px 24px;
   background: #ff6600;
@@ -634,7 +663,6 @@
   cursor: pointer;
   margin-top: 8px;
 }
-
 .btn-spinner {
   width: 16px;
   height: 16px;
@@ -643,4 +671,44 @@
   border-radius: 50%;
   animation: spin 0.7s linear infinite;
   display: inline-block;
+}
+
+/* ==========================================
+   RESPONSIVE GARAGE
+   ========================================== */
+@media (max-width: 768px) {
+  .garage-card {
+    padding: 20px 16px;
+  }
+  .cars-grid {
+    grid-template-columns: 1fr;
+  }
+  .garage-header__title {
+    font-size: 22px;
+  }
+  .garage-header__icon {
+    width: 44px;
+    height: 44px;
+    font-size: 18px;
+  }
+}
+
+@media (max-width: 480px) {
+  .garage-card {
+    padding: 16px 12px;
+    border-radius: 12px;
+  }
+  .btn-save {
+    width: 100%;
+    justify-content: center;
+  }
+  .form-actions {
+    flex-direction: column;
+  }
+  .cars-grid {
+    gap: 12px;
+  }
+  .garage-header__title {
+    font-size: 20px;
+  }
 }

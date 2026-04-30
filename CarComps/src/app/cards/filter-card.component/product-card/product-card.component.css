@@ -13,7 +13,6 @@
   -moz-box-shadow: 10px 4px 14px 4px rgba(43, 43, 43, 0.15);
   background-color: #fffafa;
 }
-
 .left {
   flex: 0 0 180px;
   background-color: #2b2b2b;
@@ -27,14 +26,12 @@
   border-top-right-radius: 0px;
   border-bottom-right-radius: 0px;
 }
-
 .left img {
   max-width: 100%;
   max-height: 100%;
   object-fit: contain;
   transition: transform 0.3s ease;
 }
-
 .right {
   flex: 1;
   display: flex;
@@ -42,12 +39,10 @@
   padding: 18px 16px;
   color: #2b2b2b;
 }
-
 .product-desc {
   flex: 1;
   margin-bottom: 10px;
 }
-
 .product-desc h2 {
   font-size: 20px;
   font-weight: 700;
@@ -63,18 +58,15 @@
   transition: color 0.2s ease;
   position: relative;
 }
-
 .product-desc h2:hover {
   color: #ff6600;
 }
-
 .product-desc h3 {
   font-size: 11px;
   font-weight: 400;
   color: #666;
   margin-bottom: 6px;
 }
-
 .product-desc ul {
   list-style: none;
   padding: 0;
@@ -86,7 +78,6 @@
 .price-section {
   margin-bottom: 10px;
 }
-
 .price {
   font-size: 20px;
   font-weight: 700;
@@ -104,7 +95,6 @@
   gap: 10px;
   margin-top: auto;
 }
-
 .quantity-controls {
   display: flex;
   align-items: center;
@@ -114,7 +104,6 @@
   background-color: #2b2b2b;
   color: #fffafa;
 }
-
 .quantity-btn {
   width: 32px;
   height: 42px;
@@ -127,15 +116,12 @@
   justify-content: center;
   font-size: 13px;
 }
-
 .quantity-btn.decrease:hover {
   background: linear-gradient(to right, #2b2b2b, #4a4949);
 }
-
 .quantity-btn.increase:hover {
   background: linear-gradient(to left, #2b2b2b, #4a4949);
 }
-
 .quantity-display {
   min-width: 40px;
   height: 42px;
@@ -147,7 +133,6 @@
   color: #fffafa;
   user-select: none;
 }
-
 .add-to-cart-btn {
   flex: 1;
   height: 42px;
@@ -162,13 +147,10 @@
   gap: 6px;
   font-size: 14px;
   font-weight: 600;
-  transition: background 0.2s;
 }
-
 .add-to-cart-btn:hover {
   background: linear-gradient(to right, #2b2b2b, #4a4949);
 }
-
 .add-to-cart-btn i {
   font-size: 16px;
 }
@@ -177,11 +159,9 @@
 .left.clickable {
   cursor: pointer;
 }
-
 .left.clickable:hover img {
   transform: scale(1.05);
 }
-
 .image-overlay {
   position: absolute;
   top: 0;
@@ -198,72 +178,29 @@
   transition: opacity 0.3s ease;
   color: white;
 }
-
 .left.clickable:hover .image-overlay {
   opacity: 1;
 }
-
 .image-overlay i {
   font-size: 32px;
   color: #ff6600;
 }
-
 .image-overlay span {
   font-size: 16px;
   font-weight: 600;
   color: white;
 }
 
-.clickable-title:hover::after {
-  width: 100%;
-}
-
-/* ⭐ NINCS ANIMÁCIÓ - .added és @keyframes törölve */
-
-/* Responsive */
-@media (max-width: 768px) {
-  .product-wrapper {
-    flex-direction: column;
-    height: auto;
-    max-width: 350px;
-  }
-
-  .left {
-    flex: 0 0 180px;
-    width: 100%;
-  }
-
-  .right {
-    padding: 16px;
-  }
-
-  .button-container {
-    flex-direction: column;
-    gap: 10px;
-  }
-
-  .quantity-controls {
-    width: 100%;
-    justify-content: center;
-  }
-
-  .add-to-cart-btn {
-    width: 100%;
-  }
-}
-
-/* ── Cooldown state ───────────────────────────────────────── */
+/* Cooldown */
 .add-to-cart-btn.cooldown {
   background-color: #2b2b2b;
   cursor: not-allowed;
 }
-
 .add-to-cart-btn.cooldown i {
   font-size: 18px;
   color: #ff6600;
   animation: popIn 0.25s ease;
 }
-
 @keyframes popIn {
   0% {
     transform: scale(0.4);
@@ -278,32 +215,89 @@
   }
 }
 
-/* ── Out of stock state ──────────────────────────────────── */
+/* Out of stock */
 .add-to-cart-btn.out-of-stock {
   background-color: #3a3a3a;
   color: #888;
   cursor: not-allowed;
   font-size: 12px;
 }
-
 .add-to-cart-btn.out-of-stock i {
   font-size: 14px;
   color: #888;
 }
-
 .add-to-cart-btn:disabled,
 .quantity-btn:disabled {
   opacity: 0.5;
   cursor: not-allowed;
 }
 
-/* ── Állapot színek ──────────────────────────────────────── */
+/* Státusz */
 .status-available {
   color: #43a047;
   font-weight: 600;
 }
-
 .status-unavailable {
   color: #e53935;
   font-weight: 600;
+}
+
+/* ==========================================
+   RESPONSIVE
+   ========================================== */
+@media (max-width: 768px) {
+  .product-wrapper {
+    flex-direction: column;
+    height: auto;
+    max-width: 100%; /* ⭐ teljes szélesség mobilon */
+    margin-bottom: 16px;
+  }
+  .left {
+    flex: 0 0 180px;
+    width: 100%;
+    border-radius: 12px 12px 0 0; /* ⭐ felső sarkok lekerekítve */
+  }
+  .right {
+    padding: 14px;
+  }
+  .button-container {
+    flex-direction: row; /* ⭐ egy sorban maradnak a gombok */
+    gap: 8px;
+    flex-wrap: nowrap;
+  }
+  .quantity-controls {
+    flex-shrink: 0; /* ⭐ nem nyomódik össze */
+  }
+  .add-to-cart-btn {
+    flex: 1;
+    font-size: 13px;
+  }
+  .product-desc h2 {
+    font-size: 16px;
+  }
+  .price {
+    font-size: 17px;
+  }
+}
+
+@media (max-width: 480px) {
+  .product-wrapper {
+    border-radius: 12px;
+  }
+  .left {
+    flex: 0 0 150px;
+  }
+  .quantity-btn {
+    width: 28px;
+    height: 38px;
+  }
+  .quantity-display {
+    min-width: 32px;
+    height: 38px;
+    font-size: 13px;
+  }
+  .add-to-cart-btn {
+    height: 38px;
+    font-size: 12px;
+  }
 }

@@ -72,10 +72,6 @@ export class BreadcrumbService {
     const decodedUrl = decodeURIComponent(url);
     const urlSegments = decodedUrl.split('/').filter((segment) => segment);
 
-    console.log('🍞 Building breadcrumbs for URL:', url);
-    console.log('  Decoded URL:', decodedUrl);
-    console.log('  Segments:', urlSegments);
-
     // Főoldal mindig az első
     breadcrumbs.push({
       label: 'Főoldal',
@@ -104,9 +100,6 @@ export class BreadcrumbService {
         label: categoryLabel,
         url: `/products/${category}`, // Eredeti (encoded) formában
       });
-
-      console.log('  ✅ Kategória mentve:', normalizedCategory);
-      console.log('  ✅ Kategória label:', categoryLabel);
     }
 
     // ⭐ /product/:id
@@ -122,8 +115,6 @@ export class BreadcrumbService {
           label: categoryLabel,
           url: `/products/${this.lastVisitedCategory}`,
         });
-
-        console.log('  ✅ Kategória hozzáadva breadcrumb-hoz:', this.lastVisitedCategory);
       }
 
       // Termék placeholder (később frissül)
@@ -131,8 +122,6 @@ export class BreadcrumbService {
         label: `Termék #${productId}`,
         url: `/product/${productId}`,
       });
-
-      console.log('  ✅ Termék placeholder:', productId);
     }
 
     // ⭐ Egyéb route-ok (/profile, /mygarage, stb.)
@@ -146,7 +135,6 @@ export class BreadcrumbService {
       });
     }
 
-    console.log('  Final breadcrumbs:', breadcrumbs);
     return breadcrumbs;
   }
 
@@ -172,7 +160,6 @@ export class BreadcrumbService {
     // ⭐ Normalizálás (kisbetű + trim)
     const normalized = category.toLowerCase().trim();
     this.lastVisitedCategory = normalized;
-    console.log('  ✅ Kategória manuálisan beállítva:', normalized);
   }
 
   /**

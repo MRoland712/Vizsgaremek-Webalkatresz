@@ -12,27 +12,31 @@ import { CheckoutProgressComponent } from '../../shared/checkoutprogress.compone
   selector: 'app-delivery',
   standalone: true,
   imports: [
-    CommonModule, ReactiveFormsModule, MainHeaderComponent, FooterComponent,
-    CheckoutProgressComponent, PaymentForwardButtonComponent,
+    CommonModule,
+    ReactiveFormsModule,
+    MainHeaderComponent,
+    FooterComponent,
+    CheckoutProgressComponent,
+    PaymentForwardButtonComponent,
   ],
   templateUrl: './delivery.component.html',
   styleUrl: './delivery.component.css',
 })
 export class DeliveryComponent {
-  private fb     = inject(FormBuilder);
+  private fb = inject(FormBuilder);
   private router = inject(Router);
-  private auth   = inject(AuthService);
+  private auth = inject(AuthService);
 
   autoFillSuccess = signal(false);
 
   deliveryForm = this.fb.nonNullable.group({
-    lastname:   ['', [Validators.required, Validators.minLength(2)]],
-    firstname:  ['', [Validators.required, Validators.minLength(2)]],
-    city:       ['', [Validators.required]],
+    lastname: ['', [Validators.required, Validators.minLength(2)]],
+    firstname: ['', [Validators.required, Validators.minLength(2)]],
+    city: ['', [Validators.required]],
     postalCode: ['', [Validators.required, Validators.pattern(/^[0-9]{4}$/)]],
-    country:    ['', [Validators.required]],
-    phone:      ['', [Validators.required, Validators.pattern(/^[+0-9]{7,15}$/)]],
-    address:    ['', [Validators.required]],
+    country: ['', [Validators.required]],
+    phone: ['', [Validators.required, Validators.pattern(/^[+0-9]{7,15}$/)]],
+    address: ['', [Validators.required]],
     newsletter: [false],
   });
 
@@ -46,13 +50,13 @@ export class DeliveryComponent {
         try {
           const addr = JSON.parse(userAddr);
           this.deliveryForm.patchValue({
-            lastname:   addr.lastname   || '',
-            firstname:  addr.firstname  || '',
-            city:       addr.city       || '',
+            lastname: addr.lastname || '',
+            firstname: addr.firstname || '',
+            city: addr.city || '',
             postalCode: addr.postalCode || '',
-            country:    addr.country    || 'Magyarország',
-            phone:      addr.phone      || '',
-            address:    [addr.street, addr.houseNumber].filter(Boolean).join(' '),
+            country: addr.country || 'Magyarország',
+            phone: addr.phone || '',
+            address: [addr.street, addr.houseNumber].filter(Boolean).join(' '),
           });
           filled = true;
         } catch {}
@@ -66,13 +70,13 @@ export class DeliveryComponent {
           const addr = JSON.parse(savedAddress);
           if (!addr._userId || addr._userId === userId) {
             this.deliveryForm.patchValue({
-              lastname:   addr.lastname   || '',
-              firstname:  addr.firstname  || '',
-              city:       addr.city       || '',
+              lastname: addr.lastname || '',
+              firstname: addr.firstname || '',
+              city: addr.city || '',
               postalCode: addr.postalCode || '',
-              country:    addr.country    || 'Magyarország',
-              phone:      addr.phone      || '',
-              address:    [addr.street, addr.houseNumber].filter(Boolean).join(' '),
+              country: addr.country || 'Magyarország',
+              phone: addr.phone || '',
+              address: [addr.street, addr.houseNumber].filter(Boolean).join(' '),
             });
             filled = true;
           }
@@ -83,7 +87,10 @@ export class DeliveryComponent {
     if (!filled) {
       const prev = localStorage.getItem('deliveryData');
       if (prev) {
-        try { this.deliveryForm.patchValue(JSON.parse(prev)); filled = true; } catch {}
+        try {
+          this.deliveryForm.patchValue(JSON.parse(prev));
+          filled = true;
+        } catch {}
       }
     }
 
@@ -106,12 +113,17 @@ export class DeliveryComponent {
     }
   }
 
-  goBack()  { this.router.navigate(['/cart']); }
+  goBack() {
+    this.router.navigate(['/cart']);
+  }
 
   onSubmit() {
-    if (this.deliveryForm.invalid) { this.deliveryForm.markAllAsTouched(); return; }
+    if (this.deliveryForm.invalid) {
+      this.deliveryForm.markAllAsTouched();
+      return;
+    }
     const val = this.deliveryForm.getRawValue();
     localStorage.setItem('deliveryData', JSON.stringify(val));
-    this.router.navigate(['/payment']);
+    this.router.navigate(['/summary']); // ⭐ delivery → summary (nyugtázás)
   }
 }

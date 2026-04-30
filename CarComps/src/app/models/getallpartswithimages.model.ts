@@ -8,6 +8,7 @@ export interface PartWithImagesModel {
   isActive: boolean;
   status: string;
   manufacturerId: number;
+  description: string;
   imageUrl: string; // közvetlenül a response-ban jön
   createdAt: string;
   updatedAt: string;

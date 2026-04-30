@@ -21,7 +21,6 @@ export const routes: Routes = [
         (m) => m.ProductDetailComponent,
       ),
   },
-
   // ── Checkout folyamat ─────────────────────────────────────
   {
     path: 'cart',
@@ -36,19 +35,26 @@ export const routes: Routes = [
     canActivate: [authGuard],
   },
   {
+    path: 'summary',
+    loadComponent: () =>
+      import('./payment/summary.component/summary.component').then((m) => m.SummaryComponent),
+    canActivate: [authGuard],
+  },
+  {
     path: 'payment',
     loadComponent: () =>
       import('./payment/pay.component/pay.component').then((m) => m.PayComponent),
     canActivate: [authGuard],
   },
   {
-    path: 'summary',
+    path: 'finish',
     loadComponent: () =>
-      import('./payment/summary.component/summary.component').then((m) => m.SummaryComponent),
+      import('./paymentfinished.component/paymentfinished.component').then(
+        (m) => m.PaymentFinishComponent,
+      ),
     canActivate: [authGuard],
   },
-
-  // ── Védett (bejelentkezés kell) ───────────────────────────
+  // ── Védett ───────────────────────────────────────────────
   {
     path: 'profile',
     loadComponent: () =>
@@ -65,8 +71,7 @@ export const routes: Routes = [
       ),
     canActivate: [authGuard],
   },
-
-  // ── Admin (csak admin role) ───────────────────────────────
+  // ── Admin ─────────────────────────────────────────────────
   {
     path: 'admin',
     loadComponent: () =>
@@ -107,7 +112,6 @@ export const routes: Routes = [
       ),
     canActivate: [adminGuard],
   },
-
-  // ── 404 ───────────────────────────────────────────────────
+  // ── 404 ──────────────────────────────────────────────────
   { path: '**', redirectTo: '' },
 ];

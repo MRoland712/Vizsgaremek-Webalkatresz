@@ -1,4 +1,4 @@
-import { Component, signal, OnInit, OnDestroy } from '@angular/core';
+import { Component, signal, AfterViewInit, OnDestroy } from '@angular/core';
 
 @Component({
   selector: 'app-advertisement',
@@ -6,14 +6,15 @@ import { Component, signal, OnInit, OnDestroy } from '@angular/core';
   templateUrl: './advertisement.component.html',
   styleUrl: './advertisement.component.css',
 })
-export class AdvertisementComponent implements OnInit, OnDestroy {
+export class AdvertisementComponent implements AfterViewInit, OnDestroy {
   slideIndex = signal(0);
   private prevIndex = 0;
   private slideTimeout: any = null;
   private isAnimating = false;
   private readonly SLIDE_INTERVAL = 15000;
 
-  ngOnInit() {
+  // ⭐ AfterViewInit — garantáltan le van renderelve a DOM
+  ngAfterViewInit() {
     this.initSlides();
     this.scheduleNext();
   }
@@ -40,13 +41,12 @@ export class AdvertisementComponent implements OnInit, OnDestroy {
 
   private initSlides() {
     const slides = Array.from(document.getElementsByClassName('mySlides')) as HTMLElement[];
-    const dots   = Array.from(document.getElementsByClassName('dot'))     as HTMLElement[];
+    const dots = Array.from(document.getElementsByClassName('dot')) as HTMLElement[];
 
     slides.forEach((slide, i) => {
       slide.className = 'mySlides';
       if (i === 0) slide.classList.add('in');
     });
-
     dots.forEach((dot, i) => {
       dot.classList.toggle('active', i === 0);
     });
@@ -54,10 +54,9 @@ export class AdvertisementComponent implements OnInit, OnDestroy {
 
   private goToSlide(nextIdx: number) {
     if (this.isAnimating) return;
-
     const slides = Array.from(document.getElementsByClassName('mySlides')) as HTMLElement[];
-    const dots   = Array.from(document.getElementsByClassName('dot'))     as HTMLElement[];
-    const total  = slides.length;
+    const dots = Array.from(document.getElementsByClassName('dot')) as HTMLElement[];
+    const total = slides.length;
     const normalized = ((nextIdx % total) + total) % total;
 
     if (normalized === this.slideIndex()) {
@@ -72,29 +71,22 @@ export class AdvertisementComponent implements OnInit, OnDestroy {
     const prev = slides[this.prevIndex];
     const curr = slides[normalized];
 
-    // Reset összes slide — csak prev és curr animálunk
     slides.forEach((s, i) => {
-      if (i !== this.prevIndex && i !== normalized) {
-        s.className = 'mySlides';
-      }
+      if (i !== this.prevIndex && i !== normalized) s.className = 'mySlides';
     });
 
-    // Prev kimegy balra, curr bejön jobbról
     prev.className = 'mySlides out-left';
     curr.className = 'mySlides in';
 
-    // Dots
     dots.forEach((dot, i) => dot.classList.toggle('active', i === normalized));
 
-    // Animáció vége után reset
     setTimeout(() => {
       prev.className = 'mySlides';
       this.isAnimating = false;
       this.scheduleNext();
-    }, 1000); // transition ideje
+    }, 1000);
   }
 
-  // Dot kattintásra (1-alapú)
   currentSlide(n: number) {
     this.clearTimer();
     this.goToSlide(n - 1);

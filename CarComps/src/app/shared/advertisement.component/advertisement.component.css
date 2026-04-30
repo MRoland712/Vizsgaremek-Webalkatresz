@@ -1,55 +1,39 @@
-/* full-width colored background behind slider */
+/* ── Host elem teljes szélesség ── */
+:host {
+  display: block;
+  width: 100%;
+}
+
+/* ── Háttér ── */
 .slider-bg {
-  position: relative;
-  left: 50%;
-  right: 50%;
-  margin-left: -50vw;
-  margin-right: -50vw;
-  width: 100vw;
+  width: 100%;
   background: #2b2b2b;
   overflow: hidden;
   padding: 20px 0;
-  min-height: 387px;
   border-top: 3px solid #ff6600;
   box-shadow: inset 0 8px 20px rgba(0, 0, 0, 0.45);
 }
 
-/* Slideshow container */
+/* ── Slideshow container ── */
 .slideshow-container {
   width: 735px;
   height: 387px;
   position: relative;
-  margin: 20px auto;
+  margin: 0 auto;
   overflow: hidden;
   border-radius: 12px;
   background: #2b2b2b;
 }
 
-.slideshow-container .mySlides img {
-  width: 735px;
-  height: 387px;
-  object-fit: contain;
-  display: block;
-}
-
-/* Dots */
-.dots-container {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  padding-top: 20px;
-  width: 100%;
-}
-
+/* ── Slide ── */
 .mySlides {
   position: absolute;
-  width: 735px;
-  height: 387px;
+  width: 100%;
+  height: 100%;
   top: 0;
   left: 0;
   border-radius: 12px;
   overflow: hidden;
-  text-align: center;
   opacity: 0;
   transform: translateX(100%);
   transition:
@@ -62,10 +46,12 @@
   transform: translateX(0);
   opacity: 1;
 }
+
 .mySlides.out-left {
   transform: translateX(-100%);
   opacity: 0;
 }
+
 .mySlides.out-right {
   transform: translateX(100%);
   opacity: 0;
@@ -77,43 +63,13 @@
   object-fit: cover;
 }
 
-/* Buttons */
-.prev,
-.next {
-  cursor: pointer;
-  position: absolute;
-  top: 50%;
-  width: auto;
-  margin-top: -22px;
-  padding: 16px;
-  color: white;
-  font-weight: bold;
-  font-size: 18px;
-  transition: 0.6s ease;
-  border-radius: 0 3px 3px 0;
-  user-select: none;
-}
-.next {
-  right: 0;
-  border-radius: 3px 0 0 3px;
-}
-.prev:hover,
-.next:hover {
-  background-color: rgba(0, 0, 0, 0.8);
-}
-
-.text {
-  color: #f2f2f2;
-  font-size: 15px;
-  padding: 8px 12px;
-  position: absolute;
-  bottom: 8px;
+/* ── Dots ── */
+.dots-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding-top: 16px;
   width: 100%;
-  text-align: center;
-}
-
-.numbertext {
-  display: none;
 }
 
 .dot {
@@ -127,35 +83,52 @@
   transition: all 0.3s ease;
 }
 
-.active,
+.dot.active,
 .dot:hover {
   background-color: #ff6600;
   transform: scale(1.3);
 }
 
-/* ── Reszponzív ── */
+/* ── Navigáció ── */
+.prev,
+.next {
+  cursor: pointer;
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  padding: 16px;
+  color: white;
+  font-weight: bold;
+  font-size: 18px;
+  transition: 0.3s ease;
+  user-select: none;
+  z-index: 10;
+  background: rgba(0, 0, 0, 0.3);
+}
+.prev {
+  left: 0;
+  border-radius: 0 3px 3px 0;
+}
+.next {
+  right: 0;
+  border-radius: 3px 0 0 3px;
+}
+.prev:hover,
+.next:hover {
+  background: rgba(0, 0, 0, 0.7);
+}
+
+/* ── Responsive ── */
 @media (max-width: 800px) {
   .slider-bg {
-    min-height: unset;
     padding: 12px 0;
   }
 
   .slideshow-container {
     width: calc(100vw - 32px);
     height: calc((100vw - 32px) * 387 / 735);
-    margin: 12px auto;
+    margin: 0 auto;
     border-radius: 10px;
-  }
-
-  .mySlides {
-    width: 100%;
-    height: 100%;
-    border-radius: 10px;
-  }
-
-  .slideshow-container .mySlides img {
-    width: 100%;
-    height: 100%;
   }
 
   .dot {
@@ -163,7 +136,7 @@
     width: 12px;
   }
   .dots-container {
-    padding-top: 12px;
+    padding-top: 10px;
   }
 }
 
@@ -171,7 +144,6 @@
   .slideshow-container {
     width: calc(100vw - 16px);
     height: calc((100vw - 16px) * 387 / 735);
-    margin: 8px auto;
     border-radius: 8px;
   }
 
@@ -183,7 +155,6 @@
   .dots-container {
     padding-top: 8px;
   }
-
   .prev,
   .next {
     padding: 10px;

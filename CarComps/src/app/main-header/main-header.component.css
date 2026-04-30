@@ -1415,6 +1415,7 @@
 .garage-add-btn {
   display: inline-flex;
   align-items: center;
+  justify-content: center;
   gap: 6px;
   padding: 8px 16px;
   background: #ff6600;
@@ -1425,8 +1426,8 @@
   font-weight: 600;
   transition: all 0.2s;
   margin-top: 4px;
+  width: auto;
 }
-
 .garage-add-btn:hover {
   background: #ff7722;
   transform: translateY(-1px);

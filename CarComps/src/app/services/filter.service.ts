@@ -152,6 +152,7 @@ export class FilterService {
           imageUrl: imageMap.get(p.id) || 'assets/placeholder.jpg',
           createdAt: p.createdAt,
           updatedAt: p.updatedAt,
+          description: p.description,
         }));
 
         this._vehicleParts.set(partsWithImages);

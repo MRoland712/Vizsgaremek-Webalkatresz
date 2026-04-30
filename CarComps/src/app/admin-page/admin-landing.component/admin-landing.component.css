@@ -7,12 +7,11 @@
   align-items: center;
 }
 
-/* ── Header ─────────────────────────────────────────────── */
+/* ── Header ── */
 .admin-header {
   text-align: center;
   margin-bottom: 64px;
 }
-
 .admin-header h1 {
   font-size: 42px;
   font-weight: 800;
@@ -23,12 +22,11 @@
   justify-content: center;
   gap: 16px;
 }
-
 .admin-header h1 i {
   color: #ff6600;
 }
 
-/* ── Cards ───────────────────────────────────────────────── */
+/* ── Cards ── */
 .admin-cards {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
@@ -36,7 +34,6 @@
   max-width: 900px;
   width: 100%;
 }
-
 .admin-card {
   position: relative;
   background: #fffafa;
@@ -46,20 +43,16 @@
   cursor: pointer;
   overflow: hidden;
   box-shadow: 0px 0px 15px 0px rgba(0, 0, 0, 0.3);
-  -webkit-box-shadow: 0px 0px 15px 0px rgba(0, 0, 0, 0.3);
-  -moz-box-shadow: 0px 0px 15px 0px rgba(0, 0, 0, 0.3);
   transition: all 0.35s cubic-bezier(0.25, 1, 0.5, 1);
   display: flex;
   flex-direction: column;
   gap: 20px;
 }
-
 .admin-card:hover {
   transform: translateY(-8px);
   border-color: #ff6600;
 }
 
-/* Icon */
 .card-icon-wrap {
   width: 72px;
   height: 72px;
@@ -74,24 +67,20 @@
   position: relative;
   z-index: 1;
 }
-
 .admin-card:hover .card-icon-wrap {
   background: linear-gradient(135deg, #ff6600, #ff8c40);
 }
 
-/* Body */
 .card-body {
   position: relative;
   z-index: 1;
 }
-
 .card-body h2 {
   font-size: 24px;
   font-weight: 700;
   color: #2b2b2b;
   margin: 0 0 10px 0;
 }
-
 .card-body p {
   font-size: 14px;
   color: #888;
@@ -99,7 +88,6 @@
   margin: 0;
 }
 
-/* Arrow */
 .card-arrow {
   position: absolute;
   bottom: 28px;
@@ -115,24 +103,55 @@
   font-size: 16px;
   transition: all 0.3s ease;
 }
-
 .admin-card:hover .card-arrow {
   border-color: #ff6600;
   color: #ff6600;
   transform: translateX(4px);
 }
 
-/* ── Responsive ──────────────────────────────────────────── */
+/* ── Vissza gomb ── */
+.btn-back-login {
+  margin-top: 48px;
+  padding: 12px 28px;
+  background: transparent;
+  border: 2px solid #2b2b2b;
+  border-radius: 30px;
+  color: #2b2b2b;
+  font-size: 14px;
+  font-weight: 700;
+  font-family: inherit;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  transition: all 0.2s;
+}
+.btn-back-login:hover {
+  background: #2b2b2b;
+  color: #ff6600;
+}
+.btn-back-login i {
+  font-size: 14px;
+}
+
+/* ── Responsive ── */
 @media (max-width: 700px) {
   .admin-cards {
     grid-template-columns: 1fr;
   }
-
   .admin-header h1 {
     font-size: 32px;
   }
-
   .admin-card {
     padding: 36px 28px;
+  }
+  .admin-landing {
+    padding: 40px 16px;
+  }
+  .admin-header {
+    margin-bottom: 40px;
+  }
+  .btn-back-login {
+    margin-top: 32px;
   }
 }

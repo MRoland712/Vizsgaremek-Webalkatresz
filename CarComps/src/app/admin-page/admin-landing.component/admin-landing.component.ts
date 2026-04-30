@@ -14,16 +14,16 @@ export class AdminLandingComponent {
   goToNewProduct() {
     this.router.navigate(['/admin/new-product']);
   }
-
   goToProducts() {
     this.router.navigate(['/admin/products']);
   }
-
   goToEcommerce() {
     this.router.navigate(['/admin/ecommerce']);
   }
-
   goToAnalytics() {
     this.router.navigate(['/admin/analytics']);
+  }
+  goToLogin() {
+    this.router.navigate(['/login']);
   }
 }

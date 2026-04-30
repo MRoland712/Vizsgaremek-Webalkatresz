@@ -5,6 +5,7 @@ import { MainHeaderComponent } from '../../main-header/main-header.component';
 import { FooterComponent } from '../../footer.component/footer.component';
 import { AuthService } from '../../services/auth.service';
 import { CheckoutProgressComponent } from '../../shared/checkoutprogress.component/checkoutprogress.component';
+import { PaymentForwardButtonComponent } from '../../shared/payment-forward-button.component/payment-forward-button.component';
 
 interface CartItem {
   id: number;
@@ -15,7 +16,6 @@ interface CartItem {
   price: number;
   quantity: number;
 }
-
 interface DeliveryData {
   lastname: string;
   firstname: string;
@@ -25,7 +25,6 @@ interface DeliveryData {
   phone: string;
   address: string;
 }
-
 interface PaymentData {
   method: string;
   amount: number;
@@ -35,7 +34,13 @@ interface PaymentData {
 @Component({
   selector: 'app-summary',
   standalone: true,
-  imports: [CommonModule, MainHeaderComponent, FooterComponent, CheckoutProgressComponent],
+  imports: [
+    CommonModule,
+    MainHeaderComponent,
+    FooterComponent,
+    CheckoutProgressComponent,
+    PaymentForwardButtonComponent,
+  ],
   templateUrl: './summary.component.html',
   styleUrl: './summary.component.css',
 })
@@ -43,7 +48,7 @@ export class SummaryComponent implements OnInit {
   private router = inject(Router);
   private auth = inject(AuthService);
 
-  readonly SHIPPING_FEE = 0; // Ingyenes szállítás
+  readonly SHIPPING_FEE = 0;
 
   cartItems = signal<CartItem[]>([]);
   delivery = signal<DeliveryData | null>(null);
@@ -54,30 +59,23 @@ export class SummaryComponent implements OnInit {
   total = computed(() => this.subtotal() + this.SHIPPING_FEE);
 
   ngOnInit() {
-    // Kosár adatok localStorage-ból (pay.component mentette fizetés előtt)
     try {
       const cart = localStorage.getItem('cartItems');
-      if (cart) {
-        this.cartItems.set(JSON.parse(cart));
-        // Olvasás után töröljük - következő vásárlásnál friss kosár legyen
-        localStorage.removeItem('cartItems');
-      }
+      if (cart) this.cartItems.set(JSON.parse(cart));
     } catch {}
 
-    // Szállítási adatok
     try {
       const del = localStorage.getItem('deliveryData');
       if (del) this.delivery.set(JSON.parse(del));
     } catch {}
 
-    // Fizetési adatok (pay.component mentette)
     try {
       const pay = localStorage.getItem('paymentData');
       if (pay) {
         const pd: PaymentData = JSON.parse(pay);
         this.paymentData.set(pd);
         const methodMap: Record<string, string> = {
-          cash: 'Készpénz',
+          cash_on_delivery: 'Készpénz',
           paypal: 'PayPal',
           mastercard: 'Mastercard',
           visa: 'VISA',
@@ -101,39 +99,10 @@ export class SummaryComponent implements OnInit {
     return price.toLocaleString('hu-HU') + ' Ft';
   }
 
-  editDelivery() {
-    this.router.navigate(['/delivery']);
-  }
-  editPayment() {
+  goToPayment() {
     this.router.navigate(['/payment']);
   }
-
-  downloadInvoice() {
-    const orderId = this.paymentData()?.orderId ?? '-';
-    const content = `CARCOMPS SZÁMLA
-===================
-Rendelésszám: #${orderId}
-Vevő: ${this.fullName}
-Cím: ${this.fullAddress}
-Fizetési mód: ${this.paymentMethod()}
-
-TÉTELEK:
-${this.cartItems()
-  .map((i) => `- ${i.name} x${i.quantity}: ${this.formatPrice(i.price * i.quantity)}`)
-  .join('\n')}
-
-Összesen: ${this.formatPrice(this.subtotal())}
-Szállítási díj: ${this.formatPrice(this.SHIPPING_FEE)}
-Végösszeg: ${this.formatPrice(this.total())}
-
-Az ár tartalmazza az ÁFÁ-t.
-`;
-    const blob = new Blob([content], { type: 'text/plain;charset=utf-8' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `carcomps-szamla-${orderId}.txt`;
-    a.click();
-    URL.revokeObjectURL(url);
+  goBack() {
+    this.router.navigate(['/delivery']);
   }
 }

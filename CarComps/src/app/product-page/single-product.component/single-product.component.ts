@@ -36,7 +36,6 @@ export class ProductDetailComponent implements OnInit {
   private cartService = inject(CartService);
   private reviewsService = inject(CreateReviewsService);
 
-  // ── Bejelentkezett user adatai ────────────────────────────
   currentUserId = signal(Number(localStorage.getItem('userId') || '0'));
   currentUserName = signal(
     `${localStorage.getItem('firstName') || ''} ${localStorage.getItem('lastName') || ''}`.trim() ||
@@ -51,8 +50,8 @@ export class ProductDetailComponent implements OnInit {
   isLoading = signal(true);
   manufacturer = signal<ManufacturersModel | null>(null);
   activeTab = signal<'description' | 'reviews'>('description');
+  description = signal('');
 
-  // ── Reviews ──────────────────────────────────────────────
   reviews = signal<ReviewModel[]>([]);
   isLoadingReviews = signal(false);
 
@@ -61,10 +60,8 @@ export class ProductDetailComponent implements OnInit {
     if (!r.length) return 0;
     return Math.round((r.reduce((sum, rv) => sum + rv.rating, 0) / r.length) * 10) / 10;
   });
-
   reviewCount = computed(() => this.reviews().length);
 
-  // ── Vélemény írása form ───────────────────────────────────
   showReviewForm = signal(false);
   reviewRating = signal(5);
   reviewComment = signal('');
@@ -72,7 +69,6 @@ export class ProductDetailComponent implements OnInit {
   reviewSubmitSuccess = signal(false);
   reviewSubmitError = signal<string | null>(null);
 
-  // ── Stock / Cooldown ──────────────────────────────────────
   isOutOfStock = computed(() => {
     const p = this.product();
     return !p || !p.isActive || (p.stock ?? 0) <= 0;
@@ -81,10 +77,11 @@ export class ProductDetailComponent implements OnInit {
   isCooldown = signal(false);
   private cooldownTimer: any;
 
+  readonly PLACEHOLDER = 'assets/placeholder.jpg';
+
   ngOnInit(): void {
     this.route.params.subscribe((params) => {
-      const productId = +params['id'];
-      this.loadProductDetails(productId);
+      this.loadProductDetails(+params['id']);
     });
   }
 
@@ -92,23 +89,29 @@ export class ProductDetailComponent implements OnInit {
     this.isLoading.set(true);
     this.partsService.getAllPartsWithImages().subscribe({
       next: (res) => {
-        const foundProduct = res.parts.find((p) => p.id === productId);
-        if (!foundProduct) {
+        const found = res.parts.find((p) => p.id === productId);
+        if (!found) {
           this.router.navigate(['/']);
           return;
         }
-        const img = foundProduct.imageUrl || 'assets/placeholder.jpg';
-        this.product.set(foundProduct);
+
+        // ⭐ Fallback ha nincs kép
+        const img = found.imageUrl?.trim() ? found.imageUrl : this.PLACEHOLDER;
+
+        this.product.set(found);
         this.images.set([img]);
         this.selectedImage.set(img);
+        this.description.set(found.description || '');
         this.isLoading.set(false);
-        this.breadcrumbService.setLastCategory(foundProduct.category.toLowerCase());
-        this.breadcrumbService.updateProductName(productId, foundProduct.name);
+
+        this.breadcrumbService.setLastCategory(found.category.toLowerCase());
+        this.breadcrumbService.updateProductName(productId, found.name);
         this.loadReviews(productId);
+
         this.manufacturersService.getAllManufacturers().subscribe({
           next: (mfRes) => {
-            const found = mfRes.Manufacturers.find((m) => m.id === foundProduct.manufacturerId);
-            this.manufacturer.set(found ?? null);
+            const mf = mfRes.Manufacturers.find((m) => m.id === found.manufacturerId);
+            this.manufacturer.set(mf ?? null);
           },
           error: () => {},
         });
@@ -134,7 +137,6 @@ export class ProductDetailComponent implements OnInit {
     });
   }
 
-  // ── Vélemény beküldése ────────────────────────────────────
   submitReview(): void {
     const userId = Number(localStorage.getItem('userId') || '0');
     const partId = this.product()?.id;
@@ -162,7 +164,6 @@ export class ProductDetailComponent implements OnInit {
           this.reviewComment.set('');
           this.reviewRating.set(5);
           this.showReviewForm.set(false);
-          // Frissítjük a listát
           this.loadReviews(partId);
           setTimeout(() => this.reviewSubmitSuccess.set(false), 3000);
         },
@@ -173,23 +174,21 @@ export class ProductDetailComponent implements OnInit {
       });
   }
 
-  setReviewRating(star: number): void {
+  setReviewRating(star: number) {
     this.reviewRating.set(star);
   }
-
-  toggleReviewForm(): void {
+  toggleReviewForm() {
     this.showReviewForm.update((v) => !v);
     this.reviewSubmitError.set(null);
     this.reviewSubmitSuccess.set(false);
   }
-
-  selectImage(imageUrl: string): void {
-    this.selectedImage.set(imageUrl);
+  selectImage(url: string) {
+    this.selectedImage.set(url);
   }
-  increaseQuantity(): void {
+  increaseQuantity() {
     this.quantity.update((q) => q + 1);
   }
-  decreaseQuantity(): void {
+  decreaseQuantity() {
     this.quantity.update((q) => (q > 1 ? q - 1 : 1));
   }
 
@@ -211,17 +210,19 @@ export class ProductDetailComponent implements OnInit {
   }
 
   getStars(): boolean[] {
-    const stars: boolean[] = [];
-    const fullStars = Math.floor(this.rating());
-    for (let i = 0; i < 5; i++) stars.push(i < fullStars);
-    return stars;
+    const full = Math.floor(this.rating());
+    return [0, 1, 2, 3, 4].map((i) => i < full);
   }
-
   hasHalfStar(): boolean {
     return this.rating() % 1 !== 0;
   }
-
   getReviewStars(rating: number): boolean[] {
     return [1, 2, 3, 4, 5].map((i) => i <= rating);
+  }
+
+  // ⭐ kép hiba kezelő — ha a kép nem töltődik be, placeholder-re vált
+  onImageError(event: Event): void {
+    const img = event.target as HTMLImageElement;
+    if (img.src !== this.PLACEHOLDER) img.src = this.PLACEHOLDER;
   }
 }
