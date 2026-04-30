@@ -41,7 +41,7 @@ public class ImageUploadService {
     /**
      * Get base URL - always production
      */
-    private static final String BASE_URL = "https://api.carcomps.hu/vizsgaremek-1.0-SNAPSHOT/webresources/images/";
+    //private static final String BASE_URL = "https://api.carcomps.hu/vizsgaremek-1.0-SNAPSHOT/webresources/images/";
 
     /**
      * Kép feltöltése OS típus alapján
